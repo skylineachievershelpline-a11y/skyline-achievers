@@ -46,21 +46,34 @@ export async function loadAccessibleLevels(db: Db) {
     .order("rank_order");
   const levels = data ?? [];
   if (levels.length === 0) return [];
-  const { data: series } = await db.from("series").select("id, level_id");
+  const [{ data: series }, { data: standalone }] = await Promise.all([
+    db.from("series").select("id, level_id"),
+    // Lectures added straight to a level, without a series.
+    db.from("lectures").select("id, level_id").is("series_id", null),
+  ]);
   const counts = new Map<string, number>();
   for (const row of series ?? []) {
     counts.set(row.level_id, (counts.get(row.level_id) ?? 0) + 1);
   }
+  const lectureCounts = new Map<string, number>();
+  for (const row of standalone ?? []) {
+    if (!row.level_id) continue;
+    lectureCounts.set(row.level_id, (lectureCounts.get(row.level_id) ?? 0) + 1);
+  }
   return levels
-    .map((level) => ({ ...level, series_count: counts.get(level.id) ?? 0 }))
-    .filter((level) => level.series_count > 0);
+    .map((level) => ({
+      ...level,
+      series_count: counts.get(level.id) ?? 0,
+      lecture_count: lectureCounts.get(level.id) ?? 0,
+    }))
+    .filter((level) => level.series_count > 0 || level.lecture_count > 0);
 }
 
 export async function loadLectureCard(db: Db, limit: number) {
   const { data } = await db
     .from("lectures")
     .select(
-      "id, title, description, duration_seconds, thumbnail_path, created_at, series:series_id (id, title, levels:level_id (id, name, slug))",
+      "id, title, description, duration_seconds, thumbnail_path, created_at, series:series_id (id, title, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -71,7 +84,7 @@ export async function loadContinueWatching(db: Db, userId: string) {
   const { data } = await db
     .from("watch_positions")
     .select(
-      "position_seconds, updated_at, lectures:lecture_id (id, title, duration_seconds, thumbnail_path, series:series_id (id, title, levels:level_id (id, name, slug)))",
+      "position_seconds, updated_at, lectures:lecture_id (id, title, duration_seconds, thumbnail_path, series:series_id (id, title, levels:level_id (id, name, slug)), levels:level_id (id, name, slug))",
     )
     .eq("member_id", userId)
     .gt("position_seconds", 15)
@@ -87,6 +100,19 @@ export async function loadContinueWatching(db: Db, userId: string) {
   );
   return withThumbs;
 }
+
+/** Lectures attached directly to a level (no series). */
+export async function loadStandaloneLecturesForLevel(db: Db, levelId: string) {
+  const { data } = await db
+    .from("lectures")
+    .select("id, title, description, duration_seconds, thumbnail_path, sort_order, created_at")
+    .eq("level_id", levelId)
+    .is("series_id", null)
+    .order("sort_order")
+    .order("created_at");
+  return signThumbnails(data ?? []);
+}
+
 
 export async function loadSeriesForLevel(db: Db, levelId: string) {
   const { data } = await db

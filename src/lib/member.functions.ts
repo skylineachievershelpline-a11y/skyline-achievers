@@ -89,16 +89,20 @@ export const getLevelDetail = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => z.object({ slug: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     const db = context.supabase as never;
-    const { loadSeriesForLevel } = await import("./member.server");
+    const { loadSeriesForLevel, loadStandaloneLecturesForLevel } = await import("./member.server");
     const { data: level } = await (db as any)
       .from("levels")
       .select("id, name, slug, description, rank_order")
       .eq("slug", data.slug)
       .maybeSingle();
-    if (!level) return { level: null, series: [] };
-    const series = await loadSeriesForLevel(db, level.id);
-    return { level, series };
+    if (!level) return { level: null, series: [], lectures: [] };
+    const [series, lectures] = await Promise.all([
+      loadSeriesForLevel(db, level.id),
+      loadStandaloneLecturesForLevel(db, level.id),
+    ]);
+    return { level, series, lectures };
   });
+
 
 export const getSeriesDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

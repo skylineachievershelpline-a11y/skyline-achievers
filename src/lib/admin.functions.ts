@@ -158,13 +158,68 @@ export const adminEditMember = createServerFn({ method: "POST" })
   });
 
 export const adminResetPassword = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .inputValidator((data: { id: string; newPassword?: string | null }) =>
+    z
+      .object({
+        id: uuid,
+        newPassword: z
+          .string()
+          .min(8, "Use at least 8 characters")
+          .max(72)
+          .optional()
+          .nullable()
+          .transform((v) => (v ? v : null)),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { adminResetMemberPassword } = await import("./admin.server");
-    return adminResetMemberPassword(data.id);
+    return adminResetMemberPassword(data.id, data.newPassword ?? null);
   });
+
+export const adminUpdateNotification = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; title: string; body?: string | null; audienceLevelId?: string | null }) =>
+    z
+      .object({
+        id: uuid,
+        title: text(140),
+        body: optionalText(4000),
+        audienceLevelId: uuid.nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("notifications")
+      .update({
+        title: data.title,
+        body: data.body,
+        audience_level_id: data.audienceLevelId ?? null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteNotification = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("notifications")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 
 export const adminGetLibrary = createServerFn({ method: "GET" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");

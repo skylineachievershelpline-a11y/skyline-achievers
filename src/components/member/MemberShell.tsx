@@ -41,6 +41,7 @@ const NAV = [
   { to: "/levels", label: "Levels", icon: Layers },
   { to: "/resources", label: "Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
+  { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
 export function MemberShell({

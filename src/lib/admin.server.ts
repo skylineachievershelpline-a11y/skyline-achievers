@@ -174,15 +174,17 @@ export async function adminUpdateMember(
   return { ok: true as const };
 }
 
-export async function adminResetMemberPassword(id: string) {
+export async function adminResetMemberPassword(id: string, newPassword: string | null = null) {
   const { data: member } = await supabaseAdmin
     .from("member_profiles")
     .select("member_id, full_name, levels:level_id (name)")
     .eq("id", id)
     .maybeSingle();
   if (!member) throw new Error("Member not found.");
-  const password = generateTemporaryPassword();
+  // Admin may set the password manually, otherwise a strong one is generated.
+  const password = newPassword && newPassword.length >= 8 ? newPassword : generateTemporaryPassword();
   const { error } = await supabaseAdmin.auth.admin.updateUserById(id, { password });
+
   if (error) throw new Error(error.message);
   const levelName = (member as any).levels?.name ?? "Not assigned";
   return {

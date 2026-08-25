@@ -75,7 +75,8 @@ export type Database = {
           id: string
           is_archived: boolean
           is_published: boolean
-          series_id: string
+          level_id: string | null
+          series_id: string | null
           sort_order: number
           thumbnail_path: string | null
           title: string
@@ -91,7 +92,8 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_published?: boolean
-          series_id: string
+          level_id?: string | null
+          series_id?: string | null
           sort_order?: number
           thumbnail_path?: string | null
           title: string
@@ -107,7 +109,8 @@ export type Database = {
           id?: string
           is_archived?: boolean
           is_published?: boolean
-          series_id?: string
+          level_id?: string | null
+          series_id?: string | null
           sort_order?: number
           thumbnail_path?: string | null
           title?: string
@@ -117,6 +120,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lectures_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lectures_series_id_fkey"
             columns: ["series_id"]
@@ -465,6 +475,10 @@ export type Database = {
     }
     Functions: {
       can_access_lecture: { Args: { _lecture_id: string }; Returns: boolean }
+      can_access_level_content: {
+        Args: { _level_id: string }
+        Returns: boolean
+      }
       can_access_series: { Args: { _series_id: string }; Returns: boolean }
       current_member_level: { Args: never; Returns: string }
       generate_member_id: { Args: never; Returns: string }

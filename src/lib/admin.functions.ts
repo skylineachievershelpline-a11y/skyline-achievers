@@ -1,0 +1,537 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
+const uuid = z.string().uuid();
+const text = (max: number) => z.string().trim().min(1).max(max);
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : null));
+
+export const adminStatus = createServerFn({ method: "GET" }).handler(async () => {
+  const { isAdminRequest } = await import("./admin-session.server");
+  return { isAdmin: await isAdminRequest() };
+});
+
+export const adminLogin = createServerFn({ method: "POST" })
+  .inputValidator((data: { passcode: string }) =>
+    z.object({ passcode: z.string().min(1).max(200) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { verifyAdminPasscode } = await import("./admin-session.server");
+    const result = await verifyAdminPasscode(data.passcode);
+    if (result.ok) return { ok: true as const };
+    return { ok: false as const, reason: result.reason };
+  });
+
+export const adminLogout = createServerFn({ method: "POST" }).handler(async () => {
+  const { endAdminSession } = await import("./admin-session.server");
+  await endAdminSession();
+  return { ok: true as const };
+});
+
+export const adminGetStats = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { adminDashboardStats } = await import("./admin.server");
+  return adminDashboardStats();
+});
+
+export const adminGetMembers = createServerFn({ method: "POST" })
+  .inputValidator((data: { search?: string; status?: string; levelId?: string }) =>
+    z
+      .object({
+        search: z.string().trim().max(80).optional(),
+        status: z.enum(["all", "active", "blocked", "removed"]).optional(),
+        levelId: z.string().optional(),
+      })
+      .parse(data ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminMembers } = await import("./admin.server");
+    return { members: await adminMembers(data) };
+  });
+
+export const adminGetMember = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminMemberDetail } = await import("./admin.server");
+    return { detail: await adminMemberDetail(data.id) };
+  });
+
+export const adminAddMember = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      fullName: string;
+      age?: number | null;
+      cnic?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      levelId: string;
+      status: string;
+    }) =>
+      z
+        .object({
+          fullName: text(120),
+          age: z.number().int().min(10).max(100).nullable().optional(),
+          cnic: optionalText(25),
+          email: z
+            .string()
+            .trim()
+            .max(255)
+            .optional()
+            .nullable()
+            .transform((v) => (v ? v : null))
+            .refine((v) => v === null || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), {
+              message: "Enter a valid email address",
+            }),
+          phone: optionalText(25),
+          levelId: uuid,
+          status: z.enum(["active", "blocked", "removed"]),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminCreateMember } = await import("./admin.server");
+    return adminCreateMember({
+      fullName: data.fullName,
+      age: data.age ?? null,
+      cnic: data.cnic ?? null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
+      levelId: data.levelId,
+      status: data.status,
+    });
+  });
+
+export const adminEditMember = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id: string;
+      fullName?: string;
+      age?: number | null;
+      cnic?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      levelId?: string;
+      status?: string;
+      notes?: string | null;
+    }) =>
+      z
+        .object({
+          id: uuid,
+          fullName: text(120).optional(),
+          age: z.number().int().min(10).max(100).nullable().optional(),
+          cnic: optionalText(25),
+          email: optionalText(255),
+          phone: optionalText(25),
+          levelId: uuid.optional(),
+          status: z.enum(["active", "blocked", "removed"]).optional(),
+          notes: optionalText(2000),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminUpdateMember } = await import("./admin.server");
+    const patch: Record<string, string | number | null> = {};
+    if (data.fullName !== undefined) patch["full_name"] = data.fullName;
+    if (data.age !== undefined) patch["age"] = data.age;
+    if (data.cnic !== undefined) patch["cnic"] = data.cnic;
+    if (data.email !== undefined) patch["email"] = data.email;
+    if (data.phone !== undefined) patch["phone"] = data.phone;
+    if (data.levelId !== undefined) patch["level_id"] = data.levelId;
+    if (data.status !== undefined) patch["status"] = data.status;
+    if (data.notes !== undefined) patch["notes"] = data.notes;
+    return adminUpdateMember(data.id, patch);
+  });
+
+export const adminResetPassword = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminResetMemberPassword } = await import("./admin.server");
+    return adminResetMemberPassword(data.id);
+  });
+
+export const adminGetLibrary = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { adminLibrary } = await import("./admin.server");
+  return adminLibrary();
+});
+
+export const adminSaveLevel = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      name: string;
+      description?: string | null;
+      rankOrder: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          name: text(80),
+          description: optionalText(1000),
+          rankOrder: z.number().int().min(1).max(99),
+          isPublished: z.boolean(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const payload = {
+      name: data.name,
+      slug,
+      description: data.description,
+      rank_order: data.rankOrder,
+      is_published: data.isPublished,
+    };
+    const query = data.id
+      ? (supabaseAdmin as any).from("levels").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("levels").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminSaveSeries = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      levelId: string;
+      title: string;
+      description?: string | null;
+      thumbnailPath?: string | null;
+      sortOrder: number;
+      isPublished: boolean;
+      isArchived?: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          levelId: uuid,
+          title: text(140),
+          description: optionalText(2000),
+          thumbnailPath: optionalText(400),
+          sortOrder: z.number().int().min(0).max(999),
+          isPublished: z.boolean(),
+          isArchived: z.boolean().optional(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload: Record<string, unknown> = {
+      level_id: data.levelId,
+      title: data.title,
+      description: data.description,
+      sort_order: data.sortOrder,
+      is_published: data.isPublished,
+    };
+    if (data.thumbnailPath !== undefined) payload["thumbnail_path"] = data.thumbnailPath;
+    if (data.isArchived !== undefined) payload["is_archived"] = data.isArchived;
+    const query = data.id
+      ? (supabaseAdmin as any).from("series").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("series").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminSaveLecture = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      seriesId: string;
+      title: string;
+      description?: string | null;
+      sortOrder: number;
+      durationSeconds?: number | null;
+      videoSource: "upload" | "external";
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      thumbnailPath?: string | null;
+      isPublished: boolean;
+      isArchived?: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          seriesId: uuid,
+          title: text(160),
+          description: optionalText(4000),
+          sortOrder: z.number().int().min(0).max(999),
+          durationSeconds: z.number().int().min(0).max(86400).nullable().optional(),
+          videoSource: z.enum(["upload", "external"]),
+          videoPath: optionalText(400),
+          videoUrl: optionalText(600),
+          thumbnailPath: optionalText(400),
+          isPublished: z.boolean(),
+          isArchived: z.boolean().optional(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload: Record<string, unknown> = {
+      series_id: data.seriesId,
+      title: data.title,
+      description: data.description,
+      sort_order: data.sortOrder,
+      duration_seconds: data.durationSeconds ?? null,
+      video_source: data.videoSource,
+      is_published: data.isPublished,
+    };
+    if (data.videoPath !== undefined) payload["video_path"] = data.videoPath;
+    if (data.videoUrl !== undefined) payload["video_url"] = data.videoUrl;
+    if (data.thumbnailPath !== undefined) payload["thumbnail_path"] = data.thumbnailPath;
+    if (data.isArchived !== undefined) payload["is_archived"] = data.isArchived;
+
+    if (data.id) {
+      const { error } = await (supabaseAdmin as any)
+        .from("lectures")
+        .update(payload)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { ok: true as const };
+    }
+
+    const { data: inserted, error } = await (supabaseAdmin as any)
+      .from("lectures")
+      .insert(payload)
+      .select("id, series_id")
+      .single();
+    if (error) throw new Error(error.message);
+
+    // Announce new lectures to the ranks that can access the parent series.
+    const { data: series } = await (supabaseAdmin as any)
+      .from("series")
+      .select("title, level_id")
+      .eq("id", data.seriesId)
+      .maybeSingle();
+    if (series && data.isPublished) {
+      const { adminNotify } = await import("./admin.server");
+      await adminNotify({
+        title: `New lecture added: ${data.title}`,
+        body: `A new lecture has been published in ${series.title}.`,
+        kind: "new_lecture",
+        audienceLevelId: null,
+        linkPath: `/lecture/${inserted.id}`,
+      });
+    }
+    return { ok: true as const };
+  });
+
+export const adminDeleteContent = createServerFn({ method: "POST" })
+  .inputValidator((data: { table: "levels" | "series" | "lectures" | "resources"; id: string }) =>
+    z
+      .object({ table: z.enum(["levels", "series", "lectures", "resources"]), id: uuid })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from(data.table).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminSaveResource = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      lectureId?: string | null;
+      seriesId?: string | null;
+      resourceType: string;
+      title: string;
+      description?: string | null;
+      storagePath?: string | null;
+      externalUrl?: string | null;
+      body?: string | null;
+      sortOrder: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          lectureId: uuid.nullable().optional(),
+          seriesId: uuid.nullable().optional(),
+          resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note"]),
+          title: text(160),
+          description: optionalText(1000),
+          storagePath: optionalText(400),
+          externalUrl: optionalText(600),
+          body: optionalText(8000),
+          sortOrder: z.number().int().min(0).max(999),
+          isPublished: z.boolean(),
+        })
+        .refine((v) => Boolean(v.lectureId || v.seriesId), {
+          message: "Attach the resource to a lecture or a series",
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      lecture_id: data.lectureId ?? null,
+      series_id: data.seriesId ?? null,
+      resource_type: data.resourceType,
+      title: data.title,
+      description: data.description,
+      storage_path: data.storagePath ?? null,
+      external_url: data.externalUrl ?? null,
+      body: data.body ?? null,
+      sort_order: data.sortOrder,
+      is_published: data.isPublished,
+    };
+    const query = data.id
+      ? (supabaseAdmin as any).from("resources").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("resources").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminGetSeriesAccess = createServerFn({ method: "POST" })
+  .inputValidator((data: { seriesId: string }) => z.object({ seriesId: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminSeriesAccess } = await import("./admin.server");
+    return { levelIds: await adminSeriesAccess(data.seriesId) };
+  });
+
+export const adminUpdateSeriesAccess = createServerFn({ method: "POST" })
+  .inputValidator((data: { seriesId: string; levelIds: string[] }) =>
+    z.object({ seriesId: uuid, levelIds: z.array(uuid).max(50) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminSetSeriesAccess } = await import("./admin.server");
+    return adminSetSeriesAccess(data.seriesId, data.levelIds);
+  });
+
+export const adminCreateUploadUrl = createServerFn({ method: "POST" })
+  .inputValidator((data: { bucket: string; fileName: string }) =>
+    z
+      .object({
+        bucket: z.enum(["training-videos", "training-resources", "training-thumbnails"]),
+        fileName: z
+          .string()
+          .trim()
+          .min(1)
+          .max(200)
+          .regex(/^[\w .()-]+\.[A-Za-z0-9]{1,8}$/, "Use a simple file name with an extension"),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const safeName = data.fileName.replace(/[^\w.()-]+/g, "-");
+    const path = `${new Date().getFullYear()}/${crypto.randomUUID()}-${safeName}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from(data.bucket)
+      .createSignedUploadUrl(path);
+    if (error || !signed) throw new Error(error?.message ?? "Could not prepare the upload.");
+    return { path: signed.path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
+export const adminGetNotifications = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("notifications")
+    .select("id, title, body, kind, link_path, created_at, levels:audience_level_id (id, name)")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  return { notifications: data ?? [] };
+});
+
+export const adminSendNotification = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      title: string;
+      body?: string | null;
+      kind: string;
+      audienceLevelId?: string | null;
+      linkPath?: string | null;
+    }) =>
+      z
+        .object({
+          title: text(140),
+          body: optionalText(4000),
+          kind: z.enum(["announcement", "new_lecture", "new_series", "admin_message"]),
+          audienceLevelId: uuid.nullable().optional(),
+          linkPath: optionalText(200),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { adminNotify } = await import("./admin.server");
+    return adminNotify({
+      title: data.title,
+      body: data.body ?? null,
+      kind: data.kind,
+      audienceLevelId: data.audienceLevelId ?? null,
+      linkPath: data.linkPath ?? null,
+    });
+  });
+
+export const adminGetSettings = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any).from("platform_settings").select("key, value");
+  return { settings: data ?? [] };
+});
+
+export const adminSaveSetting = createServerFn({ method: "POST" })
+  .inputValidator((data: { key: string; value: Record<string, unknown> }) =>
+    z
+      .object({ key: text(60), value: z.record(z.string(), z.unknown()) })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("platform_settings")
+      .upsert({ key: data.key, value: data.value, updated_at: new Date().toISOString() });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

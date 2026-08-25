@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 
-import { EmptyState, SeriesCard } from "@/components/member/cards";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { EmptyState, LectureCard, SeriesCard } from "@/components/member/cards";
+import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { getLevelDetail } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/level/$slug")({
@@ -13,10 +13,12 @@ export const Route = createFileRoute("/level/$slug")({
       { title: "Level Library — Skyline Achievers" },
       {
         name: "description",
-        content: "Every training series published inside this Skyline Achievers level.",
+        content: "Every training series and lecture published inside this Skyline Achievers level.",
       },
       { property: "og:title", content: "Level Library — Skyline Achievers" },
       { property: "og:description", content: "Series inside your Skyline Achievers level." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LevelPage,
@@ -32,6 +34,9 @@ function LevelPage() {
     enabled: ready,
   });
 
+  const series = data?.series ?? [];
+  const lectures = (data as any)?.lectures ?? [];
+
   return (
     <MemberShell
       title={data?.level?.name ?? "Level"}
@@ -43,15 +48,34 @@ function LevelPage() {
         </div>
       ) : !data?.level ? (
         <EmptyState title="This level is not available" hint="Your rank does not unlock this level yet." />
-      ) : data.series.length === 0 ? (
-        <EmptyState title="No series published yet" hint="Check back soon." />
+      ) : series.length === 0 && lectures.length === 0 ? (
+        <EmptyState title="Nothing published yet" hint="Check back soon." />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 [&>a]:w-full">
-          {data.series.map((series: any) => (
-            <SeriesCard key={series.id} series={series} />
-          ))}
+        <div className="space-y-7">
+          {series.length > 0 ? (
+            <section>
+              <SectionTitle>Series</SectionTitle>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 [&>a]:w-full">
+                {series.map((item: any) => (
+                  <SeriesCard key={item.id} series={item} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {lectures.length > 0 ? (
+            <section>
+              <SectionTitle>Lectures</SectionTitle>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 [&>a]:w-full">
+                {lectures.map((item: any) => (
+                  <LectureCard key={item.id} lecture={item} />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
     </MemberShell>
   );
 }
+

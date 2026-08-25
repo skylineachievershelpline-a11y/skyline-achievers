@@ -89,16 +89,20 @@ export const getLevelDetail = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => z.object({ slug: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     const db = context.supabase as never;
-    const { loadSeriesForLevel } = await import("./member.server");
+    const { loadSeriesForLevel, loadStandaloneLecturesForLevel } = await import("./member.server");
     const { data: level } = await (db as any)
       .from("levels")
       .select("id, name, slug, description, rank_order")
       .eq("slug", data.slug)
       .maybeSingle();
-    if (!level) return { level: null, series: [] };
-    const series = await loadSeriesForLevel(db, level.id);
-    return { level, series };
+    if (!level) return { level: null, series: [], lectures: [] };
+    const [series, lectures] = await Promise.all([
+      loadSeriesForLevel(db, level.id),
+      loadStandaloneLecturesForLevel(db, level.id),
+    ]);
+    return { level, series, lectures };
   });
+
 
 export const getSeriesDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -152,11 +156,23 @@ export const getLectureDetail = createServerFn({ method: "GET" })
     const { data: lecture } = await db
       .from("lectures")
       .select(
-        "id, title, description, duration_seconds, video_source, video_path, video_url, series_id, series:series_id (id, title, description, levels:level_id (id, name, slug))",
+        "id, title, description, duration_seconds, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
       )
       .eq("id", data.lectureId)
       .maybeSingle();
     if (!lecture) return { lecture: null, playback: null, resources: [], position: 0, siblings: [] };
+
+    // Siblings come from the parent series, or from the level for standalone lectures.
+    const siblingQuery = db.from("lectures").select("id, title, duration_seconds, sort_order");
+    const siblingsPromise = lecture.series_id
+      ? siblingQuery.eq("series_id", lecture.series_id).order("sort_order").order("created_at")
+      : lecture.level_id
+        ? siblingQuery
+            .eq("level_id", lecture.level_id)
+            .is("series_id", null)
+            .order("sort_order")
+            .order("created_at")
+        : Promise.resolve({ data: [] as any[] });
 
     const [{ data: resources }, { data: position }, { data: siblings }] = await Promise.all([
       db
@@ -170,13 +186,9 @@ export const getLectureDetail = createServerFn({ method: "GET" })
         .eq("lecture_id", data.lectureId)
         .eq("member_id", context.userId)
         .maybeSingle(),
-      db
-        .from("lectures")
-        .select("id, title, duration_seconds, sort_order")
-        .eq("series_id", lecture.series_id)
-        .order("sort_order")
-        .order("created_at"),
+      siblingsPromise,
     ]);
+
 
     const playback = await resolvePlaybackUrl(lecture);
     return {

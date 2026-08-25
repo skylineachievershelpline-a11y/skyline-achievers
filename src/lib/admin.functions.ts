@@ -158,13 +158,68 @@ export const adminEditMember = createServerFn({ method: "POST" })
   });
 
 export const adminResetPassword = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .inputValidator((data: { id: string; newPassword?: string | null }) =>
+    z
+      .object({
+        id: uuid,
+        newPassword: z
+          .string()
+          .min(8, "Use at least 8 characters")
+          .max(72)
+          .optional()
+          .nullable()
+          .transform((v) => (v ? v : null)),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { adminResetMemberPassword } = await import("./admin.server");
-    return adminResetMemberPassword(data.id);
+    return adminResetMemberPassword(data.id, data.newPassword ?? null);
   });
+
+export const adminUpdateNotification = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; title: string; body?: string | null; audienceLevelId?: string | null }) =>
+    z
+      .object({
+        id: uuid,
+        title: text(140),
+        body: optionalText(4000),
+        audienceLevelId: uuid.nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("notifications")
+      .update({
+        title: data.title,
+        body: data.body,
+        audience_level_id: data.audienceLevelId ?? null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteNotification = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("notifications")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 
 export const adminGetLibrary = createServerFn({ method: "GET" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");
@@ -265,7 +320,8 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       id?: string;
-      seriesId: string;
+      seriesId?: string | null;
+      levelId?: string | null;
       title: string;
       description?: string | null;
       sortOrder: number;
@@ -280,7 +336,8 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
       z
         .object({
           id: uuid.optional(),
-          seriesId: uuid,
+          seriesId: uuid.nullable().optional(),
+          levelId: uuid.nullable().optional(),
           title: text(160),
           description: optionalText(4000),
           sortOrder: z.number().int().min(0).max(999),
@@ -292,14 +349,35 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
           isPublished: z.boolean(),
           isArchived: z.boolean().optional(),
         })
+        .refine((v) => Boolean(v.seriesId || v.levelId), {
+          message: "Choose a training level, or a series, for this lecture",
+        })
         .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const seriesId = data.seriesId ?? null;
+    let levelId = data.levelId ?? null;
+    let seriesTitle: string | null = null;
+
+    // A lecture inside a series always inherits that series' level.
+    if (seriesId) {
+      const { data: parent } = await (supabaseAdmin as any)
+        .from("series")
+        .select("title, level_id")
+        .eq("id", seriesId)
+        .maybeSingle();
+      if (!parent) throw new Error("The selected series no longer exists.");
+      seriesTitle = parent.title;
+      levelId = parent.level_id;
+    }
+
     const payload: Record<string, unknown> = {
-      series_id: data.seriesId,
+      series_id: seriesId,
+      level_id: levelId,
       title: data.title,
       description: data.description,
       sort_order: data.sortOrder,
@@ -313,6 +391,9 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
     if (data.isArchived !== undefined) payload["is_archived"] = data.isArchived;
 
     if (data.id) {
+      // On edit, keep the stored file when the form did not upload a new one.
+      if (data.videoPath === null) delete payload["video_path"];
+      if (data.thumbnailPath === null) delete payload["thumbnail_path"];
       const { error } = await (supabaseAdmin as any)
         .from("lectures")
         .update(payload)
@@ -324,24 +405,21 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
     const { data: inserted, error } = await (supabaseAdmin as any)
       .from("lectures")
       .insert(payload)
-      .select("id, series_id")
+      .select("id")
       .single();
     if (error) throw new Error(error.message);
 
-    // Announce new lectures to the ranks that can access the parent series.
-    const { data: series } = await (supabaseAdmin as any)
-      .from("series")
-      .select("title, level_id")
-      .eq("id", data.seriesId)
-      .maybeSingle();
-    if (series && data.isPublished) {
+    if (data.isPublished) {
       const { adminNotify } = await import("./admin.server");
       await adminNotify({
         title: `New lecture added: ${data.title}`,
-        body: `A new lecture has been published in ${series.title}.`,
+        body: seriesTitle
+          ? `A new lecture has been published in ${seriesTitle}.`
+          : "A new lecture has been published for your level.",
         kind: "new_lecture",
         audienceLevelId: null,
         linkPath: `/lecture/${inserted.id}`,
+
       });
     }
     return { ok: true as const };

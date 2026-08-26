@@ -156,7 +156,7 @@ export const getLectureDetail = createServerFn({ method: "GET" })
     const { data: lecture } = await db
       .from("lectures")
       .select(
-        "id, title, description, duration_seconds, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
+        "id, title, description, duration_seconds, aspect_ratio, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
       )
       .eq("id", data.lectureId)
       .maybeSingle();

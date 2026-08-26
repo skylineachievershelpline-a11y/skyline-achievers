@@ -8,6 +8,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 export const VIDEO_BUCKET = "training-videos";
 export const RESOURCE_BUCKET = "training-resources";
 export const THUMBNAIL_BUCKET = "training-thumbnails";
+export const AVATAR_BUCKET = "member-avatars";
 
 export async function signPath(
   bucket: string,

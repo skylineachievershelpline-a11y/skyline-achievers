@@ -156,7 +156,7 @@ export const getLectureDetail = createServerFn({ method: "GET" })
     const { data: lecture } = await db
       .from("lectures")
       .select(
-        "id, title, description, duration_seconds, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
+        "id, title, description, duration_seconds, aspect_ratio, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
       )
       .eq("id", data.lectureId)
       .maybeSingle();
@@ -318,5 +318,37 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
       data.ids.map((id) => ({ notification_id: id, member_id: context.userId })),
       { onConflict: "notification_id,member_id", ignoreDuplicates: true },
     );
+    return { ok: true as const };
+  });
+/** Signed upload slot for the member's own profile picture. */
+export const getAvatarUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { extension: string }) =>
+    z.object({ extension: z.enum(["png", "jpg", "jpeg", "webp"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const path = `${context.userId}/${crypto.randomUUID()}.${data.extension}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("member-avatars")
+      .createSignedUploadUrl(path);
+    if (error || !signed) throw new Error(error?.message ?? "Could not prepare the upload.");
+    return { path: signed.path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
+/** Stores the uploaded picture against the caller's own profile only. */
+export const saveAvatar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { path: string }) =>
+    z.object({ path: z.string().trim().min(3).max(300) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    if (!data.path.startsWith(`${context.userId}/`)) throw new Error("Invalid upload path.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("member_profiles")
+      .update({ avatar_path: data.path } as never)
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
     return { ok: true as const };
   });

@@ -1,25 +1,30 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, PlayCircle } from "lucide-react";
+import { Camera, Loader2, Sparkles, Target, Trophy } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
-import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
+import { EmptyState, LevelCard } from "@/components/member/cards";
+import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
-import { Button } from "@/components/ui/button";
-import { getDashboard } from "@/lib/member.functions";
-import { formatDuration } from "@/lib/format";
+import { BRAND } from "@/lib/brand";
+import { formatDate } from "@/lib/format";
+import { getAvatarUploadUrl, getDashboard, saveAvatar } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Member Dashboard — Skyline Achievers" },
+      { title: "My Skyline Dashboard — Skyline Achievers" },
       {
         name: "description",
         content:
-          "Your Skyline Achievers training dashboard: continue watching, series and resources for your level.",
+          "Your Skyline Achievers profile dashboard: member ID, rank, profile picture and the training levels you can open.",
       },
-      { property: "og:title", content: "Member Dashboard — Skyline Achievers" },
-      { property: "og:description", content: "Continue your Skyline Achievers training." },
+      { property: "og:title", content: "My Skyline Dashboard — Skyline Achievers" },
+      { property: "og:description", content: "Your member profile and training levels." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DashboardPage,
@@ -53,92 +58,155 @@ function DashboardPage() {
     );
   }
 
-  const featured = data.featured as any;
+  const member = data.member;
 
   return (
     <MemberShell
-      title={data.member?.fullName ?? "Member"}
-      subtitle={`${data.member?.memberId ?? ""} · ${data.member?.level?.name ?? "Level not assigned"}`}
+      title={member?.fullName ?? "Member"}
+      subtitle={`${member?.memberId ?? ""} · ${member?.level?.name ?? "Level not assigned"}`}
     >
-      {featured ? (
-        <section className="glass-panel-strong relative mb-7 overflow-hidden rounded-3xl">
-          {featured.thumbnail_url ? (
-            <img
-              src={featured.thumbnail_url}
-              alt={featured.title}
-              className="absolute inset-0 h-full w-full object-cover opacity-35"
-            />
-          ) : null}
-          <div className="relative p-6 sm:p-9">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-brand-glow">Latest release</p>
-            <h1 className="mt-2 max-w-xl font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-              {featured.title}
+      {/* ---------- identity card ---------- */}
+      <section className="glass-panel-strong relative mb-6 overflow-hidden rounded-3xl animate-rise-in">
+        <div className="spotlight pointer-events-none absolute inset-0 animate-glow" aria-hidden />
+        <div className="relative flex flex-col items-center gap-4 p-7 text-center sm:flex-row sm:text-left">
+          <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-brand-glow">
+              {BRAND.name} member
+            </p>
+            <h1 className="mt-1 truncate font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+              {member?.fullName ?? "Member"}
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground line-clamp-3">
-              {featured.description ?? "New training content is available for your level."}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {formatDuration(featured.duration_seconds)}
-              {featured.series?.title ? ` · ${featured.series.title}` : ""}
-            </p>
-            <Button asChild variant="brand" size="xl" className="mt-5">
-              <Link to="/lecture/$lectureId" params={{ lectureId: featured.id }}>
-                <PlayCircle className="h-4 w-4" />
-                Watch now
-              </Link>
-            </Button>
+            <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
+              <Chip icon={<Trophy className="h-3.5 w-3.5" />} label={member?.level?.name ?? "Unranked"} />
+              <Chip icon={<Target className="h-3.5 w-3.5" />} label={member?.memberId ?? "—"} />
+              {member ? (
+                <Chip icon={<Sparkles className="h-3.5 w-3.5" />} label={`Joined ${formatDate(member.createdAt)}`} />
+              ) : null}
+            </div>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      {data.continueWatching.length > 0 ? (
-        <section className="mb-7">
-          <SectionTitle>Continue watching</SectionTitle>
-          <Rail>
-            {data.continueWatching.map((lecture: any) => (
-              <LectureCard key={lecture.id} lecture={lecture} resume />
-            ))}
-          </Rail>
-        </section>
-      ) : null}
+      {/* ---------- about ---------- */}
+      <section className="glass-panel mb-6 rounded-3xl p-6 animate-rise-in [animation-delay:80ms]">
+        <SectionTitle className="mb-2">About {BRAND.name}</SectionTitle>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {BRAND.name} is a rank-based training academy built for people who want to grow fast and lead
+          with confidence. Every level unlocks a new stage of your journey — from your first steps as a
+          beginner, through personal mentorship, all the way to full management training.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Your rank decides what you can watch. Move up, and the next library opens automatically.
+        </p>
+        <p className="mt-4 font-display text-sm font-semibold brand-text">{BRAND.tagline}</p>
+      </section>
 
-      {data.mySeries.length > 0 ? (
-        <section className="mb-7">
-          <SectionTitle>{data.member?.level?.name ?? "Your level"}</SectionTitle>
-          <Rail>
-            {data.mySeries.map((series: any) => (
-              <SeriesCard key={series.id} series={series} />
-            ))}
-          </Rail>
-        </section>
-      ) : null}
-
-      {data.latestLectures.length > 0 ? (
-        <section className="mb-7">
-          <SectionTitle>Newly added</SectionTitle>
-          <Rail>
-            {data.latestLectures.map((lecture: any) => (
-              <LectureCard key={lecture.id} lecture={lecture} />
-            ))}
-          </Rail>
-        </section>
-      ) : null}
-
-      <section className="mb-4">
-        <SectionTitle>Your training levels</SectionTitle>
+      {/* ---------- levels: the only way into the videos ---------- */}
+      <section className="mb-6">
+        <SectionTitle>Watch your training</SectionTitle>
+        <p className="-mt-2 mb-3 text-xs text-muted-foreground">
+          Tap a level below to open its series and lectures.
+        </p>
         {data.levels.length === 0 ? (
           <EmptyState
             title="No training content yet"
-            hint="Your administrator has not published any series for your rank yet."
+            hint="Your administrator has not published anything for your rank yet."
           />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.levels.map((level: any) => (
-              <LevelCard key={level.id} level={level} />
+            {data.levels.map((level: any, index: number) => (
+              <div
+                key={level.id}
+                className="animate-rise-in"
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                <LevelCard level={level} />
+              </div>
             ))}
           </div>
         )}
       </section>
+
+      <section className="mb-2 max-w-xl animate-rise-in">
+        <InstallApp />
+      </section>
     </MemberShell>
+  );
+}
+
+function Chip({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 rounded-full border border-hairline bg-glass px-3 py-1 text-[11px] font-medium">
+      <span className="text-brand-glow">{icon}</span>
+      {label}
+    </span>
+  );
+}
+
+function AvatarUploader({ name, url }: { name: string; url: string | null }) {
+  const queryClient = useQueryClient();
+  const createUrl = useServerFn(getAvatarUploadUrl);
+  const store = useServerFn(saveAvatar);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  async function upload(file: File) {
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+    const extension = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "jpg";
+    setBusy(true);
+    try {
+      const slot = await createUrl({ data: { extension } } as never);
+      const response = await fetch(slot.signedUrl, {
+        method: "PUT",
+        headers: { "content-type": file.type || "image/jpeg" },
+        body: file,
+      });
+      if (!response.ok) throw new Error("Upload failed. Please try again.");
+      await store({ data: { path: slot.path } } as never);
+      setPreview(URL.createObjectURL(file));
+      toast.success("Profile picture updated");
+      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      void queryClient.invalidateQueries({ queryKey: ["member-session"] });
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const shown = preview ?? url;
+
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-hairline bg-surface-2 shadow-[var(--shadow-brand)] transition-transform duration-300 hover:scale-105"
+      aria-label="Upload profile picture"
+    >
+      {shown ? (
+        <img src={shown} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-muted-foreground">
+          {name.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-background/70 py-1 text-[10px] text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+        Change
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void upload(file);
+          event.target.value = "";
+        }}
+      />
+    </button>
   );
 }

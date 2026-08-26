@@ -69,6 +69,7 @@ export type Database = {
       }
       lectures: {
         Row: {
+          aspect_ratio: string
           created_at: string
           description: string | null
           duration_seconds: number | null
@@ -86,6 +87,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          aspect_ratio?: string
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
@@ -103,6 +105,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          aspect_ratio?: string
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
@@ -172,6 +175,7 @@ export type Database = {
       member_profiles: {
         Row: {
           age: number | null
+          avatar_path: string | null
           cnic: string | null
           created_at: string
           email: string | null
@@ -187,6 +191,7 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          avatar_path?: string | null
           cnic?: string | null
           created_at?: string
           email?: string | null
@@ -202,6 +207,7 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          avatar_path?: string | null
           cnic?: string | null
           created_at?: string
           email?: string | null

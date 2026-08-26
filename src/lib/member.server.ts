@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { signPath, signThumbnails, VIDEO_BUCKET, RESOURCE_BUCKET } from "./storage.server";
+import {
+  signPath,
+  signThumbnails,
+  VIDEO_BUCKET,
+  RESOURCE_BUCKET,
+  AVATAR_BUCKET,
+} from "./storage.server";
 
 /** Member-scoped client: every query below is filtered by row level security. */
 type Db = SupabaseClient<any, "public", any>;
@@ -15,13 +21,14 @@ export type MemberContext = {
   phone: string | null;
   createdAt: string;
   lastLoginAt: string | null;
+  avatarUrl: string | null;
 };
 
 export async function loadMemberContext(db: Db, userId: string): Promise<MemberContext | null> {
   const { data, error } = await db
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, status, email, phone, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
+      "id, member_id, full_name, status, email, phone, avatar_path, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -35,6 +42,7 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
     phone: data.phone,
     createdAt: data.created_at,
     lastLoginAt: data.last_login_at,
+    avatarUrl: await signPath(AVATAR_BUCKET, (data as any).avatar_path, 60 * 60 * 6),
     level: (data as any).levels ?? null,
   };
 }

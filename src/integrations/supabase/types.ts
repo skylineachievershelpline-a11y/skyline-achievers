@@ -323,6 +323,59 @@ export type Database = {
         }
         Relationships: []
       }
+      reels: {
+        Row: {
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          created_by_admin: boolean
+          id: string
+          is_published: boolean
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_admin?: boolean
+          id?: string
+          is_published?: boolean
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_admin?: boolean
+          id?: string
+          is_published?: boolean
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reels_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resources: {
         Row: {
           body: string | null
@@ -488,6 +541,7 @@ export type Database = {
       can_access_series: { Args: { _series_id: string }; Returns: boolean }
       current_member_level: { Args: never; Returns: string }
       generate_member_id: { Args: never; Returns: string }
+      is_manager_member: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

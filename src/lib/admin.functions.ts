@@ -332,10 +332,12 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
       thumbnailPath?: string | null;
       isPublished: boolean;
       isArchived?: boolean;
+      aspectRatio?: string;
     }) =>
       z
         .object({
           id: uuid.optional(),
+          aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           seriesId: uuid.nullable().optional(),
           levelId: uuid.nullable().optional(),
           title: text(160),
@@ -384,6 +386,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
       duration_seconds: data.durationSeconds ?? null,
       video_source: data.videoSource,
       is_published: data.isPublished,
+      aspect_ratio: data.aspectRatio ?? "16:9",
     };
     if (data.videoPath !== undefined) payload["video_path"] = data.videoPath;
     if (data.videoUrl !== undefined) payload["video_url"] = data.videoUrl;
@@ -610,6 +613,73 @@ export const adminSaveSetting = createServerFn({ method: "POST" })
     const { error } = await (supabaseAdmin as any)
       .from("platform_settings")
       .upsert({ key: data.key, value: data.value, updated_at: new Date().toISOString() });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** ---------- Reels (admin) ---------- */
+
+export const adminGetReels = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("reels")
+    .select(
+      "id, title, caption, video_source, created_by_admin, created_at, author:created_by (full_name)",
+    )
+    .order("created_at", { ascending: false })
+    .limit(100);
+  return { reels: data ?? [] };
+});
+
+export const adminSaveReel = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      title: string;
+      caption?: string | null;
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      thumbnailPath?: string | null;
+    }) =>
+      z
+        .object({
+          title: text(140),
+          caption: optionalText(600),
+          videoPath: optionalText(400),
+          videoUrl: optionalText(600),
+          thumbnailPath: optionalText(400),
+        })
+        .refine((v) => Boolean(v.videoPath || v.videoUrl), {
+          message: "Upload a video file or paste a video link.",
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("reels").insert({
+      title: data.title,
+      caption: data.caption,
+      video_source: data.videoPath ? "upload" : "external",
+      video_path: data.videoPath,
+      video_url: data.videoUrl,
+      thumbnail_path: data.thumbnailPath,
+      created_by_admin: true,
+      is_published: true,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteReel = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("reels").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });

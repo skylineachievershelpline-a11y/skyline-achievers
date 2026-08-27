@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LevelsRouteImport } from './routes/levels'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -45,6 +46,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReelsRoute = ReelsRouteImport.update({
+  id: '/reels',
+  path: '/reels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResourcesRoute = ResourcesRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/admin/login': typeof AdminLoginRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/admin/login': typeof AdminLoginRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
   '/admin/login': typeof AdminLoginRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/levels'
     | '/notifications'
     | '/profile'
+    | '/reels'
     | '/resources'
     | '/search'
     | '/admin/login'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/levels'
     | '/notifications'
     | '/profile'
+    | '/reels'
     | '/resources'
     | '/search'
     | '/admin/login'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/levels'
     | '/notifications'
     | '/profile'
+    | '/reels'
     | '/resources'
     | '/search'
     | '/admin/login'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   LevelsRoute: typeof LevelsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
+  ReelsRoute: typeof ReelsRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -221,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reels': {
+      id: '/reels'
+      path: '/reels'
+      fullPath: '/reels'
+      preLoaderRoute: typeof ReelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resources': {
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   LevelsRoute: LevelsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
+  ReelsRoute: ReelsRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
   AdminLoginRoute: AdminLoginRoute,

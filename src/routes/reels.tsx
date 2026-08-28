@@ -123,7 +123,7 @@ function ReelCard({
 }: {
   reel: { title: string; caption: string | null; url: string | null; posterUrl: string | null; authorName: string };
   muted: boolean;
-  onDelete?: () => void;
+  onDelete?: (() => void) | undefined;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 

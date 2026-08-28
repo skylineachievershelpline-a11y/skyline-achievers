@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, Home, Layers, LogOut, Search, FolderOpen, User } from "lucide-react";
+import { Bell, Clapperboard, Home, Layers, LogOut, Search, FolderOpen, User } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";

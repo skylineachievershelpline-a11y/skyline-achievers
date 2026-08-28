@@ -95,12 +95,23 @@ function LecturePage() {
     data.playback?.kind === "external" &&
     /youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com/.test(data.playback.url ?? "");
 
+  // The admin picks the ratio when publishing; the player honours it so
+  // portrait clips are not letterboxed inside a 16:9 frame.
+  const ratio: string = lecture.aspect_ratio ?? "16:9";
+  const RATIO_CLASS: Record<string, string> = {
+    "16:9": "aspect-video",
+    "9:16": "aspect-[9/16] mx-auto max-h-[78vh] w-auto",
+    "1:1": "aspect-square mx-auto max-h-[78vh]",
+    "4:3": "aspect-[4/3]",
+  };
+  const frameClass = RATIO_CLASS[ratio] ?? "aspect-video";
+
   return (
     <MemberShell title={lecture.title} subtitle={lecture.series?.title ?? undefined}>
-      <div className="overflow-hidden rounded-3xl border border-hairline bg-black shadow-[var(--shadow-lift)]">
+      <div className="overflow-hidden rounded-3xl border border-hairline bg-black shadow-[var(--shadow-lift)] animate-rise-in">
         {data.playback?.url ? (
           isExternalEmbed ? (
-            <div className="aspect-video w-full">
+            <div className={`w-full ${frameClass}`}>
               <iframe
                 src={toEmbedUrl(data.playback.url)}
                 title={lecture.title}
@@ -117,11 +128,11 @@ function LecturePage() {
               playsInline
               controlsList="nodownload"
               onTimeUpdate={onTimeUpdate}
-              className="aspect-video w-full bg-black"
+              className={`w-full bg-black ${frameClass}`}
             />
           )
         ) : (
-          <div className="flex aspect-video w-full items-center justify-center text-sm text-muted-foreground">
+          <div className={`flex w-full items-center justify-center text-sm text-muted-foreground ${frameClass}`}>
             Video is not attached to this lecture yet.
           </div>
         )}

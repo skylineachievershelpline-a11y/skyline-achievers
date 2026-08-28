@@ -233,6 +233,88 @@
   padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 }
 
+/* ---------- motion ---------- */
+
+@keyframes ska-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ska-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes ska-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes ska-shimmer {
+  from {
+    background-position: -120% 0;
+  }
+  to {
+    background-position: 220% 0;
+  }
+}
+
+@utility animate-rise-in {
+  animation: ska-rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility animate-glow {
+  animation: ska-glow 6s ease-in-out infinite;
+}
+
+@utility animate-float {
+  animation: ska-float 5s ease-in-out infinite;
+}
+
+@utility animate-shimmer {
+  background-size: 220% 100%;
+  animation: ska-shimmer 2.4s linear infinite;
+}
+
+@utility press {
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s ease;
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer base {
   ::selection {
     background-color: oklch(0.58 0.223 262 / 35%);

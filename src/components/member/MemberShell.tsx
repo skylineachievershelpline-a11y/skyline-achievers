@@ -39,7 +39,8 @@ export function useMemberGuard() {
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/levels", label: "Levels", icon: Layers },
-  { to: "/resources", label: "Resources", icon: FolderOpen },
+  { to: "/reels", label: "Reels", icon: Clapperboard },
+  { to: "/resources", label: "Files", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;

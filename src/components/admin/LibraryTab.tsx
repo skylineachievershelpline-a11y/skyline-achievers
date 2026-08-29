@@ -80,6 +80,9 @@ export function LibraryTab() {
 
       {data.levels.map((level: any) => {
         const series = data.series.filter((s: any) => s.level_id === level.id);
+        const standalone = data.lectures.filter(
+          (l: any) => !l.series_id && l.level_id === level.id,
+        );
         return (
           <section key={level.id}>
             <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">

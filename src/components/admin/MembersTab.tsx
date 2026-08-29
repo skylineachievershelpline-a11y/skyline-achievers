@@ -64,9 +64,17 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
+  const [manualPassword, setManualPassword] = useState("");
+
   const reset = useMutation({
-    mutationFn: (id: string) => resetPassword({ data: { id } }),
-    onSuccess: (result) => setCredentials(result),
+    mutationFn: (input: { id: string; newPassword: string | null }) =>
+      resetPassword({ data: input } as never),
+    onSuccess: (result) => {
+      setResetTarget(null);
+      setManualPassword("");
+      setCredentials(result);
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 

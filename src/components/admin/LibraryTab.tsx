@@ -379,15 +379,21 @@ function SeriesForm({
   );
 }
 
+const ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
+
 function LectureForm({
   series,
+  levels,
   busy,
   onSubmit,
 }: {
-  series: { id: string; title: string }[];
+  series: { id: string; title: string; level_id?: string }[];
+  levels: { id: string; name: string }[];
   busy: boolean;
   onSubmit: (values: {
     seriesId: string;
+    levelId: string;
+    aspectRatio: (typeof ASPECT_RATIOS)[number];
     title: string;
     description: string;
     sortOrder: number;
@@ -397,7 +403,10 @@ function LectureForm({
     thumbnail: File | null;
   }) => void;
 }) {
-  const [seriesId, setSeriesId] = useState(series[0]?.id ?? "");
+  // Series is optional: leave it empty and the lecture sits directly on the level.
+  const [seriesId, setSeriesId] = useState("");
+  const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [aspectRatio, setAspectRatio] = useState<(typeof ASPECT_RATIOS)[number]>("16:9");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sortOrder, setSortOrder] = useState("0");
@@ -410,9 +419,11 @@ function LectureForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!title.trim() || !seriesId) return;
+        if (!title.trim() || (!seriesId && !levelId)) return;
         onSubmit({
           seriesId,
+          levelId,
+          aspectRatio,
           title: title.trim(),
           description,
           sortOrder: Number(sortOrder) || 0,
@@ -425,13 +436,37 @@ function LectureForm({
       className="space-y-3"
     >
       <div className="space-y-1.5">
-        <Label>Series</Label>
+        <Label>Training level</Label>
+        <select value={levelId} onChange={(e) => setLevelId(e.target.value)} className={fieldClass}>
+          {levels.map((level) => (
+            <option key={level.id} value={level.id}>
+              {level.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Series (optional)</Label>
         <select value={seriesId} onChange={(e) => setSeriesId(e.target.value)} className={fieldClass}>
+          <option value="">No series — add straight to the level</option>
           {series.map((s) => (
             <option key={s.id} value={s.id}>
               {s.title}
             </option>
           ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Video ratio</Label>
+        <select
+          value={aspectRatio}
+          onChange={(e) => setAspectRatio(e.target.value as (typeof ASPECT_RATIOS)[number])}
+          className={fieldClass}
+        >
+          <option value="16:9">16:9 — landscape</option>
+          <option value="9:16">9:16 — portrait / reel</option>
+          <option value="1:1">1:1 — square</option>
+          <option value="4:3">4:3 — classic</option>
         </select>
       </div>
       <div className="space-y-1.5">

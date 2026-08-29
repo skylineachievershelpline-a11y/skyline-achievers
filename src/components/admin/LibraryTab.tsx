@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { frameFromVideo } from "@/components/admin/ReelsTab";
 import { uploadToBucket } from "@/components/admin/upload";
 import {
   adminCreateUploadUrl,
@@ -79,6 +80,9 @@ export function LibraryTab() {
 
       {data.levels.map((level: any) => {
         const series = data.series.filter((s: any) => s.level_id === level.id);
+        const standalone = data.lectures.filter(
+          (l: any) => !l.series_id && l.level_id === level.id,
+        );
         return (
           <section key={level.id}>
             <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
@@ -134,6 +138,29 @@ export function LibraryTab() {
                 })}
               </ul>
             )}
+
+            {standalone.length > 0 ? (
+              <ul className="mt-2 space-y-1.5">
+                {standalone.map((l: any) => (
+                  <li
+                    key={l.id}
+                    className="glass-panel flex items-center gap-2 rounded-2xl p-3 text-xs"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{l.title}</span>
+                    <span className="text-muted-foreground">
+                      No series · {l.aspect_ratio ?? "16:9"}
+                    </span>
+                    <button
+                      onClick={() => del.mutate({ table: "lectures", id: l.id })}
+                      className="text-muted-foreground transition-colors hover:text-destructive"
+                      aria-label="Delete lecture"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </section>
         );
       })}
@@ -215,6 +242,7 @@ export function LibraryTab() {
           </DialogHeader>
           <LectureForm
             series={data.series as any}
+            levels={data.levels as any}
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
@@ -224,16 +252,16 @@ export function LibraryTab() {
                 if (values.videoFile) {
                   videoPath = await uploadToBucket(createUploadUrl, "training-videos", values.videoFile);
                 }
-                if (values.thumbnail) {
-                  thumbnailPath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-thumbnails",
-                    values.thumbnail,
-                  );
+                // No cover picked? Grab a still frame straight from the video.
+                const cover =
+                  values.thumbnail ?? (values.videoFile ? await frameFromVideo(values.videoFile) : null);
+                if (cover) {
+                  thumbnailPath = await uploadToBucket(createUploadUrl, "training-thumbnails", cover);
                 }
                 await saveLecture({
                   data: {
-                    seriesId: values.seriesId,
+                    seriesId: values.seriesId || null,
+                    levelId: values.seriesId ? null : values.levelId,
                     title: values.title,
                     description: values.description || null,
                     sortOrder: values.sortOrder,
@@ -242,6 +270,7 @@ export function LibraryTab() {
                     videoPath,
                     videoUrl: values.videoUrl || null,
                     thumbnailPath,
+                    aspectRatio: values.aspectRatio,
                     isPublished: true,
                   },
                 } as never);
@@ -377,15 +406,21 @@ function SeriesForm({
   );
 }
 
+const ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
+
 function LectureForm({
   series,
+  levels,
   busy,
   onSubmit,
 }: {
-  series: { id: string; title: string }[];
+  series: { id: string; title: string; level_id?: string }[];
+  levels: { id: string; name: string }[];
   busy: boolean;
   onSubmit: (values: {
     seriesId: string;
+    levelId: string;
+    aspectRatio: (typeof ASPECT_RATIOS)[number];
     title: string;
     description: string;
     sortOrder: number;
@@ -395,7 +430,10 @@ function LectureForm({
     thumbnail: File | null;
   }) => void;
 }) {
-  const [seriesId, setSeriesId] = useState(series[0]?.id ?? "");
+  // Series is optional: leave it empty and the lecture sits directly on the level.
+  const [seriesId, setSeriesId] = useState("");
+  const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [aspectRatio, setAspectRatio] = useState<(typeof ASPECT_RATIOS)[number]>("16:9");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sortOrder, setSortOrder] = useState("0");
@@ -408,9 +446,11 @@ function LectureForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!title.trim() || !seriesId) return;
+        if (!title.trim() || (!seriesId && !levelId)) return;
         onSubmit({
           seriesId,
+          levelId,
+          aspectRatio,
           title: title.trim(),
           description,
           sortOrder: Number(sortOrder) || 0,
@@ -423,13 +463,37 @@ function LectureForm({
       className="space-y-3"
     >
       <div className="space-y-1.5">
-        <Label>Series</Label>
+        <Label>Training level</Label>
+        <select value={levelId} onChange={(e) => setLevelId(e.target.value)} className={fieldClass}>
+          {levels.map((level) => (
+            <option key={level.id} value={level.id}>
+              {level.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Series (optional)</Label>
         <select value={seriesId} onChange={(e) => setSeriesId(e.target.value)} className={fieldClass}>
+          <option value="">No series — add straight to the level</option>
           {series.map((s) => (
             <option key={s.id} value={s.id}>
               {s.title}
             </option>
           ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Video ratio</Label>
+        <select
+          value={aspectRatio}
+          onChange={(e) => setAspectRatio(e.target.value as (typeof ASPECT_RATIOS)[number])}
+          className={fieldClass}
+        >
+          <option value="16:9">16:9 — landscape</option>
+          <option value="9:16">9:16 — portrait / reel</option>
+          <option value="1:1">1:1 — square</option>
+          <option value="4:3">4:3 — classic</option>
         </select>
       </div>
       <div className="space-y-1.5">

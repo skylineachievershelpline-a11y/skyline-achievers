@@ -64,9 +64,17 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
+  const [manualPassword, setManualPassword] = useState("");
+
   const reset = useMutation({
-    mutationFn: (id: string) => resetPassword({ data: { id } }),
-    onSuccess: (result) => setCredentials(result),
+    mutationFn: (input: { id: string; newPassword: string | null }) =>
+      resetPassword({ data: input } as never),
+    onSuccess: (result) => {
+      setResetTarget(null);
+      setManualPassword("");
+      setCredentials(result);
+    },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -168,7 +176,10 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     variant="secondary"
                     size="sm"
                     className="rounded-xl"
-                    onClick={() => reset.mutate(member.id)}
+                    onClick={() => {
+                      setManualPassword("");
+                      setResetTarget({ id: member.id, name: member.full_name });
+                    }}
                   >
                     <KeyRound className="h-3.5 w-3.5" />
                     Reset password
@@ -187,6 +198,49 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         pending={create.isPending}
         onSubmit={(values) => create.mutate({ data: values } as never)}
       />
+
+      <Dialog open={resetTarget !== null} onOpenChange={(open) => !open && setResetTarget(null)}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>Reset password{resetTarget ? ` — ${resetTarget.name}` : ""}</DialogTitle>
+          </DialogHeader>
+          <form
+            className="space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!resetTarget) return;
+              const manual = manualPassword.trim();
+              if (manual && manual.length < 8) {
+                toast.error("Use at least 8 characters");
+                return;
+              }
+              reset.mutate({ id: resetTarget.id, newPassword: manual || null });
+            }}
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="manual-password">Set your own password (optional)</Label>
+              <Input
+                id="manual-password"
+                value={manualPassword}
+                onChange={(e) => setManualPassword(e.target.value)}
+                placeholder="Leave empty to generate one automatically"
+                className="h-11 rounded-2xl"
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="brand"
+              size="xl"
+              className="w-full"
+              disabled={reset.isPending}
+            >
+              {reset.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Reset password
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={credentials !== null} onOpenChange={() => setCredentials(null)}>
         <DialogContent className="rounded-3xl">

@@ -1,25 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, LogOut, Megaphone } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Loader2, LogOut } from "lucide-react";
+import { useEffect } from "react";
 
+import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
+import { ReelsTab } from "@/components/admin/ReelsTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  adminGetLibrary,
-  adminGetStats,
-  adminLogout,
-  adminSendNotification,
-  adminStatus,
-} from "@/lib/admin.functions";
+import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -27,7 +19,7 @@ export const Route = createFileRoute("/admin/")({
       { title: "Admin Panel — Skyline Achievers" },
       {
         name: "description",
-        content: "Manage Skyline Achievers members, training library and announcements.",
+        content: "Manage Skyline Achievers members, training library, reels and announcements.",
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Admin Panel — Skyline Achievers" },
@@ -68,10 +60,7 @@ function AdminPage() {
   // A stale/invalid admin cookie makes the server functions reject; treat that
   // as "session expired" instead of crashing the page.
   const sessionLost =
-    status.isError ||
-    (status.isSuccess && !authed) ||
-    stats.isError ||
-    library.isError;
+    status.isError || (status.isSuccess && !authed) || stats.isError || library.isError;
 
   useEffect(() => {
     if (!sessionLost) return;
@@ -79,22 +68,13 @@ function AdminPage() {
     void navigate({ to: "/admin/login", replace: true });
   }, [sessionLost, queryClient, navigate]);
 
-  if (sessionLost) {
+  if (sessionLost || !authed || stats.isPending || library.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin text-brand" />
       </div>
     );
   }
-
-  if (!authed || stats.isPending || library.isPending) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
-      </div>
-    );
-  }
-
 
   const totals = stats.data?.totals;
   const levels = (library.data?.levels ?? []) as any[];
@@ -132,7 +112,7 @@ function AdminPage() {
             { label: "Series", value: totals?.series ?? 0 },
             { label: "Lectures", value: totals?.lectures ?? 0 },
           ].map((item) => (
-            <div key={item.label} className="glass-panel rounded-3xl p-4">
+            <div key={item.label} className="glass-panel rounded-3xl p-4 animate-rise-in">
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 {item.label}
               </p>
@@ -149,6 +129,9 @@ function AdminPage() {
             <TabsTrigger value="library" className="rounded-xl">
               Library
             </TabsTrigger>
+            <TabsTrigger value="reels" className="rounded-xl">
+              Reels
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
@@ -160,87 +143,14 @@ function AdminPage() {
           <TabsContent value="library" className="mt-5">
             <LibraryTab />
           </TabsContent>
+          <TabsContent value="reels" className="mt-5">
+            <ReelsTab />
+          </TabsContent>
           <TabsContent value="announcements" className="mt-5">
-            <AnnouncementForm levels={levels} />
+            <AnnouncementsTab levels={levels as any} />
           </TabsContent>
         </Tabs>
       </div>
     </main>
-  );
-}
-
-function AnnouncementForm({ levels }: { levels: any[] }) {
-  const send = useServerFn(adminSendNotification);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [levelId, setLevelId] = useState("");
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      send({
-        data: {
-          title,
-          body: body || null,
-          kind: "announcement",
-          audienceLevelId: levelId || null,
-          linkPath: null,
-        },
-      } as never),
-    onSuccess: () => {
-      toast.success("Announcement sent");
-      setTitle("");
-      setBody("");
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  return (
-    <form
-      className="glass-panel-strong max-w-xl space-y-4 rounded-3xl p-6"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!title.trim()) return;
-        mutation.mutate();
-      }}
-    >
-      <div className="space-y-2">
-        <Label htmlFor="ann-title">Title</Label>
-        <Input
-          id="ann-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="rounded-2xl"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="ann-body">Message</Label>
-        <Textarea
-          id="ann-body"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className="min-h-28 rounded-2xl"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="ann-level">Audience</Label>
-        <select
-          id="ann-level"
-          value={levelId}
-          onChange={(e) => setLevelId(e.target.value)}
-          className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
-        >
-          <option value="">All members</option>
-          {levels.map((level) => (
-            <option key={level.id} value={level.id}>
-              {level.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Button type="submit" variant="brand" size="xl" disabled={mutation.isPending}>
-        {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
-        Send announcement
-      </Button>
-    </form>
   );
 }

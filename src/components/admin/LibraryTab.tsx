@@ -215,6 +215,7 @@ export function LibraryTab() {
           </DialogHeader>
           <LectureForm
             series={data.series as any}
+            levels={data.levels as any}
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
@@ -224,16 +225,16 @@ export function LibraryTab() {
                 if (values.videoFile) {
                   videoPath = await uploadToBucket(createUploadUrl, "training-videos", values.videoFile);
                 }
-                if (values.thumbnail) {
-                  thumbnailPath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-thumbnails",
-                    values.thumbnail,
-                  );
+                // No cover picked? Grab a still frame straight from the video.
+                const cover =
+                  values.thumbnail ?? (values.videoFile ? await frameFromVideo(values.videoFile) : null);
+                if (cover) {
+                  thumbnailPath = await uploadToBucket(createUploadUrl, "training-thumbnails", cover);
                 }
                 await saveLecture({
                   data: {
-                    seriesId: values.seriesId,
+                    seriesId: values.seriesId || null,
+                    levelId: values.seriesId ? null : values.levelId,
                     title: values.title,
                     description: values.description || null,
                     sortOrder: values.sortOrder,
@@ -242,6 +243,7 @@ export function LibraryTab() {
                     videoPath,
                     videoUrl: values.videoUrl || null,
                     thumbnailPath,
+                    aspectRatio: values.aspectRatio,
                     isPublished: true,
                   },
                 } as never);

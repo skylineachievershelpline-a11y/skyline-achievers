@@ -65,45 +65,57 @@ function DashboardPage() {
       title={member?.fullName ?? "Member"}
       subtitle={`${member?.memberId ?? ""} · ${member?.level?.name ?? "Level not assigned"}`}
     >
-      {/* ---------- identity card ---------- */}
-      <section className="glass-panel-strong relative mb-6 overflow-hidden rounded-3xl animate-rise-in">
-        <div className="spotlight pointer-events-none absolute inset-0 animate-glow" aria-hidden />
-        <div className="relative flex flex-col items-center gap-4 p-7 text-center sm:flex-row sm:text-left">
-          <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
-          <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-brand-glow">
-              {BRAND.name} member
-            </p>
-            <h1 className="mt-1 truncate font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-              {member?.fullName ?? "Member"}
-            </h1>
-            <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
-              <Chip icon={<Trophy className="h-3.5 w-3.5" />} label={member?.level?.name ?? "Unranked"} />
-              <Chip icon={<Target className="h-3.5 w-3.5" />} label={member?.memberId ?? "—"} />
-              {member ? (
-                <Chip icon={<Sparkles className="h-3.5 w-3.5" />} label={`Joined ${formatDate(member.createdAt)}`} />
-              ) : null}
+      {/* ---------- bento grid ---------- */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* profile card */}
+        <section className="glass-panel-strong relative overflow-hidden rounded-[28px] p-6 animate-rise-in lg:col-span-2">
+          <div
+            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/25 blur-3xl animate-glow"
+            aria-hidden
+          />
+          <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+            <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-brand-glow">
+                {BRAND.name} member
+              </p>
+              <h1 className="mt-1 truncate font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+                {member?.fullName ?? "Member"}
+              </h1>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tap the photo to change your profile picture.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ---------- about ---------- */}
-      <section className="glass-panel mb-6 rounded-3xl p-6 animate-rise-in [animation-delay:80ms]">
-        <SectionTitle className="mb-2">About {BRAND.name}</SectionTitle>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {BRAND.name} is a rank-based training academy built for people who want to grow fast and lead
-          with confidence. Every level unlocks a new stage of your journey — from your first steps as a
-          beginner, through personal mentorship, all the way to full management training.
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Your rank decides what you can watch. Move up, and the next library opens automatically.
-        </p>
-        <p className="mt-4 font-display text-sm font-semibold brand-text">{BRAND.tagline}</p>
-      </section>
+          <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value={member?.level?.name ?? "Unranked"} />
+            <Stat icon={<Target className="h-4 w-4" />} label="Member ID" value={member?.memberId ?? "—"} />
+            <Stat
+              icon={<Sparkles className="h-4 w-4" />}
+              label="Joined"
+              value={member ? formatDate(member.createdAt) : "—"}
+            />
+          </div>
+        </section>
+
+        {/* about card */}
+        <section className="glass-panel rounded-[28px] p-6 animate-rise-in [animation-delay:80ms]">
+          <SectionTitle className="mb-2">About {BRAND.name}</SectionTitle>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {BRAND.name} is a rank-based training academy for people who want to grow fast and lead
+            with confidence. Every level unlocks the next stage of your journey — from beginner steps
+            and personal mentorship all the way to full management training.
+          </p>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Your rank decides what you can watch. Move up, and the next library opens automatically.
+          </p>
+          <p className="mt-4 font-display text-sm font-semibold brand-text">{BRAND.tagline}</p>
+        </section>
+      </div>
 
       {/* ---------- levels: the only way into the videos ---------- */}
-      <section className="mb-6">
+      <section className="mt-6">
         <SectionTitle>Watch your training</SectionTitle>
         <p className="-mt-2 mb-3 text-xs text-muted-foreground">
           Tap a level below to open its series and lectures.
@@ -128,19 +140,30 @@ function DashboardPage() {
         )}
       </section>
 
-      <section className="mb-2 max-w-xl animate-rise-in">
+      <section className="mt-6 max-w-xl animate-rise-in">
         <InstallApp />
       </section>
     </MemberShell>
   );
 }
 
-function Chip({ icon, label }: { icon: React.ReactNode; label: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <span className="flex items-center gap-1.5 rounded-full border border-hairline bg-glass px-3 py-1 text-[11px] font-medium">
-      <span className="text-brand-glow">{icon}</span>
-      {label}
-    </span>
+    <div className="rounded-2xl border border-hairline bg-glass p-3.5 transition-transform duration-300 hover:-translate-y-0.5">
+      <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="text-brand-glow">{icon}</span>
+        {label}
+      </span>
+      <p className="mt-1.5 truncate font-display text-base font-semibold">{value}</p>
+    </div>
   );
 }
 

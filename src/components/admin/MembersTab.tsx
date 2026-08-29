@@ -176,7 +176,10 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     variant="secondary"
                     size="sm"
                     className="rounded-xl"
-                    onClick={() => reset.mutate(member.id)}
+                    onClick={() => {
+                      setManualPassword("");
+                      setResetTarget({ id: member.id, name: member.full_name });
+                    }}
                   >
                     <KeyRound className="h-3.5 w-3.5" />
                     Reset password

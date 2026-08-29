@@ -135,6 +135,29 @@ export function LibraryTab() {
                 })}
               </ul>
             )}
+
+            {standalone.length > 0 ? (
+              <ul className="mt-2 space-y-1.5">
+                {standalone.map((l: any) => (
+                  <li
+                    key={l.id}
+                    className="glass-panel flex items-center gap-2 rounded-2xl p-3 text-xs"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{l.title}</span>
+                    <span className="text-muted-foreground">
+                      No series · {l.aspect_ratio ?? "16:9"}
+                    </span>
+                    <button
+                      onClick={() => del.mutate({ table: "lectures", id: l.id })}
+                      className="text-muted-foreground transition-colors hover:text-destructive"
+                      aria-label="Delete lecture"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </section>
         );
       })}

@@ -1,41 +1,43 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
+import { GraduationCap, KeyRound, Loader2, PlayCircle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { BRAND, memberIdToAuthEmail, normalizeMemberId } from "@/lib/brand";
-import { recordLogin } from "@/lib/member.functions";
+import { BRAND } from "@/lib/brand";
+import { openBeginnerSession } from "@/lib/sessions.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Member Sign In — Skyline Achievers" },
+      { title: "Skyline Achievers — Member Sign In & Training Sessions" },
       {
         name: "description",
         content:
-          "Private member sign in for the Skyline Achievers training platform. Enter your Member ID and password to access your training level.",
+          "Sign in as a Skyline Achievers member, or enter your Beginners Training session code to open your session instantly.",
       },
-      { property: "og:title", content: "Member Sign In — Skyline Achievers" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Skyline Achievers — Member Sign In & Training Sessions" },
       {
         property: "og:description",
-        content: "Private training platform for Skyline Achievers members.",
+        content:
+          "Private training platform for Skyline Achievers members, plus code-based beginners training sessions.",
       },
     ],
   }),
-  component: SignInPage,
+  component: LandingPage,
 });
 
-function SignInPage() {
+function LandingPage() {
   const navigate = useNavigate();
-  const finishLogin = useServerFn(recordLogin);
-  const [memberId, setMemberId] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const openSession = useServerFn(openBeginnerSession);
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -45,119 +47,121 @@ function SignInPage() {
     });
   }, [navigate]);
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSessionSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    const id = normalizeMemberId(memberId);
-    if (!/^SKA-[A-Z0-9]{4,10}$/.test(id)) {
-      setError("Enter your Member ID in the format SKA-12345.");
+    const value = code.trim().toUpperCase();
+    if (value.length < 4) {
+      setError("Enter the session code given to you by your trainer.");
       return;
     }
-    if (password.length < 6) {
-      setError("Enter the password provided by your administrator.");
-      return;
-    }
-
     setPending(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: memberIdToAuthEmail(id),
-      password,
-    });
-    if (signInError) {
+    try {
+      const result = await openSession({ data: { code: value } });
+      if (result.status !== "ok") {
+        setError("That session code is not valid. Please check it and try again.");
+        return;
+      }
+      await navigate({ to: "/session/$code", params: { code: result.session.code } });
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setPending(false);
-      setError("That Member ID and password combination is not recognised.");
-      return;
     }
-
-    const result = await finishLogin();
-    if (result.status !== "ok") {
-      await supabase.auth.signOut();
-      setPending(false);
-      setError(
-        result.status === "blocked"
-          ? "Your membership is temporarily blocked. Please contact your administrator."
-          : result.status === "removed"
-            ? "This membership has been removed. Please contact your administrator."
-            : "No membership profile is linked to this account yet.",
-      );
-      return;
-    }
-    await navigate({ to: "/dashboard" });
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12">
+    <main className="relative min-h-screen overflow-hidden px-5 py-10 sm:py-16">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
-      <div className="relative w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
+
+      <div className="relative mx-auto w-full max-w-5xl">
+        <header className="mb-10 flex flex-col items-center gap-4 text-center animate-rise-in">
           <BrandLogo size="lg" withWordmark={false} secretGesture />
           <div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight">{BRAND.name}</h1>
+            <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              {BRAND.name}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">{BRAND.tagline}</p>
           </div>
-        </div>
-
-        <form onSubmit={onSubmit} className="glass-panel-strong rounded-3xl p-6 sm:p-8">
-          <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            <LockKeyhole className="h-3.5 w-3.5" />
-            Members only
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="memberId">Member ID</Label>
-              <Input
-                id="memberId"
-                autoCapitalize="characters"
-                autoComplete="username"
-                placeholder="SKA-12345"
-                value={memberId}
-                onChange={(e) => setMemberId(e.target.value.toUpperCase())}
-                className="h-12 rounded-2xl text-base tracking-wider"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-2xl pr-12 text-base"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute inset-y-0 right-3 flex items-center text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {error ? (
-            <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
-              {error}
-            </p>
-          ) : null}
-
-          <Button type="submit" variant="brand" size="xl" className="mt-6 w-full" disabled={pending}>
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {pending ? "Signing you in" : "Sign in"}
-          </Button>
-
-          <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-            <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Accounts are issued by Skyline Achievers administrators. Lost your credentials? Contact{" "}
-            {BRAND.supportContact}.
+          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            A private training platform for Skyline Achievers. Members sign in below with their
+            Member ID — new trainees can open a Beginners Training session with a session code.
           </p>
-        </form>
+        </header>
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <section
+            className="animate-rise-in"
+            style={{ animationDelay: "60ms" }}
+            aria-labelledby="member-login-heading"
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-brand" />
+              <h2 id="member-login-heading" className="font-display text-lg font-semibold">
+                Member sign in
+              </h2>
+            </div>
+            <MemberLoginCard />
+          </section>
+
+          <section
+            className="animate-rise-in"
+            style={{ animationDelay: "120ms" }}
+            aria-labelledby="session-code-heading"
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-brand" />
+              <h2 id="session-code-heading" className="font-display text-lg font-semibold">
+                Beginners Training session
+              </h2>
+            </div>
+
+            <form onSubmit={onSessionSubmit} className="glass-panel-strong rounded-3xl p-6 sm:p-8">
+              <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                <KeyRound className="h-3.5 w-3.5" />
+                No account needed
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sessionCode">Session code</Label>
+                <Input
+                  id="sessionCode"
+                  placeholder="e.g. SKA-BEGIN-01"
+                  autoCapitalize="characters"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  className="h-12 rounded-2xl text-base tracking-[0.14em]"
+                />
+              </div>
+
+              {error ? (
+                <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
+                  {error}
+                </p>
+              ) : null}
+
+              <Button
+                type="submit"
+                variant="brand"
+                size="xl"
+                className="mt-6 w-full"
+                disabled={pending}
+              >
+                {pending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <PlayCircle className="h-4 w-4" />
+                )}
+                {pending ? "Opening your session" : "Open session"}
+              </Button>
+
+              <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+                Each session code opens only its own training session. Codes are issued by{" "}
+                {BRAND.supportContact}.
+              </p>
+            </form>
+          </section>
+        </div>
       </div>
     </main>
   );

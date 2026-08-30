@@ -35,6 +35,57 @@ export type Database = {
         }
         Relationships: []
       }
+      beginner_sessions: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          is_published: boolean
+          session_code: string
+          sort_order: number
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean
+          session_code: string
+          sort_order?: number
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean
+          session_code?: string
+          sort_order?: number
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       content_access: {
         Row: {
           content_id: string

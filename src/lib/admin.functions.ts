@@ -683,3 +683,112 @@ export const adminDeleteReel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/* ------------------------------------------------------------------ */
+/* Beginners Training Sessions (opened with a session code, no login) */
+/* ------------------------------------------------------------------ */
+
+export const adminGetSessions = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("beginner_sessions")
+    .select(
+      "id, session_code, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+    )
+    .order("sort_order")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return { sessions: data ?? [] };
+});
+
+export const adminSaveSession = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      sessionCode: string;
+      title: string;
+      description?: string | null;
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      thumbnailPath?: string | null;
+      aspectRatio?: string;
+      sortOrder?: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          sessionCode: z
+            .string()
+            .trim()
+            .min(4, "Use at least 4 characters")
+            .max(40)
+            .regex(/^[A-Za-z0-9-]+$/, "Letters, numbers and dashes only")
+            .transform((v) => v.toUpperCase()),
+          title: text(160),
+          description: optionalText(4000),
+          videoPath: optionalText(400),
+          videoUrl: optionalText(600),
+          thumbnailPath: optionalText(400),
+          aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
+          sortOrder: z.number().int().min(0).max(999).optional(),
+          isPublished: z.boolean(),
+        })
+        .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
+          message: "Upload a video file or paste a video link.",
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const payload: Record<string, unknown> = {
+      session_code: data.sessionCode,
+      title: data.title,
+      description: data.description,
+      aspect_ratio: data.aspectRatio ?? "16:9",
+      sort_order: data.sortOrder ?? 0,
+      is_published: data.isPublished,
+    };
+    if (data.videoPath) {
+      payload["video_path"] = data.videoPath;
+      payload["video_url"] = null;
+      payload["video_source"] = "upload";
+    } else if (data.videoUrl) {
+      payload["video_url"] = data.videoUrl;
+      payload["video_path"] = null;
+      payload["video_source"] = "external";
+    }
+    if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
+
+    const query = data.id
+      ? (supabaseAdmin as any).from("beginner_sessions").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("beginner_sessions").insert(payload);
+    const { error } = await query;
+    if (error) {
+      throw new Error(
+        error.code === "23505" || /duplicate key/i.test(error.message)
+          ? "That session code is already in use."
+          : error.message,
+      );
+    }
+    return { ok: true as const };
+  });
+
+export const adminDeleteSession = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("beginner_sessions")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

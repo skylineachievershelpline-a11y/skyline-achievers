@@ -56,9 +56,27 @@ export function MemberShell({
 }) {
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
+  // Only ask the server once a browser session actually exists, otherwise the
+  // protected server function rejects with "No authorization header".
+  const [hasSession, setHasSession] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(Boolean(data.session));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(Boolean(session));
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
   const { data } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => loadNotifications(),
+    enabled: hasSession,
+    retry: false,
   });
 
   async function signOut() {

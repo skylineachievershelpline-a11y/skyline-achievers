@@ -150,6 +150,9 @@ function AdminPage() {
           <TabsContent value="reels" className="mt-5">
             <ReelsTab />
           </TabsContent>
+          <TabsContent value="sessions" className="mt-5">
+            <SessionsTab />
+          </TabsContent>
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />
           </TabsContent>

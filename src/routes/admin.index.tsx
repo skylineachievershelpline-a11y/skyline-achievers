@@ -133,6 +133,9 @@ function AdminPage() {
             <TabsTrigger value="reels" className="rounded-xl">
               Reels
             </TabsTrigger>
+            <TabsTrigger value="sessions" className="rounded-xl">
+              Sessions
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>

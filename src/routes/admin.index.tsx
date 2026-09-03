@@ -8,6 +8,7 @@ import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
+import { SessionsTab } from "@/components/admin/SessionsTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

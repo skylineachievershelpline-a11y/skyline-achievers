@@ -8,6 +8,7 @@ import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
+import { SessionsTab } from "@/components/admin/SessionsTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -132,6 +133,9 @@ function AdminPage() {
             <TabsTrigger value="reels" className="rounded-xl">
               Reels
             </TabsTrigger>
+            <TabsTrigger value="sessions" className="rounded-xl">
+              Sessions
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
@@ -145,6 +149,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="reels" className="mt-5">
             <ReelsTab />
+          </TabsContent>
+          <TabsContent value="sessions" className="mt-5">
+            <SessionsTab />
           </TabsContent>
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />

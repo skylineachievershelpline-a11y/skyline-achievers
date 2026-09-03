@@ -22,6 +22,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
 import { Route as SeriesSeriesIdRouteImport } from './routes/series.$seriesId'
+import { Route as SessionCodeRouteImport } from './routes/session.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +89,11 @@ const SeriesSeriesIdRoute = SeriesSeriesIdRouteImport.update({
   path: '/series/$seriesId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionCodeRoute = SessionCodeRouteImport.update({
+  id: '/session/$code',
+  path: '/session/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
+  '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
+  '/session/$code': typeof SessionCodeRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
+  '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/series/$seriesId'
+    | '/session/$code'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/series/$seriesId'
+    | '/session/$code'
     | '/admin'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/series/$seriesId'
+    | '/session/$code'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
   SeriesSeriesIdRoute: typeof SeriesSeriesIdRoute
+  SessionCodeRoute: typeof SessionCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeriesSeriesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/session/$code': {
+      id: '/session/$code'
+      path: '/session/$code'
+      fullPath: '/session/$code'
+      preLoaderRoute: typeof SessionCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,
   SeriesSeriesIdRoute: SeriesSeriesIdRoute,
+  SessionCodeRoute: SessionCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport

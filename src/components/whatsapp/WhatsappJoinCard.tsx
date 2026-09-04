@@ -21,12 +21,13 @@ function inviteToken(url: string) {
   return match ? match[1] : null;
 }
 
-export function WhatsappJoinCard() {
+export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chip" }) {
   const verify = useServerFn(openWhatsappGroup);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [group, setGroup] = useState<Group | null>(null);
+  const [codeOpen, setCodeOpen] = useState(false);
 
   async function onSubmit() {
     setError(null);

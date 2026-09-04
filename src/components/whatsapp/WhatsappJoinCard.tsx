@@ -52,37 +52,31 @@ export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chi
     }
   }
 
-  function openLink(href: string) {
-    const a = document.createElement("a");
-    a.href = href;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
   function openIn(app: "whatsapp" | "business") {
     if (!group) return;
     const token = inviteToken(group.inviteUrl);
     const isAndroid = /android/i.test(navigator.userAgent);
 
     if (token && isAndroid) {
-      // Open ONLY the package-specific intent. Opening the plain https invite
-      // first lets Android's default handler (often WhatsApp Business) grab it,
-      // which is why every button opened the same app before.
+      // Package-specific intent MUST navigate the current tab. Android Chrome
+      // silently drops intent:// URLs opened in a new tab/window, which is why
+      // nothing happened after choosing an app.
       const pkg = app === "business" ? "com.whatsapp.w4b" : "com.whatsapp";
       const intentUrl = `intent://chat.whatsapp.com/${token}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
         group.inviteUrl,
       )};end`;
-      openLink(intentUrl);
+      window.location.href = intentUrl;
+      // If the app isn't installed and the fallback doesn't kick in, use the web invite.
+      window.setTimeout(() => {
+        if (!document.hidden) window.location.href = group.inviteUrl;
+      }, 1800);
     } else {
-      openLink(group.inviteUrl);
+      window.open(group.inviteUrl, "_blank", "noopener,noreferrer");
     }
 
-    setGroup(null);
     setCodeOpen(false);
   }
+
 
 
   const codeFields = (

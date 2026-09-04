@@ -142,3 +142,21 @@ function SessionPage() {
     </main>
   );
 }
+
+function isEmbeddable(url: string): boolean {
+  return /youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com|facebook\.com|fb\.watch/.test(url);
+}
+
+function toEmbedUrl(url: string): string {
+  const youtube = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/,
+  );
+  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
+  if (/facebook\.com|fb\.watch/.test(url))
+    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}`;
+  return url;
+}

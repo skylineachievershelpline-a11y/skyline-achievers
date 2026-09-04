@@ -5,6 +5,7 @@ import { Loader2, LogOut } from "lucide-react";
 import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
+import { FinalTestTab } from "@/components/admin/FinalTestTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
@@ -143,6 +144,9 @@ function AdminPage() {
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
+            <TabsTrigger value="finaltest" className="rounded-xl">
+              Final Test
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">
@@ -162,6 +166,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />
+          </TabsContent>
+          <TabsContent value="finaltest" className="mt-5">
+            <FinalTestTab />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,7 +1,17 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, Clapperboard, Home, Layers, LogOut, Search, FolderOpen, User } from "lucide-react";
+import {
+  Bell,
+  ClipboardCheck,
+  Clapperboard,
+  Home,
+  Layers,
+  LogOut,
+  Search,
+  FolderOpen,
+  User,
+} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -41,6 +51,7 @@ const NAV = [
   { to: "/levels", label: "Levels", icon: Layers },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/resources", label: "Files", icon: FolderOpen },
+  { to: "/final-test", label: "Final Test", icon: ClipboardCheck },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;

@@ -144,6 +144,9 @@ function AdminPage() {
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
+            <TabsTrigger value="finaltest" className="rounded-xl">
+              Final Test
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">

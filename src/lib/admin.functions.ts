@@ -792,3 +792,98 @@ export const adminDeleteSession = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/* ------------------------------------------------------------------ */
+/* WhatsApp groups (unlocked on the landing page with a join code)     */
+/* ------------------------------------------------------------------ */
+
+export const adminGetWhatsappGroups = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("whatsapp_groups")
+    .select("id, join_code, title, description, invite_url, sort_order, is_published, created_at")
+    .order("sort_order")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return { groups: data ?? [] };
+});
+
+export const adminSaveWhatsappGroup = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      joinCode: string;
+      title: string;
+      description?: string | null;
+      inviteUrl: string;
+      sortOrder?: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          joinCode: z
+            .string()
+            .trim()
+            .min(4, "Use at least 4 characters")
+            .max(40)
+            .regex(/^[A-Za-z0-9-]+$/, "Letters, numbers and dashes only")
+            .transform((v) => v.toUpperCase()),
+          title: text(160),
+          description: optionalText(4000),
+          inviteUrl: z
+            .string()
+            .trim()
+            .url("Paste the full WhatsApp invite link")
+            .max(600)
+            .refine((v) => /chat\.whatsapp\.com\//i.test(v), {
+              message: "Use a https://chat.whatsapp.com/... invite link",
+            }),
+          sortOrder: z.number().int().min(0).max(999).optional(),
+          isPublished: z.boolean(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const payload = {
+      join_code: data.joinCode,
+      title: data.title,
+      description: data.description,
+      invite_url: data.inviteUrl,
+      sort_order: data.sortOrder ?? 0,
+      is_published: data.isPublished,
+    };
+
+    const query = data.id
+      ? (supabaseAdmin as any).from("whatsapp_groups").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("whatsapp_groups").insert(payload);
+    const { error } = await query;
+    if (error) {
+      throw new Error(
+        error.code === "23505" || /duplicate key/i.test(error.message)
+          ? "That group code is already in use."
+          : error.message,
+      );
+    }
+    return { ok: true as const };
+  });
+
+export const adminDeleteWhatsappGroup = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("whatsapp_groups")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

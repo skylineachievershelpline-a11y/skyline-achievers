@@ -51,35 +51,32 @@ export function WhatsappJoinCard() {
     }
   }
 
+  function openLink(href: string) {
+    const a = document.createElement("a");
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   function openIn(app: "whatsapp" | "business") {
     if (!group) return;
     const token = inviteToken(group.inviteUrl);
     const isAndroid = /android/i.test(navigator.userAgent);
 
-    // Always open the invite in a new top-level tab first: inside the preview
-    // iframe a same-frame navigation is blocked, so nothing appeared to happen.
-    const opened = window.open(group.inviteUrl, "_blank", "noopener,noreferrer");
-    if (!opened) {
-      const a = document.createElement("a");
-      a.href = group.inviteUrl;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-
-    // On Android, additionally try to hand off to the chosen WhatsApp app.
     if (token && isAndroid) {
+      // Open ONLY the package-specific intent. Opening the plain https invite
+      // first lets Android's default handler (often WhatsApp Business) grab it,
+      // which is why every button opened the same app before.
       const pkg = app === "business" ? "com.whatsapp.w4b" : "com.whatsapp";
       const intentUrl = `intent://chat.whatsapp.com/${token}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
         group.inviteUrl,
       )};end`;
-      try {
-        (opened ?? window).location.href = intentUrl;
-      } catch {
-        /* fallback tab already opened */
-      }
+      openLink(intentUrl);
+    } else {
+      openLink(group.inviteUrl);
     }
 
     setGroup(null);

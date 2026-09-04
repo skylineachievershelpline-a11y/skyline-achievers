@@ -24,6 +24,7 @@ import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureI
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
 import { Route as SeriesSeriesIdRouteImport } from './routes/series.$seriesId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
+import { Route as TestTokenRouteImport } from './routes/test.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -100,6 +101,11 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
   path: '/session/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestTokenRoute = TestTokenRouteImport.update({
+  id: '/test/$token',
+  path: '/test/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
+  '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
+  '/test/$token': typeof TestTokenRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/level/$slug': typeof LevelSlugRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
+  '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/level/$slug'
     | '/series/$seriesId'
     | '/session/$code'
+    | '/test/$token'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/level/$slug'
     | '/series/$seriesId'
     | '/session/$code'
+    | '/test/$token'
     | '/admin'
   id:
     | '__root__'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/level/$slug'
     | '/series/$seriesId'
     | '/session/$code'
+    | '/test/$token'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   LevelSlugRoute: typeof LevelSlugRoute
   SeriesSeriesIdRoute: typeof SeriesSeriesIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
+  TestTokenRoute: typeof TestTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test/$token': {
+      id: '/test/$token'
+      path: '/test/$token'
+      fullPath: '/test/$token'
+      preLoaderRoute: typeof TestTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   LevelSlugRoute: LevelSlugRoute,
   SeriesSeriesIdRoute: SeriesSeriesIdRoute,
   SessionCodeRoute: SessionCodeRoute,
+  TestTokenRoute: TestTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport

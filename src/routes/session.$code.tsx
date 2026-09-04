@@ -93,11 +93,7 @@ function SessionPage() {
             <div className="glass-panel-strong overflow-hidden rounded-3xl p-3 sm:p-4">
               <div
                 className={`overflow-hidden rounded-2xl bg-black ${
-                  // Google Drive's own player has fixed chrome, so a portrait frame
-                  // squeezes it. Always give Drive embeds a 16:9 stage.
-                  session.videoUrl && /drive\.google\.com/.test(session.videoUrl)
-                    ? "aspect-video"
-                    : (RATIO_CLASS[session.aspectRatio] ?? "aspect-video")
+                  RATIO_CLASS[session.aspectRatio] ?? "aspect-video"
                 }`}
               >
                 {session.videoUrl ? (

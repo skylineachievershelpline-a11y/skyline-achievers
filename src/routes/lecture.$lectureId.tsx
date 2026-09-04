@@ -104,10 +104,7 @@ function LecturePage() {
     "1:1": "aspect-square mx-auto max-h-[78vh]",
     "4:3": "aspect-[4/3]",
   };
-  // Google Drive's embedded player ships its own fixed chrome, so a portrait
-  // frame squashes it — Drive embeds always get a 16:9 stage.
-  const isDrive = /drive\.google\.com/.test(data.playback?.url ?? "");
-  const frameClass = isDrive ? "aspect-video" : (RATIO_CLASS[ratio] ?? "aspect-video");
+  const frameClass = RATIO_CLASS[ratio] ?? "aspect-video";
 
   return (
     <MemberShell title={lecture.title} subtitle={lecture.series?.title ?? undefined}>

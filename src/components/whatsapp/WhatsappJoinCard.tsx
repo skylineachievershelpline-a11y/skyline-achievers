@@ -83,54 +83,82 @@ export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chi
   }
 
 
+  const codeFields = (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="groupCode">Group code</Label>
+        <Input
+          id="groupCode"
+          placeholder="e.g. SKA-GROUP-01"
+          autoCapitalize="characters"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void onSubmit();
+            }
+          }}
+          className="h-12 rounded-2xl text-base tracking-[0.14em]"
+        />
+      </div>
+
+      {error ? (
+        <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
+          {error}
+        </p>
+      ) : null}
+
+      <Button
+        type="button"
+        variant="brand"
+        size="xl"
+        className="mt-6 w-full"
+        disabled={pending}
+        onClick={() => void onSubmit()}
+      >
+        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+        {pending ? "Checking your code" : "Join WhatsApp group"}
+      </Button>
+    </>
+  );
+
   return (
     <>
-      <div className="glass-panel-strong rounded-3xl p-6 sm:p-8">
-        <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          <KeyRound className="h-3.5 w-3.5" />
-          Enter your group code
+      {variant === "chip" ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setCodeOpen(true)}
+            aria-label="Join a WhatsApp group"
+            className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 items-center gap-2 rounded-l-2xl border border-hairline/60 bg-background/85 px-3 py-2 text-xs font-medium shadow-lg backdrop-blur-xl transition hover:bg-background press"
+          >
+            <MessageCircle className="h-4 w-4 text-brand" />
+            <span className="hidden sm:inline">WhatsApp group</span>
+          </button>
+
+          <Dialog open={codeOpen} onOpenChange={setCodeOpen}>
+            <DialogContent className="rounded-3xl">
+              <DialogHeader>
+                <DialogTitle>Join a WhatsApp group</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                Enter the group code you were given to unlock the invite.
+              </p>
+              <div className="mt-3">{codeFields}</div>
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <div className="glass-panel-strong rounded-3xl p-6 sm:p-8">
+          <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <KeyRound className="h-3.5 w-3.5" />
+            Enter your group code
+          </div>
+          {codeFields}
         </div>
+      )}
 
-        <div className="space-y-2">
-          <Label htmlFor="groupCode">Group code</Label>
-          <Input
-            id="groupCode"
-            placeholder="e.g. SKA-GROUP-01"
-            autoCapitalize="characters"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                void onSubmit();
-              }
-            }}
-            className="h-12 rounded-2xl text-base tracking-[0.14em]"
-          />
-        </div>
-
-        {error ? (
-          <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
-            {error}
-          </p>
-        ) : null}
-
-        <Button
-          type="button"
-          variant="brand"
-          size="xl"
-          className="mt-6 w-full"
-          disabled={pending}
-          onClick={() => void onSubmit()}
-        >
-          {pending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MessageCircle className="h-4 w-4" />
-          )}
-          {pending ? "Checking your code" : "Join WhatsApp group"}
-        </Button>
-      </div>
 
       <Dialog open={Boolean(group)} onOpenChange={(open) => (open ? null : setGroup(null))}>
         <DialogContent className="rounded-3xl">

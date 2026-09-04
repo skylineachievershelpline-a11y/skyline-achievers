@@ -168,21 +168,9 @@ function LandingPage() {
               </p>
             </div>
           </section>
-          <section
-            className="animate-rise-in lg:col-span-2"
-            style={{ animationDelay: "180ms" }}
-            aria-labelledby="whatsapp-heading"
-          >
-            <div className="mb-3 flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-brand" />
-              <h2 id="whatsapp-heading" className="font-display text-lg font-semibold">
-                Join a WhatsApp group
-              </h2>
-            </div>
-            <WhatsappJoinCard />
-          </section>
         </div>
       </div>
+      <WhatsappJoinCard variant="chip" />
     </main>
   );
 }

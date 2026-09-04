@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as LevelsRouteImport } from './routes/levels'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinalTestRoute = FinalTestRouteImport.update({
+  id: '/final-test',
+  path: '/final-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LevelsRoute = LevelsRouteImport.update({
@@ -98,6 +104,7 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/final-test'
     | '/levels'
     | '/notifications'
     | '/profile'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/final-test'
     | '/levels'
     | '/notifications'
     | '/profile'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/final-test'
     | '/levels'
     | '/notifications'
     | '/profile'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  FinalTestRoute: typeof FinalTestRoute
   LevelsRoute: typeof LevelsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/final-test': {
+      id: '/final-test'
+      path: '/final-test'
+      fullPath: '/final-test'
+      preLoaderRoute: typeof FinalTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/levels': {
@@ -318,6 +338,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  FinalTestRoute: FinalTestRoute,
   LevelsRoute: LevelsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,

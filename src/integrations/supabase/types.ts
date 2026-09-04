@@ -118,6 +118,194 @@ export type Database = {
           },
         ]
       }
+      final_test_answers: {
+        Row: {
+          answer_text: string | null
+          awarded_marks: number | null
+          created_at: string
+          id: string
+          question_id: string
+          selected_option: number | null
+          test_id: string
+        }
+        Insert: {
+          answer_text?: string | null
+          awarded_marks?: number | null
+          created_at?: string
+          id?: string
+          question_id: string
+          selected_option?: number | null
+          test_id: string
+        }
+        Update: {
+          answer_text?: string | null
+          awarded_marks?: number | null
+          created_at?: string
+          id?: string
+          question_id?: string
+          selected_option?: number | null
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_test_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "final_test_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_test_answers_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "final_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      final_test_questions: {
+        Row: {
+          correct_option: number | null
+          created_at: string
+          id: string
+          is_published: boolean
+          marks: number
+          options_en: string[]
+          options_ur: string[]
+          question_en: string
+          question_type: string
+          question_ur: string | null
+          sort_order: number
+          time_limit_seconds: number
+          updated_at: string
+          voice_path: string | null
+          voice_url: string | null
+        }
+        Insert: {
+          correct_option?: number | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          marks?: number
+          options_en?: string[]
+          options_ur?: string[]
+          question_en: string
+          question_type?: string
+          question_ur?: string | null
+          sort_order?: number
+          time_limit_seconds?: number
+          updated_at?: string
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Update: {
+          correct_option?: number | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          marks?: number
+          options_en?: string[]
+          options_ur?: string[]
+          question_en?: string
+          question_type?: string
+          question_ur?: string | null
+          sort_order?: number
+          time_limit_seconds?: number
+          updated_at?: string
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Relationships: []
+      }
+      final_test_rules: {
+        Row: {
+          id: string
+          rules_en: string | null
+          rules_ur: string | null
+          show_result_to_candidate: boolean
+          updated_at: string
+          voice_path: string | null
+          voice_url: string | null
+        }
+        Insert: {
+          id?: string
+          rules_en?: string | null
+          rules_ur?: string | null
+          show_result_to_candidate?: boolean
+          updated_at?: string
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Update: {
+          id?: string
+          rules_en?: string | null
+          rules_ur?: string | null
+          show_result_to_candidate?: boolean
+          updated_at?: string
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Relationships: []
+      }
+      final_tests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          language: string | null
+          marks: number | null
+          mobile: string
+          person_name: string
+          result: string
+          started_at: string | null
+          status: string
+          token: string
+          updated_at: string
+          upline_account_id: string | null
+          upline_name: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          marks?: number | null
+          mobile: string
+          person_name: string
+          result?: string
+          started_at?: string | null
+          status?: string
+          token: string
+          updated_at?: string
+          upline_account_id?: string | null
+          upline_name: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          language?: string | null
+          marks?: number | null
+          mobile?: string
+          person_name?: string
+          result?: string
+          started_at?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+          upline_account_id?: string | null
+          upline_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_tests_upline_account_id_fkey"
+            columns: ["upline_account_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lectures: {
         Row: {
           aspect_ratio: string

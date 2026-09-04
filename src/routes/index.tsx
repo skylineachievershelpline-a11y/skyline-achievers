@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { GraduationCap, KeyRound, Loader2, MessageCircle, PlayCircle, Sparkles } from "lucide-react";
+import { GraduationCap, KeyRound, Loader2, PlayCircle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";

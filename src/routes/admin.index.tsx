@@ -5,6 +5,7 @@ import { Loader2, LogOut } from "lucide-react";
 import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
+import { FinalTestTab } from "@/components/admin/FinalTestTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";

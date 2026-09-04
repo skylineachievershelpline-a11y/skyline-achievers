@@ -28,8 +28,7 @@ export function WhatsappJoinCard() {
   const [pending, setPending] = useState(false);
   const [group, setGroup] = useState<Group | null>(null);
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function onSubmit() {
     setError(null);
     const value = code.trim().toUpperCase();
     if (value.length < 4) {
@@ -85,7 +84,7 @@ export function WhatsappJoinCard() {
 
   return (
     <>
-      <form onSubmit={onSubmit} className="glass-panel-strong rounded-3xl p-6 sm:p-8">
+      <div className="glass-panel-strong rounded-3xl p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           <KeyRound className="h-3.5 w-3.5" />
           Enter your group code
@@ -99,6 +98,12 @@ export function WhatsappJoinCard() {
             autoCapitalize="characters"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void onSubmit();
+              }
+            }}
             className="h-12 rounded-2xl text-base tracking-[0.14em]"
           />
         </div>
@@ -109,7 +114,14 @@ export function WhatsappJoinCard() {
           </p>
         ) : null}
 
-        <Button type="submit" variant="brand" size="xl" className="mt-6 w-full" disabled={pending}>
+        <Button
+          type="button"
+          variant="brand"
+          size="xl"
+          className="mt-6 w-full"
+          disabled={pending}
+          onClick={() => void onSubmit()}
+        >
           {pending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -117,7 +129,7 @@ export function WhatsappJoinCard() {
           )}
           {pending ? "Checking your code" : "Join WhatsApp group"}
         </Button>
-      </form>
+      </div>
 
       <Dialog open={Boolean(group)} onOpenChange={(open) => (open ? null : setGroup(null))}>
         <DialogContent className="rounded-3xl">

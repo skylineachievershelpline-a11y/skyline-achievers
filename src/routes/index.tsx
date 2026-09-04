@@ -48,8 +48,7 @@ function LandingPage() {
     });
   }, [navigate]);
 
-  async function onSessionSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function onSessionSubmit() {
     setError(null);
     const value = code.trim().toUpperCase();
     if (value.length < 4) {
@@ -117,7 +116,7 @@ function LandingPage() {
               </h2>
             </div>
 
-            <form onSubmit={onSessionSubmit} className="glass-panel-strong rounded-3xl p-6 sm:p-8">
+            <div className="glass-panel-strong rounded-3xl p-6 sm:p-8">
               <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 <KeyRound className="h-3.5 w-3.5" />
                 No account needed
@@ -131,6 +130,12 @@ function LandingPage() {
                   autoCapitalize="characters"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void onSessionSubmit();
+                    }
+                  }}
                   className="h-12 rounded-2xl text-base tracking-[0.14em]"
                 />
               </div>
@@ -142,7 +147,8 @@ function LandingPage() {
               ) : null}
 
               <Button
-                type="submit"
+                type="button"
+                onClick={() => void onSessionSubmit()}
                 variant="brand"
                 size="xl"
                 className="mt-6 w-full"
@@ -160,7 +166,7 @@ function LandingPage() {
                 Each session code opens only its own training session. Codes are issued by{" "}
                 {BRAND.supportContact}.
               </p>
-            </form>
+            </div>
           </section>
           <section
             className="animate-rise-in lg:col-span-2"

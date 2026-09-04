@@ -97,14 +97,24 @@ function SessionPage() {
                 }`}
               >
                 {session.videoUrl ? (
-                  <video
-                    src={session.videoUrl}
-                    poster={session.thumbnailUrl ?? undefined}
-                    controls
-                    playsInline
-                    controlsList="nodownload"
-                    className="h-full w-full object-contain"
-                  />
+                  isEmbeddable(session.videoUrl) ? (
+                    <iframe
+                      src={toEmbedUrl(session.videoUrl)}
+                      title={session.title}
+                      allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                      allowFullScreen
+                      className="h-full w-full border-0"
+                    />
+                  ) : (
+                    <video
+                      src={session.videoUrl}
+                      poster={session.thumbnailUrl ?? undefined}
+                      controls
+                      playsInline
+                      controlsList="nodownload"
+                      className="h-full w-full object-contain"
+                    />
+                  )
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
                     Video unavailable

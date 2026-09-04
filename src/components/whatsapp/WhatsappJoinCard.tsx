@@ -55,16 +55,36 @@ export function WhatsappJoinCard() {
     if (!group) return;
     const token = inviteToken(group.inviteUrl);
     const isAndroid = /android/i.test(navigator.userAgent);
-    let target = group.inviteUrl;
 
+    // Always open the invite in a new top-level tab first: inside the preview
+    // iframe a same-frame navigation is blocked, so nothing appeared to happen.
+    const opened = window.open(group.inviteUrl, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      const a = document.createElement("a");
+      a.href = group.inviteUrl;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // On Android, additionally try to hand off to the chosen WhatsApp app.
     if (token && isAndroid) {
       const pkg = app === "business" ? "com.whatsapp.w4b" : "com.whatsapp";
-      target = `intent://chat.whatsapp.com/${token}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
+      const intentUrl = `intent://chat.whatsapp.com/${token}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
         group.inviteUrl,
       )};end`;
+      try {
+        (opened ?? window).location.href = intentUrl;
+      } catch {
+        /* fallback tab already opened */
+      }
     }
-    window.location.href = target;
+
+    setGroup(null);
   }
+
 
   return (
     <>

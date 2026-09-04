@@ -167,6 +167,9 @@ function AdminPage() {
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />
           </TabsContent>
+          <TabsContent value="finaltest" className="mt-5">
+            <FinalTestTab />
+          </TabsContent>
         </Tabs>
       </div>
     </main>

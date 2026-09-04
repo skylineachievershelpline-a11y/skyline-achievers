@@ -43,6 +43,7 @@ export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chi
         setError("That group code is not valid. Please check it and try again.");
         return;
       }
+      setCodeOpen(false);
       setGroup(result.group);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -80,6 +81,7 @@ export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chi
     }
 
     setGroup(null);
+    setCodeOpen(false);
   }
 
 

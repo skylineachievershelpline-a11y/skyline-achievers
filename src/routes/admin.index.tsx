@@ -9,6 +9,7 @@ import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
+import { WhatsappTab } from "@/components/admin/WhatsappTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -136,6 +137,9 @@ function AdminPage() {
             <TabsTrigger value="sessions" className="rounded-xl">
               Sessions
             </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="rounded-xl">
+              WhatsApp
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
@@ -152,6 +156,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="sessions" className="mt-5">
             <SessionsTab />
+          </TabsContent>
+          <TabsContent value="whatsapp" className="mt-5">
+            <WhatsappTab />
           </TabsContent>
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />

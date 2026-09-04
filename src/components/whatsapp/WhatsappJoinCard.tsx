@@ -58,20 +58,15 @@ export function WhatsappJoinCard({ variant = "card" }: { variant?: "card" | "chi
     const isAndroid = /android/i.test(navigator.userAgent);
 
     if (token && isAndroid) {
-      // Package-specific intent MUST navigate the current tab. Android Chrome
-      // silently drops intent:// URLs opened in a new tab/window, which is why
-      // nothing happened after choosing an app.
       const pkg = app === "business" ? "com.whatsapp.w4b" : "com.whatsapp";
-      const intentUrl = `intent://chat.whatsapp.com/${token}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
-        group.inviteUrl,
-      )};end`;
-      window.location.href = intentUrl;
-      // If the app isn't installed and the fallback doesn't kick in, use the web invite.
-      window.setTimeout(() => {
-        if (!document.hidden) window.location.href = group.inviteUrl;
-      }, 1800);
+      // Use WhatsApp's native group-chat scheme and pin the selected Android
+      // package. A chat.whatsapp.com browser fallback cannot render inside the
+      // preview frame and produces ERR_BLOCKED_BY_RESPONSE.
+      const intentUrl = `intent://chat?code=${encodeURIComponent(token)}#Intent;scheme=whatsapp;package=${pkg};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+      window.location.assign(intentUrl);
     } else {
-      window.open(group.inviteUrl, "_blank", "noopener,noreferrer");
+      const inviteWindow = window.open(group.inviteUrl, "_blank", "noopener,noreferrer");
+      if (!inviteWindow) window.location.assign(group.inviteUrl);
     }
 
     setCodeOpen(false);

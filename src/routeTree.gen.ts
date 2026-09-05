@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as LevelsRouteImport } from './routes/levels'
+import { Route as LiveTrainingRouteImport } from './routes/live-training'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -44,6 +45,11 @@ const FinalTestRoute = FinalTestRouteImport.update({
 const LevelsRoute = LevelsRouteImport.update({
   id: '/levels',
   path: '/levels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveTrainingRoute = LiveTrainingRouteImport.update({
+  id: '/live-training',
+  path: '/live-training',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
+  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
+  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
+  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
+    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
+    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
+    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FinalTestRoute: typeof FinalTestRoute
   LevelsRoute: typeof LevelsRoute
+  LiveTrainingRoute: typeof LiveTrainingRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/levels'
       fullPath: '/levels'
       preLoaderRoute: typeof LevelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live-training': {
+      id: '/live-training'
+      path: '/live-training'
+      fullPath: '/live-training'
+      preLoaderRoute: typeof LiveTrainingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FinalTestRoute: FinalTestRoute,
   LevelsRoute: LevelsRoute,
+  LiveTrainingRoute: LiveTrainingRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,

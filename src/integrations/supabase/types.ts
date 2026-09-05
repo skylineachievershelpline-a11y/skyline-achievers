@@ -411,6 +411,99 @@ export type Database = {
         }
         Relationships: []
       }
+      live_premieres: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          scheduled_at: string
+          token: string
+          training_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          scheduled_at: string
+          token: string
+          training_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          scheduled_at?: string
+          token?: string
+          training_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_premieres_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_premieres_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "live_trainings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_trainings: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          is_published: boolean
+          sort_order: number
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       member_profiles: {
         Row: {
           age: number | null

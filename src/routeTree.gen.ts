@@ -23,6 +23,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
+import { Route as LiveTokenRouteImport } from './routes/live.$token'
 import { Route as SeriesSeriesIdRouteImport } from './routes/series.$seriesId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as TestTokenRouteImport } from './routes/test.$token'
@@ -97,6 +98,11 @@ const LevelSlugRoute = LevelSlugRouteImport.update({
   path: '/level/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LiveTokenRoute = LiveTokenRouteImport.update({
+  id: '/live/$token',
+  path: '/live/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SeriesSeriesIdRoute = SeriesSeriesIdRouteImport.update({
   id: '/series/$seriesId',
   path: '/series/$seriesId',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
+  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
+  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
+  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
+    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
+    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
+    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
+  LiveTokenRoute: typeof LiveTokenRoute
   SeriesSeriesIdRoute: typeof SeriesSeriesIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   TestTokenRoute: typeof TestTokenRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LevelSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/live/$token': {
+      id: '/live/$token'
+      path: '/live/$token'
+      fullPath: '/live/$token'
+      preLoaderRoute: typeof LiveTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/series/$seriesId': {
       id: '/series/$seriesId'
       path: '/series/$seriesId'
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,
+  LiveTokenRoute: LiveTokenRoute,
   SeriesSeriesIdRoute: SeriesSeriesIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   TestTokenRoute: TestTokenRoute,

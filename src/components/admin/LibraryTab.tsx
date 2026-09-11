@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { frameFromVideo } from "@/components/admin/ReelsTab";
 import { uploadToBucket } from "@/components/admin/upload";
+import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import {
   adminCreateUploadUrl,
   adminDeleteContent,
@@ -31,6 +32,7 @@ export function LibraryTab() {
   const saveResource = useServerFn(adminSaveResource);
   const remove = useServerFn(adminDeleteContent);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
@@ -203,6 +205,7 @@ export function LibraryTab() {
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
+              uploadProgress.clear();
               try {
                 let thumbnailPath: string | null = null;
                 if (values.thumbnail) {
@@ -210,6 +213,7 @@ export function LibraryTab() {
                     createUploadUrl,
                     "training-thumbnails",
                     values.thumbnail,
+                    uploadProgress.handler("Uploading series cover"),
                   );
                 }
                 await saveSeries({
@@ -229,9 +233,11 @@ export function LibraryTab() {
                 toast.error((error as Error).message);
               } finally {
                 setBusy(false);
+                uploadProgress.clear();
               }
             }}
           />
+          <UploadProgress state={uploadProgress.state} />
         </DialogContent>
       </Dialog>
 
@@ -246,17 +252,28 @@ export function LibraryTab() {
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
+              uploadProgress.clear();
               try {
                 let videoPath: string | null = null;
                 let thumbnailPath: string | null = null;
                 if (values.videoFile) {
-                  videoPath = await uploadToBucket(createUploadUrl, "training-videos", values.videoFile);
+                  videoPath = await uploadToBucket(
+                    createUploadUrl,
+                    "training-videos",
+                    values.videoFile,
+                    uploadProgress.handler("Uploading lecture video"),
+                  );
                 }
                 // No cover picked? Grab a still frame straight from the video.
                 const cover =
                   values.thumbnail ?? (values.videoFile ? await frameFromVideo(values.videoFile) : null);
                 if (cover) {
-                  thumbnailPath = await uploadToBucket(createUploadUrl, "training-thumbnails", cover);
+                  thumbnailPath = await uploadToBucket(
+                    createUploadUrl,
+                    "training-thumbnails",
+                    cover,
+                    uploadProgress.handler("Uploading lecture cover"),
+                  );
                 }
                 await saveLecture({
                   data: {
@@ -281,9 +298,11 @@ export function LibraryTab() {
                 toast.error((error as Error).message);
               } finally {
                 setBusy(false);
+                uploadProgress.clear();
               }
             }}
           />
+          <UploadProgress state={uploadProgress.state} />
         </DialogContent>
       </Dialog>
 
@@ -298,10 +317,16 @@ export function LibraryTab() {
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
+              uploadProgress.clear();
               try {
                 let storagePath: string | null = null;
                 if (values.file) {
-                  storagePath = await uploadToBucket(createUploadUrl, "training-resources", values.file);
+                  storagePath = await uploadToBucket(
+                    createUploadUrl,
+                    "training-resources",
+                    values.file,
+                    uploadProgress.handler("Uploading resource"),
+                  );
                 }
                 await saveResource({
                   data: {
@@ -324,9 +349,11 @@ export function LibraryTab() {
                 toast.error((error as Error).message);
               } finally {
                 setBusy(false);
+                uploadProgress.clear();
               }
             }}
           />
+          <UploadProgress state={uploadProgress.state} />
         </DialogContent>
       </Dialog>
     </div>

@@ -8,9 +8,11 @@ import { toast } from "sonner";
 import { EmptyState, LevelCard } from "@/components/member/cards";
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import { useUploadProgress } from "@/components/UploadProgress";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import { getAvatarUploadUrl, getDashboard, saveAvatar } from "@/lib/member.functions";
+import { putWithProgress } from "@/lib/upload-progress";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -174,19 +176,16 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const uploadProgress = useUploadProgress();
 
   async function upload(file: File) {
     const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
     const extension = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "jpg";
     setBusy(true);
+    uploadProgress.clear();
     try {
       const slot = await createUrl({ data: { extension } } as never);
-      const response = await fetch(slot.signedUrl, {
-        method: "PUT",
-        headers: { "content-type": file.type || "image/jpeg" },
-        body: file,
-      });
-      if (!response.ok) throw new Error("Upload failed. Please try again.");
+      await putWithProgress(slot.signedUrl, file, uploadProgress.handler("Uploading photo"));
       await store({ data: { path: slot.path } } as never);
       setPreview(URL.createObjectURL(file));
       toast.success("Profile picture updated");
@@ -196,6 +195,7 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
       toast.error((error as Error).message);
     } finally {
       setBusy(false);
+      uploadProgress.clear();
     }
   }
 
@@ -219,6 +219,11 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
         Change
       </span>
+      {uploadProgress.state ? (
+        <span className="absolute inset-0 flex items-center justify-center bg-background/75 text-sm font-semibold tabular-nums text-foreground">
+          {uploadProgress.state.percent}%
+        </span>
+      ) : null}
       <input
         ref={inputRef}
         type="file"

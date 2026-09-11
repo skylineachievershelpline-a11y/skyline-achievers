@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { uploadToBucket } from "@/components/admin/upload";
+import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -85,6 +86,7 @@ function RulesPanel() {
   const load = useServerFn(adminGetFinalTestRules);
   const save = useServerFn(adminSaveFinalTestRules);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery({
     queryKey: ["admin-final-rules"],
@@ -112,10 +114,16 @@ function RulesPanel() {
 
   async function submit() {
     setBusy(true);
+    uploadProgress.clear();
     try {
       let voicePath: string | null = null;
       if (voiceFile) {
-        voicePath = await uploadToBucket(createUploadUrl, "training-resources", voiceFile);
+        voicePath = await uploadToBucket(
+          createUploadUrl,
+          "training-resources",
+          voiceFile,
+          uploadProgress.handler("Uploading rules audio"),
+        );
       }
       await save({
         data: {
@@ -132,6 +140,7 @@ function RulesPanel() {
       toast.error((error as Error).message);
     } finally {
       setBusy(false);
+      uploadProgress.clear();
     }
   }
 
@@ -182,6 +191,7 @@ function RulesPanel() {
         />
         Show the final result and marks to the candidate
       </label>
+      <UploadProgress state={uploadProgress.state} />
       <Button type="button" variant="brand" size="xl" disabled={busy} onClick={() => void submit()}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Save rules
@@ -198,6 +208,7 @@ function QuestionsPanel() {
   const save = useServerFn(adminSaveFinalTestQuestion);
   const remove = useServerFn(adminDeleteFinalTestQuestion);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery({
     queryKey: ["admin-final-questions"],
@@ -268,10 +279,16 @@ function QuestionsPanel() {
       return;
     }
     setBusy(true);
+    uploadProgress.clear();
     try {
       let voicePath: string | null = null;
       if (voiceFile) {
-        voicePath = await uploadToBucket(createUploadUrl, "training-resources", voiceFile);
+        voicePath = await uploadToBucket(
+          createUploadUrl,
+          "training-resources",
+          voiceFile,
+          uploadProgress.handler("Uploading question audio"),
+        );
       }
       await save({
         data: {
@@ -298,6 +315,7 @@ function QuestionsPanel() {
       toast.error((error as Error).message);
     } finally {
       setBusy(false);
+      uploadProgress.clear();
     }
   }
 
@@ -489,6 +507,8 @@ function QuestionsPanel() {
               />
               Published
             </label>
+
+            <UploadProgress state={uploadProgress.state} />
 
             <Button
               type="button"

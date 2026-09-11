@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { frameFromVideo } from "@/components/admin/ReelsTab";
 import { uploadToBucket } from "@/components/admin/upload";
+import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export function LiveTrainingTab() {
   const saveTraining = useServerFn(adminSaveLiveTraining);
   const removeTraining = useServerFn(adminDeleteLiveTraining);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery({
     queryKey: ["admin-live-trainings"],
@@ -104,15 +106,26 @@ export function LiveTrainingTab() {
       return;
     }
     setBusy(true);
+    uploadProgress.clear();
     try {
       let videoPath: string | null = null;
       let thumbnailPath: string | null = null;
       if (videoFile) {
-        videoPath = await uploadToBucket(createUploadUrl, "training-videos", videoFile);
+        videoPath = await uploadToBucket(
+          createUploadUrl,
+          "training-videos",
+          videoFile,
+          uploadProgress.handler("Uploading session video"),
+        );
       }
       const coverFile = cover ?? (videoFile ? await frameFromVideo(videoFile) : null);
       if (coverFile) {
-        thumbnailPath = await uploadToBucket(createUploadUrl, "training-thumbnails", coverFile);
+        thumbnailPath = await uploadToBucket(
+          createUploadUrl,
+          "training-thumbnails",
+          coverFile,
+          uploadProgress.handler("Uploading cover image"),
+        );
       }
       await saveTraining({
         data: {
@@ -135,6 +148,7 @@ export function LiveTrainingTab() {
       toast.error((error as Error).message);
     } finally {
       setBusy(false);
+      uploadProgress.clear();
     }
   }
 
@@ -274,6 +288,7 @@ export function LiveTrainingTab() {
               />
               Published
             </label>
+            <UploadProgress state={uploadProgress.state} />
             <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {editing ? "Save changes" : "Create session"}

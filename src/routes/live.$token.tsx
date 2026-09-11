@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Maximize2, Radio, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Maximize2, Radio, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -270,30 +270,81 @@ function LivePlayer({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
+  const [buffering, setBuffering] = useState(true);
+  const [playbackError, setPlaybackError] = useState(false);
   const target = useRef(elapsedSeconds);
   target.current = elapsedSeconds;
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    const sync = () => {
-      if (Math.abs(video.currentTime - target.current) > 2.5) {
+    const resume = () => {
+      if (video.paused && !video.ended) {
+        void video.play().catch(() => undefined);
+      }
+    };
+    const sync = (initial = false) => {
+      if (!Number.isFinite(video.duration)) return;
+      const expected = Math.min(target.current, Math.max(0, video.duration - 0.25));
+      const drift = expected - video.currentTime;
+
+      // A hard seek every few seconds can repeatedly throw a slow mobile
+      // connection out of its buffered range. Only jump on initial load or
+      // when substantially out of sync; use a tiny speed correction otherwise.
+      if (initial || Math.abs(drift) > 10) {
         try {
-          video.currentTime = target.current;
+          video.currentTime = expected;
         } catch {
           /* metadata not ready yet */
         }
+        video.playbackRate = 1;
+      } else if (drift > 1.5) {
+        video.playbackRate = 1.08;
+      } else if (drift < -1.5) {
+        video.playbackRate = 0.92;
+      } else {
+        video.playbackRate = 1;
       }
+      resume();
     };
-    video.addEventListener("loadedmetadata", sync);
-    video.addEventListener("seeking", sync);
-    const id = window.setInterval(sync, 4000);
+    const onLoaded = () => sync(true);
+    const onCanPlay = () => {
+      setBuffering(false);
+      setPlaybackError(false);
+      resume();
+    };
+    const onWaiting = () => setBuffering(true);
+    const onPlaying = () => setBuffering(false);
+    const onError = () => {
+      setBuffering(false);
+      setPlaybackError(true);
+    };
+    video.addEventListener("loadedmetadata", onLoaded);
+    video.addEventListener("canplay", onCanPlay);
+    video.addEventListener("waiting", onWaiting);
+    video.addEventListener("stalled", onWaiting);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("error", onError);
+    const id = window.setInterval(() => sync(false), 5000);
     return () => {
-      video.removeEventListener("loadedmetadata", sync);
-      video.removeEventListener("seeking", sync);
+      video.removeEventListener("loadedmetadata", onLoaded);
+      video.removeEventListener("canplay", onCanPlay);
+      video.removeEventListener("waiting", onWaiting);
+      video.removeEventListener("stalled", onWaiting);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("error", onError);
       window.clearInterval(id);
     };
   }, []);
+
+  function retryPlayback() {
+    const video = videoRef.current;
+    if (!video) return;
+    setPlaybackError(false);
+    setBuffering(true);
+    video.load();
+    void video.play().catch(() => undefined);
+  }
 
   return (
     <div className="relative h-full w-full">
@@ -304,28 +355,49 @@ function LivePlayer({
         autoPlay
         muted={muted}
         playsInline
+        preload="auto"
         controlsList="nodownload noplaybackrate"
         disablePictureInPicture
         onContextMenu={(event) => event.preventDefault()}
         className="h-full w-full object-contain"
       />
+      {buffering && !playbackError ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/35">
+          <Loader2 className="h-7 w-7 animate-spin text-foreground" />
+        </div>
+      ) : null}
+      {playbackError ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/80 p-6 text-center">
+          <p className="text-sm text-foreground">The video could not continue.</p>
+          <Button type="button" variant="outline" size="sm" onClick={retryPlayback}>
+            <RotateCcw className="h-4 w-4" /> Try again
+          </Button>
+        </div>
+      ) : null}
       <div className="absolute bottom-3 right-3 flex gap-2">
-        <button
+        <Button
           type="button"
-          onClick={() => setMuted((value) => !value)}
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            setMuted((value) => !value);
+            void videoRef.current?.play().catch(() => undefined);
+          }}
           aria-label={muted ? "Unmute" : "Mute"}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-transform hover:scale-105"
         >
           {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={() => void videoRef.current?.requestFullscreen?.()}
           aria-label="Fullscreen"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-transform hover:scale-105"
         >
           <Maximize2 className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

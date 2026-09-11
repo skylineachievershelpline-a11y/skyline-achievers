@@ -7,12 +7,14 @@ import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createReel, deleteReel, getReelUploadUrl, getReels } from "@/lib/reels.functions";
+import { putWithProgress } from "@/lib/upload-progress";
 
 export const Route = createFileRoute("/reels")({
   head: () => ({
@@ -189,16 +191,16 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
   const [videoUrl, setVideoUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const uploadProgress = useUploadProgress();
 
   async function upload(kind: "video" | "cover", target: File) {
     const extension = (target.name.split(".").pop() ?? "mp4").toLowerCase();
     const slot = await createUrl({ data: { kind, extension } } as never);
-    const response = await fetch(slot.signedUrl, {
-      method: "PUT",
-      headers: { "content-type": target.type || "application/octet-stream" },
-      body: target,
-    });
-    if (!response.ok) throw new Error("Upload failed. Please try again.");
+    await putWithProgress(
+      slot.signedUrl,
+      target,
+      uploadProgress.handler(kind === "video" ? "Uploading reel" : "Uploading cover"),
+    );
     return slot.path;
   }
 
@@ -209,6 +211,7 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
         event.preventDefault();
         if (!title.trim() || (!file && !videoUrl.trim())) return;
         setBusy(true);
+        uploadProgress.clear();
         try {
           const videoPath = file ? await upload("video", file) : null;
           await save({
@@ -226,6 +229,7 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
           toast.error((error as Error).message);
         } finally {
           setBusy(false);
+          uploadProgress.clear();
         }
       }}
     >
@@ -255,6 +259,7 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
           className="h-11 rounded-2xl"
         />
       </div>
+      <UploadProgress state={uploadProgress.state} />
       <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Post reel

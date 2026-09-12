@@ -102,12 +102,25 @@ function PremierePage() {
               <Radio className="h-3.5 w-3.5" /> Live training
             </p>
             <h1 className="truncate font-display text-lg font-semibold tracking-tight">
-              {premiere ? premiere.title : "Premiere"}
+              {premiere?.title ?? (data?.status === "ended" ? data.title : "Premiere")}
             </h1>
           </div>
         </header>
 
-        {!premiere ? (
+        {isOver ? (
+          <div className="glass-panel-strong animate-rise-in rounded-3xl p-8 text-center">
+            <p className="font-display text-lg font-semibold">This live session has finished</p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              The session ran for its full length and the link has now expired. Ask your supervisor
+              for the next session link.
+            </p>
+            <Link to="/" className="mt-6 inline-block">
+              <Button variant="brand" size="xl">
+                Back to sign in
+              </Button>
+            </Link>
+          </div>
+        ) : !premiere ? (
           <div className="glass-panel-strong rounded-3xl p-8 text-center animate-rise-in">
             <p className="font-display text-lg font-semibold">This premiere link is not valid</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">

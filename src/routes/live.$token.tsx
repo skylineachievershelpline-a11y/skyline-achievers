@@ -284,10 +284,12 @@ function LivePlayer({
   src,
   poster,
   elapsedSeconds,
+  onEnded,
 }: {
   src: string;
   poster: string | null;
   elapsedSeconds: number;
+  onEnded: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
@@ -295,6 +297,8 @@ function LivePlayer({
   const [playbackError, setPlaybackError] = useState(false);
   const target = useRef(elapsedSeconds);
   target.current = elapsedSeconds;
+  const finish = useRef(onEnded);
+  finish.current = onEnded;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -306,6 +310,11 @@ function LivePlayer({
     };
     const sync = (initial = false) => {
       if (!Number.isFinite(video.duration)) return;
+      // Past the end of the video the session is over, not stuck on black.
+      if (target.current >= video.duration - 0.5) {
+        finish.current();
+        return;
+      }
       const expected = Math.min(target.current, Math.max(0, video.duration - 0.25));
       const drift = expected - video.currentTime;
 

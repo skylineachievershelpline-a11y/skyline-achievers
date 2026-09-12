@@ -46,6 +46,7 @@ function PremierePage() {
   });
 
   const premiere = data?.status === "ok" ? data.premiere : null;
+  const [videoEnded, setVideoEnded] = useState(false);
 
   // Server clock is the source of truth so a device with a wrong local time
   // cannot start the premiere early.
@@ -65,6 +66,12 @@ function PremierePage() {
   const remaining = premiere ? startAt - (now + offset) : 0;
   const isLive = Boolean(premiere) && remaining <= 0;
   const elapsedSeconds = isLive ? Math.max(0, Math.floor(-remaining / 1000)) : 0;
+
+  // A session lasts exactly as long as its video: once the video is over the
+  // page shows "session finished" instead of a black player.
+  const duration = premiere?.durationSeconds ?? null;
+  const isOver =
+    data?.status === "ended" || videoEnded || Boolean(duration && elapsedSeconds > duration);
 
   // When the countdown hits zero we still need the signed video link, which the
   // server only mints once the premiere has actually started.
@@ -95,12 +102,25 @@ function PremierePage() {
               <Radio className="h-3.5 w-3.5" /> Live training
             </p>
             <h1 className="truncate font-display text-lg font-semibold tracking-tight">
-              {premiere ? premiere.title : "Premiere"}
+              {premiere?.title ?? (data?.status === "ended" ? data.title : "Premiere")}
             </h1>
           </div>
         </header>
 
-        {!premiere ? (
+        {isOver ? (
+          <div className="glass-panel-strong animate-rise-in rounded-3xl p-8 text-center">
+            <p className="font-display text-lg font-semibold">This live session has finished</p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              The session ran for its full length and the link has now expired. Ask your supervisor
+              for the next session link.
+            </p>
+            <Link to="/" className="mt-6 inline-block">
+              <Button variant="brand" size="xl">
+                Back to sign in
+              </Button>
+            </Link>
+          </div>
+        ) : !premiere ? (
           <div className="glass-panel-strong rounded-3xl p-8 text-center animate-rise-in">
             <p className="font-display text-lg font-semibold">This premiere link is not valid</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -151,6 +171,7 @@ function PremierePage() {
                       src={premiere.videoUrl}
                       poster={premiere.thumbnailUrl}
                       elapsedSeconds={elapsedSeconds}
+                      onEnded={() => setVideoEnded(true)}
                     />
                   )
                 ) : (
@@ -263,10 +284,12 @@ function LivePlayer({
   src,
   poster,
   elapsedSeconds,
+  onEnded,
 }: {
   src: string;
   poster: string | null;
   elapsedSeconds: number;
+  onEnded: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
@@ -274,6 +297,8 @@ function LivePlayer({
   const [playbackError, setPlaybackError] = useState(false);
   const target = useRef(elapsedSeconds);
   target.current = elapsedSeconds;
+  const finish = useRef(onEnded);
+  finish.current = onEnded;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -285,6 +310,11 @@ function LivePlayer({
     };
     const sync = (initial = false) => {
       if (!Number.isFinite(video.duration)) return;
+      // Past the end of the video the session is over, not stuck on black.
+      if (target.current >= video.duration - 0.5) {
+        finish.current();
+        return;
+      }
       const expected = Math.min(target.current, Math.max(0, video.duration - 0.25));
       const drift = expected - video.currentTime;
 
@@ -319,12 +349,14 @@ function LivePlayer({
       setBuffering(false);
       setPlaybackError(true);
     };
+    const onFinished = () => finish.current();
     video.addEventListener("loadedmetadata", onLoaded);
     video.addEventListener("canplay", onCanPlay);
     video.addEventListener("waiting", onWaiting);
     video.addEventListener("stalled", onWaiting);
     video.addEventListener("playing", onPlaying);
     video.addEventListener("error", onError);
+    video.addEventListener("ended", onFinished);
     const id = window.setInterval(() => sync(false), 5000);
     return () => {
       video.removeEventListener("loadedmetadata", onLoaded);
@@ -333,6 +365,7 @@ function LivePlayer({
       video.removeEventListener("stalled", onWaiting);
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("error", onError);
+      video.removeEventListener("ended", onFinished);
       window.clearInterval(id);
     };
   }, []);

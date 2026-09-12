@@ -47,6 +47,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
       thumbnailPath?: string | null;
       aspectRatio?: string;
       sortOrder?: number;
+      durationSeconds?: number | null;
       isPublished: boolean;
     }) =>
       z
@@ -59,6 +60,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
           thumbnailPath: optionalText(400),
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           sortOrder: z.number().int().min(0).max(999).optional(),
+          durationSeconds: z.number().int().min(1).max(86400).optional().nullable(),
           isPublished: z.boolean(),
         })
         .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
@@ -88,6 +90,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
       payload["video_source"] = "external";
     }
     if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
+    if (data.durationSeconds) payload["duration_seconds"] = data.durationSeconds;
 
     const query = data.id
       ? (supabaseAdmin as any).from("live_trainings").update(payload).eq("id", data.id)
@@ -221,6 +224,18 @@ export const openPremiere = createServerFn({ method: "POST" })
     const startedAt = new Date(row.scheduled_at).getTime();
     const serverNow = Date.now();
     const isLive = serverNow >= startedAt;
+    const duration = (training.duration_seconds ?? null) as number | null;
+
+    // A live session runs exactly as long as its video. Once the video is over
+    // the link stops working, just like a finished broadcast.
+    const endsAt = duration ? startedAt + duration * 1000 + 60_000 : null;
+    if (endsAt && serverNow > endsAt) {
+      return {
+        status: "ended" as const,
+        title: training.title as string,
+        endedAt: new Date(endsAt).toISOString(),
+      };
+    }
 
     // The video link is only minted once the premiere has actually started, so
     // nobody can watch the session early by digging through the page source.

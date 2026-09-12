@@ -90,6 +90,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
       payload["video_source"] = "external";
     }
     if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
+    if (data.durationSeconds) payload["duration_seconds"] = data.durationSeconds;
 
     const query = data.id
       ? (supabaseAdmin as any).from("live_trainings").update(payload).eq("id", data.id)

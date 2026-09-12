@@ -47,6 +47,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
       thumbnailPath?: string | null;
       aspectRatio?: string;
       sortOrder?: number;
+      durationSeconds?: number | null;
       isPublished: boolean;
     }) =>
       z
@@ -59,6 +60,7 @@ export const adminSaveLiveTraining = createServerFn({ method: "POST" })
           thumbnailPath: optionalText(400),
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           sortOrder: z.number().int().min(0).max(999).optional(),
+          durationSeconds: z.number().int().min(1).max(86400).optional().nullable(),
           isPublished: z.boolean(),
         })
         .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {

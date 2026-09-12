@@ -58,12 +58,11 @@ export function UploadProgress({ state }: { state: UploadState }) {
         />
       </div>
       <p className="text-[10px] text-muted-foreground">
-        {state.percent < 100
-          ? [left, speed > 0.05 ? `${speed.toFixed(1)} MB/s` : null]
+        {state.percent >= 100
+          ? "Finishing up…"
+          : [left, speed > 0.05 ? `${speed.toFixed(1)} MB/s` : null, "keep this page open"]
               .filter(Boolean)
-              .join(" · ")
-              .concat(left || speed > 0.05 ? " · keep this page open" : "Uploading… keep this page open.")
-          : "Finishing up…"}
+              .join(" · ")}
       </p>
     </div>
   );

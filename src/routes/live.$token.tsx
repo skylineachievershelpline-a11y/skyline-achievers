@@ -171,6 +171,7 @@ function PremierePage() {
                       src={premiere.videoUrl}
                       poster={premiere.thumbnailUrl}
                       elapsedSeconds={elapsedSeconds}
+                      onEnded={() => setVideoEnded(true)}
                     />
                   )
                 ) : (

@@ -224,6 +224,18 @@ export const openPremiere = createServerFn({ method: "POST" })
     const startedAt = new Date(row.scheduled_at).getTime();
     const serverNow = Date.now();
     const isLive = serverNow >= startedAt;
+    const duration = (training.duration_seconds ?? null) as number | null;
+
+    // A live session runs exactly as long as its video. Once the video is over
+    // the link stops working, just like a finished broadcast.
+    const endsAt = duration ? startedAt + duration * 1000 + 60_000 : null;
+    if (endsAt && serverNow > endsAt) {
+      return {
+        status: "ended" as const,
+        title: training.title as string,
+        endedAt: new Date(endsAt).toISOString(),
+      };
+    }
 
     // The video link is only minted once the premiere has actually started, so
     // nobody can watch the session early by digging through the page source.

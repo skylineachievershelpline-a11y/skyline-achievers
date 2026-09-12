@@ -349,12 +349,14 @@ function LivePlayer({
       setBuffering(false);
       setPlaybackError(true);
     };
+    const onFinished = () => finish.current();
     video.addEventListener("loadedmetadata", onLoaded);
     video.addEventListener("canplay", onCanPlay);
     video.addEventListener("waiting", onWaiting);
     video.addEventListener("stalled", onWaiting);
     video.addEventListener("playing", onPlaying);
     video.addEventListener("error", onError);
+    video.addEventListener("ended", onFinished);
     const id = window.setInterval(() => sync(false), 5000);
     return () => {
       video.removeEventListener("loadedmetadata", onLoaded);
@@ -363,6 +365,7 @@ function LivePlayer({
       video.removeEventListener("stalled", onWaiting);
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("error", onError);
+      video.removeEventListener("ended", onFinished);
       window.clearInterval(id);
     };
   }, []);

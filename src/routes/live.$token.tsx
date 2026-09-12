@@ -67,6 +67,12 @@ function PremierePage() {
   const isLive = Boolean(premiere) && remaining <= 0;
   const elapsedSeconds = isLive ? Math.max(0, Math.floor(-remaining / 1000)) : 0;
 
+  // A session lasts exactly as long as its video: once the video is over the
+  // page shows "session finished" instead of a black player.
+  const duration = premiere?.durationSeconds ?? null;
+  const isOver =
+    data?.status === "ended" || videoEnded || Boolean(duration && elapsedSeconds > duration);
+
   // When the countdown hits zero we still need the signed video link, which the
   // server only mints once the premiere has actually started.
   const requested = useRef(false);

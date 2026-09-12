@@ -46,6 +46,7 @@ function PremierePage() {
   });
 
   const premiere = data?.status === "ok" ? data.premiere : null;
+  const [videoEnded, setVideoEnded] = useState(false);
 
   // Server clock is the source of truth so a device with a wrong local time
   // cannot start the premiere early.

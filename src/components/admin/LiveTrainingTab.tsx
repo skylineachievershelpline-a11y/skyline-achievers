@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { frameFromVideo } from "@/components/admin/ReelsTab";
-import { uploadToBucket } from "@/components/admin/upload";
+import { uploadToBucket, videoDurationSeconds } from "@/components/admin/upload";
 import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -110,6 +110,9 @@ export function LiveTrainingTab() {
     try {
       let videoPath: string | null = null;
       let thumbnailPath: string | null = null;
+      // The premiere link expires exactly when the video ends, so the browser
+      // reads the file's length before upload.
+      const durationSeconds = videoFile ? await videoDurationSeconds(videoFile) : null;
       if (videoFile) {
         videoPath = await uploadToBucket(
           createUploadUrl,
@@ -137,6 +140,7 @@ export function LiveTrainingTab() {
           thumbnailPath,
           aspectRatio: ratio,
           sortOrder: Number(sortOrder) || 0,
+          durationSeconds,
           isPublished: published,
         },
       } as never);

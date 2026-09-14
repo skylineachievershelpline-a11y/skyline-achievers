@@ -64,8 +64,8 @@ export function MemberLoginCard() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass-panel-strong rounded-3xl p-6 sm:p-8">
-      <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+    <form onSubmit={onSubmit} className="glass-panel-strong min-h-[390px] rounded-2xl p-6 sm:p-8">
+      <div className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
         <LockKeyhole className="h-3.5 w-3.5" />
         Members only
       </div>
@@ -80,7 +80,7 @@ export function MemberLoginCard() {
             placeholder="SKA-12345"
             value={memberId}
             onChange={(e) => setMemberId(e.target.value.toUpperCase())}
-            className="h-12 rounded-2xl text-base tracking-wider"
+            className="h-13 rounded-lg bg-background/35 text-base tracking-wider"
           />
         </div>
 
@@ -94,7 +94,7 @@ export function MemberLoginCard() {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12 rounded-2xl pr-12 text-base"
+              className="h-13 rounded-lg bg-background/35 pr-12 text-base"
             />
             <button
               type="button"
@@ -109,7 +109,7 @@ export function MemberLoginCard() {
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
+        <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">
           {error}
         </p>
       ) : null}

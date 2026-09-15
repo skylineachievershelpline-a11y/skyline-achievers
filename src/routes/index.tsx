@@ -148,16 +148,12 @@ function LandingPage() {
 
         <div className="absolute inset-x-0 bottom-0 z-10 border-t border-hairline bg-background/45 backdrop-blur-xl">
           <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-hairline px-5 sm:px-8 lg:px-12">
-            {[
-              [ShieldCheck, "Private", "Secure access"],
-              [BookOpen, "Focused", "Guided learning"],
-              [Trophy, "Progressive", "Leadership growth"],
-            ].map(([Icon, title, detail]) => (
-              <div key={String(title)} className="flex items-center justify-center gap-2.5 px-2 py-4 sm:justify-start sm:px-6">
+            {TRUST_POINTS.map(({ icon: Icon, title, detail }) => (
+              <div key={title} className="flex items-center justify-center gap-2.5 px-2 py-4 sm:justify-start sm:px-6">
                 <Icon className="hidden h-4 w-4 text-brand sm:block" />
                 <div>
-                  <p className="text-xs font-semibold text-foreground sm:text-sm">{String(title)}</p>
-                  <p className="hidden text-xs text-muted-foreground sm:block">{String(detail)}</p>
+                  <p className="text-xs font-semibold text-foreground sm:text-sm">{title}</p>
+                  <p className="hidden text-xs text-muted-foreground sm:block">{detail}</p>
                 </div>
               </div>
             ))}

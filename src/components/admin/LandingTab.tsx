@@ -16,6 +16,10 @@ import { adminDeleteLandingQuote, adminDeleteLandingReview, adminGetLandingConte
 
 const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 
+type IntroValues = { title: string; description: string; videoUrl: string; videoFile: File | null; cover: File | null; aspectRatio: string; isActive: boolean };
+type QuoteValues = { id?: string; quoteText: string; sortOrder: number; isActive: boolean };
+type ReviewValues = { id?: string; personName: string; designation: string; reviewText: string; rating: number; status: "pending" | "approved" | "rejected"; sortOrder: number; isActive: boolean };
+
 export function LandingTab() {
   const qc = useQueryClient();
   const load = useServerFn(adminGetLandingContent);
@@ -34,7 +38,7 @@ export function LandingTab() {
   const { intro, quotes, reviews } = query.data as any;
 
   return <div className="space-y-10">
-    <IntroEditor intro={intro} busy={busy} progress={progress} onSave={async (values) => {
+    <IntroEditor intro={intro} busy={busy} progress={progress} onSave={async (values: IntroValues) => {
       setBusy(true); progress.clear();
       try {
         let videoPath: string | null = null; let thumbnailPath: string | null = null;
@@ -48,15 +52,15 @@ export function LandingTab() {
     <section>
       <h3 className="mb-4 font-display text-lg font-semibold">Floating quotes</h3>
       <div className="grid gap-3 lg:grid-cols-2">
-        <QuoteEditor onSave={async (value) => { await saveQuote({ data: value }); toast.success("Quote added"); refresh(); }} />
-        <div className="space-y-2">{quotes.map((quote: any) => <QuoteEditor key={quote.id} quote={quote} onSave={async (value) => { await saveQuote({ data: value }); toast.success("Quote updated"); refresh(); }} onDelete={async () => { await deleteQuote({ data: { id: quote.id } }); refresh(); }} />)}</div>
+        <QuoteEditor onSave={async (value: QuoteValues) => { await saveQuote({ data: value }); toast.success("Quote added"); refresh(); }} />
+        <div className="space-y-2">{quotes.map((quote: any) => <QuoteEditor key={quote.id} quote={quote} onSave={async (value: QuoteValues) => { await saveQuote({ data: value }); toast.success("Quote updated"); refresh(); }} onDelete={async () => { await deleteQuote({ data: { id: quote.id } }); refresh(); }} />)}</div>
       </div>
     </section>
     <section>
       <h3 className="mb-4 font-display text-lg font-semibold">Reviews</h3>
       <div className="grid gap-3 lg:grid-cols-2">
-        <ReviewEditor onSave={async (value) => { await saveReview({ data: value }); toast.success("Review added"); refresh(); }} />
-        <div className="space-y-2">{reviews.map((review: any) => <ReviewEditor key={review.id} review={review} onSave={async (value) => { await saveReview({ data: value }); toast.success("Review updated"); refresh(); }} onDelete={async () => { await deleteReview({ data: { id: review.id } }); refresh(); }} />)}</div>
+        <ReviewEditor onSave={async (value: ReviewValues) => { await saveReview({ data: value }); toast.success("Review added"); refresh(); }} />
+        <div className="space-y-2">{reviews.map((review: any) => <ReviewEditor key={review.id} review={review} onSave={async (value: ReviewValues) => { await saveReview({ data: value }); toast.success("Review updated"); refresh(); }} onDelete={async () => { await deleteReview({ data: { id: review.id } }); refresh(); }} />)}</div>
       </div>
     </section>
   </div>;

@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Redesign the landing page with a premium Skyline first impression
-- [ ] Preserve and surface member login, session code, and WhatsApp access
-- [ ] Verify mobile and desktop layouts and interactions
+- [ ] Build the selected Midnight Cinematic Tech landing composition
+- [ ] Connect admin-managed intro video, quotes, and approved reviews
+- [ ] Preserve member login, session code, and WhatsApp access
+- [ ] Verify mobile, tablet, and desktop layouts and interactions
 - [ ] Confirm the final build is clean

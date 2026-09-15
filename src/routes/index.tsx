@@ -126,7 +126,7 @@ function LandingPage() {
         <div className="landing-grid absolute inset-0 opacity-30" aria-hidden />
 
         <header className="relative z-20 border-b border-hairline bg-background/35 backdrop-blur-xl">
-          <nav aria-label="Main navigation" className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-8 lg:px-12">
+          <nav aria-label="Main navigation" className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-12">
             <div className="min-w-0"><BrandLogo size="md" secretGesture /></div>
             <div className="hidden items-center gap-6 lg:flex">
               <a href="#home" className="landing-nav-link">Home</a>
@@ -134,7 +134,7 @@ function LandingPage() {
               <a href="#how-it-works" className="landing-nav-link">How It Works</a>
               <a href="#reviews" className="landing-nav-link">Reviews</a>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center justify-end gap-2">
               <Button asChild variant="ghost" className="hidden sm:inline-flex"><a href="#member-login">Login</a></Button>
               <Button asChild variant="brand"><a href="#access">Start Learning <ArrowRight /></a></Button>
             </div>

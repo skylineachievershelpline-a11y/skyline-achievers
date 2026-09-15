@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Loader2, Pencil, Plus, Quote, Trash2, Video, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { uploadToBucket } from "@/components/admin/upload";
@@ -69,7 +69,8 @@ function IntroEditor({ intro, save, createUploadUrl, refresh, progress }: any) {
     try {
       const videoPath = videoFile ? await uploadToBucket(createUploadUrl, "training-videos", videoFile, progress.handler("Uploading intro video")) : undefined;
       const thumbnailPath = thumbnailFile ? await uploadToBucket(createUploadUrl, "training-thumbnails", thumbnailFile, progress.handler("Uploading intro cover")) : undefined;
-      await save({ data: { title, description: description || null, videoSource: videoFile ? "upload" : "external", videoPath, videoUrl: videoFile ? null : videoUrl || null, thumbnailPath, aspectRatio: ratio, isActive: active } });
+      const videoSource = videoFile ? "upload" : videoUrl.trim() ? "external" : (intro?.video_source ?? "external");
+      await save({ data: { title, description: description || null, videoSource, videoPath, videoUrl: videoFile ? null : videoUrl.trim() || undefined, thumbnailPath, aspectRatio: ratio, isActive: active } });
       toast.success("Introduction updated");
       setVideoFile(null);
       setThumbnailFile(null);
@@ -120,6 +121,22 @@ function ReviewEditor({ reviews, save, remove, refresh }: any) {
   const pending = reviews.filter((review: ReviewRow) => review.status === "pending");
   return <section className={panel}>
     <div className="mb-5"><h2 className="font-display text-lg font-semibold">Review moderation</h2><p className="text-xs text-muted-foreground">Approve genuine submissions before they become public.</p></div>
-    {reviews.length === 0 ? <p className="text-sm text-muted-foreground">No reviews have been submitted yet.</p> : <ul className="space-y-3">{[...pending, ...reviews.filter((review: ReviewRow) => review.status !== "pending")].map((row: ReviewRow) => <li key={row.id} className="rounded-lg border border-hairline bg-background/35 p-4"><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3"><div className="min-w-0"><p className="font-semibold">{row.person_name}{row.designation ? <span className="font-normal text-muted-foreground"> · {row.designation}</span> : null}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">“{row.review_text}”</p><p className="mt-2 text-xs uppercase text-brand-glow">{row.status} · order {row.sort_order}</p></div><Button variant="ghost" size="icon" aria-label="Delete review" onClick={() => del.mutate(row.id)}><Trash2 /></Button></div><div className="mt-3 flex flex-wrap gap-2">{row.status !== "approved" ? <Button size="sm" onClick={() => update(row, { status: "approved", is_active: true })}><Check />Approve</Button> : <Button size="sm" variant="outline" onClick={() => update(row, { is_active: !row.is_active })}>{row.is_active ? "Hide" : "Show"}</Button>}{row.status !== "rejected" ? <Button size="sm" variant="outline" onClick={() => update(row, { status: "rejected", is_active: false })}><X />Reject</Button> : null}</div></li>)}</ul>}
+    {reviews.length === 0 ? <p className="text-sm text-muted-foreground">No reviews have been submitted yet.</p> : <ul className="space-y-3">{[...pending, ...reviews.filter((review: ReviewRow) => review.status !== "pending")].map((row: ReviewRow) => <ReviewAdminRow key={row.id} row={row} update={update} remove={() => del.mutate(row.id)} />)}</ul>}
   </section>;
+}
+
+function ReviewAdminRow({ row, update, remove }: { row: ReviewRow; update: (row: ReviewRow, patch: Partial<ReviewRow>) => Promise<void>; remove: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(row.person_name);
+  const [designation, setDesignation] = useState(row.designation ?? "");
+  const [text, setText] = useState(row.review_text);
+  const [order, setOrder] = useState(String(row.sort_order));
+
+  return <li className="rounded-lg border border-hairline bg-background/35 p-4">
+    {editing ? <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2"><Input value={name} onChange={(event) => setName(event.target.value)} aria-label="Reviewer name" /><Input value={designation} onChange={(event) => setDesignation(event.target.value)} aria-label="Reviewer title" placeholder="Title (optional)" /></div>
+      <Textarea value={text} onChange={(event) => setText(event.target.value)} aria-label="Review text" />
+      <div className="grid grid-cols-[100px_auto] gap-3"><Input value={order} onChange={(event) => setOrder(event.target.value.replace(/\D/g, ""))} aria-label="Display order" /><Button onClick={async () => { await update(row, { person_name: name, designation: designation || null, review_text: text, sort_order: Number(order) || 0 }); setEditing(false); }}>Save changes</Button></div>
+    </div> : <><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3"><div className="min-w-0"><p className="font-semibold">{row.person_name}{row.designation ? <span className="font-normal text-muted-foreground"> · {row.designation}</span> : null}</p><p className="mt-2 text-sm leading-6 text-muted-foreground">“{row.review_text}”</p><p className="mt-2 text-xs uppercase text-brand-glow">{row.status} · order {row.sort_order}</p></div><div className="flex"><Button variant="ghost" size="icon" aria-label="Edit review" onClick={() => setEditing(true)}><Pencil /></Button><Button variant="ghost" size="icon" aria-label="Delete review" onClick={remove}><Trash2 /></Button></div></div><div className="mt-3 flex flex-wrap gap-2">{row.status !== "approved" ? <Button size="sm" onClick={() => update(row, { status: "approved", is_active: true })}><Check />Approve</Button> : <Button size="sm" variant="outline" onClick={() => update(row, { is_active: !row.is_active })}>{row.is_active ? "Hide" : "Show"}</Button>}{row.status !== "rejected" ? <Button size="sm" variant="outline" onClick={() => update(row, { status: "rejected", is_active: false })}><X />Reject</Button> : null}</div></>}
+  </li>;
 }

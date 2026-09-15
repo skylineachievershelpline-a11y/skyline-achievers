@@ -73,7 +73,7 @@ function LandingPage() {
           <div className="hidden items-center gap-8 md:flex">
             <a href="#story" className="text-sm text-muted-foreground transition-colors hover:text-foreground">About</a>
             <a href="#intro" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Intro</a>
-            <button type="button" onClick={() => setAccessOpen("login")} className="text-sm text-muted-foreground transition-colors hover:text-foreground">Login</button>
+            <Button type="button" variant="ghost" onClick={() => setAccessOpen("login")} className="px-2 text-muted-foreground hover:text-foreground">Login</Button>
             <Button variant="brand" onClick={() => setAccessOpen("session")} className="rounded-full px-5">Start learning <ArrowRight /></Button>
           </div>
           <Button variant="outline" size="icon" className="rounded-full md:hidden" onClick={() => setMobileMenu((value) => !value)} aria-label="Open navigation">{mobileMenu ? <X /> : <Menu />}</Button>
@@ -81,9 +81,9 @@ function LandingPage() {
         {mobileMenu ? <div className="border-t border-hairline bg-background px-5 py-4 md:hidden"><div className="grid gap-2"><Button variant="ghost" asChild><a href="#story" onClick={() => setMobileMenu(false)}>About</a></Button><Button variant="ghost" asChild><a href="#intro" onClick={() => setMobileMenu(false)}>Watch intro</a></Button><Button variant="outline" onClick={() => { setAccessOpen("login"); setMobileMenu(false); }}>Member login</Button><Button variant="brand" onClick={() => { setAccessOpen("session"); setMobileMenu(false); }}>Start learning</Button></div></div> : null}
       </header>
 
-      <section className="relative min-h-[100svh] overflow-hidden pt-18 sm:pt-20">
+      <section className="relative min-h-[min(100svh,960px)] overflow-hidden pt-18 sm:pt-20">
         <div className="landing-grid pointer-events-none absolute inset-0" aria-hidden />
-        <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-7xl items-center px-5 pb-14 pt-10 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-10 lg:py-16">
+        <div className="mx-auto grid min-h-[min(calc(100svh-4.5rem),880px)] max-w-7xl items-center px-5 pb-14 pt-10 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-10 lg:py-16">
           <div className="relative z-10 animate-rise-in lg:py-16">
             <p className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-brand-glow">Skyline Achievers · Learn • Earn • Lead</p>
             <h1 className="max-w-3xl font-display text-[clamp(3.35rem,6.5vw,6.8rem)] font-semibold uppercase leading-[0.86]">
@@ -95,7 +95,7 @@ function LandingPage() {
               <Button variant="outline" size="xl" className="rounded-full bg-background/30 sm:min-w-44" asChild><a href="#intro"><Play />Watch intro</a></Button>
             </div>
           </div>
-          <div className="relative -mx-5 mt-8 min-h-[46svh] animate-rise-in sm:-mx-8 lg:-mr-24 lg:ml-[-8rem] lg:mt-0 lg:min-h-[720px]">
+          <div className="relative -mx-5 mt-8 min-h-[420px] animate-rise-in sm:-mx-8 sm:min-h-[540px] lg:-mr-24 lg:ml-[-8rem] lg:mt-0 lg:min-h-[680px]">
             <div className="absolute inset-0 bg-brand/10 blur-[100px]" aria-hidden />
             <img src={phoneHero} alt="Premium smartphone displaying a digital learning interface" width={1920} height={1280} fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[62%_center] lg:object-center" />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--background)_0%,transparent_30%,transparent_85%,var(--background)_100%)] opacity-80" aria-hidden />
@@ -151,7 +151,7 @@ function LandingPage() {
 
       <section className="relative overflow-hidden border-t border-hairline px-5 py-32 sm:px-8 lg:py-48"><div className="landing-grid pointer-events-none absolute inset-0" aria-hidden /><div className="relative mx-auto max-w-5xl"><p className="text-xs uppercase tracking-[0.22em] text-brand-glow">Begin where you are</p><h2 className="mt-6 font-display text-5xl font-semibold uppercase leading-[0.9] sm:text-7xl lg:text-8xl">Start with what<br />you already have.</h2><p className="mt-8 text-xl leading-9 text-silver">Your phone. Your internet.<br />Your willingness to learn.</p><Button variant="brand" size="xl" className="mt-10 rounded-full px-10" onClick={() => setAccessOpen("session")}>Start learning <ArrowRight /></Button></div></section>
 
-      <footer className="border-t border-hairline px-5 py-10 sm:px-8"><div className="mx-auto grid max-w-7xl gap-7 sm:grid-cols-[1fr_auto] sm:items-center"><div><BrandLogo size="sm" /><p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">{BRAND.tagline.replaceAll(".", " •")}</p></div><div className="flex flex-wrap gap-6 text-sm text-muted-foreground"><a href="#story" className="hover:text-foreground">About</a><a href="#intro" className="hover:text-foreground">Intro</a><button type="button" onClick={() => setAccessOpen("login")} className="hover:text-foreground">Login</button></div></div></footer>
+      <footer className="border-t border-hairline px-5 py-10 sm:px-8"><div className="mx-auto grid max-w-7xl gap-7 sm:grid-cols-[1fr_auto] sm:items-center"><div><BrandLogo size="sm" /><p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">{BRAND.tagline.replaceAll(".", " •")}</p></div><div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"><a href="#story" className="hover:text-foreground">About</a><a href="#intro" className="hover:text-foreground">Intro</a><Button type="button" variant="ghost" onClick={() => setAccessOpen("login")} className="h-8 px-2 text-muted-foreground hover:text-foreground">Login</Button></div></div></footer>
 
       <Dialog open={accessOpen === "login"} onOpenChange={(open) => !open && setAccessOpen(null)}><DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl p-0"><DialogHeader className="sr-only"><DialogTitle>Member login</DialogTitle></DialogHeader><MemberLoginCard /></DialogContent></Dialog>
       <Dialog open={accessOpen === "session"} onOpenChange={(open) => !open && setAccessOpen(null)}><DialogContent className="rounded-2xl"><DialogHeader><DialogTitle>Open Beginners Training</DialogTitle></DialogHeader><div className="mt-2"><div className="mb-5 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground"><KeyRound className="h-4 w-4 text-brand-glow" />Private session access</div><Label htmlFor="landing-session-code">Your session code</Label><Input id="landing-session-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void onSessionSubmit(); } }} placeholder="SKA-BEGIN-01" className="mt-2 h-13 rounded-lg tracking-[0.12em]" />{error ? <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">{error}</p> : null}<Button type="button" onClick={() => void onSessionSubmit()} variant="brand" size="xl" className="mt-5 w-full rounded-full" disabled={pending}>{pending ? <Loader2 className="animate-spin" /> : <ArrowRight />}{pending ? "Opening session" : "Open training session"}</Button><p className="mt-5 flex gap-2 text-xs leading-5 text-muted-foreground"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />Your code opens only the session selected for you.</p></div></DialogContent></Dialog>

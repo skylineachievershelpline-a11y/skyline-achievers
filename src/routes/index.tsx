@@ -48,6 +48,12 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
+const TRUST_POINTS = [
+  { icon: ShieldCheck, title: "Private", detail: "Secure access" },
+  { icon: BookOpen, title: "Focused", detail: "Guided learning" },
+  { icon: Trophy, title: "Progressive", detail: "Leadership growth" },
+] as const;
+
 const JOURNEY = [
   "Personal Mentorship",
   "Assistant Supervisor",

@@ -8,6 +8,7 @@ import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { FinalTestTab } from "@/components/admin/FinalTestTab";
 import { LiveTrainingTab } from "@/components/admin/LiveTrainingTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
+import { LandingTab } from "@/components/admin/LandingTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
@@ -148,6 +149,9 @@ function AdminPage() {
             <TabsTrigger value="announcements" className="rounded-xl">
               Announcements
             </TabsTrigger>
+            <TabsTrigger value="landing" className="rounded-xl">
+              Landing
+            </TabsTrigger>
             <TabsTrigger value="finaltest" className="rounded-xl">
               Final Test
             </TabsTrigger>
@@ -173,6 +177,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="announcements" className="mt-5">
             <AnnouncementsTab levels={levels as any} />
+          </TabsContent>
+          <TabsContent value="landing" className="mt-5">
+            <LandingTab />
           </TabsContent>
           <TabsContent value="finaltest" className="mt-5">
             <FinalTestTab />

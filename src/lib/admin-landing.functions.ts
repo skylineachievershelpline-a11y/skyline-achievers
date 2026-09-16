@@ -129,6 +129,9 @@ export const adminSaveReview = createServerFn({ method: "POST" })
       rating: number;
       sortOrder: number;
       isActive: boolean;
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      aspectRatio?: string;
     }) =>
       z
         .object({
@@ -139,6 +142,9 @@ export const adminSaveReview = createServerFn({ method: "POST" })
           rating: z.number().int().min(1).max(5),
           sortOrder: z.number().int().min(0).max(9999),
           isActive: z.boolean(),
+          videoPath: nullableText(500),
+          videoUrl: nullableText(2000),
+          aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).default("16:9"),
         })
         .parse(input),
   )
@@ -146,6 +152,12 @@ export const adminSaveReview = createServerFn({ method: "POST" })
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const current = data.id
+      ? await supabaseAdmin.from("landing_reviews").select("*").eq("id", data.id).maybeSingle()
+      : { data: null };
+    // A fresh upload wins; otherwise a pasted link wins; otherwise keep what is stored.
+    const videoPath = data.videoPath ?? (data.videoUrl ? null : current.data?.video_path ?? null);
+    const videoUrl = data.videoPath ? null : data.videoUrl ?? current.data?.video_url ?? null;
     const payload = {
       person_name: data.personName,
       designation: data.designation,
@@ -154,6 +166,10 @@ export const adminSaveReview = createServerFn({ method: "POST" })
       sort_order: data.sortOrder,
       is_active: data.isActive,
       status: data.isActive ? "approved" : "rejected",
+      video_path: videoPath,
+      video_url: videoUrl,
+      video_source: videoPath ? "upload" : videoUrl ? "external" : "none",
+      aspect_ratio: data.aspectRatio,
     };
     const query = data.id
       ? supabaseAdmin.from("landing_reviews").update(payload).eq("id", data.id)

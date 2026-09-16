@@ -85,7 +85,14 @@ export function ChatWorkspace() {
   const me = (overview.data as any)?.me ?? null;
 
   useEffect(() => {
-    if (!peerId && threads.length > 0) setPeerId(threads[0]!.peerId);
+    if (!peerId && threads.length > 0) {
+      setPeerId(threads[0]!.peerId);
+      return;
+    }
+    // The conversation may stop being allowed (upline changed, trainee removed) — drop it.
+    if (peerId && threads.length > 0 && !threads.some((item) => item.peerId === peerId)) {
+      setPeerId(threads[0]!.peerId);
+    }
   }, [peerId, threads]);
 
   const thread = useQuery({

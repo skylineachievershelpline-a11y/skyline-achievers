@@ -138,7 +138,7 @@ export const adminSaveReview = createServerFn({ method: "POST" })
           id: z.string().uuid().optional(),
           personName: z.string().trim().min(2).max(80),
           designation: nullableText(80),
-          reviewText: z.string().trim().min(10).max(600),
+          reviewText: z.string().trim().max(600).default(""),
           rating: z.number().int().min(1).max(5),
           sortOrder: z.number().int().min(0).max(9999),
           isActive: z.boolean(),

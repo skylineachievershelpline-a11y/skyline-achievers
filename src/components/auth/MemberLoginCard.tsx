@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail, normalizeMemberId } from "@/lib/brand";
 import { recordLogin } from "@/lib/member.functions";
+import { recordTraineeLogin, whoAmI } from "@/lib/trainee.functions";
 
 /**
  * Existing member sign in — unchanged behaviour, extracted so the landing page

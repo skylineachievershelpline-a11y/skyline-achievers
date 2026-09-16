@@ -19,6 +19,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
@@ -78,6 +79,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
     | '/lecture/$lectureId'
     | '/level/$slug'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   ReelsRoute: typeof ReelsRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
+  TeamRoute: typeof TeamRoute
   AdminLoginRoute: typeof AdminLoginRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
@@ -336,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -406,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReelsRoute: ReelsRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
+  TeamRoute: TeamRoute,
   AdminLoginRoute: AdminLoginRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,

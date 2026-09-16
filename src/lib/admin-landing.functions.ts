@@ -1,6 +1,79 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+const nullableText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .nullable()
+    .transform((value) => value || null);
+
+/** Admin management of the public Skyline Achievers introduction. */
+export const adminGetLandingIntroduction = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("landing_intro")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return { introduction: data };
+});
+
+export const adminSaveLandingIntroduction = createServerFn({ method: "POST" })
+  .inputValidator(
+    (input: {
+      id?: string;
+      title: string;
+      description?: string | null;
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      thumbnailPath?: string | null;
+      aspectRatio: string;
+      isActive: boolean;
+    }) =>
+      z
+        .object({
+          id: z.string().max(80).optional(),
+          title: z.string().trim().min(2).max(140),
+          description: nullableText(2000),
+          videoPath: nullableText(500),
+          videoUrl: nullableText(2000),
+          thumbnailPath: nullableText(500),
+          aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]),
+          isActive: z.boolean(),
+        })
+        .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const id = data.id ?? "main";
+    const current = data.id
+      ? await supabaseAdmin.from("landing_intro").select("*").eq("id", id).maybeSingle()
+      : { data: null };
+    const payload = {
+      id,
+      title: data.title,
+      description: data.description,
+      video_source: data.videoPath ? "upload" : data.videoUrl ? "external" : current.data?.video_source ?? "external",
+      video_path: data.videoPath ?? current.data?.video_path ?? null,
+      video_url: data.videoPath ? null : data.videoUrl ?? current.data?.video_url ?? null,
+      thumbnail_path: data.thumbnailPath ?? current.data?.thumbnail_path ?? null,
+      aspect_ratio: data.aspectRatio,
+      is_active: data.isActive,
+    };
+    const { error } = await supabaseAdmin.from("landing_intro").upsert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Admin management of landing-page reviews (approve / hide / delete). */
 export const adminGetReviews = createServerFn({ method: "GET" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");
@@ -42,6 +115,50 @@ export const adminDeleteReview = createServerFn({ method: "POST" })
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("landing_reviews").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminSaveReview = createServerFn({ method: "POST" })
+  .inputValidator(
+    (input: {
+      id?: string;
+      personName: string;
+      designation?: string | null;
+      reviewText: string;
+      rating: number;
+      sortOrder: number;
+      isActive: boolean;
+    }) =>
+      z
+        .object({
+          id: z.string().uuid().optional(),
+          personName: z.string().trim().min(2).max(80),
+          designation: nullableText(80),
+          reviewText: z.string().trim().min(10).max(600),
+          rating: z.number().int().min(1).max(5),
+          sortOrder: z.number().int().min(0).max(9999),
+          isActive: z.boolean(),
+        })
+        .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      person_name: data.personName,
+      designation: data.designation,
+      review_text: data.reviewText,
+      rating: data.rating,
+      sort_order: data.sortOrder,
+      is_active: data.isActive,
+      status: data.isActive ? "approved" : "rejected",
+    };
+    const query = data.id
+      ? supabaseAdmin.from("landing_reviews").update(payload).eq("id", data.id)
+      : supabaseAdmin.from("landing_reviews").insert({ ...payload, photo_path: null });
+    const { error } = await query;
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });

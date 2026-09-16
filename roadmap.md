@@ -8,11 +8,11 @@
 - [x] Reviews management tab in the admin panel
 
 ## Landing introduction and testimonials
-- [ ] Remove the Skyline Path level strip from the public landing page
-- [ ] Show an admin-managed Skyline Achievers introduction video below the login area
-- [ ] Let admin upload the introduction video or add an external video link
-- [ ] Let admin add, edit, publish/hide, order, and delete landing testimonials
-- [ ] Show published testimonials on the landing page
+- [x] Remove the Skyline Path level strip from the public landing page
+- [x] Show an admin-managed Skyline Achievers introduction video below the login area
+- [x] Let admin upload the introduction video or add an external video link
+- [x] Let admin add, edit, publish/hide, order, and delete landing testimonials
+- [x] Show published testimonials on the landing page
 
 ## Member area (done)
 - [x] Side menu opened by a 3-line button; bottom bar removed

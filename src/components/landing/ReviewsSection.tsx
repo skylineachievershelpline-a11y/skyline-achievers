@@ -25,7 +25,7 @@ type Review = {
 };
 
 /**
- * Public reviews wall. Visitors submit a review, it stays hidden until an
+ * Public testimonials wall. Visitors submit a review, it stays hidden until an
  * administrator approves it in the admin panel.
  */
 export function ReviewsSection() {
@@ -46,15 +46,15 @@ export function ReviewsSection() {
   });
 
   return (
-    <section id="reviews" className="border-t border-hairline px-5 py-20 sm:px-8">
+    <section id="reviews" className="px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
-              Real people, real words
+              Success stories
             </p>
             <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-              What our members say
+              Stories from our community
             </h2>
           </div>
           <ReviewDialog />
@@ -66,7 +66,7 @@ export function ReviewsSection() {
           </div>
         ) : (data?.length ?? 0) === 0 ? (
           <p className="rounded-2xl border border-hairline bg-surface p-6 text-sm text-muted-foreground">
-            No reviews published yet. Be the first to share your experience.
+            No testimonials published yet. Be the first to share your experience.
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

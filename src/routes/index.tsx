@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowDown,
   ArrowRight,
   BookOpen,
   GraduationCap,
@@ -17,6 +16,7 @@ import { useEffect, useState } from "react";
 import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { IntroductionSection } from "@/components/landing/IntroductionSection";
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -78,14 +78,6 @@ const HOW_IT_WORKS = [
       "From personal mentorship to full management training, every level you complete unlocks the next one.",
   },
 ] as const;
-
-const JOURNEY = [
-  "Personal Mentorship",
-  "Assistant Supervisor",
-  "Supervisor",
-  "Assistant Manager",
-  "Manager",
-];
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -175,6 +167,8 @@ function LandingPage() {
         </div>
       </section>
 
+      <IntroductionSection />
+
       <section id="about" className="relative px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -208,32 +202,6 @@ function LandingPage() {
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="border-y border-hairline bg-surface px-5 py-16 sm:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-9 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
-                The Skyline path
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
-                Built for continuous growth
-              </h2>
-            </div>
-            <ArrowDown className="hidden h-5 w-5 text-muted-foreground sm:block" />
-          </div>
-          <ol className="grid gap-px overflow-hidden rounded-lg border border-hairline bg-hairline sm:grid-cols-5">
-            {JOURNEY.map((level, index) => (
-              <li key={level} className="flex min-h-28 flex-col justify-between bg-background p-5">
-                <span className="text-xs font-semibold tabular-nums text-brand-glow">
-                  0{index + 1}
-                </span>
-                <p className="mt-5 text-sm font-medium leading-5 text-foreground">{level}</p>
-              </li>
-            ))}
-          </ol>
         </div>
       </section>
 

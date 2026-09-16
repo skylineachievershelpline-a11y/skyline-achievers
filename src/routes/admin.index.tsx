@@ -151,7 +151,7 @@ function AdminPage() {
               Announcements
             </TabsTrigger>
             <TabsTrigger value="reviews" className="rounded-xl">
-              Reviews
+              Landing
             </TabsTrigger>
             <TabsTrigger value="inspiration" className="rounded-xl">
               Daily Verses

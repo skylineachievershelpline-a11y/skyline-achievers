@@ -14,6 +14,7 @@ import {
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import skylineBackground from "@/assets/skyline-landing-bg-clean.webp";
+import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { DeferredSection } from "@/components/landing/DeferredSection";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 
-const MemberLoginCard = lazy(() =>
-  import("@/components/auth/MemberLoginCard").then((module) => ({ default: module.MemberLoginCard })),
-);
 const IntroductionSection = lazy(() =>
   import("@/components/landing/IntroductionSection").then((module) => ({ default: module.IntroductionSection })),
 );

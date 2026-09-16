@@ -41,7 +41,7 @@
 - [x] Verify key public and private layouts on desktop and mobile
 
 ## Clean and fast interface
-- [ ] Remove visible grid texture and reduce box-heavy styling
-- [ ] Replace costly blur and extrusion effects with light native surfaces
-- [ ] Defer below-the-fold landing content and media requests
-- [ ] Verify phone and desktop layouts, requests, and build
+- [x] Remove visible grid texture and reduce box-heavy styling
+- [x] Replace costly blur and extrusion effects with light native surfaces
+- [x] Defer below-the-fold landing content and media requests
+- [x] Verify phone and desktop layouts, requests, and build

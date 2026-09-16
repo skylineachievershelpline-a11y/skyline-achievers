@@ -18,5 +18,5 @@
 - [ ] Shareable link option so the person fills their own form and gets an ID
 - [ ] Auto ID + simple password (name + last 3 digits of phone), congratulations welcome card with logo
 - [ ] Beginners Training dashboard for new persons: profile, locked sessions, unlock by session password
-- [ ] Daily Quran ayat + hadees, different for morning / evening / night, editable from admin panel
+
 - [ ] Upline tracking of each person, block and permanently remove

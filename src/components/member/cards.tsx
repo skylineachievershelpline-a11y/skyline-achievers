@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { PlayCircle, Layers, Clock } from "lucide-react";
+import { PlayCircle, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { formatClock, formatDuration } from "@/lib/format";
@@ -30,7 +30,7 @@ function Poster({
       )}
     >
       {url ? (
-        <img src={url} alt={label} loading="lazy" className="h-full w-full object-cover" />
+        <img src={url} alt={label} loading="lazy" decoding="async" className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full w-full items-center justify-center brand-gradient/10">
           <PlayCircle className="h-8 w-8 text-brand" />
@@ -46,7 +46,7 @@ export type LectureCardData = {
   duration_seconds?: number | null;
   thumbnail_url?: string | null;
   position_seconds?: number;
-  series?: { id: string; title: string; levels?: { name: string } | null } | null;
+  levels?: { id?: string; name: string } | null;
 };
 
 export function LectureCard({ lecture, resume }: { lecture: LectureCardData; resume?: boolean }) {
@@ -66,63 +66,32 @@ export function LectureCard({ lecture, resume }: { lecture: LectureCardData; res
           {resume && lecture.position_seconds
             ? `Resume at ${formatClock(lecture.position_seconds)}`
             : formatDuration(lecture.duration_seconds)}
-          {lecture.series?.title ? <span className="truncate">· {lecture.series.title}</span> : null}
+          {lecture.levels?.name ? <span className="truncate">· {lecture.levels.name}</span> : null}
         </p>
       </div>
     </Link>
   );
 }
 
-export function SeriesCard({
-  series,
-}: {
-  series: {
-    id: string;
-    title: string;
-    description?: string | null;
-    thumbnail_url?: string | null;
-    lecture_count?: number;
-  };
-}) {
+/** Grid tile for one training video on the dashboard. */
+export function VideoCard({ video }: { video: LectureCardData }) {
   return (
     <Link
-      to="/series/$seriesId"
-      params={{ seriesId: series.id }}
-      className="glass-panel depth-hover group w-[240px] shrink-0 snap-start rounded-2xl p-2.5 sm:w-[268px]"
+      to="/lecture/$lectureId"
+      params={{ lectureId: video.id }}
+      className="glass-panel depth-hover group block w-full rounded-2xl p-2.5"
     >
-      <Poster url={series.thumbnail_url} label={series.title} />
+      <Poster url={video.thumbnail_url} label={video.title} />
       <div className="mt-2 px-0.5">
         <p className="line-clamp-2 text-sm font-medium leading-snug group-hover:text-brand-glow">
-          {series.title}
+          {video.title}
         </p>
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {series.lecture_count ?? 0} lecture{(series.lecture_count ?? 0) === 1 ? "" : "s"}
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {formatDuration(video.duration_seconds)}
+          {video.levels?.name ? <span className="truncate">· {video.levels.name}</span> : null}
         </p>
       </div>
-    </Link>
-  );
-}
-
-export function LevelCard({
-  level,
-}: {
-  level: { id: string; name: string; slug: string; description?: string | null; series_count?: number };
-}) {
-  return (
-    <Link
-      to="/level/$slug"
-      params={{ slug: level.slug }}
-      className="glass-panel metal-edge depth-hover group flex items-center gap-3 rounded-2xl p-4"
-    >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
-        <Layers className="h-5 w-5" />
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate font-display text-sm font-semibold">{level.name}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">
-          {level.series_count ?? 0} series available
-        </span>
-      </span>
     </Link>
   );
 }

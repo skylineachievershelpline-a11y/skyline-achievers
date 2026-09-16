@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Clapperboard,
   Home,
-  Layers,
   Menu,
   MessageCircle,
   LogOut,
@@ -52,8 +51,7 @@ export function useMemberGuard() {
 }
 
 const NAV = [
-  { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/levels", label: "Training Levels", icon: Layers },
+  { to: "/dashboard", label: "Home & Training Videos", icon: Home },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
   { to: "/team", label: "My Team & Seats", icon: Users },

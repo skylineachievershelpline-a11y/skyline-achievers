@@ -14,7 +14,6 @@ import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinalTestRouteImport } from './routes/final-test'
-import { Route as LevelsRouteImport } from './routes/levels'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -25,8 +24,6 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
-import { Route as LevelSlugRouteImport } from './routes/level.$slug'
-import { Route as SeriesSeriesIdRouteImport } from './routes/series.$seriesId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as TestTokenRouteImport } from './routes/test.$token'
 
@@ -53,11 +50,6 @@ const DashboardRoute = DashboardRouteImport.update({
 const FinalTestRoute = FinalTestRouteImport.update({
   id: '/final-test',
   path: '/final-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LevelsRoute = LevelsRouteImport.update({
-  id: '/levels',
-  path: '/levels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -110,16 +102,6 @@ const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   path: '/lecture/$lectureId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LevelSlugRoute = LevelSlugRouteImport.update({
-  id: '/level/$slug',
-  path: '/level/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SeriesSeriesIdRoute = SeriesSeriesIdRouteImport.update({
-  id: '/series/$seriesId',
-  path: '/series/$seriesId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SessionCodeRoute = SessionCodeRouteImport.update({
   id: '/session/$code',
   path: '/session/$code',
@@ -137,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
-  '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -147,8 +128,6 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/level/$slug': typeof LevelSlugRoute
-  '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
@@ -159,7 +138,6 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
-  '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -169,8 +147,6 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/level/$slug': typeof LevelSlugRoute
-  '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
   '/admin': typeof AdminIndexRoute
@@ -182,7 +158,6 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
-  '/levels': typeof LevelsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -192,8 +167,6 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/level/$slug': typeof LevelSlugRoute
-  '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
@@ -206,7 +179,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/final-test'
-    | '/levels'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -216,8 +188,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/level/$slug'
-    | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
     | '/admin/'
@@ -228,7 +198,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/final-test'
-    | '/levels'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -238,8 +207,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/level/$slug'
-    | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
     | '/admin'
@@ -250,7 +217,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/final-test'
-    | '/levels'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -260,8 +226,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/level/$slug'
-    | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
     | '/admin/'
@@ -273,7 +237,6 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
   FinalTestRoute: typeof FinalTestRoute
-  LevelsRoute: typeof LevelsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -283,8 +246,6 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
-  LevelSlugRoute: typeof LevelSlugRoute
-  SeriesSeriesIdRoute: typeof SeriesSeriesIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   TestTokenRoute: typeof TestTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -325,13 +286,6 @@ declare module '@tanstack/react-router' {
       path: '/final-test'
       fullPath: '/final-test'
       preLoaderRoute: typeof FinalTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/levels': {
-      id: '/levels'
-      path: '/levels'
-      fullPath: '/levels'
-      preLoaderRoute: typeof LevelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -404,20 +358,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LectureLectureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/level/$slug': {
-      id: '/level/$slug'
-      path: '/level/$slug'
-      fullPath: '/level/$slug'
-      preLoaderRoute: typeof LevelSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/series/$seriesId': {
-      id: '/series/$seriesId'
-      path: '/series/$seriesId'
-      fullPath: '/series/$seriesId'
-      preLoaderRoute: typeof SeriesSeriesIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/session/$code': {
       id: '/session/$code'
       path: '/session/$code'
@@ -441,7 +381,6 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
   FinalTestRoute: FinalTestRoute,
-  LevelsRoute: LevelsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,
@@ -451,8 +390,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
-  LevelSlugRoute: LevelSlugRoute,
-  SeriesSeriesIdRoute: SeriesSeriesIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   TestTokenRoute: TestTokenRoute,
   AdminIndexRoute: AdminIndexRoute,

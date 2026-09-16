@@ -13,17 +13,16 @@ export async function adminDashboardStats() {
     return count ?? 0;
   };
 
-  const [members, active, blocked, removed, levels, series, lectures, resources] =
-    await Promise.all([
-      counts("member_profiles"),
-      counts("member_profiles", (q) => q.eq("status", "active")),
-      counts("member_profiles", (q) => q.eq("status", "blocked")),
-      counts("member_profiles", (q) => q.eq("status", "removed")),
-      counts("levels"),
-      counts("series"),
-      counts("lectures"),
-      counts("resources"),
-    ]);
+  const [members, active, blocked, removed, levels, lectures, resources] = await Promise.all([
+    counts("member_profiles"),
+    counts("member_profiles", (q) => q.eq("status", "active")),
+    counts("member_profiles", (q) => q.eq("status", "blocked")),
+    counts("member_profiles", (q) => q.eq("status", "removed")),
+    counts("levels"),
+    counts("lectures"),
+    counts("resources"),
+  ]);
+
 
   const { data: perLevel } = await supabaseAdmin
     .from("levels")
@@ -45,7 +44,7 @@ export async function adminDashboardStats() {
     .limit(6);
 
   return {
-    totals: { members, active, blocked, removed, levels, series, lectures, resources },
+    totals: { members, active, blocked, removed, levels, lectures, resources },
     membersPerLevel: (perLevel ?? []).map((l) => ({ name: l.name, members: map.get(l.id) ?? 0 })),
     recentMembers: recentMembers ?? [],
   };
@@ -202,50 +201,46 @@ export async function adminResetMemberPassword(id: string, newPassword: string |
 }
 
 export async function adminLibrary() {
-  const [{ data: levels }, { data: series }, { data: lectures }, { data: resources }] =
+  const [{ data: levels }, { data: lectures }, { data: resources }, { data: access }] =
     await Promise.all([
       supabaseAdmin.from("levels").select("*").order("rank_order"),
       supabaseAdmin
-        .from("series")
+        .from("lectures")
         .select("*, levels:level_id (id, name, rank_order)")
         .order("sort_order"),
       supabaseAdmin
-        .from("lectures")
-        .select("*, series:series_id (id, title, level_id, levels:level_id (id, name))")
-        .order("sort_order"),
-      supabaseAdmin
         .from("resources")
-        .select("*, lectures:lecture_id (id, title), series:series_id (id, title)")
+        .select("*, lectures:lecture_id (id, title)")
         .order("created_at", { ascending: false }),
+      supabaseAdmin.from("content_access").select("content_id, level_id").eq("content_type", "lecture"),
     ]);
+
+  // Which levels can watch each video.
+  const accessMap: Record<string, string[]> = {};
+  for (const row of access ?? []) {
+    (accessMap[row.content_id] ??= []).push(row.level_id);
+  }
+
   return {
     levels: levels ?? [],
-    series: await signThumbnails(series ?? []),
-    lectures: lectures ?? [],
+    lectures: await signThumbnails(lectures ?? []),
     resources: resources ?? [],
+    access: accessMap,
   };
 }
 
-export async function adminSeriesAccess(seriesId: string) {
-  const { data } = await supabaseAdmin
-    .from("content_access")
-    .select("level_id")
-    .eq("content_type", "series")
-    .eq("content_id", seriesId);
-  return (data ?? []).map((row) => row.level_id);
-}
-
-export async function adminSetSeriesAccess(seriesId: string, levelIds: string[]) {
+/** Sets exactly which training levels may watch one video. */
+export async function adminSetLectureAccess(lectureId: string, levelIds: string[]) {
   await supabaseAdmin
     .from("content_access")
     .delete()
-    .eq("content_type", "series")
-    .eq("content_id", seriesId);
+    .eq("content_type", "lecture")
+    .eq("content_id", lectureId);
   if (levelIds.length > 0) {
     const { error } = await supabaseAdmin.from("content_access").insert(
       levelIds.map((levelId) => ({
-        content_type: "series",
-        content_id: seriesId,
+        content_type: "lecture",
+        content_id: lectureId,
         level_id: levelId,
       })),
     );
@@ -253,6 +248,23 @@ export async function adminSetSeriesAccess(seriesId: string, levelIds: string[])
   }
   return { ok: true as const };
 }
+
+/** Permanently removes a member: their login, records and chats all go. */
+export async function adminDeleteMemberAccount(id: string) {
+  await supabaseAdmin.from("watch_positions").delete().eq("member_id", id);
+  await supabaseAdmin.from("notification_reads").delete().eq("member_id", id);
+  await supabaseAdmin.from("chat_messages").delete().eq("sender_id", id);
+  await supabaseAdmin.from("chat_messages").delete().eq("recipient_id", id);
+  await supabaseAdmin.from("chat_preferences").delete().eq("user_id", id);
+  await supabaseAdmin.from("trainee_invites").delete().eq("upline_id", id);
+  await supabaseAdmin.from("trainees").update({ upline_id: null } as never).eq("upline_id", id);
+  await supabaseAdmin.from("reels").delete().eq("created_by", id);
+  const { error } = await supabaseAdmin.from("member_profiles").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  await supabaseAdmin.auth.admin.deleteUser(id);
+  return { ok: true as const };
+}
+
 
 export async function adminNotify(input: {
   title: string;

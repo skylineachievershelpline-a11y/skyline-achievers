@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,47 +10,62 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { frameFromVideo } from "@/components/admin/ReelsTab";
-import { uploadToBucket } from "@/components/admin/upload";
-import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
+import { videoDurationSeconds } from "@/components/admin/upload";
 import {
   adminCreateUploadUrl,
   adminDeleteContent,
   adminGetLibrary,
   adminSaveLecture,
   adminSaveResource,
-  adminSaveSeries,
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
+import { startUpload } from "@/lib/upload-manager";
 
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
+type Level = { id: string; name: string; rank_order: number };
+
+const fieldClass =
+  "h-11 w-full rounded-2xl border border-border bg-input px-3 text-sm text-foreground";
+const ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
+
+type VideoValues = {
+  id?: string;
+  levelId: string;
+  levelIds: string[];
+  title: string;
+  description: string;
+  sortOrder: number;
+  aspectRatio: (typeof ASPECT_RATIOS)[number];
+  videoUrl: string;
+  videoFile: File | null;
+  thumbnail: File | null;
+};
 
 export function LibraryTab() {
   const queryClient = useQueryClient();
   const loadLibrary = useServerFn(adminGetLibrary);
-  const saveSeries = useServerFn(adminSaveSeries);
-  const saveLecture = useServerFn(adminSaveLecture);
+  const saveVideo = useServerFn(adminSaveLecture);
   const saveResource = useServerFn(adminSaveResource);
   const remove = useServerFn(adminDeleteContent);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
-  const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
     queryFn: () => loadLibrary(),
+    staleTime: 30_000,
   });
 
-  const [dialog, setDialog] = useState<"series" | "lecture" | "resource" | null>(null);
+  const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
+  const [resourceDialog, setResourceDialog] = useState(false);
   const [busy, setBusy] = useState(false);
 
   function refresh() {
-    
     void queryClient.invalidateQueries({ queryKey: ["admin-library"] });
     void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
   }
 
   const del = useMutation({
-    mutationFn: (input: { table: "series" | "lectures" | "resources"; id: string }) =>
-      remove({ data: input }),
+    mutationFn: (input: { table: "lectures" | "resources"; id: string }) => remove({ data: input }),
     onSuccess: () => {
       toast.success("Deleted");
       refresh();
@@ -66,103 +81,188 @@ export function LibraryTab() {
     );
   }
 
+  const levels = data.levels as unknown as Level[];
+  const access = (data as any).access as Record<string, string[]>;
+
+  function blankVideo(): VideoValues {
+    const first = levels[0];
+    return {
+      levelId: first?.id ?? "",
+      levelIds: first ? levels.filter((l) => l.rank_order >= first.rank_order).map((l) => l.id) : [],
+      title: "",
+      description: "",
+      sortOrder: 0,
+      aspectRatio: "16:9",
+      videoUrl: "",
+      videoFile: null,
+      thumbnail: null,
+    };
+  }
+
+  async function submitVideo(values: VideoValues) {
+    setBusy(true);
+    try {
+      let videoPath: string | null = null;
+      let thumbnailPath: string | null = null;
+      let durationSeconds: number | null = null;
+
+      if (values.videoFile) {
+        durationSeconds = await videoDurationSeconds(values.videoFile);
+        const file = values.videoFile;
+        videoPath = await startUpload({
+          label: `Uploading video: ${values.title}`,
+          file,
+          createSlot: () =>
+            createUploadUrl({
+              data: { bucket: "training-videos", fileName: file.name },
+            } as never) as Promise<{ path: string; signedUrl: string }>,
+        });
+        if (!values.thumbnail) {
+          // No cover chosen? Grab a frame from the video itself.
+          const frame = await frameFromVideo(file).catch(() => null);
+          if (frame) {
+            thumbnailPath = await startUpload({
+              label: "Uploading cover",
+              file: frame,
+              createSlot: () =>
+                createUploadUrl({
+                  data: { bucket: "training-thumbnails", fileName: frame.name },
+                } as never) as Promise<{ path: string; signedUrl: string }>,
+            });
+          }
+        }
+      }
+      if (values.thumbnail) {
+        const cover = values.thumbnail;
+        thumbnailPath = await startUpload({
+          label: "Uploading cover",
+          file: cover,
+          createSlot: () =>
+            createUploadUrl({
+              data: { bucket: "training-thumbnails", fileName: cover.name },
+            } as never) as Promise<{ path: string; signedUrl: string }>,
+        });
+      }
+
+      await saveVideo({
+        data: {
+          ...(values.id ? { id: values.id } : {}),
+          levelId: values.levelId,
+          levelIds: values.levelIds,
+          title: values.title,
+          description: values.description || null,
+          sortOrder: values.sortOrder,
+          durationSeconds,
+          videoSource: values.videoUrl.trim() ? "external" : "upload",
+          videoPath,
+          videoUrl: values.videoUrl.trim() || null,
+          thumbnailPath,
+          aspectRatio: values.aspectRatio,
+          isPublished: true,
+        },
+      } as never);
+      toast.success(values.id ? "Video updated" : "Video published");
+      setVideoDialog(null);
+      refresh();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-7">
       <div className="flex flex-wrap gap-2">
-        <Button variant="brand" size="xl" onClick={() => setDialog("series")}>
-          <Plus className="h-4 w-4" /> New series
+        <Button variant="brand" size="xl" onClick={() => setVideoDialog(blankVideo())}>
+          <Plus className="h-4 w-4" /> New training video
         </Button>
-        <Button variant="secondary" size="xl" onClick={() => setDialog("lecture")}>
-          <Plus className="h-4 w-4" /> New lecture
-        </Button>
-        <Button variant="secondary" size="xl" onClick={() => setDialog("resource")}>
+        <Button variant="secondary" size="xl" onClick={() => setResourceDialog(true)}>
           <Plus className="h-4 w-4" /> New resource
         </Button>
       </div>
 
-      {data.levels.map((level: any) => {
-        const series = data.series.filter((s: any) => s.level_id === level.id);
-        const standalone = data.lectures.filter(
-          (l: any) => !l.series_id && l.level_id === level.id,
-        );
+      {levels.map((level) => {
+        const videos = (data.lectures as any[]).filter((l) => l.level_id === level.id);
         return (
           <section key={level.id}>
             <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
               {level.name}
             </h3>
-            {series.length === 0 ? (
+            {videos.length === 0 ? (
               <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
-                No series in this level yet.
+                No training video in this level yet.
               </p>
             ) : (
               <ul className="space-y-2">
-                {series.map((s: any) => {
-                  const lectures = data.lectures.filter((l: any) => l.series_id === s.id);
+                {videos.map((video: any) => {
+                  const allowed = access[video.id] ?? [];
                   return (
-                    <li key={s.id} className="glass-panel rounded-2xl p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{s.title}</p>
+                    <li key={video.id} className="glass-panel metal-edge rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        {video.thumbnail_url ? (
+                          <img
+                            src={video.thumbnail_url}
+                            alt={video.title}
+                            loading="lazy"
+                            className="h-14 w-24 shrink-0 rounded-xl border border-border object-cover"
+                          />
+                        ) : null}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold">{video.title}</p>
                           <p className="text-[11px] text-muted-foreground">
-                            {lectures.length} lecture{lectures.length === 1 ? "" : "s"} ·{" "}
-                            {s.is_published ? "Published" : "Draft"}
+                            {video.video_source === "external" ? "Link" : "Uploaded"} ·{" "}
+                            {video.aspect_ratio ?? "16:9"} ·{" "}
+                            {video.is_published ? "Published" : "Draft"}
+                          </p>
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            Watchable by:{" "}
+                            {allowed.length === 0
+                              ? "nobody yet"
+                              : levels
+                                  .filter((l) => allowed.includes(l.id))
+                                  .map((l) => l.name)
+                                  .join(", ")}
                           </p>
                         </div>
-                        <button
-                          onClick={() => del.mutate({ table: "series", id: s.id })}
-                          className="text-muted-foreground transition-colors hover:text-destructive"
-                          aria-label="Delete series"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex shrink-0 gap-1">
+                          <button
+                            onClick={() =>
+                              setVideoDialog({
+                                id: video.id,
+                                levelId: video.level_id,
+                                levelIds: allowed,
+                                title: video.title,
+                                description: video.description ?? "",
+                                sortOrder: video.sort_order ?? 0,
+                                aspectRatio: (video.aspect_ratio ?? "16:9") as (typeof ASPECT_RATIOS)[number],
+                                videoUrl: video.video_url ?? "",
+                                videoFile: null,
+                                thumbnail: null,
+                              })
+                            }
+                            className="text-muted-foreground transition-colors hover:text-brand-glow"
+                            aria-label="Edit video"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (!window.confirm(`Delete “${video.title}” permanently?`)) return;
+                              del.mutate({ table: "lectures", id: video.id });
+                            }}
+                            className="text-muted-foreground transition-colors hover:text-destructive"
+                            aria-label="Delete video"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
-                      {lectures.length > 0 ? (
-                        <ul className="mt-3 space-y-1.5 border-t border-hairline pt-3">
-                          {lectures.map((l: any) => (
-                            <li key={l.id} className="flex items-center gap-2 text-xs">
-                              <span className="min-w-0 flex-1 truncate">{l.title}</span>
-                              <span className="text-muted-foreground">
-                                {l.video_source === "external" ? "Link" : "Upload"}
-                              </span>
-                              <button
-                                onClick={() => del.mutate({ table: "lectures", id: l.id })}
-                                className="text-muted-foreground transition-colors hover:text-destructive"
-                                aria-label="Delete lecture"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
                     </li>
                   );
                 })}
               </ul>
             )}
-
-            {standalone.length > 0 ? (
-              <ul className="mt-2 space-y-1.5">
-                {standalone.map((l: any) => (
-                  <li
-                    key={l.id}
-                    className="glass-panel flex items-center gap-2 rounded-2xl p-3 text-xs"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{l.title}</span>
-                    <span className="text-muted-foreground">
-                      No series · {l.aspect_ratio ?? "16:9"}
-                    </span>
-                    <button
-                      onClick={() => del.mutate({ table: "lectures", id: l.id })}
-                      className="text-muted-foreground transition-colors hover:text-destructive"
-                      aria-label="Delete lecture"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
           </section>
         );
       })}
@@ -175,7 +275,7 @@ export function LibraryTab() {
           <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">No resources yet.</p>
         ) : (
           <ul className="space-y-2">
-            {data.resources.map((r: any) => (
+            {(data.resources as any[]).map((r) => (
               <li key={r.id} className="glass-panel flex items-center gap-3 rounded-2xl p-3 text-sm">
                 <span className="min-w-0 flex-1 truncate">{r.title}</span>
                 <span className="text-[11px] text-muted-foreground">
@@ -194,144 +294,49 @@ export function LibraryTab() {
         )}
       </section>
 
-      {/* ---------- dialogs ---------- */}
-      <Dialog open={dialog === "series"} onOpenChange={(open) => !open && setDialog(null)}>
-        <DialogContent className="rounded-3xl">
-          <DialogHeader>
-            <DialogTitle>New series</DialogTitle>
-          </DialogHeader>
-          <SeriesForm
-            levels={data.levels as any}
-            busy={busy}
-            onSubmit={async (values) => {
-              setBusy(true);
-              uploadProgress.clear();
-              try {
-                let thumbnailPath: string | null = null;
-                if (values.thumbnail) {
-                  thumbnailPath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-thumbnails",
-                    values.thumbnail,
-                    uploadProgress.handler("Uploading series cover"),
-                  );
-                }
-                await saveSeries({
-                  data: {
-                    levelId: values.levelId,
-                    title: values.title,
-                    description: values.description || null,
-                    thumbnailPath,
-                    sortOrder: values.sortOrder,
-                    isPublished: true,
-                  },
-                } as never);
-                toast.success("Series created");
-                setDialog(null);
-                refresh();
-              } catch (error) {
-                toast.error((error as Error).message);
-              } finally {
-                setBusy(false);
-                uploadProgress.clear();
-              }
-            }}
-          />
-          <UploadProgress state={uploadProgress.state} />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={dialog === "lecture"} onOpenChange={(open) => !open && setDialog(null)}>
+      <Dialog open={videoDialog !== null} onOpenChange={(open) => !open && setVideoDialog(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
           <DialogHeader>
-            <DialogTitle>New lecture</DialogTitle>
+            <DialogTitle>{videoDialog?.id ? "Edit training video" : "New training video"}</DialogTitle>
           </DialogHeader>
-          <LectureForm
-            series={data.series as any}
-            levels={data.levels as any}
-            busy={busy}
-            onSubmit={async (values) => {
-              setBusy(true);
-              uploadProgress.clear();
-              try {
-                let videoPath: string | null = null;
-                let thumbnailPath: string | null = null;
-                if (values.videoFile) {
-                  videoPath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-videos",
-                    values.videoFile,
-                    uploadProgress.handler("Uploading lecture video"),
-                  );
-                }
-                // No cover picked? Grab a still frame straight from the video.
-                const cover =
-                  values.thumbnail ?? (values.videoFile ? await frameFromVideo(values.videoFile) : null);
-                if (cover) {
-                  thumbnailPath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-thumbnails",
-                    cover,
-                    uploadProgress.handler("Uploading lecture cover"),
-                  );
-                }
-                await saveLecture({
-                  data: {
-                    seriesId: values.seriesId || null,
-                    levelId: values.seriesId ? null : values.levelId,
-                    title: values.title,
-                    description: values.description || null,
-                    sortOrder: values.sortOrder,
-                    durationSeconds: values.durationMinutes ? values.durationMinutes * 60 : null,
-                    videoSource: values.videoUrl ? "external" : "upload",
-                    videoPath,
-                    videoUrl: values.videoUrl || null,
-                    thumbnailPath,
-                    aspectRatio: values.aspectRatio,
-                    isPublished: true,
-                  },
-                } as never);
-                toast.success("Lecture published");
-                setDialog(null);
-                refresh();
-              } catch (error) {
-                toast.error((error as Error).message);
-              } finally {
-                setBusy(false);
-                uploadProgress.clear();
-              }
-            }}
-          />
-          <UploadProgress state={uploadProgress.state} />
+          {videoDialog ? (
+            <VideoForm
+              key={videoDialog.id ?? "new"}
+              initial={videoDialog}
+              levels={levels}
+              busy={busy}
+              onSubmit={(values) => void submitVideo(values)}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialog === "resource"} onOpenChange={(open) => !open && setDialog(null)}>
+      <Dialog open={resourceDialog} onOpenChange={setResourceDialog}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
           <DialogHeader>
             <DialogTitle>New resource</DialogTitle>
           </DialogHeader>
           <ResourceForm
-            series={data.series as any}
-            lectures={data.lectures as any}
+            videos={(data.lectures as any[]).map((l) => ({ id: l.id, title: l.title }))}
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
-              uploadProgress.clear();
               try {
                 let storagePath: string | null = null;
                 if (values.file) {
-                  storagePath = await uploadToBucket(
-                    createUploadUrl,
-                    "training-resources",
-                    values.file,
-                    uploadProgress.handler("Uploading resource"),
-                  );
+                  const file = values.file;
+                  storagePath = await startUpload({
+                    label: `Uploading ${file.name}`,
+                    file,
+                    createSlot: () =>
+                      createUploadUrl({
+                        data: { bucket: "training-resources", fileName: file.name },
+                      } as never) as Promise<{ path: string; signedUrl: string }>,
+                  });
                 }
                 await saveResource({
                   data: {
-                    lectureId: values.lectureId || null,
-                    seriesId: values.lectureId ? null : values.seriesId || null,
+                    lectureId: values.lectureId,
                     resourceType: values.resourceType,
                     title: values.title,
                     description: values.description || null,
@@ -342,156 +347,60 @@ export function LibraryTab() {
                     isPublished: true,
                   },
                 } as never);
-                toast.success("Resource added");
-                setDialog(null);
+                toast.success("Resource saved");
+                setResourceDialog(false);
                 refresh();
               } catch (error) {
                 toast.error((error as Error).message);
               } finally {
                 setBusy(false);
-                uploadProgress.clear();
               }
             }}
           />
-          <UploadProgress state={uploadProgress.state} />
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
-const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
-
-function SeriesForm({
+function VideoForm({
+  initial,
   levels,
   busy,
   onSubmit,
 }: {
-  levels: { id: string; name: string }[];
+  initial: VideoValues;
+  levels: Level[];
   busy: boolean;
-  onSubmit: (values: {
-    levelId: string;
-    title: string;
-    description: string;
-    sortOrder: number;
-    thumbnail: File | null;
-  }) => void;
+  onSubmit: (values: VideoValues) => void;
 }) {
-  const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [sortOrder, setSortOrder] = useState("0");
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [values, setValues] = useState<VideoValues>(initial);
+
+  function toggleLevel(id: string) {
+    setValues((prev) => ({
+      ...prev,
+      levelIds: prev.levelIds.includes(id)
+        ? prev.levelIds.filter((x) => x !== id)
+        : [...prev.levelIds, id],
+    }));
+  }
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!title.trim() || !levelId) return;
-        onSubmit({ levelId, title: title.trim(), description, sortOrder: Number(sortOrder) || 0, thumbnail });
-      }}
-      className="space-y-3"
-    >
-      <div className="space-y-1.5">
-        <Label>Level</Label>
-        <select value={levelId} onChange={(e) => setLevelId(e.target.value)} className={fieldClass}>
-          {levels.map((level) => (
-            <option key={level.id} value={level.id}>
-              {level.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="space-y-1.5">
-        <Label>Title</Label>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-11 rounded-2xl" />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Description</Label>
-        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="rounded-2xl" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Order</Label>
-          <Input value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="h-11 rounded-2xl" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Cover image</Label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
-            className="text-xs text-muted-foreground"
-          />
-        </div>
-      </div>
-      <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Create series
-      </Button>
-    </form>
-  );
-}
-
-const ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
-
-function LectureForm({
-  series,
-  levels,
-  busy,
-  onSubmit,
-}: {
-  series: { id: string; title: string; level_id?: string }[];
-  levels: { id: string; name: string }[];
-  busy: boolean;
-  onSubmit: (values: {
-    seriesId: string;
-    levelId: string;
-    aspectRatio: (typeof ASPECT_RATIOS)[number];
-    title: string;
-    description: string;
-    sortOrder: number;
-    durationMinutes: number | null;
-    videoUrl: string;
-    videoFile: File | null;
-    thumbnail: File | null;
-  }) => void;
-}) {
-  // Series is optional: leave it empty and the lecture sits directly on the level.
-  const [seriesId, setSeriesId] = useState("");
-  const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
-  const [aspectRatio, setAspectRatio] = useState<(typeof ASPECT_RATIOS)[number]>("16:9");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [sortOrder, setSortOrder] = useState("0");
-  const [duration, setDuration] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!title.trim() || (!seriesId && !levelId)) return;
-        onSubmit({
-          seriesId,
-          levelId,
-          aspectRatio,
-          title: title.trim(),
-          description,
-          sortOrder: Number(sortOrder) || 0,
-          durationMinutes: duration ? Number(duration) : null,
-          videoUrl: videoUrl.trim(),
-          videoFile,
-          thumbnail,
-        });
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!values.title.trim()) return;
+        onSubmit({ ...values, title: values.title.trim() });
       }}
       className="space-y-3"
     >
       <div className="space-y-1.5">
         <Label>Training level</Label>
-        <select value={levelId} onChange={(e) => setLevelId(e.target.value)} className={fieldClass}>
+        <select
+          value={values.levelId}
+          onChange={(e) => setValues({ ...values, levelId: e.target.value })}
+          className={fieldClass}
+        >
           {levels.map((level) => (
             <option key={level.id} value={level.id}>
               {level.name}
@@ -499,22 +408,34 @@ function LectureForm({
           ))}
         </select>
       </div>
+
       <div className="space-y-1.5">
-        <Label>Series (optional)</Label>
-        <select value={seriesId} onChange={(e) => setSeriesId(e.target.value)} className={fieldClass}>
-          <option value="">No series — add straight to the level</option>
-          {series.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title}
-            </option>
+        <Label>Who can watch this video</Label>
+        <div className="space-y-2 rounded-2xl border border-border p-3">
+          {levels.map((level) => (
+            <label key={level.id} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={values.levelIds.includes(level.id)}
+                onChange={() => toggleLevel(level.id)}
+                className="h-4 w-4 rounded border-border"
+              />
+              {level.name}
+            </label>
           ))}
-        </select>
+          <p className="text-[11px] text-muted-foreground">
+            Tick every level that should see this video.
+          </p>
+        </div>
       </div>
+
       <div className="space-y-1.5">
         <Label>Video ratio</Label>
         <select
-          value={aspectRatio}
-          onChange={(e) => setAspectRatio(e.target.value as (typeof ASPECT_RATIOS)[number])}
+          value={values.aspectRatio}
+          onChange={(e) =>
+            setValues({ ...values, aspectRatio: e.target.value as (typeof ASPECT_RATIOS)[number] })
+          }
           className={fieldClass}
         >
           <option value="16:9">16:9 — landscape</option>
@@ -523,70 +444,77 @@ function LectureForm({
           <option value="4:3">4:3 — classic</option>
         </select>
       </div>
+
       <div className="space-y-1.5">
         <Label>Title</Label>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-11 rounded-2xl" />
+        <Input
+          value={values.title}
+          onChange={(e) => setValues({ ...values, title: e.target.value })}
+          className="h-11 rounded-2xl"
+        />
       </div>
       <div className="space-y-1.5">
         <Label>Description</Label>
-        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="rounded-2xl" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Order</Label>
-          <Input value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="h-11 rounded-2xl" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Length (minutes)</Label>
-          <Input value={duration} onChange={(e) => setDuration(e.target.value)} className="h-11 rounded-2xl" />
-        </div>
+        <Textarea
+          value={values.description}
+          onChange={(e) => setValues({ ...values, description: e.target.value })}
+          className="rounded-2xl"
+        />
       </div>
       <div className="space-y-1.5">
-        <Label>External video link (YouTube, Vimeo, Drive)</Label>
+        <Label>Order</Label>
         <Input
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
+          value={String(values.sortOrder)}
+          onChange={(e) => setValues({ ...values, sortOrder: Number(e.target.value) || 0 })}
+          className="h-11 rounded-2xl"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Video link (YouTube, Vimeo, Drive)</Label>
+        <Input
+          value={values.videoUrl}
+          onChange={(e) => setValues({ ...values, videoUrl: e.target.value })}
           placeholder="Leave empty if uploading a file"
           className="h-11 rounded-2xl"
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Or upload video file</Label>
+        <Label>Or upload a video file</Label>
         <input
           type="file"
           accept="video/*"
-          onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => setValues({ ...values, videoFile: e.target.files?.[0] ?? null })}
           className="text-xs text-muted-foreground"
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Thumbnail</Label>
+        <Label>Cover picture</Label>
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
+          onChange={(e) => setValues({ ...values, thumbnail: e.target.files?.[0] ?? null })}
           className="text-xs text-muted-foreground"
         />
       </div>
       <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Publish lecture
+        {initial.id ? "Save changes" : "Publish video"}
       </Button>
+      <p className="text-[11px] text-muted-foreground">
+        The upload keeps running in the background even if you close this window.
+      </p>
     </form>
   );
 }
 
 function ResourceForm({
-  series,
-  lectures,
+  videos,
   busy,
   onSubmit,
 }: {
-  series: { id: string; title: string }[];
-  lectures: { id: string; title: string }[];
+  videos: { id: string; title: string }[];
   busy: boolean;
   onSubmit: (values: {
-    seriesId: string;
     lectureId: string;
     resourceType: "pdf" | "audio" | "presentation" | "book" | "link" | "note";
     title: string;
@@ -596,8 +524,7 @@ function ResourceForm({
     file: File | null;
   }) => void;
 }) {
-  const [seriesId, setSeriesId] = useState(series[0]?.id ?? "");
-  const [lectureId, setLectureId] = useState("");
+  const [lectureId, setLectureId] = useState(videos[0]?.id ?? "");
   const [resourceType, setResourceType] = useState<
     "pdf" | "audio" | "presentation" | "book" | "link" | "note"
   >("pdf");
@@ -611,8 +538,8 @@ function ResourceForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!title.trim()) return;
-        onSubmit({ seriesId, lectureId, resourceType, title: title.trim(), description, externalUrl, body, file });
+        if (!title.trim() || !lectureId) return;
+        onSubmit({ lectureId, resourceType, title: title.trim(), description, externalUrl, body, file });
       }}
       className="space-y-3"
     >
@@ -631,22 +558,11 @@ function ResourceForm({
         </select>
       </div>
       <div className="space-y-1.5">
-        <Label>Attach to series</Label>
-        <select value={seriesId} onChange={(e) => setSeriesId(e.target.value)} className={fieldClass}>
-          {series.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="space-y-1.5">
-        <Label>Or attach to a lecture</Label>
+        <Label>Attach to training video</Label>
         <select value={lectureId} onChange={(e) => setLectureId(e.target.value)} className={fieldClass}>
-          <option value="">Series level (no lecture)</option>
-          {lectures.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.title}
+          {videos.map((video) => (
+            <option key={video.id} value={video.id}>
+              {video.title}
             </option>
           ))}
         </select>
@@ -657,12 +573,20 @@ function ResourceForm({
       </div>
       <div className="space-y-1.5">
         <Label>Description</Label>
-        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="rounded-2xl" />
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="rounded-2xl"
+        />
       </div>
       {resourceType === "link" ? (
         <div className="space-y-1.5">
           <Label>Link URL</Label>
-          <Input value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} className="h-11 rounded-2xl" />
+          <Input
+            value={externalUrl}
+            onChange={(e) => setExternalUrl(e.target.value)}
+            className="h-11 rounded-2xl"
+          />
         </div>
       ) : resourceType === "note" ? (
         <div className="space-y-1.5">

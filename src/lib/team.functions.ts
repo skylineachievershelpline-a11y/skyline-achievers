@@ -68,11 +68,11 @@ export const reserveSeat = createServerFn({ method: "POST" })
 
 export const setTraineeStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { traineeId: string; status: "active" | "blocked" | "removed" }) =>
+  .inputValidator((data: { traineeId: string; status: "active" | "blocked" }) =>
     z
       .object({
         traineeId: z.string().uuid(),
-        status: z.enum(["active", "blocked", "removed"]),
+        status: z.enum(["active", "blocked"]),
       })
       .parse(data),
   )
@@ -92,12 +92,34 @@ export const setTraineeStatus = createServerFn({ method: "POST" })
       .update({ status: data.status })
       .eq("id", data.traineeId);
     if (error) throw new Error(error.message);
-    // Blocked or removed accounts lose their live session immediately.
+    // Blocked accounts lose their live session immediately.
     await supabaseAdmin.auth.admin.updateUserById(data.traineeId, {
       ban_duration: data.status === "active" ? "none" : "876000h",
     });
     return { ok: true as const };
   });
+
+/** Remove means remove: the login, the record and the chats all disappear. */
+export const deleteTrainee = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string }) =>
+    z.object({ traineeId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: trainee } = await supabaseAdmin
+      .from("trainees")
+      .select("id, upline_id")
+      .eq("id", data.traineeId)
+      .maybeSingle();
+    if (!trainee || trainee.upline_id !== member.id) {
+      throw new Error("You can only manage the people you registered.");
+    }
+    const { deleteTraineeAccount } = await import("./team.server");
+    return deleteTraineeAccount(data.traineeId);
+  });
+
 
 export const createInviteLink = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

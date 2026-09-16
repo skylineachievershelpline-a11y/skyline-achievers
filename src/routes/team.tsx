@@ -30,6 +30,7 @@ import { formatDate } from "@/lib/format";
 import {
   createInviteLink,
   deleteInviteLink,
+  deleteTrainee,
   getMyTeam,
   reserveSeat,
   setInviteActive,
@@ -61,6 +62,7 @@ function TeamPage() {
   const load = useServerFn(getMyTeam);
   const reserve = useServerFn(reserveSeat);
   const changeStatus = useServerFn(setTraineeStatus);
+  const removePerson = useServerFn(deleteTrainee);
   const makeLink = useServerFn(createInviteLink);
   const toggleLink = useServerFn(setInviteActive);
   const dropLink = useServerFn(deleteInviteLink);
@@ -97,8 +99,17 @@ function TeamPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const drop = useMutation({
+    mutationFn: (traineeId: string) => removePerson({ data: { traineeId } } as never),
+    onSuccess: () => {
+      toast.success("Removed permanently");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const status = useMutation({
-    mutationFn: (values: { traineeId: string; status: "active" | "blocked" | "removed" }) =>
+    mutationFn: (values: { traineeId: string; status: "active" | "blocked" }) =>
       changeStatus({ data: values } as never),
     onSuccess: () => {
       toast.success("Updated");
@@ -193,7 +204,7 @@ function TeamPage() {
             {trainees.length > 0 ? (
               <div className="relative mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <span className="absolute left-[16.66%] right-[16.66%] top-0 hidden h-px bg-primary/30 lg:block" />
-                {trainees.map((person, index) => <TeamNode key={person.id} person={person} index={index} busy={status.isPending} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} />)}
+                {trainees.map((person, index) => <TeamNode key={person.id} person={person} index={index} busy={status.isPending || drop.isPending} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onRemove={() => drop.mutate(person.id)} />)}
               </div>
             ) : <div className="mt-6"><EmptyState title="No one registered yet" hint="Reserve a seat below or share your registration link." /></div>}
           </div>
@@ -221,7 +232,6 @@ function TeamPage() {
                 id="fullName"
                 value={form.fullName}
                 onChange={(event) => setForm({ ...form, fullName: event.target.value })}
-                placeholder="Ahmad Raza"
                 required
               />
             </div>
@@ -233,7 +243,6 @@ function TeamPage() {
                   inputMode="tel"
                   value={form.phone}
                   onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                  placeholder="03001234567"
                   required
                 />
               </div>
@@ -246,7 +255,6 @@ function TeamPage() {
                   max={90}
                   value={form.age}
                   onChange={(event) => setForm({ ...form, age: event.target.value })}
-                  placeholder="22"
                 />
               </div>
             </div>
@@ -342,7 +350,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function TeamNode({ person, index, busy, onStatus }: { person: any; index: number; busy: boolean; onStatus: (status: "active" | "blocked" | "removed") => void }) {
+function TeamNode({ person, index, busy, onStatus, onRemove }: { person: any; index: number; busy: boolean; onStatus: (status: "active" | "blocked") => void; onRemove: () => void }) {
   const progress = person.totalSessions > 0 ? Math.min(100, Math.round((person.sessionsWatched / person.totalSessions) * 100)) : 0;
   return <article className="relative pt-5 sm:pt-7">
     <span className="absolute left-1/2 top-0 h-5 w-px bg-primary/30 sm:h-7" />
@@ -355,8 +363,8 @@ function TeamNode({ person, index, busy, onStatus }: { person: any; index: numbe
       <div className="mt-4"><div className="mb-1.5 flex justify-between text-[10px]"><span className="font-semibold text-muted-foreground">Training</span><span className="font-bold text-primary">{progress}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} /></div></div>
       <div className="mt-3 flex justify-between text-[10px] text-muted-foreground"><span>{person.sessionsWatched}/{person.totalSessions} sessions</span><span>{formatDate(person.createdAt)}</span></div>
       <div className="mt-4 flex gap-2">
-        {person.status === "active" ? <Button size="sm" variant="outline" className="flex-1 rounded-lg" disabled={busy} onClick={() => onStatus("blocked")}><Ban />Block</Button> : <Button size="sm" variant="brand" className="flex-1 rounded-lg" disabled={busy || person.status === "removed"} onClick={() => onStatus("active")}><UserCheck />Unblock</Button>}
-        <Button size="icon" variant="destructive" className="rounded-lg" aria-label={`Remove ${person.fullName}`} disabled={busy || person.status === "removed"} onClick={() => onStatus("removed")}><Trash2 /></Button>
+        {person.status === "active" ? <Button size="sm" variant="outline" className="flex-1 rounded-lg" disabled={busy} onClick={() => onStatus("blocked")}><Ban />Block</Button> : <Button size="sm" variant="brand" className="flex-1 rounded-lg" disabled={busy} onClick={() => onStatus("active")}><UserCheck />Unblock</Button>}
+        <Button size="icon" variant="destructive" className="rounded-lg" aria-label={`Remove ${person.fullName}`} disabled={busy} onClick={() => { if (window.confirm(`Remove ${person.fullName} permanently? Their ID and login will stop working.`)) onRemove(); }}><Trash2 /></Button>
       </div>
       <span className="sr-only">Team member {index + 1}</span>
     </div>

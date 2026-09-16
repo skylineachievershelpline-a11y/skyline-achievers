@@ -77,7 +77,7 @@ export function ChatWorkspace() {
   const overview = useQuery({
     queryKey: ["chat-overview"],
     queryFn: () => bootstrap(),
-    refetchInterval: 8000,
+    refetchInterval: () => (typeof document !== "undefined" && document.hidden ? false : 15000),
     retry: false,
   });
 
@@ -99,7 +99,7 @@ export function ChatWorkspace() {
     queryKey: ["chat-thread", peerId],
     queryFn: () => loadThread({ data: { peerId: peerId! } }),
     enabled: Boolean(peerId),
-    refetchInterval: 5000,
+    refetchInterval: () => (typeof document !== "undefined" && document.hidden ? false : 6000),
     retry: false,
   });
 

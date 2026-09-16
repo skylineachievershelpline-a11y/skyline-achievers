@@ -92,6 +92,19 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
   };
 }
 
+/** Deletes a trainee completely: login, record, unlocks and chat history. */
+export async function deleteTraineeAccount(traineeId: string) {
+  await supabaseAdmin.from("trainee_session_unlocks").delete().eq("trainee_id", traineeId);
+  await supabaseAdmin.from("chat_messages").delete().eq("sender_id", traineeId);
+  await supabaseAdmin.from("chat_messages").delete().eq("recipient_id", traineeId);
+  await supabaseAdmin.from("chat_preferences").delete().eq("user_id", traineeId);
+  const { error } = await supabaseAdmin.from("trainees").delete().eq("id", traineeId);
+  if (error) throw new Error(error.message);
+  await supabaseAdmin.auth.admin.deleteUser(traineeId);
+  return { ok: true as const };
+}
+
+
 /** Progress numbers an upline sees for the people they registered. */
 export async function traineeStatsFor(uplineId: string) {
   const { data: rows } = await supabaseAdmin

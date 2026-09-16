@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { Toaster } from "../components/ui/sonner";
+import { UploadDock } from "../components/UploadDock";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -85,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Private member training platform for Skyline Achievers: level-based lectures, series and resources.",
+          "Private member training platform for Skyline Achievers: rank-based training videos and resources.",
       },
       { name: "author", content: "Skyline Achievers" },
       { property: "og:title", content: "Skyline Achievers Training" },
@@ -149,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <UploadDock />
       <Toaster />
     </QueryClientProvider>
   );

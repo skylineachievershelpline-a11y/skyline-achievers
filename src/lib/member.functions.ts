@@ -61,114 +61,31 @@ export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = context.supabase as never;
-    const {
-      loadMemberContext,
-      loadAccessibleLevels,
-      loadLectureCard,
-      loadContinueWatching,
-      loadSeriesForLevel,
-    } = await import("./member.server");
+    const { loadMemberContext, loadTrainingVideos, loadContinueWatching } = await import(
+      "./member.server"
+    );
 
     const member = await loadMemberContext(db, context.userId);
     if (!member || member.status !== "active") {
-      return {
-        member,
-        blocked: true as const,
-        levels: [],
-        continueWatching: [],
-        latestLectures: [],
-        mySeries: [],
-        featured: null,
-      };
+      return { member, blocked: true as const, videos: [], continueWatching: [] };
     }
 
-    const [levels, latestLectures, continueWatching, mySeries] = await Promise.all([
-      loadAccessibleLevels(db),
-      loadLectureCard(db, 12),
+    const [videos, continueWatching] = await Promise.all([
+      loadTrainingVideos(db, 60),
       loadContinueWatching(db, context.userId),
-      member.level ? loadSeriesForLevel(db, member.level.id) : Promise.resolve([]),
     ]);
 
-    return {
-      member,
-      blocked: false as const,
-      levels,
-      continueWatching,
-      latestLectures,
-      mySeries,
-      featured: latestLectures[0] ?? null,
-    };
+    return { member, blocked: false as const, videos, continueWatching };
   });
 
-export const getTrainingLevels = createServerFn({ method: "GET" })
+/** Every training video unlocked for this member. */
+export const getTrainingVideos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { loadAccessibleLevels, loadMemberContext } = await import("./member.server");
-    const [levels, member] = await Promise.all([
-      loadAccessibleLevels(context.supabase as never),
-      loadMemberContext(context.supabase as never, context.userId),
-    ]);
-    return { levels, member };
+    const { loadTrainingVideos } = await import("./member.server");
+    return { videos: await loadTrainingVideos(context.supabase as never, 200) };
   });
 
-export const getLevelDetail = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { slug: string }) => z.object({ slug: z.string().min(1) }).parse(data))
-  .handler(async ({ data, context }) => {
-    const db = context.supabase as never;
-    const { loadSeriesForLevel, loadStandaloneLecturesForLevel } = await import("./member.server");
-    const { data: level } = await (db as any)
-      .from("levels")
-      .select("id, name, slug, description, rank_order")
-      .eq("slug", data.slug)
-      .maybeSingle();
-    if (!level) return { level: null, series: [], lectures: [] };
-    const [series, lectures] = await Promise.all([
-      loadSeriesForLevel(db, level.id),
-      loadStandaloneLecturesForLevel(db, level.id),
-    ]);
-    return { level, series, lectures };
-  });
-
-
-export const getSeriesDetail = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { seriesId: string }) =>
-    z.object({ seriesId: z.string().uuid() }).parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const db = context.supabase as any;
-    const { signThumbnails } = await import("./storage.server");
-    const { data: series } = await db
-      .from("series")
-      .select(
-        "id, title, description, thumbnail_path, level_id, levels:level_id (id, name, slug, rank_order)",
-      )
-      .eq("id", data.seriesId)
-      .maybeSingle();
-    if (!series) return { series: null, lectures: [], resources: [] };
-
-    const [{ data: lectures }, { data: resources }] = await Promise.all([
-      db
-        .from("lectures")
-        .select("id, title, description, duration_seconds, thumbnail_path, sort_order, created_at")
-        .eq("series_id", data.seriesId)
-        .order("sort_order")
-        .order("created_at"),
-      db
-        .from("resources")
-        .select("id, title, description, resource_type, sort_order")
-        .eq("series_id", data.seriesId)
-        .order("sort_order"),
-    ]);
-
-    const [seriesWithThumb] = await signThumbnails([series]);
-    return {
-      series: seriesWithThumb,
-      lectures: await signThumbnails(lectures ?? []),
-      resources: resources ?? [],
-    };
-  });
 
 export const getLectureDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -183,23 +100,22 @@ export const getLectureDetail = createServerFn({ method: "GET" })
     const { data: lecture } = await db
       .from("lectures")
       .select(
-        "id, title, description, duration_seconds, aspect_ratio, video_source, video_path, video_url, series_id, level_id, series:series_id (id, title, description, levels:level_id (id, name, slug)), levels:level_id (id, name, slug)",
+        "id, title, description, duration_seconds, aspect_ratio, video_source, video_path, video_url, level_id, levels:level_id (id, name, slug)",
       )
       .eq("id", data.lectureId)
       .maybeSingle();
     if (!lecture) return { lecture: null, playback: null, resources: [], position: 0, siblings: [] };
 
-    // Siblings come from the parent series, or from the level for standalone lectures.
-    const siblingQuery = db.from("lectures").select("id, title, duration_seconds, sort_order");
-    const siblingsPromise = lecture.series_id
-      ? siblingQuery.eq("series_id", lecture.series_id).order("sort_order").order("created_at")
-      : lecture.level_id
-        ? siblingQuery
-            .eq("level_id", lecture.level_id)
-            .is("series_id", null)
-            .order("sort_order")
-            .order("created_at")
-        : Promise.resolve({ data: [] as any[] });
+    // Other videos from the same training level.
+    const siblingsPromise = lecture.level_id
+      ? db
+          .from("lectures")
+          .select("id, title, duration_seconds, sort_order")
+          .eq("level_id", lecture.level_id)
+          .order("sort_order")
+          .order("created_at")
+      : Promise.resolve({ data: [] as any[] });
+
 
     const [{ data: resources }, { data: position }, { data: siblings }] = await Promise.all([
       db
@@ -271,9 +187,7 @@ export const getMemberResources = createServerFn({ method: "GET" })
     const db = context.supabase as any;
     const { data } = await db
       .from("resources")
-      .select(
-        "id, title, description, resource_type, created_at, lectures:lecture_id (id, title), series:series_id (id, title)",
-      )
+      .select("id, title, description, resource_type, created_at, lectures:lecture_id (id, title)")
       .order("created_at", { ascending: false })
       .limit(200);
     return { resources: data ?? [] };
@@ -287,31 +201,24 @@ export const searchLibrary = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = context.supabase as any;
     const term = `%${data.query.replace(/[%_]/g, "")}%`;
-    const [levels, series, lectures, resources] = await Promise.all([
-      db.from("levels").select("id, name, slug, description").ilike("name", term).limit(6),
-      db
-        .from("series")
-        .select("id, title, description, levels:level_id (name, slug)")
-        .ilike("title", term)
-        .limit(12),
+    const [lectures, resources] = await Promise.all([
       db
         .from("lectures")
-        .select("id, title, duration_seconds, series:series_id (id, title, levels:level_id (name))")
+        .select("id, title, duration_seconds, levels:level_id (id, name)")
         .ilike("title", term)
-        .limit(20),
+        .limit(30),
       db
         .from("resources")
-        .select("id, title, resource_type, lectures:lecture_id (id, title), series:series_id (id, title)")
+        .select("id, title, resource_type, lectures:lecture_id (id, title)")
         .ilike("title", term)
         .limit(20),
     ]);
     return {
-      levels: levels.data ?? [],
-      series: series.data ?? [],
       lectures: lectures.data ?? [],
       resources: resources.data ?? [],
     };
   });
+
 
 export const getNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

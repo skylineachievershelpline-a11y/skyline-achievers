@@ -194,13 +194,13 @@ export const chatSend = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveChatIdentity, assertPeerAllowed } = await import("./chat.server");
+    const { resolveChatIdentity, findChatPeer } = await import("./chat.server");
 
     const identity = await resolveChatIdentity(context.userId);
     if (!identity) return { status: "unavailable" as const };
     if (identity.status !== "active") return { status: "blocked" as const };
-    const peer = await assertPeerAllowed(identity, data.peerId);
-    if (peer.status !== "active") return { status: "blocked" as const };
+    const peer = await findChatPeer(identity, data.peerId);
+    if (!peer || peer.status !== "active") return { status: "blocked" as const };
 
     const { error } = await supabaseAdmin.from("chat_messages").insert({
       sender_id: identity.id,

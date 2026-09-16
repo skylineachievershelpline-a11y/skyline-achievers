@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { FinalTestTab } from "@/components/admin/FinalTestTab";
+import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LiveTrainingTab } from "@/components/admin/LiveTrainingTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";

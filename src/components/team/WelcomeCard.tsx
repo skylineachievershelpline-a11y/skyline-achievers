@@ -271,13 +271,13 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
           your keys to the training dashboard.
         </p>
 
-        <div className="mt-6 grid w-full gap-5 rounded-2xl border border-cyan/30 bg-primary/10 p-5 text-left sm:grid-cols-[9rem_1fr]">
+        <div className="mt-6 grid w-full grid-cols-[6.5rem_1fr] gap-3 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-left sm:grid-cols-[9rem_1fr] sm:gap-5 sm:p-5">
           <div className="text-center">
             {credentials.uplineAvatarUrl ? (
               <img
                 src={credentials.uplineAvatarUrl}
                 alt={`${credentials.uplineName}'s profile`}
-                className="mx-auto aspect-square w-28 rounded-full border-2 border-cyan object-cover object-top shadow-brand"
+                className="mx-auto aspect-square w-24 rounded-full border-2 border-cyan object-cover object-top shadow-brand sm:w-28"
               />
             ) : null}
             <p className={`${credentials.uplineAvatarUrl ? "mt-3" : "mt-0"} font-display text-base font-bold`}>
@@ -285,8 +285,8 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
             </p>
           </div>
           <div>
-            <h3 className="font-display text-xl font-bold">Welcome to the Skyline family</h3>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            <h3 className="font-display text-lg font-bold sm:text-xl">Welcome to the Skyline family</h3>
+            <p className="mt-3 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">
               Today begins a new journey of learning, growth, confidence and opportunity. Your
               training seat is reserved and your Skyline ID is ready. Learn each lesson with focus,
               practise consistently, stay connected with your upline and keep moving forward one

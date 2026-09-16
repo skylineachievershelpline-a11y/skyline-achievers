@@ -42,6 +42,7 @@ export function SessionVideo({
           <iframe
             src={toEmbedUrl(videoUrl)}
             title={title}
+            loading="lazy"
             allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
             className="h-full w-full border-0"
@@ -52,6 +53,7 @@ export function SessionVideo({
             poster={poster ?? undefined}
             controls
             playsInline
+            preload="metadata"
             controlsList="nodownload"
             className="h-full w-full object-contain"
           />

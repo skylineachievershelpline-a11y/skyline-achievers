@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Clapperboard,
   Home,
-  Layers,
   Menu,
   MessageCircle,
   LogOut,

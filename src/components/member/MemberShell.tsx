@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -7,16 +7,19 @@ import {
   Clapperboard,
   Home,
   Layers,
+  Menu,
   Radio,
   LogOut,
   Search,
   FolderOpen,
   User,
+  X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { BRAND } from "@/lib/brand";
 import { getNotifications } from "@/lib/member.functions";
 import { cn } from "@/lib/utils";
 
@@ -49,13 +52,13 @@ export function useMemberGuard() {
 
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/levels", label: "Levels", icon: Layers },
+  { to: "/levels", label: "Training Levels", icon: Layers },
   { to: "/reels", label: "Reels", icon: Clapperboard },
-  { to: "/live-training", label: "Live", icon: Radio },
-  { to: "/resources", label: "Files", icon: FolderOpen },
+  { to: "/live-training", label: "Live Training", icon: Radio },
+  { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/final-test", label: "Final Test", icon: ClipboardCheck },
   { to: "/search", label: "Search", icon: Search },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/profile", label: "My Profile", icon: User },
 ] as const;
 
 export function MemberShell({
@@ -69,6 +72,14 @@ export function MemberShell({
 }) {
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  // Close the side menu whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   // Only ask the server once a browser session actually exists, otherwise the
   // protected server function rejects with "No authorization header".
   const [hasSession, setHasSession] = useState(false);
@@ -98,33 +109,31 @@ export function MemberShell({
   }
 
   return (
-    <div className="relative min-h-screen pb-24 md:pb-10">
+    <div className="relative min-h-screen pb-10">
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-hairline bg-glass text-foreground transition-colors hover:bg-glass-strong"
+          >
+            <Menu className="h-4.5 w-4.5" />
+          </button>
+
           <Link to="/dashboard" className="shrink-0">
             <BrandLogo size="sm" withWordmark={false} />
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-sm font-semibold">{title ?? "Skyline Achievers"}</p>
+            <p className="truncate font-display text-sm font-semibold">
+              {title ?? BRAND.name}
+            </p>
             {subtitle ? (
               <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
-
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
-                activeProps={{ className: "rounded-full px-3 py-1.5 text-sm bg-glass-strong text-foreground" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
 
           <Link
             to="/notifications"
@@ -138,37 +147,72 @@ export function MemberShell({
               </span>
             ) : null}
           </Link>
-
-          <button
-            onClick={() => void signOut()}
-            aria-label="Sign out"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground transition-colors hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-6xl px-4 py-5">{children}</main>
-
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-hairline/60 bg-background/85 backdrop-blur-xl md:hidden">
-        <div className="mx-auto flex max-w-md items-stretch justify-between px-2 pt-1.5">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="flex flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-muted-foreground"
-              activeProps={{
-                className:
-                  "flex flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[10px] text-foreground bg-glass",
-              }}
+      {/* ---------- side menu ---------- */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 transition-opacity duration-300",
+          menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      >
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setMenuOpen(false)}
+          className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+        />
+        <aside
+          className={cn(
+            "glass-panel-strong absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-[28px] p-5 transition-transform duration-300",
+            menuOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <BrandLogo size="sm" />
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground"
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
+            {NAV.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
+                activeProps={{
+                  className:
+                    "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm bg-glass-strong text-foreground",
+                }}
+              >
+                <item.icon className="h-4.5 w-4.5 text-brand-glow" />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <button
+            onClick={() => void signOut()}
+            className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-hairline bg-glass px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+          <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {BRAND.tagline}
+          </p>
+        </aside>
+      </div>
+
+      <main className="relative mx-auto max-w-6xl px-4 py-5">{children}</main>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { FinalTestTab } from "@/components/admin/FinalTestTab";
+import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LiveTrainingTab } from "@/components/admin/LiveTrainingTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
@@ -152,6 +153,9 @@ function AdminPage() {
             <TabsTrigger value="reviews" className="rounded-xl">
               Reviews
             </TabsTrigger>
+            <TabsTrigger value="inspiration" className="rounded-xl">
+              Daily Verses
+            </TabsTrigger>
             <TabsTrigger value="finaltest" className="rounded-xl">
               Final Test
             </TabsTrigger>
@@ -180,6 +184,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="reviews" className="mt-5">
             <ReviewsTab />
+          </TabsContent>
+          <TabsContent value="inspiration" className="mt-5">
+            <InspirationTab />
           </TabsContent>
           <TabsContent value="finaltest" className="mt-5">
             <FinalTestTab />

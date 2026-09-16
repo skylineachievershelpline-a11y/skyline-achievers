@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState, LevelCard } from "@/components/member/cards";
+import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
@@ -114,6 +115,10 @@ function DashboardPage() {
           </p>
           <p className="mt-4 font-display text-sm font-semibold brand-text">{BRAND.tagline}</p>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <DailyInspiration />
       </div>
 
       {/* ---------- levels: the only way into the videos ---------- */}

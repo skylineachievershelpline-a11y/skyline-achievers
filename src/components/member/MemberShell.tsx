@@ -13,6 +13,7 @@ import {
   Search,
   FolderOpen,
   User,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -55,6 +56,7 @@ const NAV = [
   { to: "/levels", label: "Training Levels", icon: Layers },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/live-training", label: "Live Training", icon: Radio },
+  { to: "/team", label: "My Team & Seats", icon: Users },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/final-test", label: "Final Test", icon: ClipboardCheck },
   { to: "/search", label: "Search", icon: Search },

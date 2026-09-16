@@ -27,3 +27,9 @@
 - [x] Beginners Training dashboard: profile, locked sessions, unlock by session code, daily verse
 - [x] Upline tracking of each person, block and permanently remove
 - [x] Login accepts both SKA (member) and SKB (trainee) IDs and routes to the right dashboard
+
+## Executive dashboard redesign
+- [ ] Upgrade the member profile and show existing training tracking at a glance
+- [ ] Add Continue Watching and current-rank series shortcuts
+- [ ] Redesign My Team as a connected responsive hierarchy
+- [ ] Verify desktop and phone layouts

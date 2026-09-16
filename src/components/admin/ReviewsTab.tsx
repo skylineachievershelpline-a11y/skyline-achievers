@@ -58,6 +58,8 @@ function IntroductionManager() {
   const queryClient = useQueryClient();
   const load = useServerFn(adminGetLandingIntroduction);
   const save = useServerFn(adminSaveLandingIntroduction);
+  const setIntroActive = useServerFn(adminSetLandingIntroductionActive);
+  const removeIntro = useServerFn(adminDeleteLandingIntroduction);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const uploadProgress = useUploadProgress();
   const { data, isPending } = useQuery({

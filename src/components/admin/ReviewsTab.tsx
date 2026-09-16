@@ -36,6 +36,10 @@ type ReviewRow = {
   status: string;
   is_active: boolean;
   created_at: string;
+  video_source?: string | null;
+  video_path?: string | null;
+  video_url?: string | null;
+  aspect_ratio?: string | null;
 };
 
 /** Controls the public introduction video and all landing testimonials. */
@@ -215,6 +219,8 @@ function TestimonialsManager() {
   const setStatus = useServerFn(adminSetReviewStatus);
   const saveReview = useServerFn(adminSaveReview);
   const remove = useServerFn(adminDeleteReview);
+  const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
   const { data, isPending } = useQuery({ queryKey: ["admin-reviews"], queryFn: () => loadList() });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ReviewRow | null>(null);
@@ -224,17 +230,23 @@ function TestimonialsManager() {
   const [rating, setRating] = useState(5);
   const [order, setOrder] = useState("0");
   const [visible, setVisible] = useState(true);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoLink, setVideoLink] = useState("");
+  const [videoRatio, setVideoRatio] = useState<string>("16:9");
+
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
     void queryClient.invalidateQueries({ queryKey: ["landing-reviews"] });
   }
   function startAdd() {
-    setEditing(null); setName(""); setDesignation(""); setText(""); setRating(5); setOrder("0"); setVisible(true); setOpen(true);
+    setEditing(null); setName(""); setDesignation(""); setText(""); setRating(5); setOrder("0"); setVisible(true);
+    setVideoFile(null); setVideoLink(""); setVideoRatio("16:9"); setOpen(true);
   }
   function startEdit(row: ReviewRow) {
     setEditing(row); setName(row.person_name); setDesignation(row.designation ?? ""); setText(row.review_text);
-    setRating(row.rating ?? 5); setOrder(String(row.sort_order)); setVisible(row.is_active); setOpen(true);
+    setRating(row.rating ?? 5); setOrder(String(row.sort_order)); setVisible(row.is_active);
+    setVideoFile(null); setVideoLink(row.video_url ?? ""); setVideoRatio(row.aspect_ratio ?? "16:9"); setOpen(true);
   }
   const change = useMutation({
     mutationFn: (values: { id: string; status: "approved" | "pending" | "rejected" }) => setStatus({ data: values } as never),
@@ -247,9 +259,36 @@ function TestimonialsManager() {
     onError: (error: Error) => toast.error(error.message),
   });
   const save = useMutation({
-    mutationFn: () => saveReview({ data: { id: editing?.id, personName: name, designation, reviewText: text, rating, sortOrder: Number(order) || 0, isActive: visible } } as never),
-    onSuccess: () => { toast.success(editing ? "Testimonial saved" : "Testimonial added"); setOpen(false); refresh(); },
-    onError: (error: Error) => toast.error(error.message),
+    mutationFn: async () => {
+      let videoPath: string | null = null;
+      if (videoFile) {
+        videoPath = await uploadToBucket(
+          createUploadUrl,
+          "training-videos",
+          videoFile,
+          uploadProgress.handler("Uploading testimonial video"),
+        );
+      }
+      return saveReview({
+        data: {
+          id: editing?.id,
+          personName: name,
+          designation,
+          reviewText: text,
+          rating,
+          sortOrder: Number(order) || 0,
+          isActive: visible,
+          videoPath,
+          videoUrl: videoFile ? null : videoLink.trim() || null,
+          aspectRatio: videoRatio,
+        },
+      } as never);
+    },
+    onSuccess: () => {
+      toast.success(editing ? "Testimonial saved" : "Testimonial added");
+      setOpen(false); uploadProgress.clear(); setVideoFile(null); refresh();
+    },
+    onError: (error: Error) => { uploadProgress.clear(); toast.error(error.message); },
   });
 
   const reviews = (data?.reviews ?? []) as ReviewRow[];
@@ -295,6 +334,32 @@ function TestimonialsManager() {
               <div className="space-y-1.5"><Label htmlFor="testimonialRating">Rating</Label><select id="testimonialRating" className={fieldClass} value={rating} onChange={(event) => setRating(Number(event.target.value))}>{[1,2,3,4,5].map((value) => <option key={value} value={value}>{value} stars</option>)}</select></div>
               <div className="space-y-1.5"><Label htmlFor="testimonialOrder">Order</Label><Input id="testimonialOrder" value={order} onChange={(event) => setOrder(event.target.value.replace(/\D/g, ""))} /></div>
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialVideo">Upload video (optional)</Label>
+              <input
+                id="testimonialVideo"
+                type="file"
+                accept="video/*"
+                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+                onChange={(event) => setVideoFile(event.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialVideoLink">Or video link</Label>
+              <Input
+                id="testimonialVideoLink"
+                value={videoLink}
+                onChange={(event) => setVideoLink(event.target.value)}
+                placeholder="https://youtube.com/..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialRatio">Video ratio</Label>
+              <select id="testimonialRatio" className={fieldClass} value={videoRatio} onChange={(event) => setVideoRatio(event.target.value)}>
+                {RATIOS.map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </div>
+            <UploadProgress state={uploadProgress.state} />
             <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={visible} onChange={(event) => setVisible(event.target.checked)} /> Show on landing page</label>
             <Button type="submit" variant="brand" size="xl" className="w-full" disabled={save.isPending}>{save.isPending ? <Loader2 className="animate-spin" /> : null} Save testimonial</Button>
           </form>

@@ -1,8 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,35 +17,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-
-type Review = {
-  id: string;
-  person_name: string;
-  designation: string | null;
-  review_text: string;
-  rating: number | null;
-};
+import { getLandingReviews } from "@/lib/landing.functions";
 
 /**
  * Public testimonials wall. Visitors submit a review, it stays hidden until an
  * administrator approves it in the admin panel.
  */
 export function ReviewsSection() {
-  const { data, isPending } = useQuery({
+  const loadReviews = useServerFn(getLandingReviews);
+  const { data: result, isPending } = useQuery({
     queryKey: ["landing-reviews"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("landing_reviews")
-        .select("id, person_name, designation, review_text, rating")
-        .eq("status", "approved")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(12);
-      if (error) throw new Error(error.message);
-      return (data ?? []) as Review[];
-    },
+    queryFn: () => loadReviews(),
+    retry: false,
   });
+  const data = result?.reviews;
+
 
   return (
     <section id="reviews" className="px-5 py-20 sm:px-8 sm:py-28">
@@ -75,14 +63,23 @@ export function ReviewsSection() {
                 key={review.id}
                 className="glass-panel flex h-full flex-col rounded-2xl p-6 animate-rise-in"
               >
+                {review.videoUrl ? (
+                  <div className="mb-4 overflow-hidden rounded-xl">
+                    <SessionVideo
+                      title={review.personName}
+                      videoUrl={review.videoUrl}
+                      aspectRatio={review.aspectRatio}
+                    />
+                  </div>
+                ) : null}
                 <MessageSquareQuote className="h-5 w-5 text-brand-glow" />
                 <p className="mt-4 flex-1 text-sm leading-6 text-muted-foreground">
-                  “{review.review_text}”
+                  “{review.reviewText}”
                 </p>
                 <div className="mt-5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">
-                      {review.person_name}
+                      {review.personName}
                     </p>
                     {review.designation ? (
                       <p className="truncate text-xs text-muted-foreground">{review.designation}</p>

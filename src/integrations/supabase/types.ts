@@ -416,6 +416,7 @@ export type Database = {
       }
       landing_reviews: {
         Row: {
+          aspect_ratio: string
           created_at: string
           designation: string | null
           id: string
@@ -427,8 +428,12 @@ export type Database = {
           sort_order: number
           status: string
           updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
         }
         Insert: {
+          aspect_ratio?: string
           created_at?: string
           designation?: string | null
           id?: string
@@ -440,8 +445,12 @@ export type Database = {
           sort_order?: number
           status?: string
           updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
         }
         Update: {
+          aspect_ratio?: string
           created_at?: string
           designation?: string | null
           id?: string
@@ -453,6 +462,9 @@ export type Database = {
           sort_order?: number
           status?: string
           updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
         }
         Relationships: []
       }

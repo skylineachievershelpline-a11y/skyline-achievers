@@ -64,7 +64,7 @@ export function MemberLoginCard() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass-panel-strong min-h-[390px] rounded-2xl p-6 sm:p-8">
+    <form onSubmit={onSubmit} className="rounded-2xl p-4 sm:p-6">
       <div className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
         <LockKeyhole className="h-3.5 w-3.5" />
         Members only

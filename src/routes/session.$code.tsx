@@ -4,15 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { openBeginnerSession } from "@/lib/sessions.functions";
-
-const RATIO_CLASS: Record<string, string> = {
-  "16:9": "aspect-video",
-  "9:16": "aspect-[9/16] mx-auto max-h-[78vh] w-auto",
-  "1:1": "aspect-square mx-auto max-h-[78vh]",
-  "4:3": "aspect-[4/3]",
-};
 
 export const Route = createFileRoute("/session/$code")({
   head: () => ({
@@ -53,9 +47,10 @@ function SessionPage() {
   }
 
   const session = data?.status === "ok" ? data.session : null;
+  const extras = data?.status === "ok" ? (data.extras ?? []) : [];
 
   return (
-    <main className="relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
+    <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-4xl">
         <header className="mb-6 flex items-center gap-3 animate-rise-in">
@@ -76,7 +71,7 @@ function SessionPage() {
         </header>
 
         {!session || isError ? (
-          <div className="glass-panel-strong rounded-3xl p-8 text-center animate-rise-in">
+          <div className="raised-panel rounded-3xl p-8 text-center animate-rise-in">
             <p className="font-display text-lg font-semibold">This session code is not valid</p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               Codes only open their own training session. Please check the code your trainer gave
@@ -90,40 +85,17 @@ function SessionPage() {
           </div>
         ) : (
           <div className="animate-rise-in space-y-5">
-            <div className="glass-panel-strong overflow-hidden rounded-3xl p-3 sm:p-4">
-              <div
-                className={`overflow-hidden rounded-2xl bg-media ${
-                  RATIO_CLASS[session.aspectRatio] ?? "aspect-video"
-                }`}
-              >
-                {session.videoUrl ? (
-                  isEmbeddable(session.videoUrl) ? (
-                    <iframe
-                      src={toEmbedUrl(session.videoUrl)}
-                      title={session.title}
-                      allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                      allowFullScreen
-                      className="h-full w-full border-0"
-                    />
-                  ) : (
-                    <video
-                      src={session.videoUrl}
-                      poster={session.thumbnailUrl ?? undefined}
-                      controls
-                      playsInline
-                      controlsList="nodownload"
-                      className="h-full w-full object-contain"
-                    />
-                  )
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                    Video unavailable
-                  </div>
-                )}
-              </div>
+            <div className="raised-panel overflow-hidden rounded-3xl p-3 sm:p-4">
+              <SessionVideo
+                title={session.title}
+                videoUrl={session.videoUrl}
+                aspectRatio={session.aspectRatio}
+                poster={session.thumbnailUrl}
+              />
             </div>
 
-            <section className="glass-panel rounded-3xl p-6">
+            <section className="glass-panel metal-edge rounded-3xl p-6">
+              <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
               <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Session code · {session.code}
               </p>
@@ -136,27 +108,35 @@ function SessionPage() {
                 </p>
               ) : null}
             </section>
+
+            {extras.length > 0 ? (
+              <section className="space-y-4">
+                <h3 className="font-display text-base font-semibold tracking-tight">
+                  More with this session
+                </h3>
+                {extras.map((extra) => (
+                  <article key={extra.id} className="raised-panel rounded-3xl p-3 sm:p-4">
+                    <SessionVideo
+                      title={extra.title}
+                      videoUrl={extra.videoUrl}
+                      aspectRatio={extra.aspectRatio}
+                      poster={extra.thumbnailUrl}
+                    />
+                    <div className="px-2 pb-1 pt-3">
+                      <p className="text-sm font-semibold">{extra.title}</p>
+                      {extra.description ? (
+                        <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                          {extra.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </section>
+            ) : null}
           </div>
         )}
       </div>
     </main>
   );
-}
-
-function isEmbeddable(url: string): boolean {
-  return /youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com|facebook\.com|fb\.watch/.test(url);
-}
-
-function toEmbedUrl(url: string): string {
-  const youtube = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/,
-  );
-  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
-  const vimeo = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
-  const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
-  if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
-  if (/facebook\.com|fb\.watch/.test(url))
-    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}`;
-  return url;
 }

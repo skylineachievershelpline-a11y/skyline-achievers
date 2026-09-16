@@ -35,6 +35,62 @@ export type Database = {
         }
         Relationships: []
       }
+      beginner_session_extras: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          session_id: string
+          sort_order: number
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          session_id: string
+          sort_order?: number
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          session_id?: string
+          sort_order?: number
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beginner_session_extras_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "beginner_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beginner_sessions: {
         Row: {
           aspect_ratio: string
@@ -83,6 +139,66 @@ export type Database = {
           video_path?: string | null
           video_source?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          body: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          kind: string
+          media_mime: string | null
+          media_name: string | null
+          media_path: string | null
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          kind?: string
+          media_mime?: string | null
+          media_name?: string | null
+          media_path?: string | null
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          kind?: string
+          media_mime?: string | null
+          media_name?: string | null
+          media_path?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      chat_preferences: {
+        Row: {
+          show_avatar: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          show_avatar?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          show_avatar?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1060,6 +1176,7 @@ export type Database = {
       trainees: {
         Row: {
           age: number | null
+          avatar_path: string | null
           created_at: string
           full_name: string
           id: string
@@ -1073,6 +1190,7 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          avatar_path?: string | null
           created_at?: string
           full_name: string
           id: string
@@ -1086,6 +1204,7 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          avatar_path?: string | null
           created_at?: string
           full_name?: string
           id?: string

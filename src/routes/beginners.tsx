@@ -1,7 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { KeyRound, Loader2, Lock, LogOut, PlayCircle, Unlock, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  KeyRound,
+  Loader2,
+  Lock,
+  LogOut,
+  MessageCircle,
+  PlayCircle,
+  Unlock,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -27,7 +37,7 @@ export const Route = createFileRoute("/beginners")({
       {
         name: "description",
         content:
-          "Your Beginners Training dashboard: unlock each session with the code your trainer shares and learn step by step.",
+          "Your Beginners Training dashboard: unlock each session with the code your trainer shares and follow your progress step by step.",
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Beginners Training — Skyline Achievers" },
@@ -42,6 +52,60 @@ export const Route = createFileRoute("/beginners")({
   component: BeginnersPage,
 });
 
+type FocusedSession = {
+  id: string;
+  title: string;
+  description: string | null;
+  aspectRatio: string;
+  videoUrl: string | null;
+  thumbnailUrl: string | null;
+  extras: {
+    id: string;
+    title: string;
+    description: string | null;
+    aspectRatio: string;
+    videoUrl: string | null;
+    thumbnailUrl: string | null;
+  }[];
+};
+
+function ProgressRing({ done, total }: { done: number; total: number }) {
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percent / 100) * circumference;
+
+  return (
+    <div className="relative h-[118px] w-[118px] shrink-0">
+      <svg viewBox="0 0 110 110" className="h-full w-full -rotate-90">
+        <circle
+          cx="55"
+          cy="55"
+          r={radius}
+          className="fill-none stroke-hairline"
+          strokeWidth="9"
+        />
+        <circle
+          cx="55"
+          cy="55"
+          r={radius}
+          className="fill-none stroke-brand transition-[stroke-dashoffset] duration-700 ease-out"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-2xl font-semibold tabular-nums">{percent}%</span>
+        <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          {done}/{total} done
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function BeginnersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -51,9 +115,7 @@ function BeginnersPage() {
 
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState("");
-  const [playing, setPlaying] = useState<
-    { title: string; aspectRatio: string; videoUrl: string | null } | null
-  >(null);
+  const [focused, setFocused] = useState<FocusedSession | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +140,19 @@ function BeginnersPage() {
     retry: false,
   });
 
+  const openSession = useMutation({
+    mutationFn: (sessionId: string) => play({ data: { sessionId } } as never),
+    onSuccess: (result: any) => {
+      if (result.status !== "ok") {
+        toast.error("Enter the session code to open this session first.");
+        return;
+      }
+      setFocused({ ...result.session, extras: result.extras ?? [] });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const submitCode = useMutation({
     mutationFn: () => unlock({ data: { code } } as never),
     onSuccess: (result: any) => {
@@ -92,18 +167,7 @@ function BeginnersPage() {
       setCode("");
       toast.success("Session unlocked");
       void queryClient.invalidateQueries({ queryKey: ["trainee-dashboard"] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const openSession = useMutation({
-    mutationFn: (sessionId: string) => play({ data: { sessionId } } as never),
-    onSuccess: (result: any) => {
-      if (result.status !== "ok") {
-        toast.error("Enter the session code to unlock this session first.");
-        return;
-      }
-      setPlaying(result.session);
+      openSession.mutate(result.sessionId);
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -124,7 +188,7 @@ function BeginnersPage() {
   if (!data?.trainee || data.blocked) {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
-        <div className="glass-panel-strong max-w-md rounded-3xl p-8 text-center">
+        <div className="raised-panel max-w-md rounded-3xl p-8 text-center">
           <BrandLogo size="sm" />
           <p className="mt-4 font-display text-lg font-semibold">Access paused</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -140,24 +204,31 @@ function BeginnersPage() {
     );
   }
 
-  const trainee = data.trainee;
+  const trainee = data.trainee as any;
   const sessions = data.sessions;
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
 
   return (
-    <div className="relative min-h-screen pb-14">
+    <div className="infographic-grid relative min-h-screen pb-14">
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
-      <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
           <BrandLogo size="sm" withWordmark={false} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>
             <p className="truncate text-[11px] text-muted-foreground">{BRAND.tagline}</p>
           </div>
+          <Link
+            to="/chat"
+            aria-label="Chat with your trainer"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-metal/30 bg-surface-2 text-muted-foreground transition-colors hover:text-brand"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Link>
           <button
             onClick={() => void signOut()}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground transition-colors hover:text-destructive"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-metal/30 bg-surface-2 text-muted-foreground transition-colors hover:text-destructive"
             aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" />
@@ -166,149 +237,241 @@ function BeginnersPage() {
       </header>
 
       <main className="relative mx-auto max-w-4xl px-4 py-5">
-        {/* ---------- profile ---------- */}
-        <section className="glass-panel-strong rounded-[28px] p-6 animate-rise-in">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/20 font-display text-xl font-semibold text-brand-glow">
-              {trainee.fullName.charAt(0).toUpperCase()}
+        {/* ---------- profile + tracking ---------- */}
+        <section className="raised-panel relative overflow-hidden rounded-[30px] p-6 animate-rise-in">
+          <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-4">
+              <div className="metal-edge flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/20 font-display text-2xl font-semibold text-brand-glow shadow-lift">
+                {trainee.avatarUrl ? (
+                  <img
+                    src={trainee.avatarUrl}
+                    alt={`${trainee.fullName} profile picture`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  trainee.fullName.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate font-display text-xl font-semibold tracking-tight">
+                  {trainee.fullName}
+                </h1>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                  {trainee.traineeCode} · joined {formatDate(trainee.createdAt)}
+                </p>
+                {trainee.upline ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Trainer: {trainee.upline.fullName} ({trainee.upline.memberId})
+                  </p>
+                ) : null}
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate font-display text-xl font-semibold tracking-tight">
-                {trainee.fullName}
-              </h1>
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                {trainee.traineeCode} · joined {formatDate(trainee.createdAt)}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-hairline bg-glass px-4 py-2 text-center">
-              <p className="font-display text-lg font-semibold tabular-nums">
-                {unlockedCount}/{sessions.length}
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Unlocked
-              </p>
-            </div>
+            <ProgressRing done={unlockedCount} total={sessions.length} />
           </div>
-          {trainee.upline ? (
-            <p className="mt-4 text-xs text-muted-foreground">
-              Your trainer: {trainee.upline.fullName} ({trainee.upline.memberId})
+
+          {/* step track */}
+          <div className="inset-panel mt-6 rounded-2xl p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              Training track
             </p>
-          ) : null}
-        </section>
-
-        <div className="mt-6">
-          <DailyInspiration />
-        </div>
-
-        {/* ---------- unlock ---------- */}
-        <section className="glass-panel mt-6 rounded-[28px] p-6 animate-rise-in">
-          <h2 className="font-display text-lg font-semibold tracking-tight">Unlock a session</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Your trainer shares a code for each session. Enter it here to open that session.
-          </p>
-          <form
-            className="mt-4 flex flex-col gap-3 sm:flex-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              submitCode.mutate();
-            }}
-          >
-            <Input
-              value={code}
-              onChange={(event) => setCode(event.target.value.toUpperCase())}
-              placeholder="SKL-0001"
-              autoCapitalize="characters"
-              className="h-12 rounded-xl bg-background/35 text-base tracking-widest"
-            />
-            <Button type="submit" variant="brand" size="xl" disabled={submitCode.isPending}>
-              {submitCode.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
-              Unlock
-            </Button>
-          </form>
-        </section>
-
-        {/* ---------- sessions ---------- */}
-        <section className="mt-6">
-          <h2 className="mb-3 font-display text-lg font-semibold tracking-tight">All sessions</h2>
-          {sessions.length === 0 ? (
-            <div className="glass-panel rounded-3xl px-5 py-10 text-center">
-              <p className="font-display text-sm font-semibold">No sessions published yet</p>
-              <p className="mt-1 text-xs text-muted-foreground">Please check back soon.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {sessions.map((session) => (
-                <article
-                  key={session.id}
-                  className="glass-panel overflow-hidden rounded-3xl animate-rise-in"
-                >
-                  <div className="relative aspect-video bg-glass-strong">
-                    {session.thumbnailUrl ? (
-                      <img
-                        src={session.thumbnailUrl}
-                        alt={`${session.title} cover`}
-                        loading="lazy"
-                        className={`h-full w-full object-cover ${session.unlocked ? "" : "blur-[3px] brightness-50"}`}
-                      />
-                    ) : null}
-                    <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] backdrop-blur">
-                      {session.unlocked ? (
-                        <>
-                          <Unlock className="h-3 w-3 text-brand-glow" /> Unlocked
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="h-3 w-3" /> Locked
-                        </>
-                      )}
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-base font-semibold">{session.title}</h3>
-                    {session.description ? (
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                        {session.description}
-                      </p>
-                    ) : null}
-                    <Button
-                      variant={session.unlocked ? "brand" : "outline"}
-                      className="mt-4 w-full rounded-2xl"
-                      disabled={!session.unlocked || openSession.isPending}
-                      onClick={() => openSession.mutate(session.id)}
-                    >
-                      {session.unlocked ? <PlayCircle /> : <Lock className="h-4 w-4" />}
-                      {session.unlocked ? "Watch session" : "Enter code to unlock"}
-                    </Button>
-                  </div>
-                </article>
+            <ol className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+              {sessions.map((session, index) => (
+                <li key={session.id} className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums transition-colors ${
+                      session.unlocked
+                        ? "border-cyan/40 bg-primary text-primary-foreground shadow-brand"
+                        : "border-metal/30 bg-surface-2 text-muted-foreground"
+                    }`}
+                    title={session.title}
+                  >
+                    {session.unlocked ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                  </span>
+                  {index < sessions.length - 1 ? (
+                    <span className="h-[2px] w-6 rounded-full bg-hairline" aria-hidden />
+                  ) : null}
+                </li>
               ))}
-            </div>
-          )}
-        </section>
-      </main>
-
-      {/* ---------- player ---------- */}
-      {playing ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 p-4 backdrop-blur">
-          <div className="w-full max-w-3xl">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="truncate font-display text-base font-semibold">{playing.title}</p>
-              <button
-                onClick={() => setPlaying(null)}
-                aria-label="Close player"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <SessionVideo
-              title={playing.title}
-              videoUrl={playing.videoUrl}
-              aspectRatio={playing.aspectRatio}
-            />
+              {sessions.length === 0 ? (
+                <li className="text-xs text-muted-foreground">No sessions published yet.</li>
+              ) : null}
+            </ol>
           </div>
-        </div>
-      ) : null}
+        </section>
+
+        {/* ---------- focused session ---------- */}
+        {focused ? (
+          <section className="raised-panel relative mt-6 overflow-hidden rounded-[30px] p-4 animate-scale-in sm:p-6">
+            <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
+            <div className="mb-4 flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-2xl"
+                aria-label="Back to all sessions"
+                onClick={() => setFocused(null)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Now studying
+                </p>
+                <h2 className="truncate font-display text-lg font-semibold tracking-tight">
+                  {focused.title}
+                </h2>
+              </div>
+            </div>
+
+            <SessionVideo
+              title={focused.title}
+              videoUrl={focused.videoUrl}
+              aspectRatio={focused.aspectRatio}
+              poster={focused.thumbnailUrl}
+            />
+
+            {focused.description ? (
+              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                {focused.description}
+              </p>
+            ) : null}
+
+            {focused.extras.length > 0 ? (
+              <div className="mt-6 space-y-4">
+                <h3 className="font-display text-base font-semibold tracking-tight">
+                  More with this session
+                </h3>
+                {focused.extras.map((extra) => (
+                  <article key={extra.id} className="inset-panel rounded-3xl p-3 animate-rise-in">
+                    <SessionVideo
+                      title={extra.title}
+                      videoUrl={extra.videoUrl}
+                      aspectRatio={extra.aspectRatio}
+                      poster={extra.thumbnailUrl}
+                    />
+                    <div className="px-1 pb-1 pt-3">
+                      <p className="text-sm font-semibold">{extra.title}</p>
+                      {extra.description ? (
+                        <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+                          {extra.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+
+            <Button
+              variant="outline"
+              size="xl"
+              className="mt-6 w-full rounded-2xl"
+              onClick={() => setFocused(null)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to all sessions
+            </Button>
+          </section>
+        ) : (
+          <>
+            <div className="mt-6">
+              <DailyInspiration />
+            </div>
+
+            {/* ---------- unlock ---------- */}
+            <section className="glass-panel metal-edge mt-6 rounded-[28px] p-6 animate-rise-in">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Open a session</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Your trainer shares a code for each session. Enter it here and that session opens on
+                its own.
+              </p>
+              <form
+                className="mt-4 flex flex-col gap-3 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitCode.mutate();
+                }}
+              >
+                <Input
+                  value={code}
+                  onChange={(event) => setCode(event.target.value.toUpperCase())}
+                  placeholder="SKL-0001"
+                  autoCapitalize="characters"
+                  className="h-12 rounded-xl text-base tracking-widest"
+                />
+                <Button type="submit" variant="brand" size="xl" disabled={submitCode.isPending}>
+                  {submitCode.isPending ? <Loader2 className="animate-spin" /> : <KeyRound />}
+                  Open
+                </Button>
+              </form>
+            </section>
+
+            {/* ---------- sessions ---------- */}
+            <section className="mt-6">
+              <h2 className="mb-3 font-display text-lg font-semibold tracking-tight">
+                All sessions
+              </h2>
+              {sessions.length === 0 ? (
+                <div className="glass-panel rounded-3xl px-5 py-10 text-center">
+                  <p className="font-display text-sm font-semibold">No sessions published yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Please check back soon.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {sessions.map((session) => (
+                    <article
+                      key={session.id}
+                      className="glass-panel metal-edge depth-hover overflow-hidden rounded-3xl animate-rise-in"
+                    >
+                      <div className="relative aspect-video bg-media">
+                        {session.thumbnailUrl ? (
+                          <img
+                            src={session.thumbnailUrl}
+                            alt={`${session.title} cover`}
+                            loading="lazy"
+                            className={`h-full w-full object-cover ${
+                              session.unlocked ? "" : "blur-[3px] brightness-50"
+                            }`}
+                          />
+                        ) : null}
+                        <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-metal/30 bg-background/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] backdrop-blur">
+                          {session.unlocked ? (
+                            <>
+                              <Unlock className="h-3 w-3 text-brand-glow" /> Unlocked
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="h-3 w-3" /> Locked
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <div className="p-5">
+                        <h3 className="font-display text-base font-semibold">{session.title}</h3>
+                        {session.description ? (
+                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                            {session.description}
+                          </p>
+                        ) : null}
+                        <Button
+                          variant={session.unlocked ? "brand" : "outline"}
+                          className="mt-4 w-full rounded-2xl"
+                          disabled={!session.unlocked || openSession.isPending}
+                          onClick={() => openSession.mutate(session.id)}
+                        >
+                          {session.unlocked ? <PlayCircle /> : <Lock className="h-4 w-4" />}
+                          {session.unlocked ? "Open session" : "Enter code to unlock"}
+                        </Button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 }

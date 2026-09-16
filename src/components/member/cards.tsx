@@ -25,7 +25,7 @@ function Poster({
   return (
     <div
       className={cn(
-        "metal-edge relative aspect-video w-full overflow-hidden rounded-2xl border bg-surface-2 shadow-lift",
+        "relative aspect-video w-full overflow-hidden rounded-xl bg-surface-2",
         className,
       )}
     >
@@ -54,7 +54,7 @@ export function LectureCard({ lecture, resume }: { lecture: LectureCardData; res
     <Link
       to="/lecture/$lectureId"
       params={{ lectureId: lecture.id }}
-      className="glass-panel depth-hover group w-[240px] shrink-0 snap-start rounded-2xl p-2.5 sm:w-[268px]"
+      className="group w-[240px] shrink-0 snap-start border-b border-hairline pb-3 sm:w-[268px]"
     >
       <Poster url={lecture.thumbnail_url} label={lecture.title} />
       <div className="mt-2 px-0.5">
@@ -88,7 +88,7 @@ export function SeriesCard({
     <Link
       to="/series/$seriesId"
       params={{ seriesId: series.id }}
-      className="glass-panel depth-hover group w-[240px] shrink-0 snap-start rounded-2xl p-2.5 sm:w-[268px]"
+      className="group w-[240px] shrink-0 snap-start border-b border-hairline pb-3 sm:w-[268px]"
     >
       <Poster url={series.thumbnail_url} label={series.title} />
       <div className="mt-2 px-0.5">
@@ -112,9 +112,9 @@ export function LevelCard({
     <Link
       to="/level/$slug"
       params={{ slug: level.slug }}
-      className="glass-panel metal-edge depth-hover group flex items-center gap-3 rounded-2xl p-4"
+      className="group flex items-center gap-3 border-b border-hairline py-4 transition-colors hover:border-primary/35"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-cyan">
         <Layers className="h-5 w-5" />
       </span>
       <span className="min-w-0">
@@ -129,7 +129,7 @@ export function LevelCard({
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="glass-panel metal-edge rounded-2xl px-5 py-10 text-center">
+    <div className="border-y border-hairline px-5 py-10 text-center">
       <p className="font-display text-sm font-semibold">{title}</p>
       {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
     </div>

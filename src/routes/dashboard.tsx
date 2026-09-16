@@ -61,10 +61,7 @@ function DashboardPage() {
   }
 
   const member = data.member;
-  const totalContent = data.levels.reduce(
-    (sum: number, level: any) => sum + (level.series_count ?? 0) + (level.lecture_count ?? 0),
-    0,
-  );
+  const videos = (data.videos ?? []) as any[];
   const watchedSeconds = data.continueWatching.reduce(
     (sum: number, lecture: any) => sum + Math.min(lecture.position_seconds ?? 0, lecture.duration_seconds ?? 0),
     0,
@@ -74,6 +71,10 @@ function DashboardPage() {
     0,
   );
   const progress = availableSeconds > 0 ? Math.round((watchedSeconds / availableSeconds) * 100) : 0;
+  const totalMinutes = Math.round(
+    videos.reduce((sum: number, video: any) => sum + (video.duration_seconds ?? 0), 0) / 60,
+  );
+
 
   return (
     <MemberShell

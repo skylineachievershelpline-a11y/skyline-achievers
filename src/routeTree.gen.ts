@@ -22,6 +22,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
 import { Route as LiveTokenRouteImport } from './routes/live.$token'
@@ -94,6 +95,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   id: '/lecture/$lectureId',
   path: '/lecture/$lectureId',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TeamRoute: typeof TeamRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
   LiveTokenRoute: typeof LiveTokenRoute
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lecture/$lectureId': {
       id: '/lecture/$lectureId'
       path: '/lecture/$lectureId'
@@ -428,6 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TeamRoute: TeamRoute,
   AdminLoginRoute: AdminLoginRoute,
+  JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,
   LiveTokenRoute: LiveTokenRoute,

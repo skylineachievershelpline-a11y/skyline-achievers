@@ -26,6 +26,11 @@ export function toEmbedUrl(url: string): string {
   return url;
 }
 
+function appendAutoplay(url: string, autoplay: boolean): string {
+  if (!autoplay) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}autoplay=1`;
+}
+
 /** Plays an uploaded or linked training video in the configured shape. */
 export function SessionVideo({
   title,

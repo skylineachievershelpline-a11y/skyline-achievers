@@ -172,6 +172,27 @@ function BeginnersPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const uploadAvatar = useMutation({
+    mutationFn: async (file: File) => {
+      const extension = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+      const allowed = ["png", "jpg", "jpeg", "webp"];
+      if (!allowed.includes(extension)) throw new Error("Use a PNG, JPG or WEBP picture.");
+      const slot: any = await avatarSlot({ data: { extension } } as never);
+      const response = await fetch(slot.signedUrl, {
+        method: "PUT",
+        headers: { "content-type": file.type || "image/jpeg" },
+        body: file,
+      });
+      if (!response.ok) throw new Error("Upload failed. Please try again.");
+      await saveAvatarPath({ data: { path: slot.path } } as never);
+    },
+    onSuccess: () => {
+      toast.success("Profile picture updated");
+      void queryClient.invalidateQueries({ queryKey: ["trainee-dashboard"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   async function signOut() {
     await supabase.auth.signOut();
     await navigate({ to: "/" });

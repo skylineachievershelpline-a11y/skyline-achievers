@@ -1,8 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,14 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-
-type Review = {
-  id: string;
-  person_name: string;
-  designation: string | null;
-  review_text: string;
-  rating: number | null;
-};
+import { getLandingReviews } from "@/lib/landing.functions";
 
 /**
  * Public testimonials wall. Visitors submit a review, it stays hidden until an

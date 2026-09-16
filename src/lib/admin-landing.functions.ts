@@ -56,9 +56,11 @@ export const adminSaveLandingIntroduction = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // The table only allows a single row with id 'default'.
     const id = "default";
-    const current = data.id
-      ? await supabaseAdmin.from("landing_intro").select("*").eq("id", id).maybeSingle()
-      : { data: null };
+    const current = await supabaseAdmin
+      .from("landing_intro")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
     const payload = {
       id,
       title: data.title,

@@ -12,11 +12,11 @@
 - [x] Daily Quran verse + hadees on the dashboard, different for morning / evening / night
 - [x] Daily Verses tab in the admin panel (add, edit, hide, delete)
 
-## Next (requested, not built yet)
-- [ ] Tracking: weekly / monthly progress, how many people joined, how many completed training
-- [ ] Seat reservation from the upline dashboard: form (name, phone, age) with automatic upline ID
-- [ ] Shareable link option so the person fills their own form and gets an ID
-- [ ] Auto ID + simple password (name + last 3 digits of phone), congratulations welcome card with logo
-- [ ] Beginners Training dashboard for new persons: profile, locked sessions, unlock by session password
-
-- [ ] Upline tracking of each person, block and permanently remove
+## Team & Beginners Training (done)
+- [x] Tracking: weekly / monthly progress, joined count, started and completed counts
+- [x] Seat reservation from the member dashboard: form (name, phone, age) with automatic upline ID
+- [x] Shareable registration link so the person fills their own form and gets an ID
+- [x] Auto ID + simple password (name + last 3 digits of phone), congratulations welcome card with logo
+- [x] Beginners Training dashboard: profile, locked sessions, unlock by session code, daily verse
+- [x] Upline tracking of each person, block and permanently remove
+- [x] Login accepts both SKA (member) and SKB (trainee) IDs and routes to the right dashboard

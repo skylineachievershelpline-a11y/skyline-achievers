@@ -36,6 +36,10 @@ type ReviewRow = {
   status: string;
   is_active: boolean;
   created_at: string;
+  video_source?: string | null;
+  video_path?: string | null;
+  video_url?: string | null;
+  aspect_ratio?: string | null;
 };
 
 /** Controls the public introduction video and all landing testimonials. */

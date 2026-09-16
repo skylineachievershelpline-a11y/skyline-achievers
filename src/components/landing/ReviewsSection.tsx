@@ -63,14 +63,23 @@ export function ReviewsSection() {
                 key={review.id}
                 className="glass-panel flex h-full flex-col rounded-2xl p-6 animate-rise-in"
               >
+                {review.videoUrl ? (
+                  <div className="mb-4 overflow-hidden rounded-xl">
+                    <SessionVideo
+                      title={review.personName}
+                      videoUrl={review.videoUrl}
+                      aspectRatio={review.aspectRatio}
+                    />
+                  </div>
+                ) : null}
                 <MessageSquareQuote className="h-5 w-5 text-brand-glow" />
                 <p className="mt-4 flex-1 text-sm leading-6 text-muted-foreground">
-                  “{review.review_text}”
+                  “{review.reviewText}”
                 </p>
                 <div className="mt-5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">
-                      {review.person_name}
+                      {review.personName}
                     </p>
                     {review.designation ? (
                       <p className="truncate text-xs text-muted-foreground">{review.designation}</p>

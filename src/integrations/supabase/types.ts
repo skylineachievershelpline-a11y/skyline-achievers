@@ -968,6 +968,133 @@ export type Database = {
           },
         ]
       }
+      trainee_invites: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string | null
+          token: string
+          updated_at: string
+          upline_id: string
+          uses: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          token: string
+          updated_at?: string
+          upline_id: string
+          uses?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          token?: string
+          updated_at?: string
+          upline_id?: string
+          uses?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_invites_upline_id_fkey"
+            columns: ["upline_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainee_session_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          trainee_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          trainee_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          trainee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_session_unlocks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "beginner_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_session_unlocks_trainee_id_fkey"
+            columns: ["trainee_id"]
+            isOneToOne: false
+            referencedRelation: "trainees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainees: {
+        Row: {
+          age: number | null
+          created_at: string
+          full_name: string
+          id: string
+          last_login_at: string | null
+          phone: string | null
+          source: string
+          status: string
+          trainee_code: string
+          updated_at: string
+          upline_id: string | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          full_name: string
+          id: string
+          last_login_at?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          trainee_code: string
+          updated_at?: string
+          upline_id?: string | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          last_login_at?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          trainee_code?: string
+          updated_at?: string
+          upline_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainees_upline_id_fkey"
+            columns: ["upline_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       watch_positions: {
         Row: {
           created_at: string
@@ -1059,6 +1186,7 @@ export type Database = {
       can_access_series: { Args: { _series_id: string }; Returns: boolean }
       current_member_level: { Args: never; Returns: string }
       generate_member_id: { Args: never; Returns: string }
+      generate_trainee_id: { Args: never; Returns: string }
       is_manager_member: { Args: never; Returns: boolean }
     }
     Enums: {

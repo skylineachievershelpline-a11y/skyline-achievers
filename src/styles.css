@@ -158,8 +158,8 @@
   --chart-1: oklch(0.58 0.223 262);
   --chart-2: oklch(0.72 0.14 220);
   --chart-3: oklch(0.86 0.008 250);
-  --chart-4: oklch(0.68 0.15 155);
-  --chart-5: oklch(0.78 0.15 75);
+  --chart-4: oklch(0.79 0.13 211);
+  --chart-5: oklch(0.78 0.018 245);
   --sidebar: oklch(0.19 0.02 262);
   --sidebar-foreground: oklch(0.97 0.004 250);
   --sidebar-primary: oklch(0.58 0.223 262);
@@ -202,7 +202,7 @@
   h4,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
   }
 }
 

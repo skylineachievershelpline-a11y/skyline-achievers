@@ -84,13 +84,13 @@ function DashboardPage() {
       executive
     >
       <div className="grid gap-5 lg:grid-cols-12">
-        <aside className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift animate-rise-in lg:col-span-4">
-          <div className="h-24 bg-primary" />
+        <aside className="raised-panel metal-edge overflow-hidden rounded-3xl animate-rise-in lg:col-span-4">
+          <div className="relative h-24 brand-gradient"><div className="absolute inset-x-8 bottom-0 h-px bg-cyan/60" /></div>
           <div className="-mt-12 px-5 pb-6 text-center">
             <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
             <p className="mt-4 text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
             <h1 className="mt-1 break-words font-display text-2xl font-bold">{member?.fullName ?? "Member"}</h1>
-            <span className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="mt-2 inline-flex rounded-xl border border-cyan/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-cyan shadow-glass">
               {member?.level?.name ?? "Level not assigned"}
             </span>
             <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-5 text-left">
@@ -103,13 +103,13 @@ function DashboardPage() {
         </aside>
 
         <section className="space-y-4 lg:col-span-8">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-glass animate-rise-in [animation-delay:70ms]">
+          <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in [animation-delay:70ms]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Training overview</p>
                 <h2 className="mt-1 font-display text-xl font-bold">Your learning momentum</h2>
               </div>
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Activity className="h-5 w-5" /></span>
+               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Activity className="h-5 w-5" /></span>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Metric icon={<Layers3 />} label="Levels" value={data.levels.length} tone="primary" />
@@ -199,7 +199,7 @@ function Stat({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-border bg-card p-4 shadow-glass transition-transform duration-300 hover:-translate-y-0.5 ${className ?? ""}`}>
+     <div className={`glass-panel metal-edge depth-hover rounded-2xl p-4 ${className ?? ""}`}>
       <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
         <span className="text-primary [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
         {label}
@@ -214,8 +214,8 @@ function ProfileDetail({ label, value }: { label: string; value: string }) {
 }
 
 function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "success" | "warning" | "accent" }) {
-  const tones = { primary: "bg-primary/10 text-primary", success: "bg-success/10 text-success", warning: "bg-warning/15 text-warning", accent: "bg-accent text-accent-foreground" };
-  return <div className="rounded-xl border border-border bg-background p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
+  const tones = { primary: "bg-primary/20 text-brand-glow", success: "bg-cyan/15 text-cyan", warning: "bg-brand/15 text-silver", accent: "bg-accent text-accent-foreground" };
+  return <div className="inset-panel rounded-xl p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-metal/20 ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
 }
 
 function AvatarUploader({ name, url }: { name: string; url: string | null }) {
@@ -255,7 +255,7 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
       variant="ghost"
       type="button"
       onClick={() => inputRef.current?.click()}
-      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-muted p-0 shadow-lift transition-transform duration-300 hover:scale-105"
+      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-metal/40 bg-muted p-0 shadow-lift transition-transform duration-300 hover:-translate-y-1"
       aria-label="Upload profile picture"
     >
       {shown ? (

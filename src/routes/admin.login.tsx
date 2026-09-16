@@ -61,7 +61,7 @@ function AdminLoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12">
+    <main className="infographic-grid relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
@@ -72,7 +72,7 @@ function AdminLoginPage() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="glass-panel-strong rounded-3xl p-6">
+        <form onSubmit={onSubmit} className="glass-panel-strong metal-edge rounded-3xl p-6">
           <div className="space-y-2">
             <Label htmlFor="passcode">Passcode</Label>
             <Input

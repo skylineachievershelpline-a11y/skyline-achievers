@@ -1,7 +1,6 @@
 import { Copy, Download, PartyPopper, Share2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-import ceoPortrait from "@/assets/aq-malik-ceo.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
@@ -12,7 +11,23 @@ export type Credentials = {
   fullName: string;
   uplineName: string;
   uplineCode: string;
+  uplineAvatarUrl: string | null;
 };
+
+const welcomeMessage = [
+  "Today marks the beginning of a new journey filled with learning,",
+  "growth, confidence, and meaningful opportunities. Skyline Achievers",
+  "is proud to welcome you into a community built on vision, discipline,",
+  "teamwork, and consistent action. Your training seat is now reserved,",
+  "and your personal Skyline ID is ready. Learn every lesson with focus,",
+  "practice what you discover, and keep moving forward one step at a time.",
+  "Success is not created in a single day; it is built through the small",
+  "decisions you make every day. Stay connected with your upline, ask",
+  "questions whenever you need guidance, and complete your training with",
+  "full commitment. We believe this can be the start of a powerful chapter",
+  "in your life. Congratulations once again, and welcome to the Skyline",
+  "Achievers family. Your journey starts now — make it extraordinary.",
+];
 
 /**
  * The welcome card shown right after an ID is created. It can be copied,
@@ -67,12 +82,14 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
   async function drawCard(): Promise<HTMLCanvasElement> {
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
-    canvas.height = 1350;
+    canvas.height = 1700;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Poster could not be created");
 
-    const [ceo, logo] = await Promise.all([
-      loadImage(ceoPortrait.url),
+    const [uplineAvatar, logo] = await Promise.all([
+      credentials.uplineAvatarUrl
+        ? loadImage(credentials.uplineAvatarUrl).catch(() => null)
+        : Promise.resolve(null),
       loadImage(BRAND.logoUrl).catch(() => null),
     ]);
 
@@ -94,7 +111,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     for (let i = -300; i < 1400; i += 72) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 560, 1350);
+      ctx.lineTo(i + 700, 1700);
       ctx.stroke();
     }
 
@@ -124,41 +141,36 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     ctx.strokeStyle = "rgba(143,220,255,0.78)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(75, 425, 930, 625, 42);
+    ctx.roundRect(75, 445, 930, 670, 42);
     ctx.fill();
     ctx.stroke();
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(250, 455, 118, 0, Math.PI * 2);
-    ctx.clip();
-    coverImage(ctx, ceo, 132, 337, 236, 236);
-    ctx.restore();
-    ctx.strokeStyle = "#7bdcff";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(250, 455, 120, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "800 34px system-ui, sans-serif";
-    ctx.fillText("A.Q MALIK", 400, 445);
-    ctx.fillStyle = "#8fdfff";
-    ctx.font = "600 22px system-ui, sans-serif";
-    ctx.fillText("CHIEF EXECUTIVE OFFICER", 400, 482);
-    ctx.fillStyle = "#c4d3e8";
-    ctx.font = "400 24px system-ui, sans-serif";
-    ctx.fillText("Your new journey starts today.", 400, 528);
+    if (uplineAvatar) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(238, 445, 108, 0, Math.PI * 2);
+      ctx.clip();
+      coverImage(ctx, uplineAvatar, 130, 337, 216, 216);
+      ctx.restore();
+      ctx.strokeStyle = "#7bdcff";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(238, 445, 110, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
-    ctx.font = "800 46px system-ui, sans-serif";
-    ctx.fillText("WELCOME TO THE SKYLINE FAMILY", center, 640, 840);
-    ctx.fillStyle = "#b8c9df";
-    ctx.font = "400 25px system-ui, sans-serif";
-    ctx.fillText("Your training seat has been reserved successfully.", center, 690);
-    ctx.fillText("Save these private login details to enter your dashboard.", center, 728);
+    ctx.font = "800 29px system-ui, sans-serif";
+    ctx.fillText(credentials.uplineName.toUpperCase(), 238, uplineAvatar ? 590 : 500, 290);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 42px system-ui, sans-serif";
+    ctx.fillText("WELCOME TO THE SKYLINE FAMILY", 410, 510, 540);
+    ctx.fillStyle = "#c4d3e8";
+    ctx.font = "400 21px system-ui, sans-serif";
+    welcomeMessage.forEach((line, index) => ctx.fillText(line, 410, 565 + index * 37, 530));
 
     const field = (label: string, value: string, top: number) => {
       ctx.fillStyle = "rgba(43,132,255,0.16)";
@@ -176,28 +188,28 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
       ctx.fillText(value, center, top + 86, 730);
     };
 
-    field("SKYLINE ID", credentials.traineeCode, 775);
-    field("PASSWORD", credentials.password, 905);
+    field("SKYLINE ID", credentials.traineeCode, 1145);
+    field("PASSWORD", credentials.password, 1275);
 
     ctx.fillStyle = "#a9bdd4";
     ctx.font = "500 23px system-ui, sans-serif";
     ctx.fillText(
       `Registered by ${credentials.uplineName} · ${credentials.uplineCode}`,
       center,
-      1125,
+      1475,
       900,
     );
     ctx.fillStyle = "#52d8ff";
     ctx.font = "700 27px system-ui, sans-serif";
-    ctx.fillText(BRAND.tagline.toUpperCase(), center, 1180);
+    ctx.fillText(BRAND.tagline.toUpperCase(), center, 1530);
     ctx.strokeStyle = "rgba(139,218,255,0.65)";
     ctx.beginPath();
-    ctx.moveTo(260, 1222);
-    ctx.lineTo(820, 1222);
+    ctx.moveTo(260, 1572);
+    ctx.lineTo(820, 1572);
     ctx.stroke();
     ctx.fillStyle = "#8399b4";
     ctx.font = "500 18px system-ui, sans-serif";
-    ctx.fillText("SKYLINE ACHIEVERS • BEGINNERS TRAINING", center, 1265);
+    ctx.fillText("SKYLINE ACHIEVERS • BEGINNERS TRAINING", center, 1615);
 
     return canvas;
   }
@@ -259,9 +271,31 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
           your keys to the training dashboard.
         </p>
 
-        <div className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-left">
-          <img src={ceoPortrait.url} alt="A.Q Malik, CEO" className="h-20 w-20 shrink-0 rounded-full border-2 border-cyan object-cover object-top shadow-brand" />
-          <div><p className="font-display text-lg font-bold">A.Q MALIK</p><p className="text-[10px] font-semibold uppercase text-primary">Chief Executive Officer</p><p className="mt-1 text-xs text-muted-foreground">Welcome to the Skyline family. Your new journey starts today.</p></div>
+        <div className="mt-6 grid w-full grid-cols-[6.5rem_1fr] gap-3 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-left sm:grid-cols-[9rem_1fr] sm:gap-5 sm:p-5">
+          <div className="text-center">
+            {credentials.uplineAvatarUrl ? (
+              <img
+                src={credentials.uplineAvatarUrl}
+                alt={`${credentials.uplineName}'s profile`}
+                className="mx-auto aspect-square w-24 rounded-full border-2 border-cyan object-cover object-top shadow-brand sm:w-28"
+              />
+            ) : null}
+            <p className={`${credentials.uplineAvatarUrl ? "mt-3" : "mt-0"} font-display text-base font-bold`}>
+              {credentials.uplineName}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold sm:text-xl">Welcome to the Skyline family</h3>
+            <p className="mt-3 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">
+              Today begins a new journey of learning, growth, confidence and opportunity. Your
+              training seat is reserved and your Skyline ID is ready. Learn each lesson with focus,
+              practise consistently, stay connected with your upline and keep moving forward one
+              step at a time. Success is built through daily action, patience and discipline. Ask
+              questions whenever you need guidance and complete your training with full commitment.
+              We believe this can be the start of a powerful new chapter in your life.
+              Congratulations once again — your Skyline Achievers journey starts now.
+            </p>
+          </div>
         </div>
 
         <div className="mt-4 grid w-full gap-3 sm:grid-cols-2">

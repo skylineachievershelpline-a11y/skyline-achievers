@@ -53,17 +53,16 @@ export function ReviewsSection() {
             <Loader2 className="h-5 w-5 animate-spin text-brand" />
           </div>
         ) : (data?.length ?? 0) === 0 ? (
-          <p className="rounded-2xl border border-hairline bg-surface p-6 text-sm text-muted-foreground">
+          <p className="border-t border-hairline py-6 text-sm text-muted-foreground">
             No testimonials published yet. Be the first to share your experience.
           </p>
         ) : (
-          <div className="grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data!.map((review, index) => (
+          <div className="grid items-start gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
+            {data!.map((review) => (
               <article
                 key={review.id}
-                className={`glass-panel metal-edge depth-hover relative flex h-full flex-col rounded-2xl p-6 animate-rise-in ${index % 3 === 1 ? "lg:mt-10" : ""}`}
+                className="relative flex h-full flex-col border-t border-hairline py-6 animate-rise-in"
               >
-                <span className="absolute -left-2 top-7 h-10 w-1 rounded-full brand-gradient shadow-brand" aria-hidden />
                 {review.videoUrl ? (
                   <div className="mb-4 overflow-hidden rounded-xl">
                     <SessionVideo

@@ -1,4 +1,5 @@
 import { Copy, Download, PartyPopper, Share2, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -34,6 +35,8 @@ const welcomeMessage = [
  * saved as a picture, or shared straight to WhatsApp.
  */
 export function WelcomeCard({ credentials }: { credentials: Credentials }) {
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [posterFailed, setPosterFailed] = useState(false);
   const shareText = [
     `🎉 Congratulations ${credentials.fullName}!`,
     `Welcome to ${BRAND.name} — ${BRAND.tagline}`,
@@ -173,6 +176,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     welcomeMessage.forEach((line, index) => ctx.fillText(line, 410, 565 + index * 37, 530));
 
     const field = (label: string, value: string, top: number) => {
+      ctx.textAlign = "center";
       ctx.fillStyle = "rgba(43,132,255,0.16)";
       ctx.strokeStyle = "rgba(108,207,255,0.5)";
       ctx.lineWidth = 2;
@@ -191,6 +195,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     field("SKYLINE ID", credentials.traineeCode, 1145);
     field("PASSWORD", credentials.password, 1275);
 
+    ctx.textAlign = "center";
     ctx.fillStyle = "#a9bdd4";
     ctx.font = "500 23px system-ui, sans-serif";
     ctx.fillText(
@@ -214,40 +219,76 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     return canvas;
   }
 
+  function canvasBlob(canvas: HTMLCanvasElement) {
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Poster image could not be created"));
+      }, "image/png");
+    });
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    setPosterFile(null);
+    setPosterFailed(false);
+    void drawCard()
+      .then(canvasBlob)
+      .then((blob) => {
+        if (!cancelled) {
+          setPosterFile(
+            new File([blob], `${credentials.traineeCode}-welcome.png`, { type: "image/png" }),
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPosterFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [credentials.traineeCode]);
+
+  function downloadPoster(file: File) {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.name;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
+
   async function saveImage() {
-    try {
-      const canvas = await drawCard();
-      const link = document.createElement("a");
-      link.download = `${credentials.traineeCode}-welcome.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-      toast.success("Picture saved");
-    } catch {
-      toast.error("Could not save the picture — please take a screenshot.");
+    if (!posterFile) {
+      toast.error(posterFailed ? "Picture could not be created." : "Picture is preparing — try again in a moment.");
+      return;
     }
+    downloadPoster(posterFile);
+    toast.success("Picture saved to your phone");
   }
 
   async function share() {
+    if (!posterFile) {
+      toast.error(posterFailed ? "Picture could not be created." : "Picture is preparing — try again in a moment.");
+      return;
+    }
     try {
-      const canvas = await drawCard();
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob((value) => resolve(value), "image/png"),
-      );
-      const file = blob ? new File([blob], `${credentials.traineeCode}.png`, { type: "image/png" }) : null;
       const nav = navigator as Navigator & {
         canShare?: (data: { files?: File[] }) => boolean;
       };
-      if (file && nav.share && nav.canShare?.({ files: [file] })) {
-        await nav.share({ files: [file], text: shareText });
+      if (nav.share && (!nav.canShare || nav.canShare({ files: [posterFile] }))) {
+        await nav.share({ files: [posterFile] });
         return;
       }
-      if (nav.share) {
-        await nav.share({ text: shareText });
-        return;
-      }
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener");
-    } catch {
-      /* the person closed the share sheet — nothing to report */
+      downloadPoster(posterFile);
+      toast.success("Picture saved — attach it from your gallery to share");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      downloadPoster(posterFile);
+      toast.success("Picture saved — attach it from your gallery to share");
     }
   }
 
@@ -317,11 +358,11 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
             <Copy />
             Copy details
           </Button>
-          <Button variant="secondary" size="xl" onClick={() => void saveImage()}>
+          <Button variant="secondary" size="xl" onClick={() => void saveImage()} disabled={!posterFile && !posterFailed}>
             <Download />
             Save picture
           </Button>
-          <Button variant="outline" size="xl" onClick={() => void share()}>
+          <Button variant="outline" size="xl" onClick={() => void share()} disabled={!posterFile && !posterFailed}>
             <Share2 />
             Send
           </Button>

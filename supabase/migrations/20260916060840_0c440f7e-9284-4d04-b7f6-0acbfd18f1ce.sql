@@ -1,0 +1,5 @@
+ALTER TABLE public.landing_reviews
+  ADD COLUMN IF NOT EXISTS video_source TEXT NOT NULL DEFAULT 'none',
+  ADD COLUMN IF NOT EXISTS video_path TEXT,
+  ADD COLUMN IF NOT EXISTS video_url TEXT,
+  ADD COLUMN IF NOT EXISTS aspect_ratio TEXT NOT NULL DEFAULT '16:9';

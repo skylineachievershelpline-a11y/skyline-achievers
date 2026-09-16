@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
+  Download,
   GraduationCap,
   LogIn,
   Smartphone,
@@ -17,6 +18,7 @@ import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { IntroductionSection } from "@/components/landing/IntroductionSection";
+import { LandingInstallSection } from "@/components/landing/LandingInstallSection";
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -103,14 +105,26 @@ function LandingPage() {
 
         <nav className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
           <BrandLogo size="md" secretGesture />
-          <Button
-            variant="outline"
-            className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"
-            onClick={() => setLoginOpen(true)}
-          >
-            <LogIn className="h-4 w-4" />
-            Login
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              className="hidden h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md sm:inline-flex"
+            >
+              <a href="#install">
+                <Download className="h-4 w-4" />
+                Install app
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"
+              onClick={() => setLoginOpen(true)}
+            >
+              <LogIn className="h-4 w-4" />
+              Login
+            </Button>
+          </div>
         </nav>
 
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-5 pb-24 pt-12 sm:px-8 lg:px-12">
@@ -206,6 +220,8 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      <LandingInstallSection />
 
       <ReviewsSection />
 

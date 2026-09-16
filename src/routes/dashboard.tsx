@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState, LevelCard } from "@/components/member/cards";
+import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";

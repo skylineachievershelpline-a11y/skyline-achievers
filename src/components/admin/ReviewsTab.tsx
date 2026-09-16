@@ -215,6 +215,8 @@ function TestimonialsManager() {
   const setStatus = useServerFn(adminSetReviewStatus);
   const saveReview = useServerFn(adminSaveReview);
   const remove = useServerFn(adminDeleteReview);
+  const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const uploadProgress = useUploadProgress();
   const { data, isPending } = useQuery({ queryKey: ["admin-reviews"], queryFn: () => loadList() });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ReviewRow | null>(null);
@@ -224,6 +226,10 @@ function TestimonialsManager() {
   const [rating, setRating] = useState(5);
   const [order, setOrder] = useState("0");
   const [visible, setVisible] = useState(true);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoLink, setVideoLink] = useState("");
+  const [videoRatio, setVideoRatio] = useState<string>("16:9");
+
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });

@@ -33,3 +33,9 @@
 - [x] Add Continue Watching and current-rank series shortcuts
 - [x] Redesign My Team as a connected responsive hierarchy
 - [x] Verify desktop and phone layouts
+
+## Premium 3D visual system
+- [ ] Replace flat and glass-heavy surfaces with layered navy, blue, cyan, white, and silver depth
+- [ ] Redesign the landing journey as a connected infographic composition
+- [ ] Apply the elevated system to member, training, authentication, and admin screens
+- [ ] Verify key public and private layouts on desktop and mobile

@@ -142,9 +142,6 @@ function AdminPage() {
             <TabsTrigger value="sessions" className="rounded-xl">
               Sessions
             </TabsTrigger>
-            <TabsTrigger value="live" className="rounded-xl">
-              Live Training
-            </TabsTrigger>
             <TabsTrigger value="whatsapp" className="rounded-xl">
               WhatsApp
             </TabsTrigger>

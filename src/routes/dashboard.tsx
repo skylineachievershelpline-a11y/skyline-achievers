@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
-import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
@@ -179,9 +178,6 @@ function DashboardPage() {
         )}
       </section>
 
-      <section className="mt-6 max-w-xl animate-rise-in">
-        <InstallApp />
-      </section>
     </MemberShell>
   );
 }

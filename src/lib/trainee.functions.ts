@@ -268,3 +268,37 @@ export const playTraineeSession = createServerFn({ method: "POST" })
       extras,
     };
   });
+
+/** Signed upload slot for the trainee's own profile picture. */
+export const getTraineeAvatarUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { extension: string }) =>
+    z.object({ extension: z.enum(["png", "jpg", "jpeg", "webp"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { AVATAR_BUCKET } = await import("./storage.server");
+    const path = `${context.userId}/${crypto.randomUUID()}.${data.extension}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from(AVATAR_BUCKET)
+      .createSignedUploadUrl(path);
+    if (error || !signed) throw new Error(error?.message ?? "Could not prepare the upload.");
+    return { path: signed.path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
+/** Stores the uploaded picture against the caller's own trainee record only. */
+export const saveTraineeAvatar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { path: string }) =>
+    z.object({ path: z.string().trim().min(3).max(300) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    if (!data.path.startsWith(`${context.userId}/`)) throw new Error("Invalid upload path.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("trainees")
+      .update({ avatar_path: data.path } as never)
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

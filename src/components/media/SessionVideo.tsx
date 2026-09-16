@@ -68,6 +68,26 @@ export function SessionVideo({
           Video unavailable
         </div>
       )}
+
+      {videoUrl && showCover && isEmbeddable(videoUrl) ? (
+        <button
+          type="button"
+          onClick={() => setStarted(true)}
+          aria-label={`Play ${title}`}
+          className="absolute inset-0 h-full w-full"
+        >
+          <img
+            src={poster!}
+            alt={title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+          <span className="absolute inset-0 bg-media/35" aria-hidden />
+          <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-cyan/40 bg-primary/90 text-primary-foreground shadow-brand">
+            <Play className="ml-0.5 h-6 w-6" />
+          </span>
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -76,6 +76,32 @@ function IntroductionManager() {
   const [cover, setCover] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
+  function refreshIntro() {
+    void queryClient.invalidateQueries({ queryKey: ["admin-landing-introduction"] });
+    void queryClient.invalidateQueries({ queryKey: ["landing-introduction"] });
+  }
+  const isVisible = active ?? row?.is_active ?? true;
+  const toggleVisibility = useMutation({
+    mutationFn: () => setIntroActive({ data: { id: row!.id, isActive: !(row?.is_active ?? true) } } as never),
+    onSuccess: () => {
+      toast.success(row?.is_active ? "Introduction hidden" : "Introduction published");
+      setActive(null);
+      refreshIntro();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const deleteIntro = useMutation({
+    mutationFn: () => removeIntro({ data: { id: row!.id } } as never),
+    onSuccess: () => {
+      toast.success("Introduction deleted");
+      setTitle(null); setDescription(null); setVideoUrl(null); setRatio(null); setActive(null);
+      setVideoFile(null); setCover(null);
+      refreshIntro();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const finalTitle = title ?? row?.title ?? "Meet Skyline Achievers";

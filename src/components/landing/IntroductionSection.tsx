@@ -16,10 +16,10 @@ export function IntroductionSection() {
   const introduction = data?.introduction;
 
   return (
-    <section id="introduction" className="border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
+    <section id="introduction" className="infographic-grid border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <div className="grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-          <div>
+        <div className="raised-panel grid items-center gap-10 rounded-3xl p-5 sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:p-10">
+          <div className="relative">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
               Start here
             </p>
@@ -30,20 +30,21 @@ export function IntroductionSection() {
               {introduction?.description ??
                 "Watch this introduction to understand what Skyline Achievers is, how our learning journey works, and the first step you can take using only your phone and internet."}
             </p>
-            <div className="mt-7 grid grid-cols-2 gap-3">
-              <div className="border-l-2 border-brand pl-4">
-                <Smartphone className="h-4 w-4 text-brand-glow" />
+            <div className="relative mt-8 grid grid-cols-2 gap-4">
+              <div className="connector-line absolute left-[25%] right-[25%] top-6 h-px" aria-hidden />
+              <div className="inset-panel relative rounded-xl p-4">
+                <Smartphone className="h-4 w-4 text-cyan" />
                 <p className="mt-2 text-sm font-semibold">Learn on mobile</p>
               </div>
-              <div className="border-l-2 border-brand pl-4">
-                <Wifi className="h-4 w-4 text-brand-glow" />
+              <div className="inset-panel relative rounded-xl p-4">
+                <Wifi className="h-4 w-4 text-cyan" />
                 <p className="mt-2 text-sm font-semibold">Start online</p>
               </div>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="pointer-events-none absolute -inset-3 rounded-2xl border border-brand/20" aria-hidden />
+          <div className="relative rounded-2xl border border-metal/30 bg-background p-2 shadow-lift">
+            <div className="pointer-events-none absolute -bottom-3 left-8 right-8 h-5 rounded-b-xl border-x border-b border-brand/25 bg-surface-2 shadow-glass" aria-hidden />
             {isPending ? (
               <div className="flex aspect-video items-center justify-center rounded-2xl border border-hairline bg-background">
                 <Loader2 className="h-5 w-5 animate-spin text-brand" />

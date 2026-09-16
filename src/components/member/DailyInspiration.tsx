@@ -59,11 +59,8 @@ export function DailyInspiration() {
   const { label, icon: Icon } = PART_LABEL[part];
 
   return (
-    <section className="glass-panel relative overflow-hidden rounded-[28px] p-6 animate-rise-in">
-      <div
-        className="pointer-events-none absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-brand/20 blur-3xl"
-        aria-hidden
-      />
+    <section className="glass-panel metal-edge relative overflow-hidden rounded-2xl p-6 animate-rise-in">
+      <div className="connector-line absolute inset-y-6 left-0 w-1" aria-hidden />
       <div className="relative flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-brand-glow">
         <Icon className="h-3.5 w-3.5" />
         {label}
@@ -85,7 +82,7 @@ function Quote({
   row: { text_en: string | null; text_ur: string | null; reference: string | null };
 }) {
   return (
-    <div className="rounded-2xl border border-hairline bg-glass p-4">
+    <div className="inset-panel rounded-xl p-4">
       <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-2.5 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         <BookOpenText className="h-3 w-3" />
         {badge}

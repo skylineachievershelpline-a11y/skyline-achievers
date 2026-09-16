@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Private member training platform for Skyline Achievers: level-based lectures, series and resources.",
+          "Private member training platform for Skyline Achievers: rank-based training videos and resources.",
       },
       { name: "author", content: "Skyline Achievers" },
       { property: "og:title", content: "Skyline Achievers Training" },

@@ -28,10 +28,10 @@ export const Route = createFileRoute("/dashboard")({
       {
         name: "description",
         content:
-          "Your Skyline Achievers profile dashboard: member ID, rank, profile picture and the training levels you can open.",
+          "Your Skyline Achievers profile dashboard: member ID, rank, profile picture and every training video unlocked for you.",
       },
       { property: "og:title", content: "My Skyline Dashboard — Skyline Achievers" },
-      { property: "og:description", content: "Your member profile and training levels." },
+      { property: "og:description", content: "Your member profile and training videos." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

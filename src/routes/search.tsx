@@ -16,10 +16,10 @@ export const Route = createFileRoute("/search")({
       { title: "Search Library — Skyline Achievers" },
       {
         name: "description",
-        content: "Search every Skyline Achievers lecture, series and resource unlocked for your rank.",
+        content: "Search every Skyline Achievers training video and resource unlocked for your rank.",
       },
       { property: "og:title", content: "Search Library — Skyline Achievers" },
-      { property: "og:description", content: "Find any lecture or resource instantly." },
+      { property: "og:description", content: "Find any training video or resource instantly." },
     ],
   }),
   component: SearchPage,
@@ -95,7 +95,7 @@ function SearchPage() {
               <li key={resource.id} className="glass-panel rounded-2xl p-3 text-sm">
                 {resource.title}
                 <span className="ml-2 text-[11px] text-muted-foreground">
-                  {resource.lectures?.title ?? resource.series?.title ?? ""}
+                  {resource.lectures?.title ?? ""}
                 </span>
               </li>
             ))}

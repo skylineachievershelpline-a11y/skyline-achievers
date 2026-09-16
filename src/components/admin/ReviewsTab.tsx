@@ -161,9 +161,34 @@ function IntroductionManager() {
 
   return (
     <section>
-      <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Landing video</p>
-        <h2 className="mt-1 font-display text-xl font-semibold">Skyline introduction</h2>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Landing video</p>
+          <h2 className="mt-1 font-display text-xl font-semibold">Skyline introduction</h2>
+        </div>
+        {row ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-hairline px-2 py-1 text-[10px] uppercase text-muted-foreground">
+              {row.is_active ? "Live" : "Hidden"}
+            </span>
+            <Button
+              size="sm"
+              variant={row.is_active ? "outline" : "brand"}
+              disabled={toggleVisibility.isPending}
+              onClick={() => toggleVisibility.mutate()}
+            >
+              {row.is_active ? <><EyeOff /> Hide</> : <><Check /> Publish</>}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={deleteIntro.isPending}
+              onClick={() => deleteIntro.mutate()}
+            >
+              <Trash2 /> Delete
+            </Button>
+          </div>
+        ) : null}
       </div>
       <form onSubmit={submit} className="glass-panel grid gap-4 rounded-2xl p-5 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">

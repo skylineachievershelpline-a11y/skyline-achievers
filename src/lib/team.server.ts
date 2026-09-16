@@ -29,13 +29,14 @@ export type TraineeCredentials = {
   fullName: string;
   uplineName: string;
   uplineCode: string;
+  uplineAvatarUrl: string | null;
 };
 
 /** Creates the login account plus the trainee record, then returns the card data. */
 export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCredentials> {
   const { data: upline } = await supabaseAdmin
     .from("member_profiles")
-    .select("id, member_id, full_name, status")
+    .select("id, member_id, full_name, status, avatar_path")
     .eq("id", input.uplineId)
     .maybeSingle();
   if (!upline || upline.status !== "active") {
@@ -83,12 +84,15 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
     throw new Error(rowError.message);
   }
 
+  const { AVATAR_BUCKET, signPath } = await import("./storage.server");
+
   return {
     traineeCode,
     password,
     fullName: input.fullName,
     uplineName: upline.full_name,
     uplineCode: upline.member_id,
+    uplineAvatarUrl: await signPath(AVATAR_BUCKET, upline.avatar_path, 60 * 60 * 6),
   };
 }
 

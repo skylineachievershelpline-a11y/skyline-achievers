@@ -1,7 +1,6 @@
 import { Copy, Download, PartyPopper, Share2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-import ceoPortrait from "@/assets/aq-malik-ceo.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
@@ -12,7 +11,23 @@ export type Credentials = {
   fullName: string;
   uplineName: string;
   uplineCode: string;
+  uplineAvatarUrl: string | null;
 };
+
+const welcomeMessage = [
+  "Today marks the beginning of a new journey filled with learning,",
+  "growth, confidence, and meaningful opportunities. Skyline Achievers",
+  "is proud to welcome you into a community built on vision, discipline,",
+  "teamwork, and consistent action. Your training seat is now reserved,",
+  "and your personal Skyline ID is ready. Learn every lesson with focus,",
+  "practice what you discover, and keep moving forward one step at a time.",
+  "Success is not created in a single day; it is built through the small",
+  "decisions you make every day. Stay connected with your upline, ask",
+  "questions whenever you need guidance, and complete your training with",
+  "full commitment. We believe this can be the start of a powerful chapter",
+  "in your life. Congratulations once again, and welcome to the Skyline",
+  "Achievers family. Your journey starts now — make it extraordinary.",
+];
 
 /**
  * The welcome card shown right after an ID is created. It can be copied,
@@ -71,8 +86,10 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Poster could not be created");
 
-    const [ceo, logo] = await Promise.all([
-      loadImage(ceoPortrait.url),
+    const [uplineAvatar, logo] = await Promise.all([
+      credentials.uplineAvatarUrl
+        ? loadImage(credentials.uplineAvatarUrl).catch(() => null)
+        : Promise.resolve(null),
       loadImage(BRAND.logoUrl).catch(() => null),
     ]);
 
@@ -124,41 +141,36 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     ctx.strokeStyle = "rgba(143,220,255,0.78)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(75, 425, 930, 625, 42);
+    ctx.roundRect(75, 445, 930, 670, 42);
     ctx.fill();
     ctx.stroke();
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(250, 455, 118, 0, Math.PI * 2);
-    ctx.clip();
-    coverImage(ctx, ceo, 132, 337, 236, 236);
-    ctx.restore();
-    ctx.strokeStyle = "#7bdcff";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(250, 455, 120, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "800 34px system-ui, sans-serif";
-    ctx.fillText("A.Q MALIK", 400, 445);
-    ctx.fillStyle = "#8fdfff";
-    ctx.font = "600 22px system-ui, sans-serif";
-    ctx.fillText("CHIEF EXECUTIVE OFFICER", 400, 482);
-    ctx.fillStyle = "#c4d3e8";
-    ctx.font = "400 24px system-ui, sans-serif";
-    ctx.fillText("Your new journey starts today.", 400, 528);
+    if (uplineAvatar) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(238, 445, 108, 0, Math.PI * 2);
+      ctx.clip();
+      coverImage(ctx, uplineAvatar, 130, 337, 216, 216);
+      ctx.restore();
+      ctx.strokeStyle = "#7bdcff";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(238, 445, 110, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
-    ctx.font = "800 46px system-ui, sans-serif";
-    ctx.fillText("WELCOME TO THE SKYLINE FAMILY", center, 640, 840);
-    ctx.fillStyle = "#b8c9df";
-    ctx.font = "400 25px system-ui, sans-serif";
-    ctx.fillText("Your training seat has been reserved successfully.", center, 690);
-    ctx.fillText("Save these private login details to enter your dashboard.", center, 728);
+    ctx.font = "800 29px system-ui, sans-serif";
+    ctx.fillText(credentials.uplineName.toUpperCase(), 238, uplineAvatar ? 590 : 500, 290);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 42px system-ui, sans-serif";
+    ctx.fillText("WELCOME TO THE SKYLINE FAMILY", 410, 510, 540);
+    ctx.fillStyle = "#c4d3e8";
+    ctx.font = "400 21px system-ui, sans-serif";
+    welcomeMessage.forEach((line, index) => ctx.fillText(line, 410, 565 + index * 37, 530));
 
     const field = (label: string, value: string, top: number) => {
       ctx.fillStyle = "rgba(43,132,255,0.16)";
@@ -176,28 +188,28 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
       ctx.fillText(value, center, top + 86, 730);
     };
 
-    field("SKYLINE ID", credentials.traineeCode, 775);
-    field("PASSWORD", credentials.password, 905);
+    field("SKYLINE ID", credentials.traineeCode, 1145);
+    field("PASSWORD", credentials.password, 1275);
 
     ctx.fillStyle = "#a9bdd4";
     ctx.font = "500 23px system-ui, sans-serif";
     ctx.fillText(
       `Registered by ${credentials.uplineName} · ${credentials.uplineCode}`,
       center,
-      1125,
+      1475,
       900,
     );
     ctx.fillStyle = "#52d8ff";
     ctx.font = "700 27px system-ui, sans-serif";
-    ctx.fillText(BRAND.tagline.toUpperCase(), center, 1180);
+    ctx.fillText(BRAND.tagline.toUpperCase(), center, 1530);
     ctx.strokeStyle = "rgba(139,218,255,0.65)";
     ctx.beginPath();
-    ctx.moveTo(260, 1222);
-    ctx.lineTo(820, 1222);
+    ctx.moveTo(260, 1572);
+    ctx.lineTo(820, 1572);
     ctx.stroke();
     ctx.fillStyle = "#8399b4";
     ctx.font = "500 18px system-ui, sans-serif";
-    ctx.fillText("SKYLINE ACHIEVERS • BEGINNERS TRAINING", center, 1265);
+    ctx.fillText("SKYLINE ACHIEVERS • BEGINNERS TRAINING", center, 1615);
 
     return canvas;
   }

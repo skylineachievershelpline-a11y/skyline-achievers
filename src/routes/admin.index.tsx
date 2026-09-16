@@ -153,6 +153,9 @@ function AdminPage() {
             <TabsTrigger value="reviews" className="rounded-xl">
               Reviews
             </TabsTrigger>
+            <TabsTrigger value="inspiration" className="rounded-xl">
+              Daily Verses
+            </TabsTrigger>
             <TabsTrigger value="finaltest" className="rounded-xl">
               Final Test
             </TabsTrigger>

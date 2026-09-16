@@ -236,11 +236,13 @@ function TestimonialsManager() {
     void queryClient.invalidateQueries({ queryKey: ["landing-reviews"] });
   }
   function startAdd() {
-    setEditing(null); setName(""); setDesignation(""); setText(""); setRating(5); setOrder("0"); setVisible(true); setOpen(true);
+    setEditing(null); setName(""); setDesignation(""); setText(""); setRating(5); setOrder("0"); setVisible(true);
+    setVideoFile(null); setVideoLink(""); setVideoRatio("16:9"); setOpen(true);
   }
   function startEdit(row: ReviewRow) {
     setEditing(row); setName(row.person_name); setDesignation(row.designation ?? ""); setText(row.review_text);
-    setRating(row.rating ?? 5); setOrder(String(row.sort_order)); setVisible(row.is_active); setOpen(true);
+    setRating(row.rating ?? 5); setOrder(String(row.sort_order)); setVisible(row.is_active);
+    setVideoFile(null); setVideoLink(row.video_url ?? ""); setVideoRatio(row.aspect_ratio ?? "16:9"); setOpen(true);
   }
   const change = useMutation({
     mutationFn: (values: { id: string; status: "approved" | "pending" | "rejected" }) => setStatus({ data: values } as never),

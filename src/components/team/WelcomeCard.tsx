@@ -1,6 +1,7 @@
 import { Copy, Download, PartyPopper, Share2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
+import ceoPortrait from "@/assets/aq-malik-ceo.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
@@ -36,99 +37,174 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     }
   }
 
-  /** Paints the card onto a picture the upline can save or send. */
-  function drawCard(): HTMLCanvasElement {
+  function loadImage(source: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Image could not load"));
+      image.src = source;
+    });
+  }
+
+  function coverImage(
+    context: CanvasRenderingContext2D,
+    image: HTMLImageElement,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) {
+    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+    const sourceWidth = width / scale;
+    const sourceHeight = height / scale;
+    const sourceX = (image.naturalWidth - sourceWidth) / 2;
+    const sourceY = Math.max(0, (image.naturalHeight - sourceHeight) * 0.22);
+    context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+  }
+
+  /** Paints the premium welcome poster onto a picture the upline can save or send. */
+  async function drawCard(): Promise<HTMLCanvasElement> {
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
     canvas.height = 1350;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Poster could not be created");
+
+    const [ceo, logo] = await Promise.all([
+      loadImage(ceoPortrait.url),
+      loadImage(BRAND.logoUrl).catch(() => null),
+    ]);
 
     const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    bg.addColorStop(0, "#070b16");
-    bg.addColorStop(1, "#0e1a33");
+    bg.addColorStop(0, "#06152f");
+    bg.addColorStop(0.52, "#0b2f69");
+    bg.addColorStop(1, "#071a3b");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
-    // Glow accent
-    const glow = ctx.createRadialGradient(880, 200, 20, 880, 200, 420);
-    glow.addColorStop(0, "rgba(37,99,255,0.55)");
-    glow.addColorStop(1, "rgba(37,99,255,0)");
+    const glow = ctx.createRadialGradient(850, 250, 30, 850, 250, 560);
+    glow.addColorStop(0, "rgba(25,177,255,0.45)");
+    glow.addColorStop(1, "rgba(25,177,255,0)");
     ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, 1080, 900);
 
-    // Panel
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.strokeStyle = "rgba(160,176,200,0.35)";
-    ctx.lineWidth = 3;
-    const x = 70;
-    const y = 150;
-    const w = canvas.width - 140;
-    const h = canvas.height - 300;
-    const r = 48;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.strokeStyle = "rgba(119,213,255,0.12)";
+    ctx.lineWidth = 2;
+    for (let i = -300; i < 1400; i += 72) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 560, 1350);
+      ctx.stroke();
+    }
 
     const center = canvas.width / 2;
     ctx.textAlign = "center";
 
-    ctx.fillStyle = "#4da3ff";
-    ctx.font = "bold 34px system-ui, sans-serif";
-    ctx.fillText(BRAND.name.toUpperCase(), center, y + 110);
+    if (logo) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(center, 105, 58, 0, Math.PI * 2);
+      ctx.clip();
+      coverImage(ctx, logo, center - 58, 47, 116, 116);
+      ctx.restore();
+    }
+    ctx.fillStyle = "#dcecff";
+    ctx.font = "700 25px system-ui, sans-serif";
+    ctx.fillText(BRAND.name.toUpperCase(), center, 195);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 62px system-ui, sans-serif";
-    ctx.fillText("Congratulations!", center, y + 210);
-    ctx.font = "500 40px system-ui, sans-serif";
-    ctx.fillText(credentials.fullName, center, y + 275);
+    ctx.font = "800 70px system-ui, sans-serif";
+    ctx.fillText("CONGRATULATIONS!", center, 290);
+    ctx.fillStyle = "#52d8ff";
+    ctx.font = "italic 600 48px Georgia, serif";
+    ctx.fillText(`Welcome, ${credentials.fullName}`, center, 355, 920);
 
-    ctx.fillStyle = "#a9b6cc";
-    ctx.font = "400 28px system-ui, sans-serif";
-    ctx.fillText("Your training seat is reserved", center, y + 330);
+    ctx.fillStyle = "rgba(5,17,40,0.82)";
+    ctx.strokeStyle = "rgba(143,220,255,0.78)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(75, 425, 930, 625, 42);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(250, 455, 118, 0, Math.PI * 2);
+    ctx.clip();
+    coverImage(ctx, ceo, 132, 337, 236, 236);
+    ctx.restore();
+    ctx.strokeStyle = "#7bdcff";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(250, 455, 120, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 34px system-ui, sans-serif";
+    ctx.fillText("A.Q MALIK", 400, 445);
+    ctx.fillStyle = "#8fdfff";
+    ctx.font = "600 22px system-ui, sans-serif";
+    ctx.fillText("CHIEF EXECUTIVE OFFICER", 400, 482);
+    ctx.fillStyle = "#c4d3e8";
+    ctx.font = "400 24px system-ui, sans-serif";
+    ctx.fillText("Your new journey starts today.", 400, 528);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 46px system-ui, sans-serif";
+    ctx.fillText("WELCOME TO THE SKYLINE FAMILY", center, 640, 840);
+    ctx.fillStyle = "#b8c9df";
+    ctx.font = "400 25px system-ui, sans-serif";
+    ctx.fillText("Your training seat has been reserved successfully.", center, 690);
+    ctx.fillText("Save these private login details to enter your dashboard.", center, 728);
 
     const field = (label: string, value: string, top: number) => {
-      ctx.fillStyle = "rgba(37,99,255,0.14)";
-      ctx.strokeStyle = "rgba(77,163,255,0.4)";
+      ctx.fillStyle = "rgba(43,132,255,0.16)";
+      ctx.strokeStyle = "rgba(108,207,255,0.5)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(x + 60, top, w - 120, 140, 28);
+      ctx.roundRect(130, top, 820, 112, 22);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "#a9b6cc";
-      ctx.font = "600 24px system-ui, sans-serif";
-      ctx.fillText(label, center, top + 52);
+      ctx.fillStyle = "#9ab3cf";
+      ctx.font = "700 20px system-ui, sans-serif";
+      ctx.fillText(label, center, top + 38);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 52px system-ui, sans-serif";
-      ctx.fillText(value, center, top + 110);
+      ctx.font = "800 39px system-ui, sans-serif";
+      ctx.fillText(value, center, top + 86, 730);
     };
 
-    field("SKYLINE ID", credentials.traineeCode, y + 390);
-    field("PASSWORD", credentials.password, y + 560);
+    field("SKYLINE ID", credentials.traineeCode, 775);
+    field("PASSWORD", credentials.password, 905);
 
-    ctx.fillStyle = "#a9b6cc";
-    ctx.font = "400 26px system-ui, sans-serif";
+    ctx.fillStyle = "#a9bdd4";
+    ctx.font = "500 23px system-ui, sans-serif";
     ctx.fillText(
       `Registered by ${credentials.uplineName} · ${credentials.uplineCode}`,
       center,
-      y + 780,
+      1125,
+      900,
     );
-    ctx.fillStyle = "#4da3ff";
-    ctx.font = "600 26px system-ui, sans-serif";
-    ctx.fillText(BRAND.tagline, center, y + 840);
+    ctx.fillStyle = "#52d8ff";
+    ctx.font = "700 27px system-ui, sans-serif";
+    ctx.fillText(BRAND.tagline.toUpperCase(), center, 1180);
+    ctx.strokeStyle = "rgba(139,218,255,0.65)";
+    ctx.beginPath();
+    ctx.moveTo(260, 1222);
+    ctx.lineTo(820, 1222);
+    ctx.stroke();
+    ctx.fillStyle = "#8399b4";
+    ctx.font = "500 18px system-ui, sans-serif";
+    ctx.fillText("SKYLINE ACHIEVERS • BEGINNERS TRAINING", center, 1265);
 
     return canvas;
   }
 
   async function saveImage() {
     try {
-      const canvas = drawCard();
+      const canvas = await drawCard();
       const link = document.createElement("a");
       link.download = `${credentials.traineeCode}-welcome.png`;
       link.href = canvas.toDataURL("image/png");
@@ -141,7 +217,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
 
   async function share() {
     try {
-      const canvas = drawCard();
+      const canvas = await drawCard();
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob((value) => resolve(value), "image/png"),
       );
@@ -164,7 +240,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
   }
 
   return (
-    <div className="glass-panel-strong relative overflow-hidden rounded-[28px] p-6 text-center animate-rise-in sm:p-8">
+    <div className="raised-panel metal-edge relative overflow-hidden rounded-[28px] p-5 text-center animate-rise-in sm:p-8">
       <div
         className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand/25 blur-3xl animate-glow"
         aria-hidden
@@ -175,7 +251,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
           <PartyPopper className="h-3.5 w-3.5" />
           Congratulations
         </span>
-        <h2 className="mt-4 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">
           Welcome, {credentials.fullName}!
         </h2>
         <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
@@ -183,7 +259,12 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
           your keys to the training dashboard.
         </p>
 
-        <div className="mt-6 grid w-full gap-3 sm:grid-cols-2">
+        <div className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-left">
+          <img src={ceoPortrait.url} alt="A.Q Malik, CEO" className="h-20 w-20 shrink-0 rounded-full border-2 border-cyan object-cover object-top shadow-brand" />
+          <div><p className="font-display text-lg font-bold">A.Q MALIK</p><p className="text-[10px] font-semibold uppercase text-primary">Chief Executive Officer</p><p className="mt-1 text-xs text-muted-foreground">Welcome to the Skyline family. Your new journey starts today.</p></div>
+        </div>
+
+        <div className="mt-4 grid w-full gap-3 sm:grid-cols-2">
           <Field label="Skyline ID" value={credentials.traineeCode} />
           <Field label="Password" value={credentials.password} />
         </div>

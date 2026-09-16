@@ -95,6 +95,7 @@ function TeamPage() {
       setForm({ fullName: "", phone: "", age: "" });
       toast.success("Seat reserved");
       refresh();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error: Error) => toast.error(error.message),
   });

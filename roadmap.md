@@ -7,6 +7,13 @@
 - [x] Reviews wall: visitors submit, admin approves, approved ones show publicly
 - [x] Reviews management tab in the admin panel
 
+## Landing introduction and testimonials
+- [ ] Remove the Skyline Path level strip from the public landing page
+- [ ] Show an admin-managed Skyline Achievers introduction video below the login area
+- [ ] Let admin upload the introduction video or add an external video link
+- [ ] Let admin add, edit, publish/hide, order, and delete landing testimonials
+- [ ] Show published testimonials on the landing page
+
 ## Member area (done)
 - [x] Side menu opened by a 3-line button; bottom bar removed
 - [x] Daily Quran verse + hadees on the dashboard, different for morning / evening / night

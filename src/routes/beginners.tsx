@@ -11,6 +11,7 @@ import {
   MessageCircle,
   PlayCircle,
   Unlock,
+  Camera,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -24,8 +25,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import {
+  getTraineeAvatarUploadUrl,
   getTraineeDashboard,
   playTraineeSession,
+  saveTraineeAvatar,
   unlockTraineeSession,
 } from "@/lib/trainee.functions";
 
@@ -112,6 +115,8 @@ function BeginnersPage() {
   const load = useServerFn(getTraineeDashboard);
   const unlock = useServerFn(unlockTraineeSession);
   const play = useServerFn(playTraineeSession);
+  const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);
+  const saveAvatarPath = useServerFn(saveTraineeAvatar);
 
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState("");
@@ -263,16 +268,40 @@ function BeginnersPage() {
           <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
-              <div className="metal-edge flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/20 font-display text-2xl font-semibold text-brand-glow shadow-lift">
-                {trainee.avatarUrl ? (
-                  <img
-                    src={trainee.avatarUrl}
-                    alt={`${trainee.fullName} profile picture`}
-                    className="h-full w-full object-cover"
+              <div className="relative h-16 w-16 shrink-0">
+                <div className="metal-edge flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-primary/20 font-display text-2xl font-semibold text-brand-glow shadow-lift">
+                  {trainee.avatarUrl ? (
+                    <img
+                      src={trainee.avatarUrl}
+                      alt={`${trainee.fullName} profile picture`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    trainee.fullName.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <label
+                  className="absolute -bottom-1.5 -right-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-cyan/30 bg-primary text-primary-foreground shadow-brand"
+                  title="Change profile picture"
+                >
+                  {uploadAvatar.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Change profile picture</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    disabled={uploadAvatar.isPending}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (file) uploadAvatar.mutate(file);
+                    }}
                   />
-                ) : (
-                  trainee.fullName.charAt(0).toUpperCase()
-                )}
+                </label>
               </div>
               <div className="min-w-0">
                 <h1 className="truncate font-display text-xl font-semibold tracking-tight">

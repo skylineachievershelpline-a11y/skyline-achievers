@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Copy, KeyRound, Loader2, Search, UserPlus } from "lucide-react";
+import { Copy, KeyRound, Loader2, Search, Trash2, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   adminAddMember,
   adminEditMember,
+  adminDeleteMember,
   adminGetMembers,
   adminResetPassword,
 } from "@/lib/admin.functions";
@@ -28,6 +29,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const addMember = useServerFn(adminAddMember);
   const editMember = useServerFn(adminEditMember);
   const resetPassword = useServerFn(adminResetPassword);
+  const deleteMember = useServerFn(adminDeleteMember);
 
   const [search, setSearch] = useState("");
   const [term, setTerm] = useState("");
@@ -170,7 +172,6 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   >
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
-                    <option value="removed">Removed</option>
                   </select>
                   <Button
                     variant="secondary"
@@ -183,6 +184,23 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   >
                     <KeyRound className="h-3.5 w-3.5" />
                     Reset password
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => {
+                      if (
+                        !window.confirm(
+                          `Delete ${member.full_name} permanently? Their login and records are gone for good.`,
+                        )
+                      )
+                        return;
+                      remove.mutate(member.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
                   </Button>
                 </div>
               </div>

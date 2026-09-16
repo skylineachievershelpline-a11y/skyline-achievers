@@ -114,8 +114,8 @@ function AdminPage() {
           {[
             { label: "Members", value: totals?.members ?? 0 },
             { label: "Active", value: totals?.active ?? 0 },
-            { label: "Series", value: totals?.series ?? 0 },
-            { label: "Lectures", value: totals?.lectures ?? 0 },
+            { label: "Videos", value: totals?.lectures ?? 0 },
+            { label: "Resources", value: totals?.resources ?? 0 },
           ].map((item) => (
             <div key={item.label} className="glass-panel metal-edge depth-hover relative overflow-hidden rounded-2xl p-4 animate-rise-in">
               <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />

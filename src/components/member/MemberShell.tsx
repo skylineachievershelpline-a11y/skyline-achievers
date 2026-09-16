@@ -53,7 +53,7 @@ export function useMemberGuard() {
 
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
-  { to: "/levels", label: "Training Levels", icon: Layers },
+  { to: "/search", label: "Training Videos", icon: Layers },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
   { to: "/team", label: "My Team & Seats", icon: Users },

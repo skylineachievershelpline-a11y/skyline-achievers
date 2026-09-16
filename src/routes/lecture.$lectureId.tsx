@@ -107,7 +107,7 @@ function LecturePage() {
   const frameClass = RATIO_CLASS[ratio] ?? "aspect-video";
 
   return (
-    <MemberShell title={lecture.title} subtitle={lecture.series?.title ?? undefined}>
+    <MemberShell title={lecture.title} subtitle={lecture.levels?.name ?? undefined}>
       <div className="metal-edge overflow-hidden rounded-3xl border bg-media shadow-lift animate-rise-in">
         {data.playback?.url ? (
           isExternalEmbed ? (
@@ -142,7 +142,7 @@ function LecturePage() {
         <h1 className="font-display text-xl font-semibold tracking-tight">{lecture.title}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
           {formatDuration(lecture.duration_seconds)}
-          {lecture.series?.levels?.name ? ` · ${lecture.series.levels.name}` : ""}
+          {lecture.levels?.name ? ` · ${lecture.levels.name}` : ""}
         </p>
         {lecture.description ? (
           <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
@@ -153,14 +153,15 @@ function LecturePage() {
 
       {data.resources.length > 0 ? (
         <section className="mt-7">
-          <SectionTitle>Lecture resources</SectionTitle>
+          <SectionTitle>Video resources</SectionTitle>
           <ResourceList resources={data.resources as any} />
         </section>
       ) : null}
 
       {data.siblings.length > 1 ? (
         <section className="mt-7">
-          <SectionTitle>More in this series</SectionTitle>
+          <SectionTitle>More training videos</SectionTitle>
+
           <ol className="space-y-2">
             {data.siblings
               .filter((s: any) => s.id !== lecture.id)

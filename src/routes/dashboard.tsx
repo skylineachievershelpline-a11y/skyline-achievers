@@ -10,6 +10,7 @@ import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
+import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import { getAvatarUploadUrl, getDashboard, saveAvatar } from "@/lib/member.functions";

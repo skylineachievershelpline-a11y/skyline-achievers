@@ -14,7 +14,6 @@ import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as LevelsRouteImport } from './routes/levels'
-import { Route as LiveTrainingRouteImport } from './routes/live-training'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -26,7 +25,6 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
-import { Route as LiveTokenRouteImport } from './routes/live.$token'
 import { Route as SeriesSeriesIdRouteImport } from './routes/series.$seriesId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as TestTokenRouteImport } from './routes/test.$token'
@@ -54,11 +52,6 @@ const FinalTestRoute = FinalTestRouteImport.update({
 const LevelsRoute = LevelsRouteImport.update({
   id: '/levels',
   path: '/levels',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LiveTrainingRoute = LiveTrainingRouteImport.update({
-  id: '/live-training',
-  path: '/live-training',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -116,11 +109,6 @@ const LevelSlugRoute = LevelSlugRouteImport.update({
   path: '/level/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LiveTokenRoute = LiveTokenRouteImport.update({
-  id: '/live/$token',
-  path: '/live/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SeriesSeriesIdRoute = SeriesSeriesIdRouteImport.update({
   id: '/series/$seriesId',
   path: '/series/$seriesId',
@@ -143,7 +131,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
-  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -154,7 +141,6 @@ export interface FileRoutesByFullPath {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
-  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -166,7 +152,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
-  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -177,7 +162,6 @@ export interface FileRoutesByTo {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
-  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -190,7 +174,6 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
-  '/live-training': typeof LiveTrainingRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -201,7 +184,6 @@ export interface FileRoutesById {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
-  '/live/$token': typeof LiveTokenRoute
   '/series/$seriesId': typeof SeriesSeriesIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/test/$token': typeof TestTokenRoute
@@ -215,7 +197,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
-    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -226,7 +207,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
-    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -238,7 +218,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
-    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -249,7 +228,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
-    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -261,7 +239,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/final-test'
     | '/levels'
-    | '/live-training'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -272,7 +249,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
-    | '/live/$token'
     | '/series/$seriesId'
     | '/session/$code'
     | '/test/$token'
@@ -285,7 +261,6 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FinalTestRoute: typeof FinalTestRoute
   LevelsRoute: typeof LevelsRoute
-  LiveTrainingRoute: typeof LiveTrainingRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -296,7 +271,6 @@ export interface RootRouteChildren {
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
-  LiveTokenRoute: typeof LiveTokenRoute
   SeriesSeriesIdRoute: typeof SeriesSeriesIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   TestTokenRoute: typeof TestTokenRoute
@@ -338,13 +312,6 @@ declare module '@tanstack/react-router' {
       path: '/levels'
       fullPath: '/levels'
       preLoaderRoute: typeof LevelsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/live-training': {
-      id: '/live-training'
-      path: '/live-training'
-      fullPath: '/live-training'
-      preLoaderRoute: typeof LiveTrainingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -424,13 +391,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LevelSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/live/$token': {
-      id: '/live/$token'
-      path: '/live/$token'
-      fullPath: '/live/$token'
-      preLoaderRoute: typeof LiveTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/series/$seriesId': {
       id: '/series/$seriesId'
       path: '/series/$seriesId'
@@ -461,7 +421,6 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FinalTestRoute: FinalTestRoute,
   LevelsRoute: LevelsRoute,
-  LiveTrainingRoute: LiveTrainingRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,
@@ -472,7 +431,6 @@ const rootRouteChildren: RootRouteChildren = {
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,
-  LiveTokenRoute: LiveTokenRoute,
   SeriesSeriesIdRoute: SeriesSeriesIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   TestTokenRoute: TestTokenRoute,

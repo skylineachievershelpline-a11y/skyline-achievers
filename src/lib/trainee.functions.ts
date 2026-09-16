@@ -75,7 +75,7 @@ async function loadTrainee(userId: string) {
   const { data } = await supabaseAdmin
     .from("trainees")
     .select(
-      "id, trainee_code, full_name, phone, age, status, created_at, member_profiles:upline_id (member_id, full_name)",
+      "id, trainee_code, full_name, phone, age, status, created_at, avatar_path, last_login_at, member_profiles:upline_id (member_id, full_name)",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -141,6 +141,8 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
       })),
     );
 
+    const { AVATAR_BUCKET } = await import("./storage.server");
+
     return {
       trainee: {
         traineeCode: trainee.trainee_code as string,
@@ -148,6 +150,8 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
         phone: trainee.phone as string | null,
         age: trainee.age as number | null,
         createdAt: trainee.created_at as string,
+        lastLoginAt: (trainee.last_login_at ?? null) as string | null,
+        avatarUrl: await signPath(AVATAR_BUCKET, trainee.avatar_path, 60 * 60 * 4),
         upline: trainee.member_profiles
           ? {
               memberId: trainee.member_profiles.member_id as string,
@@ -213,10 +217,10 @@ export const playTraineeSession = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!unlock) return { status: "locked" as const };
 
-    const { signPath, VIDEO_BUCKET } = await import("./storage.server");
+    const { signPath, VIDEO_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
     const { data: row } = await (supabaseAdmin as any)
       .from("beginner_sessions")
-      .select("id, title, video_source, video_path, video_url, aspect_ratio")
+      .select("id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio")
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!row) return { status: "invalid" as const };
@@ -226,14 +230,41 @@ export const playTraineeSession = createServerFn({ method: "POST" })
         ? row.video_url
         : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
 
+    const { data: extraRows } = await (supabaseAdmin as any)
+      .from("beginner_session_extras")
+      .select(
+        "id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order",
+      )
+      .eq("session_id", data.sessionId)
+      .eq("is_published", true)
+      .order("sort_order", { ascending: true });
+
+    const extras = await Promise.all(
+      (extraRows ?? []).map(async (extra: any) => ({
+        id: extra.id as string,
+        title: extra.title as string,
+        description: (extra.description ?? null) as string | null,
+        aspectRatio: (extra.aspect_ratio ?? "16:9") as string,
+        isExternal: extra.video_source === "external",
+        videoUrl:
+          extra.video_source === "external" && extra.video_url
+            ? (extra.video_url as string)
+            : await signPath(VIDEO_BUCKET, extra.video_path, 60 * 60 * 4),
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, extra.thumbnail_path, 60 * 60 * 4),
+      })),
+    );
+
     return {
       status: "ok" as const,
       session: {
         id: row.id as string,
         title: row.title as string,
+        description: (row.description ?? null) as string | null,
         aspectRatio: (row.aspect_ratio ?? "16:9") as string,
         videoUrl: videoUrl as string | null,
         isExternal: row.video_source === "external",
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
       },
+      extras,
     };
   });

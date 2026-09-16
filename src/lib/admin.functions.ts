@@ -887,3 +887,102 @@ export const adminDeleteWhatsappGroup = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/* ------------------------------------------------------------------ */
+/* Extra videos attached to one beginners session                      */
+/* ------------------------------------------------------------------ */
+
+export const adminGetSessionExtras = createServerFn({ method: "POST" })
+  .inputValidator((data: { sessionId: string }) => z.object({ sessionId: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("beginner_session_extras")
+      .select(
+        "id, session_id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+      )
+      .eq("session_id", data.sessionId)
+      .order("sort_order")
+      .order("created_at", { ascending: true });
+    return { extras: rows ?? [] };
+  });
+
+export const adminSaveSessionExtra = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      sessionId: string;
+      title: string;
+      description?: string | null;
+      videoPath?: string | null;
+      videoUrl?: string | null;
+      thumbnailPath?: string | null;
+      aspectRatio?: string;
+      sortOrder?: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          sessionId: uuid,
+          title: text(160),
+          description: optionalText(2000),
+          videoPath: optionalText(400),
+          videoUrl: optionalText(600),
+          thumbnailPath: optionalText(400),
+          aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
+          sortOrder: z.number().int().min(0).max(999).optional(),
+          isPublished: z.boolean(),
+        })
+        .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
+          message: "Upload a video file or paste a video link.",
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const payload: Record<string, unknown> = {
+      session_id: data.sessionId,
+      title: data.title,
+      description: data.description,
+      aspect_ratio: data.aspectRatio ?? "16:9",
+      sort_order: data.sortOrder ?? 0,
+      is_published: data.isPublished,
+    };
+    if (data.videoPath) {
+      payload["video_path"] = data.videoPath;
+      payload["video_url"] = null;
+      payload["video_source"] = "upload";
+    } else if (data.videoUrl) {
+      payload["video_url"] = data.videoUrl;
+      payload["video_path"] = null;
+      payload["video_source"] = "external";
+    }
+    if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
+
+    const query = data.id
+      ? (supabaseAdmin as any).from("beginner_session_extras").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("beginner_session_extras").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteSessionExtra = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("beginner_session_extras")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

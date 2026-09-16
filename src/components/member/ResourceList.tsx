@@ -21,7 +21,7 @@ export type MemberResource = {
   resource_type: string;
   body?: string | null;
   lectures?: { id: string; title: string } | null;
-  series?: { id: string; title: string } | null;
+
 };
 
 export function ResourceList({ resources }: { resources: MemberResource[] }) {
@@ -58,7 +58,7 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
                 <span className="block truncate text-[11px] text-muted-foreground">
                   {RESOURCE_TYPE_LABEL[resource.resource_type] ?? resource.resource_type}
                   {resource.lectures?.title ? ` · ${resource.lectures.title}` : ""}
-                  {!resource.lectures && resource.series?.title ? ` · ${resource.series.title}` : ""}
+
                 </span>
               </span>
               <span className="shrink-0 text-[11px] text-muted-foreground">

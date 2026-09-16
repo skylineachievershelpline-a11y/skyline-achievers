@@ -45,13 +45,10 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
 
     const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     bg.addColorStop(0, "#070b16");
-    bg.addColorStop(1, "#0b1striped".slice(0, 7));
-    ctx.fillStyle = "#070b16";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    bg.addColorStop(1, "#0e1a33");
     ctx.fillStyle = bg;
-    ctx.globalAlpha = 0.6;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
+
 
     // Glow accent
     const glow = ctx.createRadialGradient(880, 200, 20, 880, 200, 420);

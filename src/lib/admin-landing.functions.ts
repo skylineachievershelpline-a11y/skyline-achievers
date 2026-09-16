@@ -74,6 +74,35 @@ export const adminSaveLandingIntroduction = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Show or hide the introduction on the public landing page. */
+export const adminSetLandingIntroductionActive = createServerFn({ method: "POST" })
+  .inputValidator((input: { id: string; isActive: boolean }) =>
+    z.object({ id: z.string().max(80), isActive: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("landing_intro")
+      .update({ is_active: data.isActive })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** Delete the introduction entry entirely. */
+export const adminDeleteLandingIntroduction = createServerFn({ method: "POST" })
+  .inputValidator((input: { id: string }) => z.object({ id: z.string().max(80) }).parse(input))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("landing_intro").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Admin management of landing-page reviews (approve / hide / delete). */
 export const adminGetReviews = createServerFn({ method: "GET" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");

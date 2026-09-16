@@ -14,11 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { adminCreateUploadUrl } from "@/lib/admin.functions";
 import {
+  adminDeleteLandingIntroduction,
   adminDeleteReview,
   adminGetLandingIntroduction,
   adminGetReviews,
   adminSaveLandingIntroduction,
   adminSaveReview,
+  adminSetLandingIntroductionActive,
   adminSetReviewStatus,
 } from "@/lib/admin-landing.functions";
 import { formatDateTime } from "@/lib/format";
@@ -56,6 +58,8 @@ function IntroductionManager() {
   const queryClient = useQueryClient();
   const load = useServerFn(adminGetLandingIntroduction);
   const save = useServerFn(adminSaveLandingIntroduction);
+  const setIntroActive = useServerFn(adminSetLandingIntroductionActive);
+  const removeIntro = useServerFn(adminDeleteLandingIntroduction);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const uploadProgress = useUploadProgress();
   const { data, isPending } = useQuery({
@@ -71,6 +75,32 @@ function IntroductionManager() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+
+  function refreshIntro() {
+    void queryClient.invalidateQueries({ queryKey: ["admin-landing-introduction"] });
+    void queryClient.invalidateQueries({ queryKey: ["landing-introduction"] });
+  }
+  const isVisible = active ?? row?.is_active ?? true;
+  const toggleVisibility = useMutation({
+    mutationFn: () => setIntroActive({ data: { id: row!.id, isActive: !(row?.is_active ?? true) } } as never),
+    onSuccess: () => {
+      toast.success(row?.is_active ? "Introduction hidden" : "Introduction published");
+      setActive(null);
+      refreshIntro();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const deleteIntro = useMutation({
+    mutationFn: () => removeIntro({ data: { id: row!.id } } as never),
+    onSuccess: () => {
+      toast.success("Introduction deleted");
+      setTitle(null); setDescription(null); setVideoUrl(null); setRatio(null); setActive(null);
+      setVideoFile(null); setCover(null);
+      refreshIntro();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -131,9 +161,34 @@ function IntroductionManager() {
 
   return (
     <section>
-      <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Landing video</p>
-        <h2 className="mt-1 font-display text-xl font-semibold">Skyline introduction</h2>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Landing video</p>
+          <h2 className="mt-1 font-display text-xl font-semibold">Skyline introduction</h2>
+        </div>
+        {row ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-hairline px-2 py-1 text-[10px] uppercase text-muted-foreground">
+              {row.is_active ? "Live" : "Hidden"}
+            </span>
+            <Button
+              size="sm"
+              variant={row.is_active ? "outline" : "brand"}
+              disabled={toggleVisibility.isPending}
+              onClick={() => toggleVisibility.mutate()}
+            >
+              {row.is_active ? <><EyeOff /> Hide</> : <><Check /> Publish</>}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={deleteIntro.isPending}
+              onClick={() => deleteIntro.mutate()}
+            >
+              <Trash2 /> Delete
+            </Button>
+          </div>
+        ) : null}
       </div>
       <form onSubmit={submit} className="glass-panel grid gap-4 rounded-2xl p-5 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
@@ -199,7 +254,7 @@ function IntroductionManager() {
         <label className="flex items-center gap-2 text-sm text-muted-foreground md:col-span-2">
           <input
             type="checkbox"
-            checked={active ?? row?.is_active ?? true}
+            checked={isVisible}
             onChange={(event) => setActive(event.target.checked)}
           />
           Show this introduction on the landing page

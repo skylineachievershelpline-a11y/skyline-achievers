@@ -5,7 +5,7 @@ import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target,
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
+import { EmptyState, LectureCard, Rail, VideoCard } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
@@ -111,9 +111,9 @@ function DashboardPage() {
                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Activity className="h-5 w-5" /></span>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric icon={<Layers3 />} label="Levels" value={data.levels.length} tone="primary" />
-              <Metric icon={<BookOpen />} label="Content" value={totalContent} tone="success" />
-              <Metric icon={<Sparkles />} label="My series" value={data.mySeries.length} tone="warning" />
+              <Metric icon={<Layers3 />} label="Videos" value={videos.length} tone="primary" />
+              <Metric icon={<BookOpen />} label="Minutes" value={totalMinutes} tone="success" />
+              <Metric icon={<Sparkles />} label="Watched" value={data.continueWatching.length} tone="warning" />
               <Metric icon={<Clock3 />} label="In progress" value={data.continueWatching.length} tone="accent" />
             </div>
             <div className="mt-5">
@@ -129,8 +129,8 @@ function DashboardPage() {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
-            <Stat icon={<Target />} label="Available paths" value={String(data.levels.length)} />
-            <Stat icon={<BookOpen />} label="Series ready" value={String(data.mySeries.length)} className="col-span-2 sm:col-span-1" />
+            <Stat icon={<Target />} label="Videos unlocked" value={String(videos.length)} />
+            <Stat icon={<BookOpen />} label="Watch time" value={`${totalMinutes} min`} className="col-span-2 sm:col-span-1" />
           </div>
         </section>
       </div>
@@ -146,38 +146,28 @@ function DashboardPage() {
         </section>
       ) : null}
 
-      {data.mySeries.length > 0 ? (
-        <section className="mt-7">
-          <SectionTitle>Your current series</SectionTitle>
-          <Rail>{data.mySeries.map((series: any) => <SeriesCard key={series.id} series={series} />)}</Rail>
-        </section>
-      ) : null}
-
-      {/* ---------- levels: the only way into the videos ---------- */}
+      {/* ---------- every training video unlocked for this member ---------- */}
       <section className="mt-6">
-        <SectionTitle>Watch your training</SectionTitle>
+        <SectionTitle>Training videos</SectionTitle>
         <p className="-mt-2 mb-3 text-xs text-muted-foreground">
-          Tap a level below to open its series and lectures.
+          Everything unlocked for your rank. Tap a video to watch it.
         </p>
-        {data.levels.length === 0 ? (
+        {videos.length === 0 ? (
           <EmptyState
-            title="No training content yet"
+            title="No training videos yet"
             hint="Your administrator has not published anything for your rank yet."
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.levels.map((level: any, index: number) => (
-              <div
-                key={level.id}
-                className="animate-rise-in"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <LevelCard level={level} />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {videos.map((video: any, index: number) => (
+              <div key={video.id} className="animate-rise-in" style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}>
+                <VideoCard video={video} />
               </div>
             ))}
           </div>
         )}
       </section>
+
 
     </MemberShell>
   );

@@ -52,14 +52,7 @@ function DashboardPage() {
   }
 
   if (!data || data.blocked) {
-    return (
-      <MemberShell title="Access paused">
-        <EmptyState
-          title="Your membership is not active"
-          hint="Please contact your Skyline Achievers administrator."
-        />
-      </MemberShell>
-    );
+    return <NoMemberAccess hasProfile={Boolean(data?.member)} />;
   }
 
   const member = data.member;

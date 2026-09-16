@@ -2,16 +2,17 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { memberIdToAuthEmail } from "./brand";
 
 /**
- * Simple, easy-to-remember password: the person's first name plus the last
- * three digits of their phone number (e.g. Ahmad786).
+ * Simple, easy-to-remember password: a Skyline prefix, the person's first name
+ * and the last three digits of their phone number (e.g. Sky@Ahmad786). The
+ * prefix keeps it out of the common-password lists that auth rejects as weak.
  */
 export function traineePassword(fullName: string, phone: string | null): string {
   const rawFirst = (fullName.trim().split(/\s+/)[0] ?? "").replace(/[^A-Za-z]/g, "");
   const first = rawFirst.length > 0 ? rawFirst : "Skyline";
   const digits = (phone ?? "").replace(/\D/g, "");
   const last3 = digits.length >= 3 ? digits.slice(-3) : digits.padStart(3, "7");
-  const base = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() + last3;
-  return base.length >= 6 ? base : `${base}786`;
+  const name = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  return `Sky@${name}${last3}`;
 }
 
 export type NewTrainee = {
@@ -44,15 +45,27 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
   const { data: generated, error: idError } = await supabaseAdmin.rpc("generate_trainee_id");
   if (idError || !generated) throw new Error("Could not generate a Skyline ID. Please try again.");
   const traineeCode = generated as string;
-  const password = traineePassword(input.fullName, input.phone);
+  let password = traineePassword(input.fullName, input.phone);
 
-  const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  let attempt = await supabaseAdmin.auth.admin.createUser({
     email: memberIdToAuthEmail(traineeCode),
     password,
     email_confirm: true,
     user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
   });
-  if (authError || !created.user) {
+  // Some name/number combinations land in the leaked-password list; add a small
+  // random tail so the person still gets a working, simple password.
+  if (attempt.error && /weak|easy to guess|pwned/i.test(attempt.error.message)) {
+    password = `${password}${Math.floor(Math.random() * 90 + 10)}`;
+    attempt = await supabaseAdmin.auth.admin.createUser({
+      email: memberIdToAuthEmail(traineeCode),
+      password,
+      email_confirm: true,
+      user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
+    });
+  }
+  const { data: created, error: authError } = attempt;
+  if (authError || !created?.user) {
     throw new Error(authError?.message ?? "Could not create the account.");
   }
 

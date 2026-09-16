@@ -39,3 +39,9 @@
 - [x] Redesign the landing journey as a connected infographic composition
 - [x] Apply the elevated system to member, training, authentication, and admin screens
 - [x] Verify key public and private layouts on desktop and mobile
+
+## Clean and fast interface
+- [x] Remove visible grid texture and reduce box-heavy styling
+- [x] Replace costly blur and extrusion effects with light native surfaces
+- [x] Defer below-the-fold landing content and media requests
+- [x] Verify phone and desktop layouts, requests, and build

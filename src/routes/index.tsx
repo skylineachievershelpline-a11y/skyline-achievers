@@ -11,18 +11,26 @@ import {
   Users,
   Wifi,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
-import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
+import skylineBackground from "@/assets/skyline-landing-bg-clean.webp";
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { IntroductionSection } from "@/components/landing/IntroductionSection";
-import { ReviewsSection } from "@/components/landing/ReviewsSection";
+import { DeferredSection } from "@/components/landing/DeferredSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { WhatsappJoinCard } from "@/components/whatsapp/WhatsappJoinCard";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
+
+const IntroductionSection = lazy(() =>
+  import("@/components/landing/IntroductionSection").then((module) => ({ default: module.IntroductionSection })),
+);
+const ReviewsSection = lazy(() =>
+  import("@/components/landing/ReviewsSection").then((module) => ({ default: module.ReviewsSection })),
+);
+const WhatsappJoinCard = lazy(() =>
+  import("@/components/whatsapp/WhatsappJoinCard").then((module) => ({ default: module.WhatsappJoinCard })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,6 +50,7 @@ export const Route = createFileRoute("/")({
           "Learn how a phone and internet connection can become your income skill — guided training, mentorship and leadership levels.",
       },
     ],
+    links: [{ rel: "preload", as: "image", href: skylineBackground, fetchPriority: "high" }],
   }),
   component: LandingPage,
 });
@@ -97,6 +106,9 @@ function LandingPage() {
           alt="Modern glass towers rising into the sky"
           width={1600}
           height={1008}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-[64%_center]"
         />
         <div className="landing-hero-shade absolute inset-0" aria-hidden />
@@ -105,7 +117,7 @@ function LandingPage() {
           <BrandLogo size="md" secretGesture />
           <Button
             variant="outline"
-            className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"
+            className="h-10 border-hairline bg-background/90"
             onClick={() => setLoginOpen(true)}
           >
             <LogIn className="h-4 w-4" />
@@ -115,7 +127,7 @@ function LandingPage() {
 
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-5 pb-24 pt-12 sm:px-8 lg:px-12">
           <div className="max-w-3xl animate-rise-in">
-            <div className="metal-edge mb-7 inline-flex items-center gap-2 rounded-xl border bg-background/75 px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-silver shadow-lift backdrop-blur-md">
+            <div className="mb-7 inline-flex items-center gap-2 border-l border-cyan/50 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-silver">
               <Sparkles className="h-3.5 w-3.5 text-brand-glow" />
               {BRAND.tagline}
             </div>
@@ -138,7 +150,7 @@ function LandingPage() {
                 asChild
                 variant="outline"
                 size="xl"
-                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-52"
+                className="border-hairline bg-background/85 sm:min-w-52"
               >
                 <a href="#about">
                   <Wifi />
@@ -149,7 +161,7 @@ function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 border-t border-metal/20 bg-background/85 shadow-[0_-16px_36px_-28px_var(--brand)] backdrop-blur-md">
+        <div className="absolute inset-x-0 bottom-0 z-10 border-t border-hairline bg-background/95">
           <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-hairline px-5 sm:px-8 lg:px-12">
             {TRUST_POINTS.map(({ icon: Icon, title, detail }) => (
               <div
@@ -167,9 +179,13 @@ function LandingPage() {
         </div>
       </section>
 
-      <IntroductionSection />
+      <DeferredSection minHeight={560}>
+        <Suspense fallback={null}>
+          <IntroductionSection />
+        </Suspense>
+      </DeferredSection>
 
-      <section id="about" className="infographic-grid relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <section id="about" className="relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
@@ -187,19 +203,18 @@ function LandingPage() {
             </p>
           </div>
 
-          <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-            <div className="connector-line absolute left-[12.5%] right-[12.5%] top-11 hidden h-px lg:block" aria-hidden />
+          <div className="grid border-t border-hairline sm:grid-cols-2 lg:grid-cols-4">
             {HOW_IT_WORKS.map(({ icon: Icon, title, detail }, index) => (
               <article
                 key={title}
-                className={`glass-panel metal-edge depth-hover relative rounded-2xl p-5 pt-16 animate-rise-in ${index % 2 === 1 ? "lg:mt-12" : ""}`}
+                className="relative border-b border-hairline py-7 sm:px-5 sm:odd:border-r lg:border-b-0 lg:border-r lg:last:border-r-0"
                 style={{ animationDelay: `${index * 70}ms` }}
               >
-                <span className="absolute -top-3 left-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/12 text-cyan">
                   <Icon className="h-4.5 w-4.5" />
                 </span>
-                <span className="absolute right-4 top-4 font-display text-xs font-bold text-metal">0{index + 1}</span>
-                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+                <span className="absolute right-4 top-8 font-display text-xs font-bold text-metal">0{index + 1}</span>
+                <h3 className="mt-5 font-display text-lg font-semibold">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
               </article>
             ))}
@@ -207,7 +222,11 @@ function LandingPage() {
         </div>
       </section>
 
-      <ReviewsSection />
+      <DeferredSection minHeight={420}>
+        <Suspense fallback={null}>
+          <ReviewsSection />
+        </Suspense>
+      </DeferredSection>
 
       <footer className="border-t border-hairline px-5 py-10 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
@@ -219,7 +238,9 @@ function LandingPage() {
         </div>
       </footer>
 
-      <WhatsappJoinCard variant="chip" />
+      <Suspense fallback={null}>
+        <WhatsappJoinCard variant="chip" />
+      </Suspense>
 
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
         <DialogContent className="metal-edge rounded-2xl p-0 sm:max-w-md">
@@ -227,7 +248,9 @@ function LandingPage() {
             <DialogTitle className="font-display text-xl">Member login</DialogTitle>
           </DialogHeader>
           <div className="px-2 pb-2">
-            <MemberLoginCard />
+            <Suspense fallback={<div className="h-64" />}>
+              <MemberLoginCard />
+            </Suspense>
           </div>
         </DialogContent>
       </Dialog>

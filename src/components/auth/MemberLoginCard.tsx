@@ -18,6 +18,8 @@ import { recordTraineeLogin, whoAmI } from "@/lib/trainee.functions";
 export function MemberLoginCard() {
   const navigate = useNavigate();
   const finishLogin = useServerFn(recordLogin);
+  const identify = useServerFn(whoAmI);
+  const finishTraineeLogin = useServerFn(recordTraineeLogin);
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +30,8 @@ export function MemberLoginCard() {
     event.preventDefault();
     setError(null);
     const id = normalizeMemberId(memberId);
-    if (!/^SKA-[A-Z0-9]{4,10}$/.test(id)) {
-      setError("Enter your Member ID in the format SKA-12345.");
+    if (!/^SK[AB]-[A-Z0-9]{4,10}$/.test(id)) {
+      setError("Enter your Skyline ID in the format SKA-12345 or SKB-1001.");
       return;
     }
     if (password.length < 6) {
@@ -45,6 +47,24 @@ export function MemberLoginCard() {
     if (signInError) {
       setPending(false);
       setError("That Member ID and password combination is not recognised.");
+      return;
+    }
+
+    // Trainee accounts land on the Beginners Training dashboard instead.
+    const identity = await identify();
+    if (identity.kind === "trainee") {
+      const traineeResult = await finishTraineeLogin();
+      if (traineeResult.status !== "ok") {
+        await supabase.auth.signOut();
+        setPending(false);
+        setError(
+          traineeResult.status === "blocked"
+            ? "Your training access is temporarily blocked. Please contact your trainer."
+            : "This training account is no longer active. Please contact your trainer.",
+        );
+        return;
+      }
+      await navigate({ to: "/beginners" });
       return;
     }
 

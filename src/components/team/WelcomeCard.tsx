@@ -82,7 +82,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
   async function drawCard(): Promise<HTMLCanvasElement> {
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
-    canvas.height = 1350;
+    canvas.height = 1700;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Poster could not be created");
 
@@ -111,7 +111,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     for (let i = -300; i < 1400; i += 72) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(i + 560, 1350);
+      ctx.lineTo(i + 700, 1700);
       ctx.stroke();
     }
 
@@ -271,9 +271,31 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
           your keys to the training dashboard.
         </p>
 
-        <div className="mt-6 flex w-full items-center gap-4 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-left">
-          <img src={ceoPortrait.url} alt="A.Q Malik, CEO" className="h-20 w-20 shrink-0 rounded-full border-2 border-cyan object-cover object-top shadow-brand" />
-          <div><p className="font-display text-lg font-bold">A.Q MALIK</p><p className="text-[10px] font-semibold uppercase text-primary">Chief Executive Officer</p><p className="mt-1 text-xs text-muted-foreground">Welcome to the Skyline family. Your new journey starts today.</p></div>
+        <div className="mt-6 grid w-full gap-5 rounded-2xl border border-cyan/30 bg-primary/10 p-5 text-left sm:grid-cols-[9rem_1fr]">
+          <div className="text-center">
+            {credentials.uplineAvatarUrl ? (
+              <img
+                src={credentials.uplineAvatarUrl}
+                alt={`${credentials.uplineName}'s profile`}
+                className="mx-auto aspect-square w-28 rounded-full border-2 border-cyan object-cover object-top shadow-brand"
+              />
+            ) : null}
+            <p className={`${credentials.uplineAvatarUrl ? "mt-3" : "mt-0"} font-display text-base font-bold`}>
+              {credentials.uplineName}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-xl font-bold">Welcome to the Skyline family</h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Today begins a new journey of learning, growth, confidence and opportunity. Your
+              training seat is reserved and your Skyline ID is ready. Learn each lesson with focus,
+              practise consistently, stay connected with your upline and keep moving forward one
+              step at a time. Success is built through daily action, patience and discipline. Ask
+              questions whenever you need guidance and complete your training with full commitment.
+              We believe this can be the start of a powerful new chapter in your life.
+              Congratulations once again — your Skyline Achievers journey starts now.
+            </p>
+          </div>
         </div>
 
         <div className="mt-4 grid w-full gap-3 sm:grid-cols-2">

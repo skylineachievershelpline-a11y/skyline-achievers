@@ -118,6 +118,45 @@ export type Database = {
           },
         ]
       }
+      daily_inspirations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          kind: string
+          part_of_day: string
+          reference: string | null
+          sort_order: number
+          text_en: string | null
+          text_ur: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          kind: string
+          part_of_day: string
+          reference?: string | null
+          sort_order?: number
+          text_en?: string | null
+          text_ur?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          kind?: string
+          part_of_day?: string
+          reference?: string | null
+          sort_order?: number
+          text_en?: string | null
+          text_ur?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       final_test_answers: {
         Row: {
           answer_text: string | null

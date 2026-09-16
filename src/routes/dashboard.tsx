@@ -117,6 +117,10 @@ function DashboardPage() {
         </section>
       </div>
 
+      <div className="mt-6">
+        <DailyInspiration />
+      </div>
+
       {/* ---------- levels: the only way into the videos ---------- */}
       <section className="mt-6">
         <SectionTitle>Watch your training</SectionTitle>

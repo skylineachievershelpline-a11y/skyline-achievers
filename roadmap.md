@@ -39,3 +39,13 @@
 - [x] Redesign the landing journey as a connected infographic composition
 - [x] Apply the elevated system to member, training, authentication, and admin screens
 - [x] Verify key public and private layouts on desktop and mobile
+
+## Simplified training videos & team fixes
+- [x] Series removed: admin adds training videos directly, choosing which ranks can watch
+- [x] Old series videos moved to their level and kept watchable
+- [x] Dashboard and search show training videos instead of levels/series
+- [x] New ID card: copy details, save picture, send
+- [x] Seat reservation form placeholders removed
+- [x] Remove/delete is permanent for uplines and admin, with confirmation
+- [x] Faster screens: cached queries, lazy thumbnails, lighter chat refresh
+- [x] Uploads keep running in the background after closing the form

@@ -185,6 +185,9 @@ function AdminPage() {
           <TabsContent value="reviews" className="mt-5">
             <ReviewsTab />
           </TabsContent>
+          <TabsContent value="inspiration" className="mt-5">
+            <InspirationTab />
+          </TabsContent>
           <TabsContent value="finaltest" className="mt-5">
             <FinalTestTab />
           </TabsContent>

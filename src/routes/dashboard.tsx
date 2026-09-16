@@ -81,6 +81,7 @@ function DashboardPage() {
     <MemberShell
       title={member?.fullName ?? "Member"}
       subtitle={`${member?.memberId ?? ""} · ${member?.level?.name ?? "Level not assigned"}`}
+      executive
     >
       <div className="grid gap-5 lg:grid-cols-12">
         <aside className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift animate-rise-in lg:col-span-4">

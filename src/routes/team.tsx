@@ -147,7 +147,7 @@ function TeamPage() {
   const completionRate = stats?.total ? Math.round(((stats.completed ?? 0) / stats.total) * 100) : 0;
 
   return (
-    <MemberShell title="My Team" subtitle="Reserve seats and track your people">
+    <MemberShell title="My Team" subtitle="Reserve seats and track your people" executive>
       {card ? (
         <div className="mb-6">
           <WelcomeCard credentials={card} />

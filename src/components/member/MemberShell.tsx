@@ -67,10 +67,12 @@ export function MemberShell({
   children,
   title,
   subtitle,
+  executive = false,
 }: {
   children: ReactNode;
   title?: string;
   subtitle?: string;
+  executive?: boolean;
 }) {
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
@@ -111,7 +113,7 @@ export function MemberShell({
   }
 
   return (
-    <div className="member-workspace relative min-h-screen bg-background pb-10 text-foreground">
+    <div className={cn("relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}>
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/70 backdrop-blur-xl">

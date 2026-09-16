@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as LevelsRouteImport } from './routes/levels'
@@ -19,8 +20,10 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as LevelSlugRouteImport } from './routes/level.$slug'
 import { Route as LiveTokenRouteImport } from './routes/live.$token'
@@ -31,6 +34,11 @@ import { Route as TestTokenRouteImport } from './routes/test.$token'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BeginnersRoute = BeginnersRouteImport.update({
+  id: '/beginners',
+  path: '/beginners',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -78,6 +86,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -86,6 +99,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
@@ -121,6 +139,7 @@ const TestTokenRoute = TestTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/beginners': typeof BeginnersRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -130,7 +149,9 @@ export interface FileRoutesByFullPath {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -141,6 +162,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/beginners': typeof BeginnersRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -150,7 +172,9 @@ export interface FileRoutesByTo {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -162,6 +186,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/beginners': typeof BeginnersRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -171,7 +196,9 @@ export interface FileRoutesById {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/admin/login': typeof AdminLoginRoute
+  '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/level/$slug': typeof LevelSlugRoute
   '/live/$token': typeof LiveTokenRoute
@@ -184,6 +211,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/beginners'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -193,7 +221,9 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -204,6 +234,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/beginners'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -213,7 +244,9 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -224,6 +257,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/beginners'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -233,7 +267,9 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/team'
     | '/admin/login'
+    | '/join/$token'
     | '/lecture/$lectureId'
     | '/level/$slug'
     | '/live/$token'
@@ -245,6 +281,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BeginnersRoute: typeof BeginnersRoute
   DashboardRoute: typeof DashboardRoute
   FinalTestRoute: typeof FinalTestRoute
   LevelsRoute: typeof LevelsRoute
@@ -254,7 +291,9 @@ export interface RootRouteChildren {
   ReelsRoute: typeof ReelsRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
+  TeamRoute: typeof TeamRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   LevelSlugRoute: typeof LevelSlugRoute
   LiveTokenRoute: typeof LiveTokenRoute
@@ -271,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beginners': {
+      id: '/beginners'
+      path: '/beginners'
+      fullPath: '/beginners'
+      preLoaderRoute: typeof BeginnersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -336,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -348,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lecture/$lectureId': {
@@ -397,6 +457,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BeginnersRoute: BeginnersRoute,
   DashboardRoute: DashboardRoute,
   FinalTestRoute: FinalTestRoute,
   LevelsRoute: LevelsRoute,
@@ -406,7 +467,9 @@ const rootRouteChildren: RootRouteChildren = {
   ReelsRoute: ReelsRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
+  TeamRoute: TeamRoute,
   AdminLoginRoute: AdminLoginRoute,
+  JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   LevelSlugRoute: LevelSlugRoute,
   LiveTokenRoute: LiveTokenRoute,

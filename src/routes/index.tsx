@@ -85,11 +85,23 @@ function LandingPage() {
   const navigate = useNavigate();
   const [loginOpen, setLoginOpen] = useState(false);
 
+  const resolveRole = useServerFn(getSessionRole);
+
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/dashboard" });
+    let active = true;
+    void supabase.auth.getSession().then(async ({ data }) => {
+      if (!active || !data.session) return;
+      // Only send people to a screen their account actually belongs to.
+      const role = await resolveRole().catch(() => null);
+      if (!active || !role) return;
+      if (role.role === "member") void navigate({ to: "/dashboard" });
+      else if (role.role === "trainee") void navigate({ to: "/beginners" });
+      else await supabase.auth.signOut();
     });
-  }, [navigate]);
+    return () => {
+      active = false;
+    };
+  }, [navigate, resolveRole]);
 
   return (
     <main className="min-h-screen overflow-hidden bg-background">

@@ -254,7 +254,7 @@ function IntroductionManager() {
         <label className="flex items-center gap-2 text-sm text-muted-foreground md:col-span-2">
           <input
             type="checkbox"
-            checked={active ?? row?.is_active ?? true}
+            checked={isVisible}
             onChange={(event) => setActive(event.target.checked)}
           />
           Show this introduction on the landing page

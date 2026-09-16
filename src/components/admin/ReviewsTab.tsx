@@ -334,6 +334,32 @@ function TestimonialsManager() {
               <div className="space-y-1.5"><Label htmlFor="testimonialRating">Rating</Label><select id="testimonialRating" className={fieldClass} value={rating} onChange={(event) => setRating(Number(event.target.value))}>{[1,2,3,4,5].map((value) => <option key={value} value={value}>{value} stars</option>)}</select></div>
               <div className="space-y-1.5"><Label htmlFor="testimonialOrder">Order</Label><Input id="testimonialOrder" value={order} onChange={(event) => setOrder(event.target.value.replace(/\D/g, ""))} /></div>
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialVideo">Upload video (optional)</Label>
+              <input
+                id="testimonialVideo"
+                type="file"
+                accept="video/*"
+                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+                onChange={(event) => setVideoFile(event.target.files?.[0] ?? null)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialVideoLink">Or video link</Label>
+              <Input
+                id="testimonialVideoLink"
+                value={videoLink}
+                onChange={(event) => setVideoLink(event.target.value)}
+                placeholder="https://youtube.com/..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="testimonialRatio">Video ratio</Label>
+              <select id="testimonialRatio" className={fieldClass} value={videoRatio} onChange={(event) => setVideoRatio(event.target.value)}>
+                {RATIOS.map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </div>
+            <UploadProgress state={uploadProgress.state} />
             <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={visible} onChange={(event) => setVisible(event.target.checked)} /> Show on landing page</label>
             <Button type="submit" variant="brand" size="xl" className="w-full" disabled={save.isPending}>{save.isPending ? <Loader2 className="animate-spin" /> : null} Save testimonial</Button>
           </form>

@@ -255,9 +255,36 @@ function TestimonialsManager() {
     onError: (error: Error) => toast.error(error.message),
   });
   const save = useMutation({
-    mutationFn: () => saveReview({ data: { id: editing?.id, personName: name, designation, reviewText: text, rating, sortOrder: Number(order) || 0, isActive: visible } } as never),
-    onSuccess: () => { toast.success(editing ? "Testimonial saved" : "Testimonial added"); setOpen(false); refresh(); },
-    onError: (error: Error) => toast.error(error.message),
+    mutationFn: async () => {
+      let videoPath: string | null = null;
+      if (videoFile) {
+        videoPath = await uploadToBucket(
+          createUploadUrl,
+          "training-videos",
+          videoFile,
+          uploadProgress.handler("Uploading testimonial video"),
+        );
+      }
+      return saveReview({
+        data: {
+          id: editing?.id,
+          personName: name,
+          designation,
+          reviewText: text,
+          rating,
+          sortOrder: Number(order) || 0,
+          isActive: visible,
+          videoPath,
+          videoUrl: videoFile ? null : videoLink.trim() || null,
+          aspectRatio: videoRatio,
+        },
+      } as never);
+    },
+    onSuccess: () => {
+      toast.success(editing ? "Testimonial saved" : "Testimonial added");
+      setOpen(false); uploadProgress.clear(); setVideoFile(null); refresh();
+    },
+    onError: (error: Error) => { uploadProgress.clear(); toast.error(error.message); },
   });
 
   const reviews = (data?.reviews ?? []) as ReviewRow[];

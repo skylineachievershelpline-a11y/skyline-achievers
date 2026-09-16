@@ -5,18 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border text-sm font-semibold cursor-pointer transition-[transform,background-color,border-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border text-sm font-semibold cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "border-primary/70 bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "border-brand/40 bg-surface-2 text-silver hover:bg-brand/20 hover:text-foreground",
+        default: "border-primary/70 bg-primary text-primary-foreground shadow-brand hover:bg-primary/90",
+        destructive: "border-brand/50 bg-surface-2 text-silver shadow-glass hover:bg-brand/20 hover:text-foreground",
         outline:
-          "border-metal/20 bg-surface text-foreground hover:border-cyan/30 hover:bg-surface-2",
-        secondary: "border-metal/15 bg-secondary text-secondary-foreground hover:bg-accent",
+          "border-metal/30 bg-surface/80 text-foreground shadow-glass hover:border-cyan/40 hover:bg-surface-2",
+        secondary: "border-metal/20 bg-secondary text-secondary-foreground shadow-glass hover:bg-accent",
         ghost: "border-transparent hover:border-metal/20 hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        brand: "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
+        brand:
+          "border-cyan/40 brand-gradient text-primary-foreground shadow-brand hover:brightness-110",
       },
       size: {
         default: "h-9 px-4 py-2",

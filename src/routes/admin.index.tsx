@@ -86,7 +86,8 @@ function AdminPage() {
   const levels = (library.data?.levels ?? []) as any[];
 
   return (
-    <main className="relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
+    <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
+      <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-6xl">
         <header className="raised-panel mb-6 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">

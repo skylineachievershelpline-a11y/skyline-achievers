@@ -160,7 +160,7 @@ function TeamPage() {
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-hairline bg-surface p-5 animate-rise-in">
+      <section className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div><p className="text-[10px] font-bold uppercase text-primary">Network performance</p><h1 className="mt-1 font-display text-2xl font-bold">Your team at a glance</h1></div>
           <p className="text-xs text-muted-foreground">Weekly, monthly and training activity</p>
@@ -177,15 +177,15 @@ function TeamPage() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-hairline bg-surface animate-rise-in">
+      <section className="raised-panel metal-edge mt-6 rounded-3xl animate-rise-in">
         <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
           <div><SectionTitle className="mb-0">Team hierarchy</SectionTitle><p className="text-xs text-muted-foreground">Your direct Skyline network and training status</p></div>
           <Button variant="brand" className="rounded-xl" onClick={() => document.getElementById("reserve-seat")?.scrollIntoView({ behavior: "smooth" })}><UserPlus />Add member</Button>
         </div>
         <div className="p-4 sm:p-6">
           <div className="mx-auto max-w-3xl">
-            <div className="relative mx-auto w-fit rounded-2xl border border-cyan/25 bg-primary/10 px-6 py-3 text-center">
-              <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Crown className="h-4 w-4" /></span>
+            <div className="relative mx-auto w-fit rounded-2xl border border-cyan/40 bg-primary/15 px-6 py-3 text-center shadow-brand">
+              <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Crown className="h-4 w-4" /></span>
               <p className="font-display text-sm font-bold">{data?.upline.fullName ?? "You"}</p>
               <p className="text-[10px] font-semibold uppercase text-primary">{data?.upline.memberId} · You</p>
               {trainees.length > 0 ? <span className="absolute left-1/2 top-full h-6 w-px bg-primary/30" /> : null}
@@ -203,7 +203,7 @@ function TeamPage() {
       {/* ---------- reserve a seat ---------- */}
       <section id="reserve-seat" className="mt-6 grid scroll-mt-24 gap-4 lg:grid-cols-2">
         <form
-          className="rounded-2xl border border-hairline bg-surface p-6 animate-rise-in"
+          className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in"
           onSubmit={(event) => {
             event.preventDefault();
             create.mutate();
@@ -258,7 +258,7 @@ function TeamPage() {
         </form>
 
         {/* ---------- invite links ---------- */}
-        <section className="rounded-2xl border border-hairline bg-surface p-6 animate-rise-in">
+        <section className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in">
           <SectionTitle className="mb-1">Registration links</SectionTitle>
           <p className="mb-5 text-xs text-muted-foreground">
             Share a link so the person fills their own form. Your member ID stays attached to every
@@ -332,7 +332,7 @@ function TeamPage() {
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="border-l border-hairline pl-4 animate-rise-in">
+    <div className="inset-panel rounded-xl p-4 animate-rise-in">
       <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         <span className="text-brand-glow">{icon}</span>
         {label}
@@ -346,7 +346,7 @@ function TeamNode({ person, index, busy, onStatus }: { person: any; index: numbe
   const progress = person.totalSessions > 0 ? Math.min(100, Math.round((person.sessionsWatched / person.totalSessions) * 100)) : 0;
   return <article className="relative pt-5 sm:pt-7">
     <span className="absolute left-1/2 top-0 h-5 w-px bg-primary/30 sm:h-7" />
-    <div className="rounded-xl border border-hairline bg-background/45 p-4">
+    <div className="glass-panel metal-edge depth-hover rounded-2xl p-4">
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display font-bold text-primary">{person.fullName.slice(0, 1).toUpperCase()}</span>
         <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-bold">{person.fullName}</p><p className="truncate text-[10px] text-muted-foreground">{person.traineeCode} · {person.phone ?? "No phone"}</p></div>

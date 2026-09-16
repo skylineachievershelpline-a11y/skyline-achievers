@@ -113,15 +113,16 @@ export function MemberShell({
   }
 
   return (
-    <div className={cn("relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}>
+    <div className={cn("infographic-grid relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}> 
+      <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
-      <header className="sticky top-0 z-30 border-b border-hairline bg-background/95">
+      <header className="sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-hairline bg-surface text-foreground transition-colors hover:bg-surface-2"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-metal/30 bg-surface text-foreground shadow-glass transition-colors hover:border-cyan/40 hover:bg-surface-2"
           >
             <Menu className="h-4.5 w-4.5" />
           </button>
@@ -140,7 +141,7 @@ export function MemberShell({
 
           <Link
             to="/notifications"
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-surface text-muted-foreground transition-colors hover:text-foreground"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-metal/30 bg-surface text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
             aria-label="Announcements"
           >
             <Bell className="h-4 w-4" />
@@ -164,11 +165,11 @@ export function MemberShell({
           type="button"
           aria-label="Close menu"
           onClick={() => setMenuOpen(false)}
-          className="absolute inset-0 bg-background/80"
+          className="absolute inset-0 bg-background/70 backdrop-blur-sm"
         />
         <aside
           className={cn(
-            "absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl border-r border-hairline bg-card p-5 shadow-lift transition-transform duration-300",
+            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-300",
             menuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >

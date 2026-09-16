@@ -92,7 +92,7 @@ function SessionPage() {
           <div className="animate-rise-in space-y-5">
             <div className="glass-panel-strong overflow-hidden rounded-3xl p-3 sm:p-4">
               <div
-                className={`overflow-hidden rounded-2xl bg-black ${
+                className={`overflow-hidden rounded-2xl bg-media ${
                   RATIO_CLASS[session.aspectRatio] ?? "aspect-video"
                 }`}
               >

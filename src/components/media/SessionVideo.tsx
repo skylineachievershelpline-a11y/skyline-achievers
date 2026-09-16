@@ -36,7 +36,7 @@ export function SessionVideo({
   poster?: string | null;
 }) {
   return (
-    <div className={`overflow-hidden rounded-2xl bg-black ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
+    <div className={`metal-edge overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
       {videoUrl ? (
         isEmbeddable(videoUrl) ? (
           <iframe

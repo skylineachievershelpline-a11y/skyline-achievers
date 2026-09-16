@@ -146,7 +146,7 @@ function ReelCard({
   }, []);
 
   return (
-    <article className="relative snap-start overflow-hidden rounded-3xl border border-hairline bg-black shadow-[var(--shadow-lift)] animate-rise-in">
+    <article className="metal-edge relative snap-start overflow-hidden rounded-3xl border bg-media shadow-lift animate-rise-in">
       {reel.url ? (
         <video
           ref={videoRef}
@@ -156,7 +156,7 @@ function ReelCard({
           muted={muted}
           playsInline
           controlsList="nodownload"
-          className="aspect-[9/16] w-full bg-black object-cover"
+          className="aspect-[9/16] w-full bg-media object-cover"
         />
       ) : (
         <div className="flex aspect-[9/16] w-full items-center justify-center text-sm text-muted-foreground">

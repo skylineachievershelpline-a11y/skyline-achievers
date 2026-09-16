@@ -35,17 +35,24 @@ export function SessionVideo({
   aspectRatio: string;
   poster?: string | null;
 }) {
+  // A cover image is shown until the viewer taps play; embedded players cannot
+  // display a poster themselves, so we overlay it and autoplay on click.
+  const [started, setStarted] = useState(false);
+  const showCover = Boolean(poster) && !started;
+
   return (
-    <div className={`metal-edge overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
+    <div className={`metal-edge relative overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
       {videoUrl ? (
         isEmbeddable(videoUrl) ? (
-          <iframe
-            src={toEmbedUrl(videoUrl)}
-            title={title}
-            allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-            className="h-full w-full border-0"
-          />
+          !showCover ? (
+            <iframe
+              src={appendAutoplay(toEmbedUrl(videoUrl), started)}
+              title={title}
+              allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="h-full w-full border-0"
+            />
+          ) : null
         ) : (
           <video
             src={videoUrl}

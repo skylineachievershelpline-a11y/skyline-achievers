@@ -86,10 +86,10 @@ function AdminPage() {
   const levels = (library.data?.levels ?? []) as any[];
 
   return (
-    <main className="relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
+    <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-6xl">
-        <header className="mb-6 flex items-center justify-between gap-3">
+        <header className="raised-panel mb-6 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
             <BrandLogo size="sm" withWordmark={false} />
             <div>
@@ -118,7 +118,8 @@ function AdminPage() {
             { label: "Series", value: totals?.series ?? 0 },
             { label: "Lectures", value: totals?.lectures ?? 0 },
           ].map((item) => (
-            <div key={item.label} className="glass-panel rounded-3xl p-4 animate-rise-in">
+            <div key={item.label} className="glass-panel metal-edge depth-hover relative overflow-hidden rounded-2xl p-4 animate-rise-in">
+              <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 {item.label}
               </p>
@@ -128,7 +129,7 @@ function AdminPage() {
         </section>
 
         <Tabs defaultValue="members">
-          <TabsList className="rounded-2xl">
+          <TabsList className="w-full rounded-xl">
             <TabsTrigger value="members" className="rounded-xl">
               Members
             </TabsTrigger>

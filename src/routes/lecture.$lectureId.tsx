@@ -108,7 +108,7 @@ function LecturePage() {
 
   return (
     <MemberShell title={lecture.title} subtitle={lecture.series?.title ?? undefined}>
-      <div className="overflow-hidden rounded-3xl border border-hairline bg-black shadow-[var(--shadow-lift)] animate-rise-in">
+      <div className="metal-edge overflow-hidden rounded-3xl border bg-media shadow-lift animate-rise-in">
         {data.playback?.url ? (
           isExternalEmbed ? (
             <div className={`w-full ${frameClass}`}>
@@ -128,7 +128,7 @@ function LecturePage() {
               playsInline
               controlsList="nodownload"
               onTimeUpdate={onTimeUpdate}
-              className={`w-full bg-black ${frameClass}`}
+              className={`w-full bg-media ${frameClass}`}
             />
           )
         ) : (

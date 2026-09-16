@@ -91,7 +91,7 @@ function LandingPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background">
-      <section className="relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline">
+      <section className="relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline shadow-lift">
         <img
           src={skylineBackground}
           alt="Modern glass towers rising into the sky"
@@ -105,7 +105,7 @@ function LandingPage() {
           <BrandLogo size="md" secretGesture />
           <Button
             variant="outline"
-            className="h-10 rounded-lg border-hairline bg-background/55 backdrop-blur-xl"
+            className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"
             onClick={() => setLoginOpen(true)}
           >
             <LogIn className="h-4 w-4" />
@@ -115,7 +115,7 @@ function LandingPage() {
 
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-5 pb-24 pt-12 sm:px-8 lg:px-12">
           <div className="max-w-3xl animate-rise-in">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-hairline bg-background/45 px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-silver backdrop-blur-xl">
+            <div className="metal-edge mb-7 inline-flex items-center gap-2 rounded-xl border bg-background/75 px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-silver shadow-lift backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-brand-glow" />
               {BRAND.tagline}
             </div>
@@ -138,7 +138,7 @@ function LandingPage() {
                 asChild
                 variant="outline"
                 size="xl"
-                className="border-hairline bg-background/35 backdrop-blur-xl sm:min-w-52"
+                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-52"
               >
                 <a href="#about">
                   <Wifi />
@@ -149,7 +149,7 @@ function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 border-t border-hairline bg-background/45 backdrop-blur-xl">
+        <div className="absolute inset-x-0 bottom-0 z-10 border-t border-metal/20 bg-background/85 shadow-[0_-16px_36px_-28px_var(--brand)] backdrop-blur-md">
           <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-hairline px-5 sm:px-8 lg:px-12">
             {TRUST_POINTS.map(({ icon: Icon, title, detail }) => (
               <div
@@ -169,7 +169,7 @@ function LandingPage() {
 
       <IntroductionSection />
 
-      <section id="about" className="relative px-5 py-20 sm:px-8 sm:py-28">
+      <section id="about" className="infographic-grid relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
@@ -187,16 +187,18 @@ function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+            <div className="connector-line absolute left-[12.5%] right-[12.5%] top-11 hidden h-px lg:block" aria-hidden />
             {HOW_IT_WORKS.map(({ icon: Icon, title, detail }, index) => (
               <article
                 key={title}
-                className="glass-panel rounded-2xl p-6 animate-rise-in"
+                className={`glass-panel metal-edge depth-hover relative rounded-2xl p-5 pt-16 animate-rise-in ${index % 2 === 1 ? "lg:mt-12" : ""}`}
                 style={{ animationDelay: `${index * 70}ms` }}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/15 text-brand-glow">
+                <span className="absolute -top-3 left-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
                   <Icon className="h-4.5 w-4.5" />
                 </span>
+                <span className="absolute right-4 top-4 font-display text-xs font-bold text-metal">0{index + 1}</span>
                 <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
               </article>
@@ -220,7 +222,7 @@ function LandingPage() {
       <WhatsappJoinCard variant="chip" />
 
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-        <DialogContent className="rounded-2xl border-hairline p-0 sm:max-w-md">
+        <DialogContent className="metal-edge rounded-2xl p-0 sm:max-w-md">
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="font-display text-xl">Member login</DialogTitle>
           </DialogHeader>

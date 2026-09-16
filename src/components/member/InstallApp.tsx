@@ -39,7 +39,7 @@ export function InstallApp() {
 
   if (installed) {
     return (
-      <div className="glass-panel rounded-3xl p-5">
+      <div className="glass-panel metal-edge rounded-2xl p-5">
         <p className="flex items-center gap-2 text-sm font-semibold">
           <Smartphone className="h-4 w-4 text-brand-glow" /> App installed
         </p>
@@ -51,7 +51,7 @@ export function InstallApp() {
   }
 
   return (
-    <div className="glass-panel rounded-3xl p-5">
+    <div className="glass-panel metal-edge rounded-2xl p-5">
       <p className="flex items-center gap-2 text-sm font-semibold">
         <Smartphone className="h-4 w-4 text-brand-glow" /> Install the app
       </p>

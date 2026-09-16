@@ -113,16 +113,16 @@ export function MemberShell({
   }
 
   return (
-    <div className={cn("relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}>
+    <div className={cn("infographic-grid relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}> 
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
-      <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-hairline bg-glass text-foreground transition-colors hover:bg-glass-strong"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-metal/30 bg-surface text-foreground shadow-glass transition-colors hover:border-cyan/40 hover:bg-surface-2"
           >
             <Menu className="h-4.5 w-4.5" />
           </button>
@@ -141,7 +141,7 @@ export function MemberShell({
 
           <Link
             to="/notifications"
-            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground transition-colors hover:text-foreground"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-metal/30 bg-surface text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
             aria-label="Announcements"
           >
             <Bell className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function MemberShell({
         />
         <aside
           className={cn(
-            "glass-panel-strong absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-[28px] p-5 transition-transform duration-300",
+            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-300",
             menuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
@@ -191,10 +191,10 @@ export function MemberShell({
                 key={item.to}
                 to={item.to}
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-glass hover:text-foreground"
+                 className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
                 activeProps={{
                   className:
-                    "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm bg-glass-strong text-foreground",
+                    "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
                 }}
               >
                 <item.icon className="h-4.5 w-4.5 text-brand-glow" />

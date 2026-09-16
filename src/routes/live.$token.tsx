@@ -145,15 +145,15 @@ function PremierePage() {
           <div className="animate-rise-in space-y-5">
             <div className="glass-panel-strong overflow-hidden rounded-3xl p-3 sm:p-4">
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex items-center gap-1.5 rounded-full bg-destructive px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live
+                <span className="flex items-center gap-1.5 rounded-xl border border-cyan/30 bg-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-brand">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan" /> Live
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   {formatClock(elapsedSeconds)} into the session
                 </span>
               </div>
               <div
-                className={`overflow-hidden rounded-2xl bg-black ${
+                 className={`overflow-hidden rounded-2xl bg-media ${
                   RATIO_CLASS[premiere.aspectRatio] ?? "aspect-video"
                 }`}
               >
@@ -232,7 +232,7 @@ function Countdown({
     <div className="animate-rise-in space-y-5">
       <div className="glass-panel-strong overflow-hidden rounded-3xl p-3 sm:p-4">
         <div
-          className={`relative overflow-hidden rounded-2xl bg-black ${
+           className={`relative overflow-hidden rounded-2xl bg-media ${
             RATIO_CLASS[aspectRatio] ?? "aspect-video"
           }`}
         >
@@ -244,14 +244,14 @@ function Countdown({
             />
           ) : null}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/70">Premiere starts in</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-silver">Premiere starts in</p>
             <div className="flex items-end gap-3 sm:gap-5">
               {parts.map((part) => (
                 <div key={part.label} className="min-w-14">
-                  <p className="font-display text-3xl font-semibold tabular-nums text-white sm:text-5xl">
+                  <p className="font-display text-3xl font-semibold tabular-nums text-foreground sm:text-5xl">
                     {String(part.value).padStart(2, "0")}
                   </p>
-                  <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/60">
+                  <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                     {part.label}
                   </p>
                 </div>
@@ -417,7 +417,7 @@ function LivePlayer({
             void videoRef.current?.play().catch(() => undefined);
           }}
           aria-label={muted ? "Unmute" : "Mute"}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-transform hover:scale-105"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-metal/30 bg-media/80 text-foreground backdrop-blur transition-transform hover:-translate-y-0.5"
         >
           {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </Button>
@@ -427,7 +427,7 @@ function LivePlayer({
           size="icon"
           onClick={() => void videoRef.current?.requestFullscreen?.()}
           aria-label="Fullscreen"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-transform hover:scale-105"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-metal/30 bg-media/80 text-foreground backdrop-blur transition-transform hover:-translate-y-0.5"
         >
           <Maximize2 className="h-4 w-4" />
         </Button>

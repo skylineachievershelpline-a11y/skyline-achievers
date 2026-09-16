@@ -85,7 +85,7 @@ export function MemberLoginCard() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl p-4 sm:p-6">
+    <form onSubmit={onSubmit} className="rounded-2xl bg-card p-4 sm:p-6">
       <div className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
         <LockKeyhole className="h-3.5 w-3.5" />
         Members only
@@ -101,7 +101,7 @@ export function MemberLoginCard() {
             placeholder="SKA-12345"
             value={memberId}
             onChange={(e) => setMemberId(e.target.value.toUpperCase())}
-            className="h-13 rounded-lg bg-background/35 text-base tracking-wider"
+            className="h-13 rounded-lg text-base tracking-wider"
           />
         </div>
 
@@ -115,7 +115,7 @@ export function MemberLoginCard() {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-13 rounded-lg bg-background/35 pr-12 text-base"
+              className="h-13 rounded-lg pr-12 text-base"
             />
             <button
               type="button"

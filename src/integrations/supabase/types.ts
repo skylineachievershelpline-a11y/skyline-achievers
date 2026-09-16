@@ -306,6 +306,117 @@ export type Database = {
           },
         ]
       }
+      landing_intro: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      landing_quotes: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          quote_text: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          quote_text: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          quote_text?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      landing_reviews: {
+        Row: {
+          created_at: string
+          designation: string | null
+          id: string
+          is_active: boolean
+          person_name: string
+          photo_path: string | null
+          rating: number | null
+          review_text: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          designation?: string | null
+          id?: string
+          is_active?: boolean
+          person_name: string
+          photo_path?: string | null
+          rating?: number | null
+          review_text: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          designation?: string | null
+          id?: string
+          is_active?: boolean
+          person_name?: string
+          photo_path?: string | null
+          rating?: number | null
+          review_text?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lectures: {
         Row: {
           aspect_ratio: string

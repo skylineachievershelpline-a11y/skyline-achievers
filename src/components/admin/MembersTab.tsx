@@ -66,6 +66,18 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteMember({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Member deleted");
+      void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
+
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
 

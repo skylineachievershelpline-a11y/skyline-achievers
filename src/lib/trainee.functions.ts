@@ -219,9 +219,6 @@ export const playTraineeSession = createServerFn({ method: "POST" })
       .select("id, title, video_source, video_path, video_url, aspect_ratio")
       .eq("id", data.sessionId)
       .maybeSingle();
-    if (!row || !row.is_published === undefined) {
-      /* fall through: row shape checked below */
-    }
     if (!row) return { status: "invalid" as const };
 
     const videoUrl =

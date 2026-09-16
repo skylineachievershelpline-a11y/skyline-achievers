@@ -111,7 +111,7 @@ export function MemberShell({
   }
 
   return (
-    <div className="relative min-h-screen pb-10">
+    <div className="member-workspace relative min-h-screen bg-background pb-10 text-foreground">
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/70 backdrop-blur-xl">

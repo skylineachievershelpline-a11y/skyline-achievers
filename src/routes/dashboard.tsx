@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Loader2, Sparkles, Target, Trophy } from "lucide-react";
+import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { EmptyState, LevelCard } from "@/components/member/cards";
+import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
@@ -62,64 +62,95 @@ function DashboardPage() {
   }
 
   const member = data.member;
+  const totalContent = data.levels.reduce(
+    (sum: number, level: any) => sum + (level.series_count ?? 0) + (level.lecture_count ?? 0),
+    0,
+  );
+  const watchedSeconds = data.continueWatching.reduce(
+    (sum: number, lecture: any) => sum + Math.min(lecture.position_seconds ?? 0, lecture.duration_seconds ?? 0),
+    0,
+  );
+  const availableSeconds = data.continueWatching.reduce(
+    (sum: number, lecture: any) => sum + (lecture.duration_seconds ?? 0),
+    0,
+  );
+  const progress = availableSeconds > 0 ? Math.round((watchedSeconds / availableSeconds) * 100) : 0;
 
   return (
     <MemberShell
       title={member?.fullName ?? "Member"}
       subtitle={`${member?.memberId ?? ""} · ${member?.level?.name ?? "Level not assigned"}`}
     >
-      {/* ---------- bento grid ---------- */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* profile card */}
-        <section className="glass-panel-strong relative overflow-hidden rounded-[28px] p-6 animate-rise-in lg:col-span-2">
-          <div
-            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/25 blur-3xl animate-glow"
-            aria-hidden
-          />
-          <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+      <div className="grid gap-5 lg:grid-cols-12">
+        <aside className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift animate-rise-in lg:col-span-4">
+          <div className="h-24 bg-primary" />
+          <div className="-mt-12 px-5 pb-6 text-center">
             <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-brand-glow">
-                {BRAND.name} member
-              </p>
-              <h1 className="mt-1 truncate font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                {member?.fullName ?? "Member"}
-              </h1>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Tap the photo to change your profile picture.
-              </p>
+            <p className="mt-4 text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
+            <h1 className="mt-1 break-words font-display text-2xl font-bold">{member?.fullName ?? "Member"}</h1>
+            <span className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {member?.level?.name ?? "Level not assigned"}
+            </span>
+            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-5 text-left">
+              <ProfileDetail label="Member ID" value={member?.memberId ?? "—"} />
+              <ProfileDetail label="Joined" value={member ? formatDate(member.createdAt) : "—"} />
+              <ProfileDetail label="Last active" value={member?.lastLoginAt ? formatDate(member.lastLoginAt) : "Today"} />
+              <ProfileDetail label="Status" value="Active" />
+            </div>
+          </div>
+        </aside>
+
+        <section className="space-y-4 lg:col-span-8">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-glass animate-rise-in [animation-delay:70ms]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Training overview</p>
+                <h2 className="mt-1 font-display text-xl font-bold">Your learning momentum</h2>
+              </div>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Activity className="h-5 w-5" /></span>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Metric icon={<Layers3 />} label="Levels" value={data.levels.length} tone="primary" />
+              <Metric icon={<BookOpen />} label="Content" value={totalContent} tone="success" />
+              <Metric icon={<Sparkles />} label="My series" value={data.mySeries.length} tone="warning" />
+              <Metric icon={<Clock3 />} label="In progress" value={data.continueWatching.length} tone="accent" />
+            </div>
+            <div className="mt-5">
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className="font-semibold">Current watch progress</span>
+                <span className="font-bold text-primary">{progress}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${progress}%` }} />
+              </div>
             </div>
           </div>
 
-          <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Stat icon={<Trophy className="h-4 w-4" />} label="Rank" value={member?.level?.name ?? "Unranked"} />
-            <Stat icon={<Target className="h-4 w-4" />} label="Member ID" value={member?.memberId ?? "—"} />
-            <Stat
-              icon={<Sparkles className="h-4 w-4" />}
-              label="Joined"
-              value={member ? formatDate(member.createdAt) : "—"}
-            />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
+            <Stat icon={<Target />} label="Available paths" value={String(data.levels.length)} />
+            <Stat icon={<BookOpen />} label="Series ready" value={String(data.mySeries.length)} className="col-span-2 sm:col-span-1" />
           </div>
-        </section>
-
-        {/* about card */}
-        <section className="glass-panel rounded-[28px] p-6 animate-rise-in [animation-delay:80ms]">
-          <SectionTitle className="mb-2">About {BRAND.name}</SectionTitle>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {BRAND.name} is a rank-based training academy for people who want to grow fast and lead
-            with confidence. Every level unlocks the next stage of your journey — from beginner steps
-            and personal mentorship all the way to full management training.
-          </p>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            Your rank decides what you can watch. Move up, and the next library opens automatically.
-          </p>
-          <p className="mt-4 font-display text-sm font-semibold brand-text">{BRAND.tagline}</p>
         </section>
       </div>
 
       <div className="mt-6">
         <DailyInspiration />
       </div>
+
+      {data.continueWatching.length > 0 ? (
+        <section className="mt-7">
+          <SectionTitle>Continue your progress</SectionTitle>
+          <Rail>{data.continueWatching.map((lecture: any) => <LectureCard key={lecture.id} lecture={lecture} resume />)}</Rail>
+        </section>
+      ) : null}
+
+      {data.mySeries.length > 0 ? (
+        <section className="mt-7">
+          <SectionTitle>Your current series</SectionTitle>
+          <Rail>{data.mySeries.map((series: any) => <SeriesCard key={series.id} series={series} />)}</Rail>
+        </section>
+      ) : null}
 
       {/* ---------- levels: the only way into the videos ---------- */}
       <section className="mt-6">
@@ -158,20 +189,31 @@ function Stat({
   icon,
   label,
   value,
+  className,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  className?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-hairline bg-glass p-3.5 transition-transform duration-300 hover:-translate-y-0.5">
+    <div className={`rounded-2xl border border-border bg-card p-4 shadow-glass transition-transform duration-300 hover:-translate-y-0.5 ${className ?? ""}`}>
       <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <span className="text-brand-glow">{icon}</span>
+        <span className="text-primary [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
         {label}
       </span>
       <p className="mt-1.5 truncate font-display text-base font-semibold">{value}</p>
     </div>
   );
+}
+
+function ProfileDetail({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-0"><p className="text-[9px] font-bold uppercase text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold">{value}</p></div>;
+}
+
+function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "success" | "warning" | "accent" }) {
+  const tones = { primary: "bg-primary/10 text-primary", success: "bg-success/10 text-success", warning: "bg-warning/15 text-warning", accent: "bg-accent text-accent-foreground" };
+  return <div className="rounded-xl border border-border bg-background p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
 }
 
 function AvatarUploader({ name, url }: { name: string; url: string | null }) {
@@ -207,10 +249,11 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
   const shown = preview ?? url;
 
   return (
-    <button
+    <Button
+      variant="ghost"
       type="button"
       onClick={() => inputRef.current?.click()}
-      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-hairline bg-surface-2 shadow-[var(--shadow-brand)] transition-transform duration-300 hover:scale-105"
+      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-muted p-0 shadow-lift transition-transform duration-300 hover:scale-105"
       aria-label="Upload profile picture"
     >
       {shown ? (
@@ -240,6 +283,6 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
           event.target.value = "";
         }}
       />
-    </button>
+    </Button>
   );
 }

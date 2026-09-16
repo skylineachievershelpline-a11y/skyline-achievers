@@ -171,6 +171,31 @@
   color-scheme: dark;
 }
 
+.member-workspace {
+  --background: oklch(0.97 0.008 250);
+  --foreground: oklch(0.22 0.025 255);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.94 0.012 250);
+  --glass: oklch(1 0 0 / 82%);
+  --glass-strong: oklch(1 0 0 / 96%);
+  --hairline: oklch(0.88 0.016 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.025 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.025 255);
+  --secondary: oklch(0.94 0.018 250);
+  --secondary-foreground: oklch(0.3 0.04 255);
+  --muted: oklch(0.94 0.012 250);
+  --muted-foreground: oklch(0.52 0.025 255);
+  --accent: oklch(0.94 0.025 245);
+  --accent-foreground: oklch(0.35 0.11 255);
+  --border: oklch(0.89 0.014 250);
+  --input: oklch(0.86 0.018 250);
+  --shadow-glass: 0 8px 24px -18px oklch(0.28 0.05 255 / 28%);
+  --shadow-lift: 0 20px 45px -28px oklch(0.26 0.06 255 / 35%);
+  color-scheme: light;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

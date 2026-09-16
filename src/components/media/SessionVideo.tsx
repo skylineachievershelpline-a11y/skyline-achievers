@@ -1,3 +1,6 @@
+import { Play } from "lucide-react";
+import { useState } from "react";
+
 export const RATIO_CLASS: Record<string, string> = {
   "16:9": "aspect-video",
   "9:16": "aspect-[9/16] mx-auto max-h-[78vh] w-auto",

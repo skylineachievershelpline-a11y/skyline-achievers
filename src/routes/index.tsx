@@ -12,6 +12,7 @@ import {
   Users,
   Wifi,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 
 import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BeginnersRouteImport } from './routes/beginners'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as LevelsRouteImport } from './routes/levels'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const BeginnersRoute = BeginnersRouteImport.update({
   id: '/beginners',
   path: '/beginners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -128,6 +134,7 @@ const TestTokenRoute = TestTokenRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
+  '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
+  '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
+  '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/final-test': typeof FinalTestRoute
   '/levels': typeof LevelsRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/beginners'
+    | '/chat'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/beginners'
+    | '/chat'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/beginners'
+    | '/chat'
     | '/dashboard'
     | '/final-test'
     | '/levels'
@@ -258,6 +270,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BeginnersRoute: typeof BeginnersRoute
+  ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
   FinalTestRoute: typeof FinalTestRoute
   LevelsRoute: typeof LevelsRoute
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/beginners'
       fullPath: '/beginners'
       preLoaderRoute: typeof BeginnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -418,6 +438,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BeginnersRoute: BeginnersRoute,
+  ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
   FinalTestRoute: FinalTestRoute,
   LevelsRoute: LevelsRoute,

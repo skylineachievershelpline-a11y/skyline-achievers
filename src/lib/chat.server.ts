@@ -107,11 +107,13 @@ export async function listChatPeers(identity: ChatIdentity): Promise<ChatPeer[]>
   }));
 }
 
-export async function assertPeerAllowed(identity: ChatIdentity, peerId: string): Promise<ChatPeer> {
+/** Null when this conversation is no longer allowed (upline changed, trainee removed, etc.). */
+export async function findChatPeer(
+  identity: ChatIdentity,
+  peerId: string,
+): Promise<ChatPeer | null> {
   const peers = await listChatPeers(identity);
-  const peer = peers.find((entry) => entry.id === peerId);
-  if (!peer) throw new Error("You can only chat with your own upline or trainees.");
-  return peer;
+  return peers.find((entry) => entry.id === peerId) ?? null;
 }
 
 /** Does this person want their picture visible in chat? */

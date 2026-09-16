@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { WhatsappJoinCard } from "@/components/whatsapp/WhatsappJoinCard";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
+import { getSessionRole } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({

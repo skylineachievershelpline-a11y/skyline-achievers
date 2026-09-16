@@ -64,6 +64,7 @@ function JoinPage() {
         return;
       }
       setCard(result.credentials as Credentials);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error: Error) => toast.error(error.message),
   });

@@ -106,14 +106,15 @@ export const chatThread = createServerFn({ method: "POST" })
   .inputValidator((data: { peerId: string }) => z.object({ peerId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveChatIdentity, assertPeerAllowed, chatShowsAvatar, CHAT_BUCKET } = await import(
+    const { resolveChatIdentity, findChatPeer, chatShowsAvatar, CHAT_BUCKET } = await import(
       "./chat.server"
     );
     const { signPath, AVATAR_BUCKET } = await import("./storage.server");
 
     const identity = await resolveChatIdentity(context.userId);
     if (!identity) return { status: "unavailable" as const };
-    const peer = await assertPeerAllowed(identity, data.peerId);
+    const peer = await findChatPeer(identity, data.peerId);
+    if (!peer) return { status: "unavailable" as const };
 
     const nowIso = new Date().toISOString();
     await supabaseAdmin

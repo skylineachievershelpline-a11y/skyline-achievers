@@ -45,15 +45,27 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
   const { data: generated, error: idError } = await supabaseAdmin.rpc("generate_trainee_id");
   if (idError || !generated) throw new Error("Could not generate a Skyline ID. Please try again.");
   const traineeCode = generated as string;
-  const password = traineePassword(input.fullName, input.phone);
+  let password = traineePassword(input.fullName, input.phone);
 
-  const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  let attempt = await supabaseAdmin.auth.admin.createUser({
     email: memberIdToAuthEmail(traineeCode),
     password,
     email_confirm: true,
     user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
   });
-  if (authError || !created.user) {
+  // Some name/number combinations land in the leaked-password list; add a small
+  // random tail so the person still gets a working, simple password.
+  if (attempt.error && /weak|easy to guess|pwned/i.test(attempt.error.message)) {
+    password = `${password}${Math.floor(Math.random() * 90 + 10)}`;
+    attempt = await supabaseAdmin.auth.admin.createUser({
+      email: memberIdToAuthEmail(traineeCode),
+      password,
+      email_confirm: true,
+      user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
+    });
+  }
+  const { data: created, error: authError } = attempt;
+  if (authError || !created?.user) {
     throw new Error(authError?.message ?? "Could not create the account.");
   }
 

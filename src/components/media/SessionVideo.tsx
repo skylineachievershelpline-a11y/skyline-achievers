@@ -1,3 +1,6 @@
+import { Play } from "lucide-react";
+import { useState } from "react";
+
 export const RATIO_CLASS: Record<string, string> = {
   "16:9": "aspect-video",
   "9:16": "aspect-[9/16] mx-auto max-h-[78vh] w-auto",
@@ -23,6 +26,11 @@ export function toEmbedUrl(url: string): string {
   return url;
 }
 
+function appendAutoplay(url: string, autoplay: boolean): string {
+  if (!autoplay) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}autoplay=1`;
+}
+
 /** Plays an uploaded or linked training video in the configured shape. */
 export function SessionVideo({
   title,
@@ -35,17 +43,24 @@ export function SessionVideo({
   aspectRatio: string;
   poster?: string | null;
 }) {
+  // A cover image is shown until the viewer taps play; embedded players cannot
+  // display a poster themselves, so we overlay it and autoplay on click.
+  const [started, setStarted] = useState(false);
+  const showCover = Boolean(poster) && !started;
+
   return (
-    <div className={`metal-edge overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
+    <div className={`metal-edge relative overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
       {videoUrl ? (
         isEmbeddable(videoUrl) ? (
-          <iframe
-            src={toEmbedUrl(videoUrl)}
-            title={title}
-            allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-            className="h-full w-full border-0"
-          />
+          !showCover ? (
+            <iframe
+              src={appendAutoplay(toEmbedUrl(videoUrl), started)}
+              title={title}
+              allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="h-full w-full border-0"
+            />
+          ) : null
         ) : (
           <video
             src={videoUrl}
@@ -61,6 +76,26 @@ export function SessionVideo({
           Video unavailable
         </div>
       )}
+
+      {videoUrl && showCover && isEmbeddable(videoUrl) ? (
+        <button
+          type="button"
+          onClick={() => setStarted(true)}
+          aria-label={`Play ${title}`}
+          className="absolute inset-0 h-full w-full"
+        >
+          <img
+            src={poster!}
+            alt={title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+          <span className="absolute inset-0 bg-media/35" aria-hidden />
+          <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-cyan/40 bg-primary/90 text-primary-foreground shadow-brand">
+            <Play className="ml-0.5 h-6 w-6" />
+          </span>
+        </button>
+      ) : null}
     </div>
   );
 }

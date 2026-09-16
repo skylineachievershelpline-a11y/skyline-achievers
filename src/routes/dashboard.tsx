@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
@@ -11,9 +11,15 @@ import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getAvatarUploadUrl, getDashboard, saveAvatar } from "@/lib/member.functions";
+import {
+  getAvatarUploadUrl,
+  getDashboard,
+  getSessionRole,
+  saveAvatar,
+} from "@/lib/member.functions";
 import { putWithProgress } from "@/lib/upload-progress";
 
 export const Route = createFileRoute("/dashboard")({
@@ -52,14 +58,7 @@ function DashboardPage() {
   }
 
   if (!data || data.blocked) {
-    return (
-      <MemberShell title="Access paused">
-        <EmptyState
-          title="Your membership is not active"
-          hint="Please contact your Skyline Achievers administrator."
-        />
-      </MemberShell>
-    );
+    return <NoMemberAccess hasProfile={Boolean(data?.member)} />;
   }
 
   const member = data.member;
@@ -286,5 +285,65 @@ function AvatarUploader({ name, url }: { name: string; url: string | null }) {
         }}
       />
     </Button>
+  );
+}
+
+/**
+ * Signed in, but this account is not an active member: no member menu here.
+ * Trainees are sent to their own dashboard, unknown accounts back to the landing page.
+ */
+function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
+  const navigate = useNavigate();
+  const resolveRole = useServerFn(getSessionRole);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (hasProfile) return;
+    let active = true;
+    void resolveRole()
+      .catch(() => null)
+      .then(async (role) => {
+        if (!active) return;
+        if (role?.role === "trainee") {
+          await navigate({ to: "/beginners", replace: true });
+          return;
+        }
+        await queryClient.cancelQueries();
+        queryClient.clear();
+        await supabase.auth.signOut();
+        await navigate({ to: "/", replace: true });
+      });
+    return () => {
+      active = false;
+    };
+  }, [hasProfile, navigate, queryClient, resolveRole]);
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    await navigate({ to: "/", replace: true });
+  }
+
+  if (!hasProfile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+      </div>
+    );
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center px-5">
+      <div className="raised-panel w-full max-w-md rounded-3xl p-8 text-center">
+        <h1 className="text-lg font-semibold">Your membership is not active</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Please contact your {BRAND.name} administrator.
+        </p>
+        <Button className="mt-6 w-full" onClick={() => void signOut()}>
+          Back to home
+        </Button>
+      </div>
+    </main>
   );
 }

@@ -3,6 +3,33 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+/** Which screen does this signed-in account belong to? */
+export const getSessionRole = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: member } = await supabaseAdmin
+      .from("member_profiles")
+      .select("id, status")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (member) {
+      return { role: "member" as const, active: member.status === "active" };
+    }
+
+    const { data: trainee } = await supabaseAdmin
+      .from("trainees")
+      .select("id, status")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (trainee) {
+      return { role: "trainee" as const, active: trainee.status === "active" };
+    }
+
+    return { role: "none" as const, active: false };
+  });
+
 export const getMemberSession = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

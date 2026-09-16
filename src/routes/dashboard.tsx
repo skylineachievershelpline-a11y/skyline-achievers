@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState, LectureCard, LevelCard, Rail, SeriesCard } from "@/components/member/cards";
@@ -11,9 +11,15 @@ import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getAvatarUploadUrl, getDashboard, saveAvatar } from "@/lib/member.functions";
+import {
+  getAvatarUploadUrl,
+  getDashboard,
+  getSessionRole,
+  saveAvatar,
+} from "@/lib/member.functions";
 import { putWithProgress } from "@/lib/upload-progress";
 
 export const Route = createFileRoute("/dashboard")({

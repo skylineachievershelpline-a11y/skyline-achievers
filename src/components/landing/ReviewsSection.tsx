@@ -24,21 +24,14 @@ import { getLandingReviews } from "@/lib/landing.functions";
  * administrator approves it in the admin panel.
  */
 export function ReviewsSection() {
-  const { data, isPending } = useQuery({
+  const loadReviews = useServerFn(getLandingReviews);
+  const { data: result, isPending } = useQuery({
     queryKey: ["landing-reviews"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("landing_reviews")
-        .select("id, person_name, designation, review_text, rating")
-        .eq("status", "approved")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(12);
-      if (error) throw new Error(error.message);
-      return (data ?? []) as Review[];
-    },
+    queryFn: () => loadReviews(),
+    retry: false,
   });
+  const data = result?.reviews;
+
 
   return (
     <section id="reviews" className="px-5 py-20 sm:px-8 sm:py-28">

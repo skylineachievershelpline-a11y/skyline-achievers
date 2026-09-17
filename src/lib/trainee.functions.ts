@@ -229,29 +229,8 @@ export const playTraineeSession = createServerFn({ method: "POST" })
         ? row.video_url
         : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
 
-    const { data: extraRows } = await (supabaseAdmin as any)
-      .from("beginner_session_extras")
-      .select(
-        "id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order",
-      )
-      .eq("session_id", data.sessionId)
-      .eq("is_published", true)
-      .order("sort_order", { ascending: true });
-
-    const extras = await Promise.all(
-      (extraRows ?? []).map(async (extra: any) => ({
-        id: extra.id as string,
-        title: extra.title as string,
-        description: (extra.description ?? null) as string | null,
-        aspectRatio: (extra.aspect_ratio ?? "16:9") as string,
-        isExternal: extra.video_source === "external",
-        videoUrl:
-          extra.video_source === "external" && extra.video_url
-            ? (extra.video_url as string)
-            : await signPath(VIDEO_BUCKET, extra.video_path, 60 * 60 * 4),
-        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, extra.thumbnail_path, 60 * 60 * 4),
-      })),
-    );
+    const { loadSessionExtras } = await import("./session-extras.server");
+    const extras = await loadSessionExtras(supabaseAdmin, data.sessionId);
 
     return {
       status: "ok" as const,

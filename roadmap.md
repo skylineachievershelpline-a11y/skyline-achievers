@@ -58,7 +58,7 @@
 - [x] Mobile and desktop verification
 
 ## Compact team tables
-- [ ] Replace the oversized member team tree with the selected compact hierarchy table
-- [ ] Restyle the admin member list into the same compact table system
-- [ ] Add member search, filters, selection, and bulk actions to both views
-- [ ] Verify desktop and phone layouts
+- [x] Replace the oversized member team tree with the selected compact hierarchy table
+- [x] Restyle the admin member list into the same compact table system
+- [x] Add member search, filters, selection, and bulk actions to both views
+- [x] Verify desktop and phone layouts

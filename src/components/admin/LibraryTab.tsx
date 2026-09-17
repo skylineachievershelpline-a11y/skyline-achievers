@@ -14,15 +14,24 @@ import { videoDurationSeconds } from "@/components/admin/upload";
 import {
   adminCreateUploadUrl,
   adminDeleteContent,
+  adminDeleteTrainingCategory,
   adminGetLibrary,
   adminSaveLecture,
   adminSaveResource,
+  adminSaveTrainingCategory,
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { startUpload } from "@/lib/upload-manager";
 
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
 type Level = { id: string; name: string; rank_order: number };
+type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_published: boolean;
+};
 
 const fieldClass =
   "h-11 w-full rounded-2xl border border-border bg-input px-3 text-sm text-foreground";
@@ -32,6 +41,7 @@ type VideoValues = {
   id?: string;
   levelId: string;
   levelIds: string[];
+  categoryId: string;
   title: string;
   description: string;
   sortOrder: number;
@@ -39,6 +49,14 @@ type VideoValues = {
   videoUrl: string;
   videoFile: File | null;
   thumbnail: File | null;
+};
+
+type CategoryValues = {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+  isPublished: boolean;
 };
 
 export function LibraryTab() {

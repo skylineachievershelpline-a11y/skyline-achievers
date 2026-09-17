@@ -41,6 +41,7 @@ export const Route = createFileRoute("/reels")({
 
 function ReelsPage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getReels);
   const remove = useServerFn(deleteReel);
@@ -61,6 +62,14 @@ function ReelsPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  if (trainingOnly) {
+    return (
+      <MemberShell title="Reels">
+        <TrainingOnlyLock area="Reels" />
+      </MemberShell>
+    );
+  }
 
   if (!ready || isPending) {
     return (

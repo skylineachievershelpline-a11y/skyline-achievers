@@ -64,6 +64,7 @@ export const Route = createFileRoute("/team")({
 
 function TeamPage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getMyTeam);
   const reserve = useServerFn(reserveSeat);
@@ -149,6 +150,14 @@ function TeamPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  if (trainingOnly) {
+    return (
+      <MemberShell title="My Team" executive>
+        <TrainingOnlyLock area="My Team & Seats" />
+      </MemberShell>
+    );
+  }
 
   if (!ready || isPending) {
     return (

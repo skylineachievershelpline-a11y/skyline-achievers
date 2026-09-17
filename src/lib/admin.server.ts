@@ -203,19 +203,31 @@ export async function adminResetMemberPassword(id: string, newPassword: string |
 }
 
 export async function adminLibrary() {
-  const [{ data: levels }, { data: lectures }, { data: resources }, { data: access }] =
-    await Promise.all([
-      supabaseAdmin.from("levels").select("*").order("rank_order"),
-      supabaseAdmin
-        .from("lectures")
-        .select("*, levels:level_id (id, name, rank_order)")
-        .order("sort_order"),
-      supabaseAdmin
-        .from("resources")
-        .select("*, lectures:lecture_id (id, title)")
-        .order("created_at", { ascending: false }),
-      supabaseAdmin.from("content_access").select("content_id, level_id").eq("content_type", "lecture"),
-    ]);
+  const [
+    { data: levels },
+    { data: lectures },
+    { data: resources },
+    { data: access },
+    { data: categories },
+  ] = await Promise.all([
+    supabaseAdmin.from("levels").select("*").order("rank_order"),
+    supabaseAdmin
+      .from("lectures")
+      .select("*, levels:level_id (id, name, rank_order)")
+      .order("sort_order"),
+    supabaseAdmin
+      .from("resources")
+      .select("*, lectures:lecture_id (id, title)")
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("content_access")
+      .select("content_id, level_id")
+      .eq("content_type", "lecture"),
+    (supabaseAdmin as any)
+      .from("training_categories")
+      .select("id, name, slug, description, sort_order, is_published")
+      .order("sort_order"),
+  ]);
 
   // Which levels can watch each video.
   const accessMap: Record<string, string[]> = {};
@@ -225,6 +237,14 @@ export async function adminLibrary() {
 
   return {
     levels: levels ?? [],
+    categories: (categories ?? []) as {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      sort_order: number;
+      is_published: boolean;
+    }[],
     lectures: await signThumbnails(lectures ?? []),
     resources: resources ?? [],
     access: accessMap,

@@ -135,8 +135,18 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   // Register the service worker so the site can be installed as an app.
+  // Never in the editor preview / iframe: browsers block install there and
+  // stale caches would keep serving old builds.
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+    if (isPreviewContext() || !import.meta.env.PROD) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          if (registration.active?.scriptURL.endsWith("/sw.js")) void registration.unregister();
+        });
+      });
+      return;
+    }
     const register = () => {
       void navigator.serviceWorker.register("/sw.js").catch(() => {
         /* installability is optional; ignore registration failures */

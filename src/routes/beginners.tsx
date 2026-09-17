@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronRight,
   KeyRound,
   Loader2,
   Lock,
@@ -425,6 +426,29 @@ function BeginnersPage() {
           </section>
         ) : (
           <>
+            {/* ---------- chat with upline ---------- */}
+            <section className="raised-panel metal-edge mt-6 rounded-[28px] p-2 animate-rise-in">
+              <Link
+                to="/chat"
+                className="flex items-center gap-4 rounded-[24px] p-4 transition-colors hover:bg-surface-2/60"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan/30 bg-primary/15 text-brand-glow shadow-brand">
+                  <MessageCircle className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-display text-base font-semibold tracking-tight">
+                    {trainee.upline
+                      ? `Chat with ${trainee.upline.fullName}`
+                      : "Chat with your Upline"}
+                  </span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    Message, picture ya file — apne upline se seedha baat karein.
+                  </span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </Link>
+            </section>
+
             <div className="mt-6">
               <DailyInspiration />
             </div>

@@ -58,7 +58,7 @@ export async function adminMembers(input: {
   let query = supabaseAdmin
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, age, email, phone, status, created_at, last_login_at, level_id, levels:level_id (id, name, rank_order)",
+      "id, member_id, full_name, age, email, phone, status, working_enabled, created_at, last_login_at, level_id, levels:level_id (id, name, rank_order)",
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -100,6 +100,7 @@ export async function adminCreateMember(input: {
   phone: string | null;
   levelId: string;
   status: string;
+  workingEnabled: boolean;
 }) {
   const { data: level } = await supabaseAdmin
     .from("levels")
@@ -133,6 +134,7 @@ export async function adminCreateMember(input: {
     phone: input.phone,
     level_id: input.levelId,
     status: input.status,
+    working_enabled: input.workingEnabled,
   });
   if (profileError) {
     await supabaseAdmin.auth.admin.deleteUser(created.user.id);

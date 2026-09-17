@@ -851,6 +851,7 @@ export type Database = {
           avatar_path: string | null
           cnic: string | null
           created_at: string
+          dashboard_cover_path: string | null
           email: string | null
           full_name: string
           id: string
@@ -868,6 +869,7 @@ export type Database = {
           avatar_path?: string | null
           cnic?: string | null
           created_at?: string
+          dashboard_cover_path?: string | null
           email?: string | null
           full_name: string
           id: string
@@ -885,6 +887,7 @@ export type Database = {
           avatar_path?: string | null
           cnic?: string | null
           created_at?: string
+          dashboard_cover_path?: string | null
           email?: string | null
           full_name?: string
           id?: string

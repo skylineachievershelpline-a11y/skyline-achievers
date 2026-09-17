@@ -429,6 +429,18 @@ function AddMemberDialog({
               ))}
             </select>
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="access">Access</Label>
+            <select
+              id="access"
+              value={workingEnabled ? "working" : "training"}
+              onChange={(e) => setWorkingEnabled(e.target.value === "working")}
+              className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
+            >
+              <option value="working">Training + working (everything unlocked)</option>
+              <option value="training">Training only (working sections locked)</option>
+            </select>
+          </div>
           <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Create member

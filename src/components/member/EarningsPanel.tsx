@@ -153,11 +153,65 @@ export function EarningsPanel() {
       doc.setFontSize(8);
       doc.setTextColor(120, 128, 150);
       doc.text(`${BRAND.name} · ${BRAND.tagline}`, 40, 812);
-      doc.save(`skyline-earnings-${data.today.date}.pdf`);
+
+      const blob = doc.output("blob") as Blob;
+      const name = `skyline-earnings-${data.today.date}.pdf`;
+      return { blob, name };
+    }
+  }
+
+  /** Saves the file through a real download link so phone browsers keep it. */
+  async function downloadPdf() {
+    if (pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const file = await buildPdf();
+      if (!file) return;
+      const url = URL.createObjectURL(file.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Report downloaded");
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
       setPdfBusy(false);
+    }
+  }
+
+  async function sharePdf() {
+    if (shareBusy) return;
+    setShareBusy(true);
+    try {
+      const built = await buildPdf();
+      if (!built) return;
+      const file = new File([built.blob], built.name, { type: "application/pdf" });
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({ files: [file], title: `${BRAND.name} report` });
+          return;
+        } catch (error) {
+          if ((error as Error)?.name === "AbortError") return;
+        }
+      }
+      const url = URL.createObjectURL(built.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = built.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Report saved — attach it from your files to share");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setShareBusy(false);
     }
   }
 

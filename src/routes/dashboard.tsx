@@ -88,11 +88,7 @@ function DashboardPage() {
         </aside>
 
         <section className="space-y-4 lg:col-span-8">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
-            <Stat icon={<Target />} label="Videos unlocked" value={String(videos.length)} />
-            <Stat icon={<BookOpen />} label="Watch time" value={`${totalMinutes} min`} className="col-span-2 sm:col-span-1" />
-          </div>
+          <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
         </section>
       </div>
 

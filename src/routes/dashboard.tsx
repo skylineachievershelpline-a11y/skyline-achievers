@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, BookOpen, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
+import { BookOpen, Loader2, Target, Trophy } from "lucide-react";
 import { useEffect } from "react";
 
 

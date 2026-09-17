@@ -200,6 +200,7 @@ export function LibraryTab() {
           ...(values.id ? { id: values.id } : {}),
           levelId: values.levelId,
           levelIds: values.levelIds,
+          categoryId: values.categoryId || null,
           title: values.title,
           description: values.description || null,
           sortOrder: values.sortOrder,
@@ -222,27 +223,115 @@ export function LibraryTab() {
     }
   }
 
+  const groups: { id: string | null; name: string; hint: string }[] = [
+    ...categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      hint: category.is_published ? "Visible to members" : "Hidden from members",
+    })),
+    { id: null, name: "Not in any section", hint: "Pick a section so members can find these" },
+  ];
+
   return (
     <div className="space-y-7">
       <div className="flex flex-wrap gap-2">
         <Button variant="brand" size="xl" onClick={() => setVideoDialog(blankVideo())}>
           <Plus className="h-4 w-4" /> New training video
         </Button>
+        <Button
+          variant="secondary"
+          size="xl"
+          onClick={() =>
+            setCategoryDialog({
+              name: "",
+              description: "",
+              sortOrder: categories.length + 1,
+              isPublished: true,
+            })
+          }
+        >
+          <Plus className="h-4 w-4" /> New training section
+        </Button>
         <Button variant="secondary" size="xl" onClick={() => setResourceDialog(true)}>
           <Plus className="h-4 w-4" /> New resource
         </Button>
       </div>
 
-      {levels.map((level) => {
-        const videos = (data.lectures as any[]).filter((l) => l.level_id === level.id);
+      <section className="raised-panel metal-edge rounded-3xl p-4">
+        <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+          Training sections
+        </h3>
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Members see these as menu items inside Training (for example Podcast, Motivational).
+        </p>
+        {categories.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            No sections yet — create one first, then place videos inside it.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {categories.map((category) => {
+              const count = (data.lectures as any[]).filter(
+                (l) => l.category_id === category.id,
+              ).length;
+              return (
+                <li
+                  key={category.id}
+                  className="glass-panel flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{category.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {count} video{count === 1 ? "" : "s"} ·{" "}
+                      {category.is_published ? "Visible" : "Hidden"} · Order {category.sort_order}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setCategoryDialog({
+                        id: category.id,
+                        name: category.name,
+                        description: category.description ?? "",
+                        sortOrder: category.sort_order,
+                        isPublished: category.is_published,
+                      })
+                    }
+                    className="text-muted-foreground transition-colors hover:text-brand-glow"
+                    aria-label="Edit section"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!window.confirm(`Delete section “${category.name}”?`)) return;
+                      delCategory.mutate(category.id);
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Delete section"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {groups.map((group) => {
+        const videos = (data.lectures as any[]).filter((l) =>
+          group.id === null ? !l.category_id : l.category_id === group.id,
+        );
+        if (group.id === null && videos.length === 0) return null;
         return (
-          <section key={level.id}>
-            <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
-              {level.name}
+          <section key={group.id ?? "none"}>
+            <h3 className="mb-1 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+              {group.name}
             </h3>
+            <p className="mb-2 text-[11px] text-muted-foreground">{group.hint}</p>
             {videos.length === 0 ? (
               <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
-                No training video in this level yet.
+                No training video in this section yet.
               </p>
             ) : (
               <ul className="space-y-2">
@@ -283,6 +372,7 @@ export function LibraryTab() {
                                 id: video.id,
                                 levelId: video.level_id,
                                 levelIds: allowed,
+                                categoryId: video.category_id ?? "",
                                 title: video.title,
                                 description: video.description ?? "",
                                 sortOrder: video.sort_order ?? 0,

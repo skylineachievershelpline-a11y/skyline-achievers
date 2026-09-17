@@ -587,11 +587,13 @@ export function LibraryTab() {
 function VideoForm({
   initial,
   levels,
+  categories,
   busy,
   onSubmit,
 }: {
   initial: VideoValues;
   levels: Level[];
+  categories: Category[];
   busy: boolean;
   onSubmit: (values: VideoValues) => void;
 }) {
@@ -615,6 +617,25 @@ function VideoForm({
       }}
       className="space-y-3"
     >
+      <div className="space-y-1.5">
+        <Label>Training section</Label>
+        <select
+          value={values.categoryId}
+          onChange={(e) => setValues({ ...values, categoryId: e.target.value })}
+          className={fieldClass}
+        >
+          <option value="">No section</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] text-muted-foreground">
+          Members open this section in Training and only see its videos.
+        </p>
+      </div>
+
       <div className="space-y-1.5">
         <Label>Training level</Label>
         <select

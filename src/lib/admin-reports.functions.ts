@@ -17,7 +17,8 @@ const monthInput = z
 function monthRange(month?: string) {
   const key = month ?? pktToday().slice(0, 7);
   const start = `${key}-01`;
-  const [year, m] = key.split("-").map(Number);
+  const year = Number(key.slice(0, 4));
+  const m = Number(key.slice(5, 7));
   const nextMonth = m === 12 ? `${year + 1}-01-01` : `${year}-${String(m + 1).padStart(2, "0")}-01`;
   return { key, start, end: nextMonth };
 }

@@ -22,9 +22,9 @@ const dayLabel = (date: string) =>
   });
 
 function shiftMonth(key: string, delta: number) {
-  const [year, month] = key.split("-").map(Number);
-  const next = new Date(Date.UTC(year, month - 1 + delta, 1));
-  return monthKey(next);
+  const year = Number(key.slice(0, 4));
+  const month = Number(key.slice(5, 7));
+  return monthKey(new Date(Date.UTC(year, month - 1 + delta, 1)));
 }
 
 export function ReportsTab() {

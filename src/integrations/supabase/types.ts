@@ -273,6 +273,27 @@ export type Database = {
         }
         Relationships: []
       }
+      earning_rates: {
+        Row: {
+          id: string
+          join_earning_pkr: number
+          lead_investment_pkr: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          join_earning_pkr?: number
+          lead_investment_pkr?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          join_earning_pkr?: number
+          lead_investment_pkr?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       final_test_answers: {
         Row: {
           answer_text: string | null

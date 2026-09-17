@@ -8,6 +8,13 @@
       "when": 1789637147686,
       "tag": "0000_daily_report_absent",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789638747614,
+      "tag": "0001_earning_rates_settings",
+      "breakpoints": true
     }
   ]
 }

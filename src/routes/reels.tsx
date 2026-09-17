@@ -6,7 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import {
+  MemberShell,
+  TrainingOnlyLock,
+  useMemberGuard,
+  useTrainingOnly,
+} from "@/components/member/MemberShell";
 import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

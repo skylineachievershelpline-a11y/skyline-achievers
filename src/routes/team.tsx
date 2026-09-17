@@ -21,7 +21,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
-import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import {
+  MemberShell,
+  SectionTitle,
+  TrainingOnlyLock,
+  useMemberGuard,
+  useTrainingOnly,
+} from "@/components/member/MemberShell";
 import { WelcomeCard, type Credentials } from "@/components/team/WelcomeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

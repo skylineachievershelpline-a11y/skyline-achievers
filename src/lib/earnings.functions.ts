@@ -56,7 +56,7 @@ export const getEarnings = createServerFn({ method: "GET" })
     const [{ data: reports }, { data: joins }] = await Promise.all([
       supabaseAdmin
         .from("member_daily_reports")
-        .select("report_date, leads_count, rate_per_lead")
+        .select("report_date, leads_count, rate_per_lead, is_absent, absent_reason")
         .eq("member_id", member.id)
         .gte("report_date", from)
         .order("report_date", { ascending: false }),
@@ -73,6 +73,17 @@ export const getEarnings = createServerFn({ method: "GET" })
       joinsByDay.set(day, (joinsByDay.get(day) ?? 0) + 1);
     }
 
+    const blank = (date: string): EarningsDay => ({
+      date,
+      leads: 0,
+      investment: 0,
+      joins: 0,
+      earning: 0,
+      absent: false,
+      absentReason: null,
+      saved: false,
+    });
+
     const byDay = new Map<string, EarningsDay>();
     for (const row of reports ?? []) {
       const date = row.report_date as string;
@@ -83,10 +94,13 @@ export const getEarnings = createServerFn({ method: "GET" })
         investment: leads * (row.rate_per_lead ?? LEAD_INVESTMENT_PKR),
         joins: 0,
         earning: 0,
+        absent: Boolean(row.is_absent),
+        absentReason: (row.absent_reason as string | null) ?? null,
+        saved: true,
       });
     }
     for (const [date, count] of joinsByDay) {
-      const existing = byDay.get(date) ?? { date, leads: 0, investment: 0, joins: 0, earning: 0 };
+      const existing = byDay.get(date) ?? blank(date);
       existing.joins = count;
       existing.earning = count * JOIN_EARNING_PKR;
       byDay.set(date, existing);
@@ -95,17 +109,15 @@ export const getEarnings = createServerFn({ method: "GET" })
     const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
     const monthDays = days.filter((d) => d.date >= monthStart && d.date <= today);
     const sum = (list: EarningsDay[], key: keyof EarningsDay) =>
-      list.reduce((total, day) => total + (day[key] as number), 0);
+      list.reduce((total, day) => total + (Number(day[key]) || 0), 0);
 
-    const todayRow =
-      days.find((d) => d.date === today) ??
-      ({ date: today, leads: 0, investment: 0, joins: 0, earning: 0 } as EarningsDay);
+    const todayRow = days.find((d) => d.date === today) ?? blank(today);
 
     return {
       member: { memberId: member.member_id, fullName: member.full_name },
       rates: { lead: LEAD_INVESTMENT_PKR, join: JOIN_EARNING_PKR },
       today: todayRow,
-      todayLocked: false,
+      todayLocked: todayRow.saved,
       month: {
         label: new Date(`${monthStart}T00:00:00Z`).toLocaleDateString("en-GB", {
           month: "long",
@@ -123,28 +135,90 @@ export const getEarnings = createServerFn({ method: "GET" })
         joins: sum(days, "joins"),
         earning: sum(days, "earning"),
       },
-      days: days.slice(0, 45),
+      days: days.slice(0, 60),
     };
   });
 
-/** Save today's leads. Past days are closed at midnight and cannot be edited. */
-export const saveDailyLeads = createServerFn({ method: "POST" })
+/** Add leads to today's record. Saved leads can never be reduced or edited. */
+export const addDailyLeads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { leads: number }) =>
-    z.object({ leads: z.number().int().min(0).max(1000) }).parse(data),
+    z.object({ leads: z.number().int().min(1).max(1000) }).parse(data),
   )
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const date = pktToday();
+
+    const { data: existing } = await supabaseAdmin
+      .from("member_daily_reports")
+      .select("leads_count, is_absent")
+      .eq("member_id", member.id)
+      .eq("report_date", date)
+      .maybeSingle();
+
+    if (existing?.is_absent) {
+      throw new Error("Today is marked absent, so leads cannot be added.");
+    }
+
+    const total = (existing?.leads_count ?? 0) + data.leads;
     const { error } = await supabaseAdmin.from("member_daily_reports").upsert(
       {
         member_id: member.id,
-        report_date: pktToday(),
-        leads_count: data.leads,
+        report_date: date,
+        leads_count: total,
         rate_per_lead: LEAD_INVESTMENT_PKR,
+        is_absent: false,
+        absent_reason: null,
+      },
+      { onConflict: "member_id,report_date" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true as const, leads: total };
+  });
+
+/** Mark today absent with a written application, so zero leads are explained. */
+export const markTodayAbsent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { reason: string }) =>
+    z
+      .object({
+        reason: z
+          .string()
+          .trim()
+          .min(30, "Please write a proper application (at least 30 characters).")
+          .max(1200),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const date = pktToday();
+
+    const { data: existing } = await supabaseAdmin
+      .from("member_daily_reports")
+      .select("leads_count")
+      .eq("member_id", member.id)
+      .eq("report_date", date)
+      .maybeSingle();
+
+    if ((existing?.leads_count ?? 0) > 0) {
+      throw new Error("Leads are already saved for today, so absent cannot be marked.");
+    }
+
+    const { error } = await supabaseAdmin.from("member_daily_reports").upsert(
+      {
+        member_id: member.id,
+        report_date: date,
+        leads_count: 0,
+        rate_per_lead: LEAD_INVESTMENT_PKR,
+        is_absent: true,
+        absent_reason: data.reason,
       },
       { onConflict: "member_id,report_date" },
     );
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+

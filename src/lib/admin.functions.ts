@@ -129,6 +129,7 @@ export const adminEditMember = createServerFn({ method: "POST" })
       levelId?: string;
       status?: string;
       notes?: string | null;
+      workingEnabled?: boolean;
     }) =>
       z
         .object({
@@ -141,6 +142,7 @@ export const adminEditMember = createServerFn({ method: "POST" })
           levelId: uuid.optional(),
           status: z.enum(["active", "blocked", "removed"]).optional(),
           notes: optionalText(2000),
+          workingEnabled: z.boolean().optional(),
         })
         .parse(data),
   )
@@ -148,7 +150,8 @@ export const adminEditMember = createServerFn({ method: "POST" })
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { adminUpdateMember } = await import("./admin.server");
-    const patch: Record<string, string | number | null> = {};
+    const patch: Record<string, string | number | boolean | null> = {};
+    if (data.workingEnabled !== undefined) patch["working_enabled"] = data.workingEnabled;
     if (data.fullName !== undefined) patch["full_name"] = data.fullName;
     if (data.age !== undefined) patch["age"] = data.age;
     if (data.cnic !== undefined) patch["cnic"] = data.cnic;

@@ -16,6 +16,8 @@ export type MemberContext = {
   fullName: string;
   accountId: string;
   status: string;
+  /** false = training only, every earning/working area stays locked. */
+  workingEnabled: boolean;
   level: { id: string; name: string; slug: string; rank_order: number } | null;
   email: string | null;
   phone: string | null;

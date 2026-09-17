@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Home,
   Menu,
+  Lock,
   MessageCircle,
   LogOut,
   Search,
@@ -21,8 +22,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { getNotifications } from "@/lib/member.functions";
+import { getMemberSession, getNotifications } from "@/lib/member.functions";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -62,6 +64,34 @@ const NAV = [
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
 ] as const;
+
+/** Areas that belong to working, not training. Locked for training-only accounts. */
+const WORKING_ROUTES: string[] = ["/reels", "/team", "/chat"];
+
+/**
+ * true when the admin gave this account training access only, so every
+ * working area (earnings, team, reels, messages) must stay locked.
+ */
+export function useTrainingOnly() {
+  const loadSession = useServerFn(getMemberSession);
+  const [hasSession, setHasSession] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(Boolean(data.session));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const { data } = useQuery({
+    queryKey: ["member-access"],
+    queryFn: () => loadSession(),
+    enabled: hasSession,
+    retry: false,
+  });
+  return data?.member ? data.member.workingEnabled === false : false;
+}
 
 export function MemberShell({
   children,

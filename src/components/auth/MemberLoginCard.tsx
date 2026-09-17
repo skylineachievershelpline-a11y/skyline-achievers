@@ -30,8 +30,8 @@ export function MemberLoginCard() {
     event.preventDefault();
     setError(null);
     const id = normalizeMemberId(memberId);
-    if (!/^SK[AB]-[A-Z0-9]{4,10}$/.test(id)) {
-      setError("Enter your Skyline ID in the format SKA-12345 or SKB-1001.");
+    if (!/^(76\d{10}|SK[AB]-[A-Z0-9]{4,10})$/.test(id)) {
+      setError("Enter your Skyline ID, e.g. 760000123456.");
       return;
     }
     if (password.length < 6) {
@@ -98,7 +98,7 @@ export function MemberLoginCard() {
             id="memberId"
             autoCapitalize="characters"
             autoComplete="username"
-            placeholder="SKA-12345"
+            placeholder="760000123456"
             value={memberId}
             onChange={(e) => setMemberId(e.target.value.toUpperCase())}
             className="h-13 rounded-lg text-base tracking-wider"

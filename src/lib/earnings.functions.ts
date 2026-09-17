@@ -62,6 +62,7 @@ export const getEarnings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const member = await activeMember(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
 
     const today = pktToday();
     const monthStart = `${today.slice(0, 7)}-01`;
@@ -105,7 +106,7 @@ export const getEarnings = createServerFn({ method: "GET" })
       byDay.set(date, {
         date,
         leads,
-        investment: leads * (row.rate_per_lead ?? LEAD_INVESTMENT_PKR),
+        investment: leads * (row.rate_per_lead ?? rates.lead),
         joins: 0,
         earning: 0,
         absent: Boolean(row.is_absent),
@@ -116,7 +117,7 @@ export const getEarnings = createServerFn({ method: "GET" })
     for (const [date, count] of joinsByDay) {
       const existing = byDay.get(date) ?? blank(date);
       existing.joins = count;
-      existing.earning = count * JOIN_EARNING_PKR;
+      existing.earning = count * rates.join;
       byDay.set(date, existing);
     }
 
@@ -129,7 +130,7 @@ export const getEarnings = createServerFn({ method: "GET" })
 
     return {
       member: { memberId: member.member_id, fullName: member.full_name },
-      rates: { lead: LEAD_INVESTMENT_PKR, join: JOIN_EARNING_PKR },
+      rates,
       today: todayRow,
       todayLocked: todayRow.saved,
       month: {
@@ -162,6 +163,7 @@ export const addDailyLeads = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
     const date = pktToday();
 
     const { data: existing } = await supabaseAdmin
@@ -181,7 +183,7 @@ export const addDailyLeads = createServerFn({ method: "POST" })
         member_id: member.id,
         report_date: date,
         leads_count: total,
-        rate_per_lead: LEAD_INVESTMENT_PKR,
+        rate_per_lead: rates.lead,
         is_absent: false,
         absent_reason: null,
       },
@@ -208,6 +210,7 @@ export const markTodayAbsent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
     const date = pktToday();
 
     const { data: existing } = await supabaseAdmin
@@ -226,7 +229,7 @@ export const markTodayAbsent = createServerFn({ method: "POST" })
         member_id: member.id,
         report_date: date,
         leads_count: 0,
-        rate_per_lead: LEAD_INVESTMENT_PKR,
+        rate_per_lead: rates.lead,
         is_absent: true,
         absent_reason: data.reason,
       },

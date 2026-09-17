@@ -25,7 +25,9 @@ function monthRange(month?: string) {
 
 /** Every member's leads, investment, joinings and earning for one month. */
 export const adminGetReports = createServerFn({ method: "POST" })
-  .inputValidator((data: { month?: string }) => z.object({ month: monthInput }).parse(data ?? {}))
+  .inputValidator((data: { month?: string; all?: boolean }) =>
+    z.object({ month: monthInput, all: z.boolean().optional() }).parse(data ?? {}),
+  )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
@@ -33,6 +35,9 @@ export const adminGetReports = createServerFn({ method: "POST" })
     const rates = await loadRates();
     const { key, start, end } = monthRange(data.month);
     const today = pktToday();
+    // "all" pulls the complete record instead of a single month.
+    const from = data.all ? "1970-01-01" : start;
+    const to = data.all ? "2999-01-01" : end;
 
     const [{ data: members }, { data: reports }, { data: joins }] = await Promise.all([
       supabaseAdmin
@@ -42,13 +47,13 @@ export const adminGetReports = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("member_daily_reports")
         .select("member_id, report_date, leads_count, rate_per_lead")
-        .gte("report_date", start)
-        .lt("report_date", end),
+        .gte("report_date", from)
+        .lt("report_date", to),
       supabaseAdmin
         .from("trainees")
         .select("id, upline_id, created_at")
-        .gte("created_at", `${start}T00:00:00Z`)
-        .lt("created_at", `${end}T00:00:00Z`),
+        .gte("created_at", `${from}T00:00:00Z`)
+        .lt("created_at", `${to}T00:00:00Z`),
     ]);
 
     type Row = {
@@ -110,13 +115,15 @@ export const adminGetReports = createServerFn({ method: "POST" })
       { leads: 0, investment: 0, joins: 0, earning: 0 },
     );
 
-    return { month: key, today, members: list, totals, rates };
+    return { month: key, all: Boolean(data.all), today, members: list, totals, rates };
   });
 
 /** Day-by-day report for one member in one month. */
 export const adminGetMemberReport = createServerFn({ method: "POST" })
-  .inputValidator((data: { memberId: string; month?: string }) =>
-    z.object({ memberId: z.string().uuid(), month: monthInput }).parse(data),
+  .inputValidator((data: { memberId: string; month?: string; all?: boolean }) =>
+    z
+      .object({ memberId: z.string().uuid(), month: monthInput, all: z.boolean().optional() })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
@@ -124,6 +131,8 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const rates = await loadRates();
     const { key, start, end } = monthRange(data.month);
+    const from = data.all ? "1970-01-01" : start;
+    const to = data.all ? "2999-01-01" : end;
 
     const [{ data: member }, { data: reports }, { data: joins }] = await Promise.all([
       supabaseAdmin
@@ -135,14 +144,14 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
         .from("member_daily_reports")
         .select("report_date, leads_count, rate_per_lead, is_absent, absent_reason")
         .eq("member_id", data.memberId)
-        .gte("report_date", start)
-        .lt("report_date", end),
+        .gte("report_date", from)
+        .lt("report_date", to),
       supabaseAdmin
         .from("trainees")
         .select("id, created_at")
         .eq("upline_id", data.memberId)
-        .gte("created_at", `${start}T00:00:00Z`)
-        .lt("created_at", `${end}T00:00:00Z`),
+        .gte("created_at", `${from}T00:00:00Z`)
+        .lt("created_at", `${to}T00:00:00Z`),
     ]);
 
     const byDay = new Map<
@@ -191,6 +200,8 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
     return {
       month: key,
+      all: Boolean(data.all),
+      rates,
       member: member
         ? { fullName: member.full_name as string, memberId: member.member_id as string }
         : null,

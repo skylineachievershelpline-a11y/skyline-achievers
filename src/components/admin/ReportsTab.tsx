@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Save, X } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Loader2, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +13,11 @@ import {
   adminGetReports,
   adminSaveRates,
 } from "@/lib/admin-reports.functions";
+import {
+  buildMemberReportPdf,
+  buildTeamReportPdf,
+  saveReportBlob,
+} from "@/lib/admin-report-pdf";
 
 const money = (value: number) => `PKR ${value.toLocaleString("en-PK")}`;
 const monthKey = (date: Date) => date.toISOString().slice(0, 7);
@@ -38,20 +43,57 @@ function shiftMonth(key: string, delta: number) {
 export function ReportsTab() {
   const [month, setMonth] = useState(() => monthKey(new Date(Date.now() + 5 * 3600_000)));
   const [openMember, setOpenMember] = useState<string | null>(null);
+  const [scope, setScope] = useState<"month" | "all">("month");
+  const [busy, setBusy] = useState<string | null>(null);
+  const rangeLabel = scope === "all" ? "Complete record (all time)" : monthLabel(month);
 
   const loadAll = useServerFn(adminGetReports);
   const loadOne = useServerFn(adminGetMemberReport);
 
   const { data, isPending } = useQuery({
-    queryKey: ["admin-reports", month],
-    queryFn: () => loadAll({ data: { month } } as never),
+    queryKey: ["admin-reports", month, scope],
+    queryFn: () => loadAll({ data: { month, all: scope === "all" } } as never),
   });
 
   const detail = useQuery({
-    queryKey: ["admin-report-member", openMember, month],
-    queryFn: () => loadOne({ data: { memberId: openMember, month } } as never),
+    queryKey: ["admin-report-member", openMember, month, scope],
+    queryFn: () =>
+      loadOne({ data: { memberId: openMember, month, all: scope === "all" } } as never),
     enabled: Boolean(openMember),
   });
+
+  /** One PDF with every member's totals for the chosen period. */
+  async function downloadTeamPdf() {
+    if (!data || busy) return;
+    setBusy("team");
+    try {
+      const file = await buildTeamReportPdf(data, rangeLabel);
+      saveReportBlob(file.blob, file.name);
+      toast.success("All members report downloaded");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** Complete day-by-day PDF for a single member. */
+  async function downloadMemberPdf(memberId: string) {
+    if (busy) return;
+    setBusy(memberId);
+    try {
+      const report = await loadOne({
+        data: { memberId, month, all: scope === "all" },
+      } as never);
+      const file = await buildMemberReportPdf(report, rangeLabel);
+      saveReportBlob(file.blob, file.name);
+      toast.success("Member report downloaded");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -78,6 +120,39 @@ export function ReportsTab() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button
+            variant={scope === "month" ? "brand" : "outline"}
+            size="sm"
+            className="rounded-2xl"
+            onClick={() => setScope("month")}
+          >
+            This month
+          </Button>
+          <Button
+            variant={scope === "all" ? "brand" : "outline"}
+            size="sm"
+            className="rounded-2xl"
+            onClick={() => setScope("all")}
+          >
+            Complete record
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-2xl"
+            disabled={!data || busy === "team"}
+            onClick={() => void downloadTeamPdf()}
+          >
+            {busy === "team" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            All members PDF
+          </Button>
         </div>
 
         {data ? (
@@ -136,6 +211,20 @@ export function ReportsTab() {
                       >
                         View days
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-2 rounded-xl"
+                        disabled={busy === row.id}
+                        onClick={() => void downloadMemberPdf(row.id)}
+                      >
+                        {busy === row.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileText className="h-4 w-4" />
+                        )}
+                        PDF
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -166,9 +255,25 @@ export function ReportsTab() {
                 </span>
               </h3>
             </div>
-            <Button variant="outline" size="icon" className="rounded-xl" onClick={() => setOpenMember(null)}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl"
+                disabled={busy === openMember}
+                onClick={() => void downloadMemberPdf(openMember)}
+              >
+                {busy === openMember ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Download PDF
+              </Button>
+              <Button variant="outline" size="icon" className="rounded-xl" onClick={() => setOpenMember(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {detail.isPending ? (
@@ -177,7 +282,7 @@ export function ReportsTab() {
             </div>
           ) : (detail.data?.days ?? []).length === 0 ? (
             <p className="inset-panel mt-4 rounded-xl p-4 text-sm text-muted-foreground">
-              No tracking saved for {monthLabel(month)}.
+              No tracking saved for {rangeLabel}.
             </p>
           ) : (
             <div className="inset-panel mt-4 overflow-x-auto rounded-2xl">

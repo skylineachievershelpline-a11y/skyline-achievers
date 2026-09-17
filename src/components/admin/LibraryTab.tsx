@@ -557,7 +557,7 @@ export function LibraryTab() {
                 }
                 await saveResource({
                   data: {
-                    lectureId: values.lectureId,
+                    lectureId: values.lectureId || null,
                     resourceType: values.resourceType,
                     title: values.title,
                     description: values.description || null,
@@ -766,7 +766,7 @@ function ResourceForm({
     file: File | null;
   }) => void;
 }) {
-  const [lectureId, setLectureId] = useState(videos[0]?.id ?? "");
+  const [lectureId, setLectureId] = useState("");
   const [resourceType, setResourceType] = useState<
     "pdf" | "audio" | "presentation" | "book" | "link" | "note"
   >("pdf");
@@ -780,7 +780,7 @@ function ResourceForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!title.trim() || !lectureId) return;
+        if (!title.trim()) return;
         onSubmit({ lectureId, resourceType, title: title.trim(), description, externalUrl, body, file });
       }}
       className="space-y-3"
@@ -800,8 +800,9 @@ function ResourceForm({
         </select>
       </div>
       <div className="space-y-1.5">
-        <Label>Attach to training video</Label>
+        <Label>Attach to training video (optional)</Label>
         <select value={lectureId} onChange={(e) => setLectureId(e.target.value)} className={fieldClass}>
+          <option value="">Standalone — not attached</option>
           {videos.map((video) => (
             <option key={video.id} value={video.id}>
               {video.title}
@@ -809,6 +810,7 @@ function ResourceForm({
           ))}
         </select>
       </div>
+
       <div className="space-y-1.5">
         <Label>Title</Label>
         <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-11 rounded-2xl" />

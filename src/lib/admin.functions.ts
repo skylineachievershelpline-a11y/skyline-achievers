@@ -479,7 +479,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       id?: string;
-      lectureId: string;
+      lectureId?: string | null;
       resourceType: string;
       title: string;
       description?: string | null;
@@ -492,7 +492,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       z
         .object({
           id: uuid.optional(),
-          lectureId: uuid,
+          lectureId: uuid.nullish(),
           resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note"]),
           title: text(160),
           description: optionalText(1000),
@@ -509,7 +509,8 @@ export const adminSaveResource = createServerFn({ method: "POST" })
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload = {
-      lecture_id: data.lectureId,
+      lecture_id: data.lectureId ?? null,
+
       series_id: null,
       resource_type: data.resourceType,
       title: data.title,

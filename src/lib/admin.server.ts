@@ -158,7 +158,7 @@ export async function adminCreateMember(input: {
 
 export async function adminUpdateMember(
   id: string,
-  patch: Record<string, string | number | null>,
+  patch: Record<string, string | number | boolean | null>,
 ) {
   const { error } = await (supabaseAdmin as any)
     .from("member_profiles")

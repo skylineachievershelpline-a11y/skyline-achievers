@@ -266,16 +266,33 @@ export function EarningsPanel() {
       const built = await buildPdf();
       if (!built) return;
       const file = new File([built.blob], built.name, { type: "application/pdf" });
-      if (typeof navigator !== "undefined" && navigator.share) {
+      const canShareFiles =
+        typeof navigator !== "undefined" &&
+        typeof navigator.share === "function" &&
+        (typeof navigator.canShare !== "function" || navigator.canShare({ files: [file] }));
+
+      if (canShareFiles) {
         try {
           await navigator.share({ files: [file], title: `${BRAND.name} report` });
           return;
         } catch (error) {
-          if ((error as Error)?.name === "AbortError") return;
+          const name = (error as Error)?.name;
+          if (name === "AbortError") return;
+          // Sharing blocked (e.g. inside an embedded preview) — open the report instead.
         }
       }
+
+      // Open the report so it can be shared from the phone's PDF viewer.
+      const url = URL.createObjectURL(built.blob);
+      const opened = window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (opened) {
+        toast.success("Report opened — use the share button in your PDF viewer");
+        return;
+      }
+
       saveBlob(built.blob, built.name);
-      toast.success("Report saved — attach it from your files to share");
+      toast.success("Report downloaded — open your Downloads to share it");
     } catch (error) {
       toast.error((error as Error).message);
     } finally {

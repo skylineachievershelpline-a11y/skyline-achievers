@@ -109,7 +109,7 @@ export function SessionExtrasDialog({
 
   function startEdit(row: ExtraRow) {
     setEditing(row);
-    setKind(((row.kind ?? "video") as Kind) ?? "video");
+    setKind((row.kind ?? "video") as Kind);
     setTitle(row.title);
     setDescription(row.description ?? "");
     setLinkUrl(row.video_url ?? "");
@@ -147,7 +147,7 @@ export function SessionExtrasDialog({
       if (kind !== "link" && file) {
         filePath = await uploadToBucket(
           createUploadUrl,
-          kindConfig.bucket,
+          kindConfig.bucket as never,
           file,
           uploadProgress.handler(`Uploading ${KIND_LABEL[kind]?.toLowerCase() ?? "file"}`),
         );

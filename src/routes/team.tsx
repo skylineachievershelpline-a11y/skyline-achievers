@@ -9,8 +9,8 @@ import {
   Crown,
   Link2,
   Loader2,
-  Play,
   Plus,
+  Search,
   Trash2,
   UserCheck,
   UserPlus,
@@ -76,6 +76,10 @@ function TeamPage() {
 
   const [form, setForm] = useState({ fullName: "", phone: "", age: "" });
   const [card, setCard] = useState<Credentials | null>(null);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const { data, isPending } = useQuery({
     queryKey: ["my-team"],
@@ -172,6 +176,48 @@ function TeamPage() {
   const invites = (data?.invites ?? []) as any[];
   const origin = typeof window === "undefined" ? "" : window.location.origin;
   const completionRate = stats?.total ? Math.round(((stats.completed ?? 0) / stats.total) * 100) : 0;
+  const visibleTrainees = trainees.filter((person) => {
+    const needle = memberSearch.trim().toLowerCase();
+    const matchesSearch =
+      !needle ||
+      person.fullName.toLowerCase().includes(needle) ||
+      person.traineeCode.toLowerCase().includes(needle) ||
+      (person.phone ?? "").toLowerCase().includes(needle);
+    return matchesSearch && (memberFilter === "all" || person.status === memberFilter);
+  });
+  const allVisibleSelected =
+    visibleTrainees.length > 0 && visibleTrainees.every((person) => selectedIds.includes(person.id));
+
+  function toggleSelected(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((value) => value !== id) : [...current, id],
+    );
+  }
+
+  async function applyBulk(action: "active" | "blocked" | "remove") {
+    if (selectedIds.length === 0) return;
+    const label = action === "remove" ? "remove permanently" : action === "blocked" ? "block" : "unblock";
+    if (!window.confirm(`${label[0]?.toUpperCase()}${label.slice(1)} ${selectedIds.length} selected members?`)) return;
+    setBulkBusy(true);
+    try {
+      if (action === "remove") {
+        await Promise.all(selectedIds.map((traineeId) => removePerson({ data: { traineeId } } as never)));
+      } else {
+        await Promise.all(
+          selectedIds.map((traineeId) =>
+            changeStatus({ data: { traineeId, status: action } } as never),
+          ),
+        );
+      }
+      toast.success(`${selectedIds.length} members updated`);
+      setSelectedIds([]);
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update selected members");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   return (
     <MemberShell title="My Team" subtitle="Reserve seats and track your people" executive>
@@ -204,27 +250,41 @@ function TeamPage() {
         </div>
       </section>
 
-      <section className="raised-panel metal-edge mt-6 rounded-3xl animate-rise-in">
-        <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div><SectionTitle className="mb-0">Team hierarchy</SectionTitle><p className="text-xs text-muted-foreground">Your direct Skyline network and training status</p></div>
-          <Button variant="brand" className="rounded-xl" onClick={() => document.getElementById("reserve-seat")?.scrollIntoView({ behavior: "smooth" })}><UserPlus />Add member</Button>
-        </div>
-        <div className="p-4 sm:p-6">
-          <div className="mx-auto max-w-3xl">
-            <div className="relative mx-auto w-fit rounded-2xl border border-cyan/40 bg-primary/15 px-6 py-3 text-center shadow-brand">
-              <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Crown className="h-4 w-4" /></span>
-              <p className="font-display text-sm font-bold">{data?.upline.fullName ?? "You"}</p>
-              <p className="text-[10px] font-semibold uppercase text-primary">{data?.upline.memberId} · You</p>
-              {trainees.length > 0 ? <span className="absolute left-1/2 top-full h-6 w-px bg-primary/30" /> : null}
-            </div>
-            {trainees.length > 0 ? (
-              <div className="relative mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <span className="absolute left-[16.66%] right-[16.66%] top-0 hidden h-px bg-primary/30 lg:block" />
-                {trainees.map((person, index) => <TeamNode key={person.id} person={person} index={index} busy={status.isPending || drop.isPending} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onRemove={() => drop.mutate(person.id)} />)}
+      <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">
+        <div className="border-b border-border p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div><SectionTitle className="mb-0">Team hierarchy</SectionTitle><p className="text-xs text-muted-foreground">{trainees.length} direct members under {data?.upline.fullName ?? "you"}</p></div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 sm:w-64">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} placeholder="Find member, ID or phone" className="h-9 rounded-lg pl-9 text-xs" />
               </div>
-            ) : <div className="mt-6"><EmptyState title="No one registered yet" hint="Reserve a seat below or share your registration link." /></div>}
+              <select aria-label="Filter team status" value={memberFilter} onChange={(event) => setMemberFilter(event.target.value as typeof memberFilter)} className="h-9 rounded-lg border border-hairline bg-surface-2 px-3 text-xs">
+                <option value="all">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option>
+              </select>
+              <Button variant="brand" size="sm" className="rounded-lg" onClick={() => document.getElementById("reserve-seat")?.scrollIntoView({ behavior: "smooth" })}><UserPlus />Add member</Button>
+            </div>
           </div>
+          {selectedIds.length > 0 ? <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"><span className="mr-auto px-1 text-xs font-semibold text-primary">{selectedIds.length} selected</span><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("active")}><UserCheck />Unblock</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("blocked")}><Ban />Block</Button><Button size="sm" variant="destructive" disabled={bulkBusy} onClick={() => void applyBulk("remove")}><Trash2 />Remove</Button></div> : null}
         </div>
+
+        {trainees.length === 0 ? <div className="p-5"><EmptyState title="No one registered yet" hint="Reserve a seat below or share your registration link." /></div> : (
+          <div>
+            <div className="hidden grid-cols-[34px_minmax(220px,1.5fr)_minmax(150px,1fr)_120px_126px] items-center gap-3 border-b border-border bg-surface/70 px-5 py-2.5 text-[10px] font-bold uppercase text-muted-foreground md:grid">
+              <input type="checkbox" aria-label="Select all visible members" checked={allVisibleSelected} onChange={() => setSelectedIds(allVisibleSelected ? selectedIds.filter((id) => !visibleTrainees.some((person) => person.id === id)) : Array.from(new Set([...selectedIds, ...visibleTrainees.map((person) => person.id)])))} className="h-4 w-4 accent-primary" />
+              <span>Member</span><span>Training</span><span>Status</span><span className="text-right">Actions</span>
+            </div>
+            <div className="border-b border-border bg-primary/10 px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground"><Crown className="h-3.5 w-3.5" /></span>
+                <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold">{data?.upline.fullName ?? "You"}</p><p className="truncate text-[10px] text-primary">{data?.upline.memberId} · Upline</p></div>
+                <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan">Root</span>
+              </div>
+            </div>
+            {visibleTrainees.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">No matching members.</p> : visibleTrainees.map((person, index) => <TeamRow key={person.id} person={person} index={index} selected={selectedIds.includes(person.id)} busy={bulkBusy || status.isPending || drop.isPending} onSelect={() => toggleSelected(person.id)} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onRemove={() => drop.mutate(person.id)} />)}
+            <div className="flex items-center justify-between border-t border-border bg-surface/60 px-4 py-3 text-[11px] text-muted-foreground sm:px-5"><span>Showing {visibleTrainees.length} of {trainees.length}</span><span>{selectedIds.length} selected</span></div>
+          </div>
+        )}
       </section>
 
       {/* ---------- reserve a seat ---------- */}
@@ -368,21 +428,20 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function TeamNode({ person, index, busy, onStatus, onRemove }: { person: any; index: number; busy: boolean; onStatus: (status: "active" | "blocked") => void; onRemove: () => void }) {
+function TeamRow({ person, index, selected, busy, onSelect, onStatus, onRemove }: { person: any; index: number; selected: boolean; busy: boolean; onSelect: () => void; onStatus: (status: "active" | "blocked") => void; onRemove: () => void }) {
   const progress = person.totalSessions > 0 ? Math.min(100, Math.round((person.sessionsWatched / person.totalSessions) * 100)) : 0;
-  return <article className="relative pt-5 sm:pt-7">
-    <span className="absolute left-1/2 top-0 h-5 w-px bg-primary/30 sm:h-7" />
-    <div className="glass-panel metal-edge depth-hover rounded-2xl p-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-display font-bold text-primary">{person.fullName.slice(0, 1).toUpperCase()}</span>
-        <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-bold">{person.fullName}</p><p className="truncate text-[10px] text-muted-foreground">{person.traineeCode} · {person.phone ?? "No phone"}</p></div>
-        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${person.status === "active" ? "bg-cyan" : person.status === "blocked" ? "bg-brand-glow" : "bg-metal"}`} aria-label={person.status} />
+  return <article className={`group border-b border-border px-4 py-3 transition-colors last:border-b-0 sm:px-5 ${selected ? "bg-primary/15" : "hover:bg-primary/5"}`}>
+    <div className="grid gap-3 md:grid-cols-[34px_minmax(220px,1.5fr)_minmax(150px,1fr)_120px_126px] md:items-center">
+      <input type="checkbox" aria-label={`Select ${person.fullName}`} checked={selected} onChange={onSelect} className="absolute h-4 w-4 accent-primary md:static" />
+      <div className="ml-7 flex min-w-0 items-center gap-3 md:ml-0">
+        <span className="relative ml-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary before:absolute before:right-full before:top-1/2 before:h-px before:w-3 before:bg-primary/40">{person.fullName.slice(0, 1).toUpperCase()}</span>
+        <div className="min-w-0"><p className="truncate font-display text-sm font-semibold">{person.fullName}</p><p className="truncate text-[10px] text-muted-foreground">{person.traineeCode} · {person.phone ?? "No phone"}</p></div>
       </div>
-      <div className="mt-4"><div className="mb-1.5 flex justify-between text-[10px]"><span className="font-semibold text-muted-foreground">Training</span><span className="font-bold text-primary">{progress}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} /></div></div>
-      <div className="mt-3 flex justify-between text-[10px] text-muted-foreground"><span>{person.sessionsWatched}/{person.totalSessions} sessions</span><span>{formatDate(person.createdAt)}</span></div>
-      <div className="mt-4 flex gap-2">
-        {person.status === "active" ? <Button size="sm" variant="outline" className="flex-1 rounded-lg" disabled={busy} onClick={() => onStatus("blocked")}><Ban />Block</Button> : <Button size="sm" variant="brand" className="flex-1 rounded-lg" disabled={busy} onClick={() => onStatus("active")}><UserCheck />Unblock</Button>}
-        <Button size="icon" variant="destructive" className="rounded-lg" aria-label={`Remove ${person.fullName}`} disabled={busy} onClick={() => { if (window.confirm(`Remove ${person.fullName} permanently? Their ID and login will stop working.`)) onRemove(); }}><Trash2 /></Button>
+      <div><div className="mb-1 flex justify-between text-[10px]"><span className="text-muted-foreground">{person.sessionsWatched}/{person.totalSessions} sessions</span><span className="font-semibold text-primary">{progress}%</span></div><div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} /></div><p className="mt-1 text-[10px] text-muted-foreground">Joined {formatDate(person.createdAt)}</p></div>
+      <span className={`w-fit rounded-full border px-2 py-1 text-[10px] font-semibold ${person.status === "active" ? "border-cyan/30 bg-cyan/10 text-cyan" : "border-silver/20 bg-silver/10 text-silver"}`}>{person.status === "active" ? "Active" : "Blocked"}</span>
+      <div className="flex gap-1.5 md:justify-end">
+        {person.status === "active" ? <Button size="sm" variant="outline" className="h-8 rounded-lg px-2 text-[11px]" disabled={busy} onClick={() => onStatus("blocked")}><Ban />Block</Button> : <Button size="sm" variant="brand" className="h-8 rounded-lg px-2 text-[11px]" disabled={busy} onClick={() => onStatus("active")}><UserCheck />Unblock</Button>}
+        <Button size="icon" variant="destructive" className="h-8 w-8 rounded-lg" aria-label={`Remove ${person.fullName}`} disabled={busy} onClick={() => { if (window.confirm(`Remove ${person.fullName} permanently? Their ID and login will stop working.`)) onRemove(); }}><Trash2 className="h-3.5 w-3.5" /></Button>
       </div>
       <span className="sr-only">Team member {index + 1}</span>
     </div>

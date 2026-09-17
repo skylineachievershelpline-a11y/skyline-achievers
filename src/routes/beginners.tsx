@@ -67,7 +67,9 @@ type FocusedSession = {
     id: string;
     title: string;
     description: string | null;
+    kind?: string | null;
     aspectRatio: string;
+    url?: string | null;
     videoUrl: string | null;
     thumbnailUrl: string | null;
   }[];

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, BookOpen, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
+import { BookOpen, Loader2, Target, Trophy } from "lucide-react";
 import { useEffect } from "react";
 
 
@@ -57,15 +57,6 @@ function DashboardPage() {
 
   const member = data.member;
   const videos = (data.videos ?? []) as any[];
-  const watchedSeconds = data.continueWatching.reduce(
-    (sum: number, lecture: any) => sum + Math.min(lecture.position_seconds ?? 0, lecture.duration_seconds ?? 0),
-    0,
-  );
-  const availableSeconds = data.continueWatching.reduce(
-    (sum: number, lecture: any) => sum + (lecture.duration_seconds ?? 0),
-    0,
-  );
-  const progress = availableSeconds > 0 ? Math.round((watchedSeconds / availableSeconds) * 100) : 0;
   const totalMinutes = Math.round(
     videos.reduce((sum: number, video: any) => sum + (video.duration_seconds ?? 0), 0) / 60,
   );
@@ -97,31 +88,6 @@ function DashboardPage() {
         </aside>
 
         <section className="space-y-4 lg:col-span-8">
-          <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in [animation-delay:70ms]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Training overview</p>
-                <h2 className="mt-1 font-display text-xl font-bold">Your learning momentum</h2>
-              </div>
-               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Activity className="h-5 w-5" /></span>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric icon={<Layers3 />} label="Videos" value={videos.length} tone="primary" />
-              <Metric icon={<BookOpen />} label="Minutes" value={totalMinutes} tone="success" />
-              <Metric icon={<Sparkles />} label="Watched" value={data.continueWatching.length} tone="warning" />
-              <Metric icon={<Clock3 />} label="In progress" value={data.continueWatching.length} tone="accent" />
-            </div>
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="font-semibold">Current watch progress</span>
-                <span className="font-bold text-primary">{progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
             <Stat icon={<Target />} label="Videos unlocked" value={String(videos.length)} />
@@ -176,10 +142,6 @@ function ProfileDetail({ label, value }: { label: string; value: string }) {
   return <div className="min-w-0"><p className="text-[9px] font-bold uppercase text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold">{value}</p></div>;
 }
 
-function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "success" | "warning" | "accent" }) {
-  const tones = { primary: "bg-primary/20 text-brand-glow", success: "bg-cyan/15 text-cyan", warning: "bg-brand/15 text-silver", accent: "bg-accent text-accent-foreground" };
-  return <div className="inset-panel rounded-xl p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-metal/20 ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
-}
 
 
 /**

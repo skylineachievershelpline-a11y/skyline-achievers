@@ -33,6 +33,7 @@ export function EarningsPanel() {
   const save = useServerFn(saveDailyLeads);
   const [leads, setLeads] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
 
   const { data, isPending } = useQuery({ queryKey: ["earnings"], queryFn: () => load() });
 

@@ -5,8 +5,10 @@ import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target,
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
+import { EarningsPanel } from "@/components/member/EarningsPanel";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
@@ -86,7 +88,7 @@ function DashboardPage() {
         <aside className="raised-panel metal-edge overflow-hidden rounded-3xl animate-rise-in lg:col-span-4">
           <div className="relative h-24 brand-gradient"><div className="absolute inset-x-8 bottom-0 h-px bg-cyan/60" /></div>
           <div className="-mt-12 px-5 pb-6 text-center">
-            <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
+            <AvatarPicker name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
             <p className="mt-4 text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
             <h1 className="mt-1 break-words font-display text-2xl font-bold">{member?.fullName ?? "Member"}</h1>
             <span className="mt-2 inline-flex rounded-xl border border-cyan/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-cyan shadow-glass">
@@ -133,6 +135,10 @@ function DashboardPage() {
             <Stat icon={<BookOpen />} label="Watch time" value={`${totalMinutes} min`} className="col-span-2 sm:col-span-1" />
           </div>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <EarningsPanel />
       </div>
 
       <div className="mt-6">

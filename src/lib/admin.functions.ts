@@ -346,6 +346,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
       id?: string;
       levelId: string;
       levelIds?: string[];
+      categoryId?: string | null;
       title: string;
       description?: string | null;
       sortOrder: number;
@@ -363,6 +364,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           levelId: uuid,
           levelIds: z.array(uuid).max(50).optional(),
+          categoryId: uuid.nullable().optional(),
           title: text(160),
           description: optionalText(4000),
           sortOrder: z.number().int().min(0).max(999),
@@ -384,6 +386,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = {
       series_id: null,
       level_id: data.levelId,
+      category_id: data.categoryId ?? null,
       title: data.title,
       description: data.description,
       sort_order: data.sortOrder,

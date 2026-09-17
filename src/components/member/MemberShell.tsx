@@ -5,6 +5,7 @@ import {
   Bell,
   ClipboardCheck,
   Clapperboard,
+  GraduationCap,
   Home,
   Menu,
   MessageCircle,
@@ -51,7 +52,8 @@ export function useMemberGuard() {
 }
 
 const NAV = [
-  { to: "/dashboard", label: "Home & Training Videos", icon: Home },
+  { to: "/dashboard", label: "Home", icon: Home },
+  { to: "/training", label: "Training", icon: GraduationCap },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
   { to: "/team", label: "My Team & Seats", icon: Users },

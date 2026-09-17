@@ -57,15 +57,6 @@ function DashboardPage() {
 
   const member = data.member;
   const videos = (data.videos ?? []) as any[];
-  const watchedSeconds = data.continueWatching.reduce(
-    (sum: number, lecture: any) => sum + Math.min(lecture.position_seconds ?? 0, lecture.duration_seconds ?? 0),
-    0,
-  );
-  const availableSeconds = data.continueWatching.reduce(
-    (sum: number, lecture: any) => sum + (lecture.duration_seconds ?? 0),
-    0,
-  );
-  const progress = availableSeconds > 0 ? Math.round((watchedSeconds / availableSeconds) * 100) : 0;
   const totalMinutes = Math.round(
     videos.reduce((sum: number, video: any) => sum + (video.duration_seconds ?? 0), 0) / 60,
   );

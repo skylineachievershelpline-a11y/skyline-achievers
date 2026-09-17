@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as FinalTestRouteImport } from './routes/final-test'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -26,7 +25,6 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
-import { Route as TestTokenRouteImport } from './routes/test.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,11 +44,6 @@ const ChatRoute = ChatRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinalTestRoute = FinalTestRouteImport.update({
-  id: '/final-test',
-  path: '/final-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -113,18 +106,12 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
   path: '/session/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestTokenRoute = TestTokenRouteImport.update({
-  id: '/test/$token',
-  path: '/test/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
-  '/final-test': typeof FinalTestRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -136,7 +123,6 @@ export interface FileRoutesByFullPath {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -144,7 +130,6 @@ export interface FileRoutesByTo {
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
-  '/final-test': typeof FinalTestRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -156,7 +141,6 @@ export interface FileRoutesByTo {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/test/$token': typeof TestTokenRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -165,7 +149,6 @@ export interface FileRoutesById {
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
-  '/final-test': typeof FinalTestRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -177,7 +160,6 @@ export interface FileRoutesById {
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/test/$token': typeof TestTokenRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -187,7 +169,6 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
-    | '/final-test'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -199,7 +180,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/session/$code'
-    | '/test/$token'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,7 +187,6 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
-    | '/final-test'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -219,7 +198,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/session/$code'
-    | '/test/$token'
     | '/admin'
   id:
     | '__root__'
@@ -227,7 +205,6 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
-    | '/final-test'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -239,7 +216,6 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/session/$code'
-    | '/test/$token'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -248,7 +224,6 @@ export interface RootRouteChildren {
   BeginnersRoute: typeof BeginnersRoute
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
-  FinalTestRoute: typeof FinalTestRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -260,7 +235,6 @@ export interface RootRouteChildren {
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
-  TestTokenRoute: typeof TestTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -292,13 +266,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/final-test': {
-      id: '/final-test'
-      path: '/final-test'
-      fullPath: '/final-test'
-      preLoaderRoute: typeof FinalTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -385,13 +352,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/test/$token': {
-      id: '/test/$token'
-      path: '/test/$token'
-      fullPath: '/test/$token'
-      preLoaderRoute: typeof TestTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -400,7 +360,6 @@ const rootRouteChildren: RootRouteChildren = {
   BeginnersRoute: BeginnersRoute,
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
-  FinalTestRoute: FinalTestRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,
@@ -412,7 +371,6 @@ const rootRouteChildren: RootRouteChildren = {
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   SessionCodeRoute: SessionCodeRoute,
-  TestTokenRoute: TestTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport

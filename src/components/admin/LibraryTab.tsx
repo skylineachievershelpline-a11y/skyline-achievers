@@ -557,7 +557,7 @@ export function LibraryTab() {
                 }
                 await saveResource({
                   data: {
-                    lectureId: values.lectureId,
+                    lectureId: values.lectureId || null,
                     resourceType: values.resourceType,
                     title: values.title,
                     description: values.description || null,

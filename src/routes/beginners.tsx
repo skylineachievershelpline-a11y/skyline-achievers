@@ -396,22 +396,9 @@ function BeginnersPage() {
                   More with this session
                 </h3>
                 {focused.extras.map((extra) => (
-                  <article key={extra.id} className="inset-panel rounded-3xl p-3 animate-rise-in">
-                    <SessionVideo
-                      title={extra.title}
-                      videoUrl={extra.videoUrl}
-                      aspectRatio={extra.aspectRatio}
-                      poster={extra.thumbnailUrl}
-                    />
-                    <div className="px-1 pb-1 pt-3">
-                      <p className="text-sm font-semibold">{extra.title}</p>
-                      {extra.description ? (
-                        <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
-                          {extra.description}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
+                  <div key={extra.id} className="animate-rise-in">
+                    <SessionExtraCard extra={extra} />
+                  </div>
                 ))}
               </div>
             ) : null}

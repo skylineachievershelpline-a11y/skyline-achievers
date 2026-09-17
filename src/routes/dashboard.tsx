@@ -41,6 +41,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],

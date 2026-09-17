@@ -6,6 +6,7 @@ import {
   Download,
   Loader2,
   Save,
+  Share2,
   TrendingUp,
   Users,
   Wallet,

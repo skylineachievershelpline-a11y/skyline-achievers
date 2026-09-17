@@ -557,12 +557,7 @@ export const adminCreateUploadUrl = createServerFn({ method: "POST" })
     z
       .object({
         bucket: z.enum(["training-videos", "training-resources", "training-thumbnails"]),
-        fileName: z
-          .string()
-          .trim()
-          .min(1)
-          .max(200)
-          .regex(/^[\w .()-]+\.[A-Za-z0-9]{1,8}$/, "Use a simple file name with an extension"),
+        fileName: z.string().trim().min(1).max(300),
       })
       .parse(data),
   )
@@ -570,7 +565,14 @@ export const adminCreateUploadUrl = createServerFn({ method: "POST" })
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const safeName = data.fileName.replace(/[^\w.()-]+/g, "-");
+    const dot = data.fileName.lastIndexOf(".");
+    const rawExt = dot > 0 ? data.fileName.slice(dot + 1).replace(/[^A-Za-z0-9]/g, "") : "";
+    const base = (dot > 0 ? data.fileName.slice(0, dot) : data.fileName)
+      .replace(/[^\w.()-]+/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 80) || "file";
+    const safeName = rawExt ? `${base}.${rawExt.slice(0, 8).toLowerCase()}` : base;
+
     const path = `${new Date().getFullYear()}/${crypto.randomUUID()}-${safeName}`;
     const { data: signed, error } = await supabaseAdmin.storage
       .from(data.bucket)

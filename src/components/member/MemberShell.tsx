@@ -274,3 +274,17 @@ export function SectionTitle({ children, className }: { children: ReactNode; cla
     </h2>
   );
 }
+
+/** Shown instead of a working area when the account is training only. */
+export function TrainingOnlyLock({ area }: { area: string }) {
+  return (
+    <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
+      <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
+      <h1 className="mt-4 font-display text-lg font-semibold">{area} is locked</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Your account is set to training only. Your admin will unlock the working side when you are
+        ready.
+      </p>
+    </div>
+  );
+}

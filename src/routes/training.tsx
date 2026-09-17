@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, PlayCircle } from "lucide-react";
 import { useState } from "react";
 
 import { toast } from "sonner";
 
 import { EmptyState, TrainingVideoCard } from "@/components/member/cards";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/training")({
   head: () => ({
@@ -18,12 +20,12 @@ export const Route = createFileRoute("/training")({
       {
         name: "description",
         content:
-          "Watch every Skyline Achievers training video unlocked for your rank, from first steps to advanced online earning skills.",
+          "Open any Skyline Achievers training section — podcast, motivational or core training — and watch every video unlocked for your rank.",
       },
       { property: "og:title", content: "Training Videos — Skyline Achievers" },
       {
         property: "og:description",
-        content: "Every training video unlocked for your Skyline Achievers rank.",
+        content: "Browse Skyline Achievers training by section: podcast, motivational and more.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,9 +34,12 @@ export const Route = createFileRoute("/training")({
   component: TrainingPage,
 });
 
+type Section = { id: string; name: string; description: string | null };
+
 function TrainingPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getTrainingLibrary);
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const { data, isPending } = useQuery({
@@ -44,10 +49,30 @@ function TrainingPage() {
   });
 
   const all = (data?.videos ?? []) as any[];
-  const videos = all.filter((video) =>
-    query.trim() ? String(video.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) : true,
+  const sections = ((data?.categories ?? []) as Section[]).slice();
+  const hasLoose = all.some((video) => !video.category_id);
+  const menu: Section[] = hasLoose
+    ? [...sections, { id: "__none", name: "Other videos", description: null }]
+    : sections;
+
+  const active = menu.find((section) => section.id === openSection) ?? null;
+
+  const inSection = active
+    ? all.filter((video) =>
+        active.id === "__none" ? !video.category_id : video.category_id === active.id,
+      )
+    : [];
+  const videos = inSection.filter((video) =>
+    query.trim()
+      ? String(video.title ?? "").toLowerCase().includes(query.trim().toLowerCase())
+      : true,
   );
-  const unlocked = all.filter((video) => !video.locked).length;
+
+  function countFor(section: Section) {
+    return all.filter((video) =>
+      section.id === "__none" ? !video.category_id : video.category_id === section.id,
+    ).length;
+  }
 
   return (
     <MemberShell title="Training" subtitle="Your training library" executive>
@@ -55,52 +80,127 @@ function TrainingPage() {
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Skyline training library
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold">Training videos</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold">
+          {active ? active.name : "Training sections"}
+        </h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {unlocked} of {all.length} videos unlocked for your rank. Locked ones open as you rise.
+          {active
+            ? (active.description ??
+              `${inSection.filter((v) => !v.locked).length} of ${inSection.length} videos unlocked for your rank.`)
+            : "Choose a section to open its videos."}
         </p>
-        <Input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search training videos"
-          className="mt-4 h-11 rounded-2xl"
-        />
+        {active ? (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`Search in ${active.name}`}
+              className="h-11 rounded-2xl"
+            />
+            <Button
+              variant="secondary"
+              size="xl"
+              onClick={() => {
+                setOpenSection(null);
+                setQuery("");
+              }}
+            >
+              All sections
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      <section className="mt-6">
-        <SectionTitle>All videos</SectionTitle>
-        {!ready || isPending ? (
-          <div className="flex justify-center py-14">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
-          </div>
-        ) : videos.length === 0 ? (
-          <EmptyState
-            title="No training videos yet"
-            hint="Nothing has been published yet — check back soon."
-          />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {videos.map((video: any, index: number) => (
-              <div
-                key={video.id}
-                className="animate-rise-in"
-                style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-              >
-                <TrainingVideoCard
-                  video={video}
-                  onLocked={() =>
-                    toast.info(
-                      video.levels?.name
-                        ? `This video opens at ${video.levels.name}. Keep going — you are close!`
-                        : "This video is locked for your rank right now.",
-                    )
-                  }
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      {!ready || isPending ? (
+        <div className="flex justify-center py-14">
+          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        </div>
+      ) : !active ? (
+        <section className="mt-6">
+          <SectionTitle>Sections</SectionTitle>
+          {menu.length === 0 ? (
+            <EmptyState
+              title="No training sections yet"
+              hint="Sections appear here as soon as they are published."
+            />
+          ) : (
+            <ul className="space-y-2">
+              {menu.map((section, index) => {
+                const total = countFor(section);
+                const open = all.filter(
+                  (video) =>
+                    !video.locked &&
+                    (section.id === "__none"
+                      ? !video.category_id
+                      : video.category_id === section.id),
+                ).length;
+                return (
+                  <li
+                    key={section.id}
+                    className="animate-rise-in"
+                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenSection(section.id);
+                        setQuery("");
+                      }}
+                      className={cn(
+                        "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
+                      )}
+                    >
+                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
+                        <PlayCircle className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display text-sm font-semibold">
+                          {section.name}
+                        </span>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {total} video{total === 1 ? "" : "s"} · {open} unlocked
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      ) : (
+        <section className="mt-6">
+          <SectionTitle>{active.name}</SectionTitle>
+          {videos.length === 0 ? (
+            <EmptyState
+              title="No videos here yet"
+              hint="Nothing has been published in this section — check back soon."
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {videos.map((video: any, index: number) => (
+                <div
+                  key={video.id}
+                  className="animate-rise-in"
+                  style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
+                >
+                  <TrainingVideoCard
+                    video={video}
+                    onLocked={() =>
+                      toast.info(
+                        video.levels?.name
+                          ? `This video opens at ${video.levels.name}. Keep going — you are close!`
+                          : "This video is locked for your rank right now.",
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </MemberShell>
   );
 }

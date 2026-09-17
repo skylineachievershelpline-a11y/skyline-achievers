@@ -185,8 +185,18 @@ export function ReportsTab() {
                 <tbody>
                   {(detail.data?.days ?? []).map((day) => (
                     <tr key={day.date} className="border-b border-border/60 last:border-0">
-                      <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
-                      <td className="p-3 text-right tabular-nums">{day.leads}</td>
+                      <td className="p-3 font-semibold">
+                        {dayLabel(day.date)}
+                        {day.absent && day.absentReason ? (
+                          <span className="mt-1 block max-w-[240px] text-[10px] font-normal text-muted-foreground">
+                            Absent: {day.absentReason}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="p-3 text-right tabular-nums">
+                        {day.absent ? "Absent" : day.leads}
+                      </td>
+
                       <td className="p-3 text-right tabular-nums text-muted-foreground">
                         {money(day.investment)}
                       </td>

@@ -66,6 +66,8 @@ export function LibraryTab() {
   const saveResource = useServerFn(adminSaveResource);
   const remove = useServerFn(adminDeleteContent);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const saveCategory = useServerFn(adminSaveTrainingCategory);
+  const removeCategory = useServerFn(adminDeleteTrainingCategory);
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
@@ -74,6 +76,7 @@ export function LibraryTab() {
   });
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
+  const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
   const [resourceDialog, setResourceDialog] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -91,6 +94,34 @@ export function LibraryTab() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const delCategory = useMutation({
+    mutationFn: (id: string) => removeCategory({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Section deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const storeCategory = useMutation({
+    mutationFn: (values: CategoryValues) =>
+      saveCategory({
+        data: {
+          ...(values.id ? { id: values.id } : {}),
+          name: values.name.trim(),
+          description: values.description.trim() || null,
+          sortOrder: values.sortOrder,
+          isPublished: values.isPublished,
+        },
+      } as never),
+    onSuccess: () => {
+      toast.success("Section saved");
+      setCategoryDialog(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   if (isPending || !data) {
     return (
       <div className="flex justify-center py-12">
@@ -100,6 +131,7 @@ export function LibraryTab() {
   }
 
   const levels = data.levels as unknown as Level[];
+  const categories = ((data as any).categories ?? []) as Category[];
   const access = (data as any).access as Record<string, string[]>;
 
   function blankVideo(): VideoValues {
@@ -107,6 +139,7 @@ export function LibraryTab() {
     return {
       levelId: first?.id ?? "",
       levelIds: first ? levels.filter((l) => l.rank_order >= first.rank_order).map((l) => l.id) : [],
+      categoryId: categories[0]?.id ?? "",
       title: "",
       description: "",
       sortOrder: 0,

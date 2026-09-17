@@ -29,6 +29,13 @@
       "when": 1789641370947,
       "tag": "0003_session_extras_any_media",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789642271045,
+      "tag": "0004_member_dashboard_cover",
+      "breakpoints": true
     }
   ]
 }

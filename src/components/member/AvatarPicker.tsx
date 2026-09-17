@@ -140,7 +140,7 @@ export function AvatarPicker({
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-metal/40 bg-muted shadow-lift">
+        <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-metal/40 bg-muted shadow-lift">
           {shown ? (
             <img src={shown} alt={name} className="h-full w-full object-cover" />
           ) : (
@@ -160,7 +160,7 @@ export function AvatarPicker({
           <Camera className="h-4 w-4" />
         </Button>
         {uploadProgress.state ? (
-          <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-background/75 text-sm font-semibold tabular-nums">
+          <span className="absolute inset-0 flex items-center justify-center rounded-full bg-background/75 text-sm font-semibold tabular-nums">
             {uploadProgress.state.percent}%
           </span>
         ) : null}

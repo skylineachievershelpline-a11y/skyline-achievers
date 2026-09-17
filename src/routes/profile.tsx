@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { getMemberSession } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/profile")({
@@ -61,10 +61,6 @@ function ProfilePage() {
               <Row label="Phone" value={member?.phone ?? "—"} />
               <Row label="Email" value={member?.email ?? "—"} />
               <Row label="Joined" value={member ? formatDate(member.createdAt) : "—"} />
-              <Row
-                label="Last login"
-                value={member ? formatDateTime(member.lastLoginAt) : "—"}
-              />
             </dl>
           </section>
 

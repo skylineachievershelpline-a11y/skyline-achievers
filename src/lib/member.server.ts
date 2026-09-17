@@ -16,6 +16,8 @@ export type MemberContext = {
   fullName: string;
   accountId: string;
   status: string;
+  /** false = training only, every earning/working area stays locked. */
+  workingEnabled: boolean;
   level: { id: string; name: string; slug: string; rank_order: number } | null;
   email: string | null;
   phone: string | null;
@@ -28,7 +30,7 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
   const { data, error } = await db
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, status, email, phone, avatar_path, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
+      "id, member_id, full_name, status, working_enabled, email, phone, avatar_path, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -38,6 +40,7 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
     memberId: data.member_id,
     fullName: data.full_name,
     status: data.status,
+    workingEnabled: (data as any).working_enabled !== false,
     email: data.email,
     phone: data.phone,
     createdAt: data.created_at,

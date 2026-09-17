@@ -855,6 +855,7 @@ export type Database = {
           phone: string | null
           status: string
           updated_at: string
+          working_enabled: boolean
         }
         Insert: {
           age?: number | null
@@ -871,6 +872,7 @@ export type Database = {
           phone?: string | null
           status?: string
           updated_at?: string
+          working_enabled?: boolean
         }
         Update: {
           age?: number | null
@@ -887,6 +889,7 @@ export type Database = {
           phone?: string | null
           status?: string
           updated_at?: string
+          working_enabled?: boolean
         }
         Relationships: [
           {

@@ -155,7 +155,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   <p className="truncate text-sm font-semibold">{member.full_name}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {member.member_id} · {member.levels?.name ?? "No level"} ·{" "}
-                    {ACCOUNT_STATUS_LABEL[member.status] ?? member.status}
+                    {ACCOUNT_STATUS_LABEL[member.status] ?? member.status} ·{" "}
+                    {member.working_enabled === false ? "Training only" : "Training + working"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
                     Joined {formatDate(member.created_at)} · Last login {formatDateTime(member.last_login_at)}
@@ -184,6 +185,19 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   >
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
+                  </select>
+                  <select
+                    value={member.working_enabled === false ? "training" : "working"}
+                    onChange={(e) =>
+                      update.mutate({
+                        data: { id: member.id, workingEnabled: e.target.value === "working" },
+                      } as never)
+                    }
+                    className="h-9 rounded-xl border border-hairline bg-surface-2 px-2 text-xs"
+                    title="Access"
+                  >
+                    <option value="training">Training only</option>
+                    <option value="working">Training + working</option>
                   </select>
                   <Button
                     variant="secondary"
@@ -332,6 +346,7 @@ function AddMemberDialog({
     phone: string | null;
     levelId: string;
     status: string;
+    workingEnabled: boolean;
   }) => void;
 }) {
   const [fullName, setFullName] = useState("");
@@ -340,6 +355,7 @@ function AddMemberDialog({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [workingEnabled, setWorkingEnabled] = useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -370,6 +386,7 @@ function AddMemberDialog({
               phone: phone.trim() || null,
               levelId,
               status: "active",
+              workingEnabled,
             });
           }}
           className="space-y-3"
@@ -410,6 +427,18 @@ function AddMemberDialog({
                   {level.name}
                 </option>
               ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="access">Access</Label>
+            <select
+              id="access"
+              value={workingEnabled ? "working" : "training"}
+              onChange={(e) => setWorkingEnabled(e.target.value === "working")}
+              className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
+            >
+              <option value="working">Training + working (everything unlocked)</option>
+              <option value="training">Training only (working sections locked)</option>
             </select>
           </div>
           <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId}>

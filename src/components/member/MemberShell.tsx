@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Home,
   Menu,
+  Lock,
   MessageCircle,
   LogOut,
   Search,
@@ -21,8 +22,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { getNotifications } from "@/lib/member.functions";
+import { getMemberSession, getNotifications } from "@/lib/member.functions";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -63,6 +65,34 @@ const NAV = [
   { to: "/profile", label: "My Profile", icon: User },
 ] as const;
 
+/** Areas that belong to working, not training. Locked for training-only accounts. */
+const WORKING_ROUTES: string[] = ["/reels", "/team", "/chat"];
+
+/**
+ * true when the admin gave this account training access only, so every
+ * working area (earnings, team, reels, messages) must stay locked.
+ */
+export function useTrainingOnly() {
+  const loadSession = useServerFn(getMemberSession);
+  const [hasSession, setHasSession] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setHasSession(Boolean(data.session));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const { data } = useQuery({
+    queryKey: ["member-access"],
+    queryFn: () => loadSession(),
+    enabled: hasSession,
+    retry: false,
+  });
+  return data?.member ? data.member.workingEnabled === false : false;
+}
+
 export function MemberShell({
   children,
   title,
@@ -78,6 +108,7 @@ export function MemberShell({
   const loadNotifications = useServerFn(getNotifications);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const trainingOnly = useTrainingOnly();
 
   // Close the side menu whenever the route changes.
   useEffect(() => {
@@ -186,21 +217,36 @@ export function MemberShell({
           </div>
 
           <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMenuOpen(false)}
-                 className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
-                activeProps={{
-                  className:
-                    "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
-                }}
-              >
-                <item.icon className="h-4.5 w-4.5 text-brand-glow" />
-                {item.label}
-              </Link>
-            ))}
+            {NAV.map((item) =>
+              trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() =>
+                    toast.info("This part is locked. Your account is set to training only.")
+                  }
+                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
+                >
+                  <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
+                  {item.label}
+                  <span className="ml-auto text-[10px] uppercase tracking-[0.14em]">Locked</span>
+                </button>
+              ) : (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMenuOpen(false)}
+                   className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                  activeProps={{
+                    className:
+                      "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
+                  }}
+                >
+                  <item.icon className="h-4.5 w-4.5 text-brand-glow" />
+                  {item.label}
+                </Link>
+              ),
+            )}
           </nav>
 
           <button
@@ -226,5 +272,19 @@ export function SectionTitle({ children, className }: { children: ReactNode; cla
     <h2 className={cn("mb-3 font-display text-lg font-semibold tracking-tight", className)}>
       {children}
     </h2>
+  );
+}
+
+/** Shown instead of a working area when the account is training only. */
+export function TrainingOnlyLock({ area }: { area: string }) {
+  return (
+    <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
+      <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
+      <h1 className="mt-4 font-display text-lg font-semibold">{area} is locked</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Your account is set to training only. Your admin will unlock the working side when you are
+        ready.
+      </p>
+    </div>
   );
 }

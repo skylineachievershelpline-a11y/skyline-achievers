@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Trophy } from "lucide-react";
+import { Loader2, Lock, Trophy } from "lucide-react";
 import { useEffect } from "react";
 
 
@@ -9,7 +9,12 @@ import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { EarningsPanel } from "@/components/member/EarningsPanel";
-import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import {
+  MemberShell,
+  SectionTitle,
+  useMemberGuard,
+  useTrainingOnly,
+} from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
@@ -36,6 +41,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],
@@ -89,7 +95,18 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6">
-        <EarningsPanel />
+        {trainingOnly ? (
+          <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
+            <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
+            <p className="mt-3 font-display text-base font-semibold">Working section locked</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your account is set to training only. Complete your training — your admin will unlock
+              working, earnings and team when you are ready.
+            </p>
+          </div>
+        ) : (
+          <EarningsPanel />
+        )}
       </div>
 
       <div className="mt-6">

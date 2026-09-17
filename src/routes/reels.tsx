@@ -6,7 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import {
+  MemberShell,
+  TrainingOnlyLock,
+  useMemberGuard,
+  useTrainingOnly,
+} from "@/components/member/MemberShell";
 import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -36,6 +41,7 @@ export const Route = createFileRoute("/reels")({
 
 function ReelsPage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getReels);
   const remove = useServerFn(deleteReel);
@@ -56,6 +62,14 @@ function ReelsPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  if (trainingOnly) {
+    return (
+      <MemberShell title="Reels">
+        <TrainingOnlyLock area="Reels" />
+      </MemberShell>
+    );
+  }
 
   if (!ready || isPending) {
     return (

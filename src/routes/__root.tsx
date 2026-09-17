@@ -13,6 +13,7 @@ import { Toaster } from "../components/ui/sonner";
 import { UploadDock } from "../components/UploadDock";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { isPreviewContext } from "../lib/pwa-install";
 
 function NotFoundComponent() {
   return (
@@ -98,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#07090f" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "Skyline" },
+      { name: "apple-mobile-web-app-title", content: "Skyline Achievers" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
     links: [
@@ -135,8 +136,18 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   // Register the service worker so the site can be installed as an app.
+  // Never in the editor preview / iframe: browsers block install there and
+  // stale caches would keep serving old builds.
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+    if (isPreviewContext() || !import.meta.env.PROD) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          if (registration.active?.scriptURL.endsWith("/sw.js")) void registration.unregister();
+        });
+      });
+      return;
+    }
     const register = () => {
       void navigator.serviceWorker.register("/sw.js").catch(() => {
         /* installability is optional; ignore registration failures */

@@ -4,16 +4,19 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
-
-type InstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+import {
+  clearInstallPrompt,
+  isIosSafari,
+  isPreviewContext,
+  subscribeInstallPrompt,
+  type InstallPromptEvent,
+} from "@/lib/pwa-install";
 
 /** Public landing install platform: round brand app icon plus a single install button. */
 export function LandingInstallSection() {
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
 
   useEffect(() => {
     const standalone =
@@ -21,31 +24,42 @@ export function LandingInstallSection() {
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setInstalled(standalone);
 
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      setPrompt(event as InstallPromptEvent);
-    };
+    const unsubscribe = subscribeInstallPrompt(setPrompt);
     const onInstalled = () => {
       setInstalled(true);
-      setPrompt(null);
+      setHint(null);
     };
-    window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
+      unsubscribe();
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
 
   const install = async () => {
-    if (!prompt) {
-      toast.info("Tap your browser menu, then “Install app”.");
+    if (prompt) {
+      try {
+        await prompt.prompt();
+        const choice = await prompt.userChoice;
+        if (choice.outcome === "accepted") setInstalled(true);
+      } finally {
+        clearInstallPrompt();
+      }
       return;
     }
-    await prompt.prompt();
-    const choice = await prompt.userChoice;
-    if (choice.outcome === "accepted") setInstalled(true);
-    setPrompt(null);
+
+    if (isPreviewContext()) {
+      const message = "Open the published app link in Chrome to install with one tap.";
+      setHint(message);
+      toast.info(message);
+      return;
+    }
+
+    const message = isIosSafari()
+      ? "In Safari tap Share, then “Add to Home Screen”."
+      : "Open your browser menu, then tap “Install app” / “Add to Home screen”.";
+    setHint(message);
+    toast.info(message);
   };
 
   return (
@@ -65,7 +79,7 @@ export function LandingInstallSection() {
         </div>
 
         <h2 className="font-display text-3xl font-semibold sm:text-4xl">
-          Install {BRAND.shortName} app
+          Install {BRAND.name} app
         </h2>
 
         {installed ? (
@@ -73,10 +87,20 @@ export function LandingInstallSection() {
             <Smartphone className="h-4 w-4 text-brand-glow" /> App installed
           </p>
         ) : (
-          <Button variant="brand" size="xl" className="w-full sm:w-auto sm:min-w-56" onClick={install}>
-            <Download className="h-4 w-4" />
-            Install app
-          </Button>
+          <>
+            <Button
+              variant="brand"
+              size="xl"
+              className="w-full sm:w-auto sm:min-w-56"
+              onClick={install}
+            >
+              <Download className="h-4 w-4" />
+              Install app
+            </Button>
+            {hint ? (
+              <p className="inset-panel rounded-xl px-4 py-3 text-sm text-muted-foreground">{hint}</p>
+            ) : null}
+          </>
         )}
       </div>
     </section>

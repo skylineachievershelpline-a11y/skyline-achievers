@@ -2,7 +2,7 @@
   "name": "Skyline Achievers",
   "short_name": "Skyline Achievers",
   "description": "Skyline Achievers member training platform: lectures, series and resources for your level.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

@@ -42,6 +42,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
+  const [showId, setShowId] = useState(false);
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],
@@ -62,7 +63,6 @@ function DashboardPage() {
   }
 
   const member = data.member;
-  const [showId, setShowId] = useState(false);
 
   return (
     <MemberShell

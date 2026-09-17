@@ -346,6 +346,7 @@ function AddMemberDialog({
     phone: string | null;
     levelId: string;
     status: string;
+    workingEnabled: boolean;
   }) => void;
 }) {
   const [fullName, setFullName] = useState("");
@@ -354,6 +355,7 @@ function AddMemberDialog({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [workingEnabled, setWorkingEnabled] = useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -384,6 +386,7 @@ function AddMemberDialog({
               phone: phone.trim() || null,
               levelId,
               status: "active",
+              workingEnabled,
             });
           }}
           className="space-y-3"

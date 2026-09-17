@@ -782,6 +782,36 @@ export type Database = {
         }
         Relationships: []
       }
+      member_daily_reports: {
+        Row: {
+          created_at: string
+          id: string
+          leads_count: number
+          member_id: string
+          rate_per_lead: number
+          report_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leads_count?: number
+          member_id: string
+          rate_per_lead?: number
+          report_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leads_count?: number
+          member_id?: string
+          rate_per_lead?: number
+          report_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       member_profiles: {
         Row: {
           age: number | null

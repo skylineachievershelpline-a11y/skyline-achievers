@@ -42,7 +42,8 @@ export const registerWithInvite = createServerFn({ method: "POST" })
           .min(7, "Enter a valid phone number")
           .max(20)
           .regex(/^[0-9+\-\s]+$/, "Phone number may only contain digits"),
-        age: z.number().int().min(10).max(90).nullable(),
+        // Only adults may join.
+        age: z.number({ message: "Enter your age" }).int().min(18, "You must be 18 or older to join").max(90),
       })
       .parse(data),
   )
@@ -63,10 +64,8 @@ export const registerWithInvite = createServerFn({ method: "POST" })
       uplineId: invite.upline_id as string,
       source: "link",
     });
-    await supabaseAdmin
-      .from("trainee_invites")
-      .update({ uses: (invite.uses ?? 0) + 1 })
-      .eq("id", invite.id);
+    // A registration link works once only: it disappears after the first use.
+    await supabaseAdmin.from("trainee_invites").delete().eq("id", invite.id);
     return { status: "ok" as const, credentials };
   });
 

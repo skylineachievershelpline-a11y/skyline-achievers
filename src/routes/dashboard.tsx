@@ -1,25 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Activity, BookOpen, Clock3, Layers3, Loader2, Sparkles, Target, Trophy } from "lucide-react";
+import { useEffect } from "react";
 
+
+import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
+import { EarningsPanel } from "@/components/member/EarningsPanel";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
-import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import {
-  getAvatarUploadUrl,
-  getDashboard,
-  getSessionRole,
-  saveAvatar,
-} from "@/lib/member.functions";
-import { putWithProgress } from "@/lib/upload-progress";
+import { getDashboard, getSessionRole } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -86,7 +81,7 @@ function DashboardPage() {
         <aside className="raised-panel metal-edge overflow-hidden rounded-3xl animate-rise-in lg:col-span-4">
           <div className="relative h-24 brand-gradient"><div className="absolute inset-x-8 bottom-0 h-px bg-cyan/60" /></div>
           <div className="-mt-12 px-5 pb-6 text-center">
-            <AvatarUploader name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
+            <AvatarPicker name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
             <p className="mt-4 text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
             <h1 className="mt-1 break-words font-display text-2xl font-bold">{member?.fullName ?? "Member"}</h1>
             <span className="mt-2 inline-flex rounded-xl border border-cyan/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-cyan shadow-glass">
@@ -136,6 +131,10 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6">
+        <EarningsPanel />
+      </div>
+
+      <div className="mt-6">
         <DailyInspiration />
       </div>
 
@@ -182,76 +181,6 @@ function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: st
   return <div className="inset-panel rounded-xl p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-metal/20 ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
 }
 
-function AvatarUploader({ name, url }: { name: string; url: string | null }) {
-  const queryClient = useQueryClient();
-  const createUrl = useServerFn(getAvatarUploadUrl);
-  const store = useServerFn(saveAvatar);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const uploadProgress = useUploadProgress();
-
-  async function upload(file: File) {
-    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-    const extension = ["png", "jpg", "jpeg", "webp"].includes(ext) ? ext : "jpg";
-    setBusy(true);
-    uploadProgress.clear();
-    try {
-      const slot = await createUrl({ data: { extension } } as never);
-      await putWithProgress(slot.signedUrl, file, uploadProgress.handler("Uploading photo"));
-      await store({ data: { path: slot.path } } as never);
-      setPreview(URL.createObjectURL(file));
-      toast.success("Profile picture updated");
-      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      void queryClient.invalidateQueries({ queryKey: ["member-session"] });
-    } catch (error) {
-      toast.error((error as Error).message);
-    } finally {
-      setBusy(false);
-      uploadProgress.clear();
-    }
-  }
-
-  const shown = preview ?? url;
-
-  return (
-    <Button
-      variant="ghost"
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-metal/40 bg-muted p-0 shadow-lift transition-transform duration-300 hover:-translate-y-1"
-      aria-label="Upload profile picture"
-    >
-      {shown ? (
-        <img src={shown} alt={name} className="h-full w-full object-cover" />
-      ) : (
-        <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-muted-foreground">
-          {name.slice(0, 1).toUpperCase()}
-        </span>
-      )}
-      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-background/70 py-1 text-[10px] text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
-        Change
-      </span>
-      {uploadProgress.state ? (
-        <span className="absolute inset-0 flex items-center justify-center bg-background/75 text-sm font-semibold tabular-nums text-foreground">
-          {uploadProgress.state.percent}%
-        </span>
-      ) : null}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) void upload(file);
-          event.target.value = "";
-        }}
-      />
-    </Button>
-  );
-}
 
 /**
  * Signed in, but this account is not an active member: no member menu here.

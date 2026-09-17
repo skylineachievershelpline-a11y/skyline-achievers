@@ -868,7 +868,7 @@ export const adminGetSessionExtras = createServerFn({ method: "POST" })
     const { data: rows } = await (supabaseAdmin as any)
       .from("beginner_session_extras")
       .select(
-        "id, session_id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+        "id, session_id, title, description, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
       )
       .eq("session_id", data.sessionId)
       .order("sort_order")

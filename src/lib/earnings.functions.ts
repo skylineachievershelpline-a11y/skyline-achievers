@@ -36,7 +36,11 @@ export type EarningsDay = {
   investment: number;
   joins: number;
   earning: number;
+  absent: boolean;
+  absentReason: string | null;
+  saved: boolean;
 };
+
 
 /** Daily tracking, join earnings and month totals for the signed-in member. */
 export const getEarnings = createServerFn({ method: "GET" })

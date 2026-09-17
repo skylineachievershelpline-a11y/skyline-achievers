@@ -238,15 +238,26 @@ export function EarningsPanel() {
             day closes at 12:00 midnight
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-2xl"
-          disabled={pdfBusy}
-          onClick={() => void downloadPdf()}
-        >
-          {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          Download PDF report
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="rounded-2xl"
+            disabled={pdfBusy}
+            onClick={() => void downloadPdf()}
+          >
+            {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Download PDF
+          </Button>
+          <Button
+            variant="brand"
+            className="rounded-2xl"
+            disabled={shareBusy}
+            onClick={() => void sharePdf()}
+          >
+            {shareBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+            Share report
+          </Button>
+        </div>
       </div>
 
       <form

@@ -108,6 +108,7 @@ export function MemberShell({
   const loadNotifications = useServerFn(getNotifications);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const trainingOnly = useTrainingOnly();
 
   // Close the side menu whenever the route changes.
   useEffect(() => {

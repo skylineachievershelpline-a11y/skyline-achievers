@@ -445,9 +445,89 @@ export function LibraryTab() {
               key={videoDialog.id ?? "new"}
               initial={videoDialog}
               levels={levels}
+              categories={categories}
               busy={busy}
               onSubmit={(values) => void submitVideo(values)}
             />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={categoryDialog !== null}
+        onOpenChange={(open) => !open && setCategoryDialog(null)}
+      >
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {categoryDialog?.id ? "Edit training section" : "New training section"}
+            </DialogTitle>
+          </DialogHeader>
+          {categoryDialog ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!categoryDialog.name.trim()) {
+                  toast.error("Give the section a name.");
+                  return;
+                }
+                storeCategory.mutate(categoryDialog);
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1.5">
+                <Label>Section name</Label>
+                <Input
+                  value={categoryDialog.name}
+                  onChange={(e) => setCategoryDialog({ ...categoryDialog, name: e.target.value })}
+                  placeholder="Podcast"
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Short description</Label>
+                <Textarea
+                  value={categoryDialog.description}
+                  onChange={(e) =>
+                    setCategoryDialog({ ...categoryDialog, description: e.target.value })
+                  }
+                  className="rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Order in the menu</Label>
+                <Input
+                  value={String(categoryDialog.sortOrder)}
+                  onChange={(e) =>
+                    setCategoryDialog({
+                      ...categoryDialog,
+                      sortOrder: Number(e.target.value.replace(/\D/g, "")) || 0,
+                    })
+                  }
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={categoryDialog.isPublished}
+                  onChange={(e) =>
+                    setCategoryDialog({ ...categoryDialog, isPublished: e.target.checked })
+                  }
+                />
+                Visible to members
+              </label>
+              <Button
+                type="submit"
+                variant="brand"
+                size="xl"
+                className="w-full"
+                disabled={storeCategory.isPending}
+              >
+                {storeCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {categoryDialog.id ? "Save section" : "Create section"}
+              </Button>
+            </form>
           ) : null}
         </DialogContent>
       </Dialog>

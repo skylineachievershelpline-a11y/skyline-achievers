@@ -164,6 +164,9 @@ function AdminPage() {
           <TabsContent value="members" className="mt-5">
             <MembersTab levels={levels as any} />
           </TabsContent>
+          <TabsContent value="reports" className="mt-5">
+            <ReportsTab />
+          </TabsContent>
           <TabsContent value="library" className="mt-5">
             <LibraryTab />
           </TabsContent>

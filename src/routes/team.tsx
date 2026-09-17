@@ -248,14 +248,15 @@ function TeamPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
+                <Label htmlFor="age">Age (18+ only)</Label>
                 <Input
                   id="age"
                   type="number"
-                  min={10}
+                  min={18}
                   max={90}
                   value={form.age}
                   onChange={(event) => setForm({ ...form, age: event.target.value })}
+                  required
                 />
               </div>
             </div>
@@ -270,8 +271,9 @@ function TeamPage() {
         <section className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in">
           <SectionTitle className="mb-1">Registration links</SectionTitle>
           <p className="mb-5 text-xs text-muted-foreground">
-            Share a link so the person fills their own form. Your member ID stays attached to every
-            registration made through it.
+            Share a link so the person fills their own form. Every link works one time only — after
+            one registration it expires and disappears from here. Create a fresh link for the next
+            person.
           </p>
           <Button
             variant="outline"
@@ -293,7 +295,7 @@ function TeamPage() {
                   <div key={invite.id} className="inset-panel rounded-xl p-4">
                     <p className="break-all text-xs text-muted-foreground">{url}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                      {invite.uses} registrations · {invite.is_active ? "Active" : "Paused"}
+                      One-time link · {invite.is_active ? "Ready to share" : "Paused"}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button

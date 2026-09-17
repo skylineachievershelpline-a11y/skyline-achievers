@@ -141,19 +141,19 @@ function JoinPage() {
                   inputMode="tel"
                   value={form.phone}
                   onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                  placeholder="03001234567"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
+                <Label htmlFor="age">Age (18+ only)</Label>
                 <Input
                   id="age"
                   type="number"
-                  min={10}
+                  min={18}
                   max={90}
                   value={form.age}
                   onChange={(event) => setForm({ ...form, age: event.target.value })}
+                  required
                 />
               </div>
             </div>

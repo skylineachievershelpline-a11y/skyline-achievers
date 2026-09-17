@@ -132,6 +132,9 @@ function AdminPage() {
             <TabsTrigger value="members" className="rounded-xl">
               Members
             </TabsTrigger>
+            <TabsTrigger value="reports" className="rounded-xl">
+              Reports
+            </TabsTrigger>
             <TabsTrigger value="library" className="rounded-xl">
               Library
             </TabsTrigger>

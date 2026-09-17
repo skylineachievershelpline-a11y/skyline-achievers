@@ -86,6 +86,47 @@ export const getTrainingVideos = createServerFn({ method: "GET" })
     return { videos: await loadTrainingVideos(context.supabase as never, 200) };
   });
 
+/**
+ * The whole training library: every published video is visible so members can
+ * see what is waiting for them, but videos their rank cannot open are locked.
+ */
+export const getTrainingLibrary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signThumbnails } = await import("./storage.server");
+    const { loadMemberContext } = await import("./member.server");
+
+    const member = await loadMemberContext(context.supabase as never, context.userId);
+    if (!member || member.status !== "active") return { videos: [] };
+
+    const [{ data: lectures }, { data: access }] = await Promise.all([
+      supabaseAdmin
+        .from("lectures")
+        .select(
+          "id, title, description, duration_seconds, thumbnail_path, sort_order, created_at, levels:level_id (id, name, slug, rank_order)",
+        )
+        .eq("is_published", true)
+        .eq("is_archived", false)
+        .order("sort_order")
+        .order("created_at", { ascending: false })
+        .limit(300),
+      member.level
+        ? supabaseAdmin
+            .from("content_access")
+            .select("content_id")
+            .eq("content_type", "lecture")
+            .eq("level_id", member.level.id)
+        : Promise.resolve({ data: [] as { content_id: string }[] }),
+    ]);
+
+    const allowed = new Set((access ?? []).map((row) => row.content_id));
+    const signed = await signThumbnails(lectures ?? []);
+    return {
+      videos: signed.map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
+    };
+  });
+
 
 export const getLectureDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

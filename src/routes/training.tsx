@@ -4,10 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { EmptyState, VideoCard } from "@/components/member/cards";
+import { toast } from "sonner";
+
+import { EmptyState, TrainingVideoCard } from "@/components/member/cards";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { Input } from "@/components/ui/input";
-import { getTrainingVideos } from "@/lib/member.functions";
+import { getTrainingLibrary } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/training")({
   head: () => ({
@@ -32,28 +34,30 @@ export const Route = createFileRoute("/training")({
 
 function TrainingPage() {
   const ready = useMemberGuard();
-  const load = useServerFn(getTrainingVideos);
+  const load = useServerFn(getTrainingLibrary);
   const [query, setQuery] = useState("");
 
   const { data, isPending } = useQuery({
-    queryKey: ["training-videos"],
+    queryKey: ["training-library"],
     queryFn: () => load(),
     enabled: ready,
   });
 
-  const videos = ((data?.videos ?? []) as any[]).filter((video) =>
+  const all = (data?.videos ?? []) as any[];
+  const videos = all.filter((video) =>
     query.trim() ? String(video.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) : true,
   );
+  const unlocked = all.filter((video) => !video.locked).length;
 
   return (
-    <MemberShell title="Training" subtitle="Your unlocked training videos" executive>
+    <MemberShell title="Training" subtitle="Your training library" executive>
       <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Skyline training library
         </p>
         <h1 className="mt-1 font-display text-2xl font-bold">Training videos</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Everything unlocked for your rank. Tap any video to start watching.
+          {unlocked} of {all.length} videos unlocked for your rank. Locked ones open as you rise.
         </p>
         <Input
           value={query}
@@ -72,17 +76,26 @@ function TrainingPage() {
         ) : videos.length === 0 ? (
           <EmptyState
             title="No training videos yet"
-            hint="Nothing has been published for your rank yet — check back soon."
+            hint="Nothing has been published yet — check back soon."
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {videos.map((video: any, index: number) => (
               <div
                 key={video.id}
                 className="animate-rise-in"
                 style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
               >
-                <VideoCard video={video} />
+                <TrainingVideoCard
+                  video={video}
+                  onLocked={() =>
+                    toast.info(
+                      video.levels?.name
+                        ? `This video opens at ${video.levels.name}. Keep going — you are close!`
+                        : "This video is locked for your rank right now.",
+                    )
+                  }
+                />
               </div>
             ))}
           </div>

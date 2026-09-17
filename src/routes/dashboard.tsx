@@ -4,9 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Eye, EyeOff, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 
-
+import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
 import { AvatarPicker } from "@/components/member/AvatarPicker";
-import { CoverPicker } from "@/components/member/CoverPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { EarningsPanel } from "@/components/member/EarningsPanel";
@@ -71,7 +70,16 @@ function DashboardPage() {
       executive
     >
       <section className="raised-panel metal-edge relative min-h-[24rem] overflow-hidden rounded-3xl animate-rise-in sm:min-h-[26rem]">
-        <CoverPicker url={member?.dashboardCoverUrl ?? null} />
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={skylineBackground}
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-background/20" />
+          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-background/95 via-background/55 to-transparent" />
+        </div>
         <div className="relative z-10 flex min-h-[24rem] flex-col justify-between p-5 sm:min-h-[26rem] sm:p-7">
           <div className="max-w-[75%]">
             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-cyan">

@@ -784,8 +784,10 @@ export type Database = {
       }
       member_daily_reports: {
         Row: {
+          absent_reason: string | null
           created_at: string
           id: string
+          is_absent: boolean
           leads_count: number
           member_id: string
           rate_per_lead: number
@@ -793,8 +795,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          absent_reason?: string | null
           created_at?: string
           id?: string
+          is_absent?: boolean
           leads_count?: number
           member_id: string
           rate_per_lead?: number
@@ -802,8 +806,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          absent_reason?: string | null
           created_at?: string
           id?: string
+          is_absent?: boolean
           leads_count?: number
           member_id?: string
           rate_per_lead?: number

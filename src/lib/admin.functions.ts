@@ -77,6 +77,7 @@ export const adminAddMember = createServerFn({ method: "POST" })
       phone?: string | null;
       levelId: string;
       status: string;
+      workingEnabled?: boolean;
     }) =>
       z
         .object({
@@ -96,6 +97,7 @@ export const adminAddMember = createServerFn({ method: "POST" })
           phone: optionalText(25),
           levelId: uuid,
           status: z.enum(["active", "blocked", "removed"]),
+          workingEnabled: z.boolean().optional(),
         })
         .parse(data),
   )
@@ -111,6 +113,7 @@ export const adminAddMember = createServerFn({ method: "POST" })
       phone: data.phone ?? null,
       levelId: data.levelId,
       status: data.status,
+      workingEnabled: data.workingEnabled ?? true,
     });
   });
 

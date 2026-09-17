@@ -11,7 +11,8 @@ const personSchema = z.object({
     .min(7, "Enter a valid phone number")
     .max(20)
     .regex(/^[0-9+\-\s]+$/, "Phone number may only contain digits"),
-  age: z.number().int().min(10).max(90).nullable(),
+  // Only adults may join.
+  age: z.number({ message: "Enter the age" }).int().min(18, "Member must be 18 or older").max(90),
 });
 
 async function activeMember(userId: string) {
@@ -53,6 +54,7 @@ export const reserveSeat = createServerFn({ method: "POST" })
   .inputValidator((data: { fullName: string; phone: string; age: number | null }) =>
     personSchema.parse(data),
   )
+
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
     const { createTraineeAccount } = await import("./team.server");

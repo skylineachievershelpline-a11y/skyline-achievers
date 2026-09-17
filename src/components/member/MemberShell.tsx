@@ -186,21 +186,36 @@ export function MemberShell({
           </div>
 
           <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMenuOpen(false)}
-                 className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
-                activeProps={{
-                  className:
-                    "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
-                }}
-              >
-                <item.icon className="h-4.5 w-4.5 text-brand-glow" />
-                {item.label}
-              </Link>
-            ))}
+            {NAV.map((item) =>
+              trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() =>
+                    toast.info("This part is locked. Your account is set to training only.")
+                  }
+                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
+                >
+                  <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
+                  {item.label}
+                  <span className="ml-auto text-[10px] uppercase tracking-[0.14em]">Locked</span>
+                </button>
+              ) : (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMenuOpen(false)}
+                   className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                  activeProps={{
+                    className:
+                      "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
+                  }}
+                >
+                  <item.icon className="h-4.5 w-4.5 text-brand-glow" />
+                  {item.label}
+                </Link>
+              ),
+            )}
           </nav>
 
           <button

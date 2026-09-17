@@ -151,10 +151,6 @@ function ProfileDetail({ label, value }: { label: string; value: string }) {
   return <div className="min-w-0"><p className="text-[9px] font-bold uppercase text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold">{value}</p></div>;
 }
 
-function Metric({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "primary" | "success" | "warning" | "accent" }) {
-  const tones = { primary: "bg-primary/20 text-brand-glow", success: "bg-cyan/15 text-cyan", warning: "bg-brand/15 text-silver", accent: "bg-accent text-accent-foreground" };
-  return <div className="inset-panel rounded-xl p-3"><span className={`flex h-8 w-8 items-center justify-center rounded-lg border border-metal/20 ${tones[tone]} [&_svg]:h-4 [&_svg]:w-4`}>{icon}</span><p className="mt-3 font-display text-2xl font-bold tabular-nums">{value}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p></div>;
-}
 
 
 /**

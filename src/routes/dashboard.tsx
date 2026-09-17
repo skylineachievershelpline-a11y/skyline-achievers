@@ -56,10 +56,6 @@ function DashboardPage() {
   }
 
   const member = data.member;
-  const videos = (data.videos ?? []) as any[];
-  const totalMinutes = Math.round(
-    videos.reduce((sum: number, video: any) => sum + (video.duration_seconds ?? 0), 0) / 60,
-  );
 
 
   return (

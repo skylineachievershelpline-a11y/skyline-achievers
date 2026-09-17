@@ -5,7 +5,7 @@ import { Activity, BookOpen, Camera, Clock3, Layers3, Loader2, Sparkles, Target,
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { EmptyState, LectureCard, Rail, VideoCard } from "@/components/member/cards";
+import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { useUploadProgress } from "@/components/UploadProgress";
@@ -145,28 +145,6 @@ function DashboardPage() {
           <Rail>{data.continueWatching.map((lecture: any) => <LectureCard key={lecture.id} lecture={lecture} resume />)}</Rail>
         </section>
       ) : null}
-
-      {/* ---------- every training video unlocked for this member ---------- */}
-      <section className="mt-6">
-        <SectionTitle>Training videos</SectionTitle>
-        <p className="-mt-2 mb-3 text-xs text-muted-foreground">
-          Everything unlocked for your rank. Tap a video to watch it.
-        </p>
-        {videos.length === 0 ? (
-          <EmptyState
-            title="No training videos yet"
-            hint="Your administrator has not published anything for your rank yet."
-          />
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {videos.map((video: any, index: number) => (
-              <div key={video.id} className="animate-rise-in" style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}>
-                <VideoCard video={video} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
 
 
     </MemberShell>

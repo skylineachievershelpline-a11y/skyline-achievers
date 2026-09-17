@@ -49,10 +49,9 @@ export function EarningsPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  async function downloadPdf() {
-    if (!data) return;
-    setPdfBusy(true);
-    try {
+  async function buildPdf() {
+    if (!data) return null;
+    {
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       const width = doc.internal.pageSize.getWidth();

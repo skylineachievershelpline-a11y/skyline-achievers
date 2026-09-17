@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Bell,
-  ClipboardCheck,
   Clapperboard,
   GraduationCap,
   Home,
@@ -60,7 +59,6 @@ const NAV = [
   { to: "/chat", label: "Messages", icon: MessageCircle },
   { to: "/team", label: "My Team & Seats", icon: Users },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
-  { to: "/final-test", label: "Final Test", icon: ClipboardCheck },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
 ] as const;

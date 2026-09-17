@@ -868,7 +868,7 @@ export const adminGetSessionExtras = createServerFn({ method: "POST" })
     const { data: rows } = await (supabaseAdmin as any)
       .from("beginner_session_extras")
       .select(
-        "id, session_id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+        "id, session_id, title, description, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
       )
       .eq("session_id", data.sessionId)
       .order("sort_order")
@@ -883,8 +883,10 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
       sessionId: string;
       title: string;
       description?: string | null;
-      videoPath?: string | null;
-      videoUrl?: string | null;
+      kind?: string;
+      filePath?: string | null;
+      fileBucket?: string | null;
+      linkUrl?: string | null;
       thumbnailPath?: string | null;
       aspectRatio?: string;
       sortOrder?: number;
@@ -896,15 +898,17 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
           sessionId: uuid,
           title: text(160),
           description: optionalText(2000),
-          videoPath: optionalText(400),
-          videoUrl: optionalText(600),
+          kind: z.enum(["video", "image", "pdf", "link"]).optional(),
+          filePath: optionalText(400),
+          fileBucket: optionalText(120),
+          linkUrl: optionalText(600),
           thumbnailPath: optionalText(400),
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           sortOrder: z.number().int().min(0).max(999).optional(),
           isPublished: z.boolean(),
         })
-        .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
-          message: "Upload a video file or paste a video link.",
+        .refine((v) => Boolean(v.id || v.filePath || v.linkUrl), {
+          message: "Upload a file or paste a link.",
         })
         .parse(data),
   )
@@ -921,13 +925,16 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
       sort_order: data.sortOrder ?? 0,
       is_published: data.isPublished,
     };
-    if (data.videoPath) {
-      payload["video_path"] = data.videoPath;
+    if (data.kind) payload["kind"] = data.kind;
+    if (data.filePath) {
+      payload["video_path"] = data.filePath;
+      payload["file_bucket"] = data.fileBucket ?? null;
       payload["video_url"] = null;
       payload["video_source"] = "upload";
-    } else if (data.videoUrl) {
-      payload["video_url"] = data.videoUrl;
+    } else if (data.linkUrl) {
+      payload["video_url"] = data.linkUrl;
       payload["video_path"] = null;
+      payload["file_bucket"] = null;
       payload["video_source"] = "external";
     }
     if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;

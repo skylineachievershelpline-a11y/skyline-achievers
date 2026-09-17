@@ -22,17 +22,39 @@ import {
 const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
 
+type Kind = "video" | "image" | "pdf" | "link";
+
+const KINDS: { value: Kind; label: string; accept: string; bucket: string }[] = [
+  { value: "video", label: "Video", accept: "video/*", bucket: "training-videos" },
+  { value: "image", label: "Picture", accept: "image/*", bucket: "training-thumbnails" },
+  {
+    value: "pdf",
+    label: "PDF / document",
+    accept: ".pdf,application/pdf",
+    bucket: "training-resources",
+  },
+  { value: "link", label: "Link only", accept: "", bucket: "" },
+];
+
+const KIND_LABEL: Record<string, string> = {
+  video: "Video",
+  image: "Picture",
+  pdf: "PDF",
+  link: "Link",
+};
+
 type ExtraRow = {
   id: string;
   title: string;
   description: string | null;
+  kind: string | null;
   video_url: string | null;
   aspect_ratio: string | null;
   sort_order: number | null;
   is_published: boolean;
 };
 
-/** Extra videos shown alongside one beginners session when its code is opened. */
+/** Extra material (video, picture, PDF or link) shown with one beginners session. */
 export function SessionExtrasDialog({
   sessionId,
   sessionTitle,
@@ -56,14 +78,17 @@ export function SessionExtrasDialog({
 
   const [editing, setEditing] = useState<ExtraRow | null>(null);
   const [busy, setBusy] = useState(false);
+  const [kind, setKind] = useState<Kind>("video");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
   const [ratio, setRatio] = useState<string>("16:9");
   const [sortOrder, setSortOrder] = useState("0");
   const [published, setPublished] = useState(true);
+
+  const kindConfig = KINDS.find((entry) => entry.value === kind) ?? KINDS[0]!;
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-session-extras", sessionId] });
@@ -71,10 +96,11 @@ export function SessionExtrasDialog({
 
   function reset() {
     setEditing(null);
+    setKind("video");
     setTitle("");
     setDescription("");
-    setVideoUrl("");
-    setVideoFile(null);
+    setLinkUrl("");
+    setFile(null);
     setCover(null);
     setRatio("16:9");
     setSortOrder("0");
@@ -83,10 +109,11 @@ export function SessionExtrasDialog({
 
   function startEdit(row: ExtraRow) {
     setEditing(row);
+    setKind((row.kind ?? "video") as Kind);
     setTitle(row.title);
     setDescription(row.description ?? "");
-    setVideoUrl(row.video_url ?? "");
-    setVideoFile(null);
+    setLinkUrl(row.video_url ?? "");
+    setFile(null);
     setCover(null);
     setRatio(row.aspect_ratio ?? "16:9");
     setSortOrder(String(row.sort_order ?? 0));
@@ -96,7 +123,7 @@ export function SessionExtrasDialog({
   const del = useMutation({
     mutationFn: (id: string) => removeExtra({ data: { id } }),
     onSuccess: () => {
-      toast.success("Extra video deleted");
+      toast.success("Extra item deleted");
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -105,27 +132,27 @@ export function SessionExtrasDialog({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim()) {
-      toast.error("Give this extra video a title.");
+      toast.error("Give this item a title.");
       return;
     }
-    if (!editing && !videoFile && !videoUrl.trim()) {
-      toast.error("Upload a video file or paste a video link.");
+    if (!editing && !file && !linkUrl.trim()) {
+      toast.error(kind === "link" ? "Paste the link to open." : "Upload a file or paste a link.");
       return;
     }
     setBusy(true);
     uploadProgress.clear();
     try {
-      let videoPath: string | null = null;
+      let filePath: string | null = null;
       let thumbnailPath: string | null = null;
-      if (videoFile) {
-        videoPath = await uploadToBucket(
+      if (kind !== "link" && file) {
+        filePath = await uploadToBucket(
           createUploadUrl,
-          "training-videos",
-          videoFile,
-          uploadProgress.handler("Uploading extra video"),
+          kindConfig.bucket as never,
+          file,
+          uploadProgress.handler(`Uploading ${KIND_LABEL[kind]?.toLowerCase() ?? "file"}`),
         );
       }
-      const coverFile = cover ?? (videoFile ? await frameFromVideo(videoFile) : null);
+      const coverFile = cover ?? (kind === "video" && file ? await frameFromVideo(file) : null);
       if (coverFile) {
         thumbnailPath = await uploadToBucket(
           createUploadUrl,
@@ -140,15 +167,17 @@ export function SessionExtrasDialog({
           sessionId,
           title: title.trim(),
           description: description.trim() || null,
-          videoPath,
-          videoUrl: videoFile ? null : videoUrl.trim() || null,
+          kind,
+          filePath,
+          fileBucket: filePath ? kindConfig.bucket : null,
+          linkUrl: filePath ? null : linkUrl.trim() || null,
           thumbnailPath,
           aspectRatio: ratio,
           sortOrder: Number(sortOrder) || 0,
           isPublished: published,
         },
       } as never);
-      toast.success(editing ? "Extra video updated" : "Extra video added");
+      toast.success(editing ? "Item updated" : "Item added");
       reset();
       refresh();
     } catch (error) {
@@ -165,7 +194,7 @@ export function SessionExtrasDialog({
     <Dialog open onOpenChange={(next) => (!next ? onClose() : undefined)}>
       <DialogContent className="max-h-[86vh] overflow-y-auto rounded-3xl">
         <DialogHeader>
-          <DialogTitle>Extra videos · {sessionTitle}</DialogTitle>
+          <DialogTitle>Extra material · {sessionTitle}</DialogTitle>
         </DialogHeader>
 
         {isPending ? (
@@ -174,7 +203,8 @@ export function SessionExtrasDialog({
           </div>
         ) : extras.length === 0 ? (
           <p className="inset-panel rounded-2xl p-3 text-xs text-muted-foreground">
-            No extra videos yet. Anything you add here opens together with this session's code.
+            Nothing added yet. Videos, pictures, PDFs and links you add here open together with this
+            session's code.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -183,21 +213,21 @@ export function SessionExtrasDialog({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{row.title}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {row.aspect_ratio ?? "16:9"} · order {row.sort_order ?? 0} ·{" "}
+                    {KIND_LABEL[row.kind ?? "video"] ?? "Video"} · order {row.sort_order ?? 0} ·{" "}
                     {row.is_published ? "Published" : "Hidden"}
                   </p>
                 </div>
                 <button
                   onClick={() => startEdit(row)}
                   className="text-muted-foreground transition-colors hover:text-brand"
-                  aria-label="Edit extra video"
+                  aria-label="Edit item"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => del.mutate(row.id)}
                   className="text-muted-foreground transition-colors hover:text-destructive"
-                  aria-label="Delete extra video"
+                  aria-label="Delete item"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -208,8 +238,25 @@ export function SessionExtrasDialog({
 
         <form onSubmit={submit} className="mt-2 space-y-3">
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            {editing ? "Edit extra video" : "Add an extra video"}
+            {editing ? "Edit item" : "Add video, picture, PDF or link"}
           </p>
+          <div className="space-y-1.5">
+            <Label>Type</Label>
+            <select
+              value={kind}
+              onChange={(e) => {
+                setKind(e.target.value as Kind);
+                setFile(null);
+              }}
+              className={fieldClass}
+            >
+              {KINDS.map((entry) => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-1.5">
             <Label>Title</Label>
             <Input
@@ -227,23 +274,25 @@ export function SessionExtrasDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Video link (optional)</Label>
+            <Label>{kind === "link" ? "Link" : "Link (optional)"}</Label>
             <Input
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="Leave empty if uploading a file"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder={kind === "link" ? "https://…" : "Leave empty if uploading a file"}
               className="h-11 rounded-2xl"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label>Or upload a video file</Label>
-            <input
-              type="file"
-              accept="video/*"
-              onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
-              className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
-            />
-          </div>
+          {kind === "link" ? null : (
+            <div className="space-y-1.5">
+              <Label>Or upload a {KIND_LABEL[kind]?.toLowerCase()} file</Label>
+              <input
+                type="file"
+                accept={kindConfig.accept}
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+              />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Cover image (optional)</Label>
             <input
@@ -256,7 +305,11 @@ export function SessionExtrasDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Video ratio</Label>
-              <select value={ratio} onChange={(e) => setRatio(e.target.value)} className={fieldClass}>
+              <select
+                value={ratio}
+                onChange={(e) => setRatio(e.target.value)}
+                className={fieldClass}
+              >
                 {RATIOS.map((value) => (
                   <option key={value} value={value}>
                     {value}
@@ -287,7 +340,7 @@ export function SessionExtrasDialog({
           <div className="flex gap-2">
             <Button type="submit" variant="brand" size="xl" disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              {editing ? "Save changes" : "Add video"}
+              {editing ? "Save changes" : "Add item"}
             </Button>
             {editing ? (
               <Button type="button" variant="outline" size="xl" onClick={reset}>

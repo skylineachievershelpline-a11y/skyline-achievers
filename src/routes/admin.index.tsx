@@ -5,7 +5,6 @@ import { Loader2, LogOut } from "lucide-react";
 import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
-import { FinalTestTab } from "@/components/admin/FinalTestTab";
 import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
@@ -157,9 +156,6 @@ function AdminPage() {
             <TabsTrigger value="inspiration" className="rounded-xl">
               Daily Verses
             </TabsTrigger>
-            <TabsTrigger value="finaltest" className="rounded-xl">
-              Final Test
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">
@@ -188,9 +184,6 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="inspiration" className="mt-5">
             <InspirationTab />
-          </TabsContent>
-          <TabsContent value="finaltest" className="mt-5">
-            <FinalTestTab />
           </TabsContent>
         </Tabs>
       </div>

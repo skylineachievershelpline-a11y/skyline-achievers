@@ -97,31 +97,6 @@ function DashboardPage() {
         </aside>
 
         <section className="space-y-4 lg:col-span-8">
-          <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in [animation-delay:70ms]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Training overview</p>
-                <h2 className="mt-1 font-display text-xl font-bold">Your learning momentum</h2>
-              </div>
-               <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan/30 brand-gradient text-primary-foreground shadow-brand"><Activity className="h-5 w-5" /></span>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric icon={<Layers3 />} label="Videos" value={videos.length} tone="primary" />
-              <Metric icon={<BookOpen />} label="Minutes" value={totalMinutes} tone="success" />
-              <Metric icon={<Sparkles />} label="Watched" value={data.continueWatching.length} tone="warning" />
-              <Metric icon={<Clock3 />} label="In progress" value={data.continueWatching.length} tone="accent" />
-            </div>
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between text-xs">
-                <span className="font-semibold">Current watch progress</span>
-                <span className="font-bold text-primary">{progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
             <Stat icon={<Target />} label="Videos unlocked" value={String(videos.length)} />

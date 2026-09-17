@@ -56,3 +56,9 @@
 - [x] Earnings and investment tracking recomposed as premium dashboard graphics
 - [x] Joining date moved to profile; last login removed from home
 - [x] Mobile and desktop verification
+
+## Compact team tables
+- [ ] Replace the oversized member team tree with the selected compact hierarchy table
+- [ ] Restyle the admin member list into the same compact table system
+- [ ] Add member search, filters, selection, and bulk actions to both views
+- [ ] Verify desktop and phone layouts

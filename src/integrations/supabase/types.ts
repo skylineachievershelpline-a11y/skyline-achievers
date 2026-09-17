@@ -614,6 +614,7 @@ export type Database = {
       lectures: {
         Row: {
           aspect_ratio: string
+          category_id: string | null
           created_at: string
           description: string | null
           duration_seconds: number | null
@@ -632,6 +633,7 @@ export type Database = {
         }
         Insert: {
           aspect_ratio?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
@@ -650,6 +652,7 @@ export type Database = {
         }
         Update: {
           aspect_ratio?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
@@ -667,6 +670,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lectures_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "training_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lectures_level_id_fkey"
             columns: ["level_id"]
@@ -1294,6 +1304,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      training_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       watch_positions: {
         Row: {

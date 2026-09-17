@@ -98,13 +98,13 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     const { loadMemberContext } = await import("./member.server");
 
     const member = await loadMemberContext(context.supabase as never, context.userId);
-    if (!member || member.status !== "active") return { videos: [] };
+    if (!member || member.status !== "active") return { videos: [], categories: [] };
 
-    const [{ data: lectures }, { data: access }] = await Promise.all([
+    const [{ data: lectures }, { data: access }, { data: categories }] = await Promise.all([
       supabaseAdmin
         .from("lectures")
         .select(
-          "id, title, description, duration_seconds, thumbnail_path, sort_order, created_at, levels:level_id (id, name, slug, rank_order)",
+          "id, title, description, duration_seconds, thumbnail_path, sort_order, created_at, category_id, levels:level_id (id, name, slug, rank_order)",
         )
         .eq("is_published", true)
         .eq("is_archived", false)
@@ -118,11 +118,22 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
             .eq("content_type", "lecture")
             .eq("level_id", member.level.id)
         : Promise.resolve({ data: [] as { content_id: string }[] }),
+      (supabaseAdmin as any)
+        .from("training_categories")
+        .select("id, name, slug, description, sort_order")
+        .eq("is_published", true)
+        .order("sort_order"),
     ]);
 
     const allowed = new Set((access ?? []).map((row) => row.content_id));
     const signed = await signThumbnails(lectures ?? []);
     return {
+      categories: (categories ?? []) as {
+        id: string;
+        name: string;
+        slug: string;
+        description: string | null;
+      }[],
       videos: signed.map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
     };
   });

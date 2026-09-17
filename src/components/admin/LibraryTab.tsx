@@ -14,15 +14,24 @@ import { videoDurationSeconds } from "@/components/admin/upload";
 import {
   adminCreateUploadUrl,
   adminDeleteContent,
+  adminDeleteTrainingCategory,
   adminGetLibrary,
   adminSaveLecture,
   adminSaveResource,
+  adminSaveTrainingCategory,
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { startUpload } from "@/lib/upload-manager";
 
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
 type Level = { id: string; name: string; rank_order: number };
+type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_published: boolean;
+};
 
 const fieldClass =
   "h-11 w-full rounded-2xl border border-border bg-input px-3 text-sm text-foreground";
@@ -32,6 +41,7 @@ type VideoValues = {
   id?: string;
   levelId: string;
   levelIds: string[];
+  categoryId: string;
   title: string;
   description: string;
   sortOrder: number;
@@ -41,6 +51,14 @@ type VideoValues = {
   thumbnail: File | null;
 };
 
+type CategoryValues = {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+  isPublished: boolean;
+};
+
 export function LibraryTab() {
   const queryClient = useQueryClient();
   const loadLibrary = useServerFn(adminGetLibrary);
@@ -48,6 +66,8 @@ export function LibraryTab() {
   const saveResource = useServerFn(adminSaveResource);
   const remove = useServerFn(adminDeleteContent);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const saveCategory = useServerFn(adminSaveTrainingCategory);
+  const removeCategory = useServerFn(adminDeleteTrainingCategory);
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
@@ -56,6 +76,7 @@ export function LibraryTab() {
   });
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
+  const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
   const [resourceDialog, setResourceDialog] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -73,6 +94,34 @@ export function LibraryTab() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const delCategory = useMutation({
+    mutationFn: (id: string) => removeCategory({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Section deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const storeCategory = useMutation({
+    mutationFn: (values: CategoryValues) =>
+      saveCategory({
+        data: {
+          ...(values.id ? { id: values.id } : {}),
+          name: values.name.trim(),
+          description: values.description.trim() || null,
+          sortOrder: values.sortOrder,
+          isPublished: values.isPublished,
+        },
+      } as never),
+    onSuccess: () => {
+      toast.success("Section saved");
+      setCategoryDialog(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   if (isPending || !data) {
     return (
       <div className="flex justify-center py-12">
@@ -82,6 +131,7 @@ export function LibraryTab() {
   }
 
   const levels = data.levels as unknown as Level[];
+  const categories = ((data as any).categories ?? []) as Category[];
   const access = (data as any).access as Record<string, string[]>;
 
   function blankVideo(): VideoValues {
@@ -89,6 +139,7 @@ export function LibraryTab() {
     return {
       levelId: first?.id ?? "",
       levelIds: first ? levels.filter((l) => l.rank_order >= first.rank_order).map((l) => l.id) : [],
+      categoryId: categories[0]?.id ?? "",
       title: "",
       description: "",
       sortOrder: 0,
@@ -149,6 +200,7 @@ export function LibraryTab() {
           ...(values.id ? { id: values.id } : {}),
           levelId: values.levelId,
           levelIds: values.levelIds,
+          categoryId: values.categoryId || null,
           title: values.title,
           description: values.description || null,
           sortOrder: values.sortOrder,
@@ -171,27 +223,115 @@ export function LibraryTab() {
     }
   }
 
+  const groups: { id: string | null; name: string; hint: string }[] = [
+    ...categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      hint: category.is_published ? "Visible to members" : "Hidden from members",
+    })),
+    { id: null, name: "Not in any section", hint: "Pick a section so members can find these" },
+  ];
+
   return (
     <div className="space-y-7">
       <div className="flex flex-wrap gap-2">
         <Button variant="brand" size="xl" onClick={() => setVideoDialog(blankVideo())}>
           <Plus className="h-4 w-4" /> New training video
         </Button>
+        <Button
+          variant="secondary"
+          size="xl"
+          onClick={() =>
+            setCategoryDialog({
+              name: "",
+              description: "",
+              sortOrder: categories.length + 1,
+              isPublished: true,
+            })
+          }
+        >
+          <Plus className="h-4 w-4" /> New training section
+        </Button>
         <Button variant="secondary" size="xl" onClick={() => setResourceDialog(true)}>
           <Plus className="h-4 w-4" /> New resource
         </Button>
       </div>
 
-      {levels.map((level) => {
-        const videos = (data.lectures as any[]).filter((l) => l.level_id === level.id);
+      <section className="raised-panel metal-edge rounded-3xl p-4">
+        <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+          Training sections
+        </h3>
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Members see these as menu items inside Training (for example Podcast, Motivational).
+        </p>
+        {categories.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            No sections yet — create one first, then place videos inside it.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {categories.map((category) => {
+              const count = (data.lectures as any[]).filter(
+                (l) => l.category_id === category.id,
+              ).length;
+              return (
+                <li
+                  key={category.id}
+                  className="glass-panel flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{category.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {count} video{count === 1 ? "" : "s"} ·{" "}
+                      {category.is_published ? "Visible" : "Hidden"} · Order {category.sort_order}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setCategoryDialog({
+                        id: category.id,
+                        name: category.name,
+                        description: category.description ?? "",
+                        sortOrder: category.sort_order,
+                        isPublished: category.is_published,
+                      })
+                    }
+                    className="text-muted-foreground transition-colors hover:text-brand-glow"
+                    aria-label="Edit section"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!window.confirm(`Delete section “${category.name}”?`)) return;
+                      delCategory.mutate(category.id);
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Delete section"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {groups.map((group) => {
+        const videos = (data.lectures as any[]).filter((l) =>
+          group.id === null ? !l.category_id : l.category_id === group.id,
+        );
+        if (group.id === null && videos.length === 0) return null;
         return (
-          <section key={level.id}>
-            <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
-              {level.name}
+          <section key={group.id ?? "none"}>
+            <h3 className="mb-1 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+              {group.name}
             </h3>
+            <p className="mb-2 text-[11px] text-muted-foreground">{group.hint}</p>
             {videos.length === 0 ? (
               <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
-                No training video in this level yet.
+                No training video in this section yet.
               </p>
             ) : (
               <ul className="space-y-2">
@@ -232,6 +372,7 @@ export function LibraryTab() {
                                 id: video.id,
                                 levelId: video.level_id,
                                 levelIds: allowed,
+                                categoryId: video.category_id ?? "",
                                 title: video.title,
                                 description: video.description ?? "",
                                 sortOrder: video.sort_order ?? 0,
@@ -304,9 +445,89 @@ export function LibraryTab() {
               key={videoDialog.id ?? "new"}
               initial={videoDialog}
               levels={levels}
+              categories={categories}
               busy={busy}
               onSubmit={(values) => void submitVideo(values)}
             />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={categoryDialog !== null}
+        onOpenChange={(open) => !open && setCategoryDialog(null)}
+      >
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {categoryDialog?.id ? "Edit training section" : "New training section"}
+            </DialogTitle>
+          </DialogHeader>
+          {categoryDialog ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!categoryDialog.name.trim()) {
+                  toast.error("Give the section a name.");
+                  return;
+                }
+                storeCategory.mutate(categoryDialog);
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1.5">
+                <Label>Section name</Label>
+                <Input
+                  value={categoryDialog.name}
+                  onChange={(e) => setCategoryDialog({ ...categoryDialog, name: e.target.value })}
+                  placeholder="Podcast"
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Short description</Label>
+                <Textarea
+                  value={categoryDialog.description}
+                  onChange={(e) =>
+                    setCategoryDialog({ ...categoryDialog, description: e.target.value })
+                  }
+                  className="rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Order in the menu</Label>
+                <Input
+                  value={String(categoryDialog.sortOrder)}
+                  onChange={(e) =>
+                    setCategoryDialog({
+                      ...categoryDialog,
+                      sortOrder: Number(e.target.value.replace(/\D/g, "")) || 0,
+                    })
+                  }
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={categoryDialog.isPublished}
+                  onChange={(e) =>
+                    setCategoryDialog({ ...categoryDialog, isPublished: e.target.checked })
+                  }
+                />
+                Visible to members
+              </label>
+              <Button
+                type="submit"
+                variant="brand"
+                size="xl"
+                className="w-full"
+                disabled={storeCategory.isPending}
+              >
+                {storeCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {categoryDialog.id ? "Save section" : "Create section"}
+              </Button>
+            </form>
           ) : null}
         </DialogContent>
       </Dialog>
@@ -366,11 +587,13 @@ export function LibraryTab() {
 function VideoForm({
   initial,
   levels,
+  categories,
   busy,
   onSubmit,
 }: {
   initial: VideoValues;
   levels: Level[];
+  categories: Category[];
   busy: boolean;
   onSubmit: (values: VideoValues) => void;
 }) {
@@ -394,6 +617,25 @@ function VideoForm({
       }}
       className="space-y-3"
     >
+      <div className="space-y-1.5">
+        <Label>Training section</Label>
+        <select
+          value={values.categoryId}
+          onChange={(e) => setValues({ ...values, categoryId: e.target.value })}
+          className={fieldClass}
+        >
+          <option value="">No section</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] text-muted-foreground">
+          Members open this section in Training and only see its videos.
+        </p>
+      </div>
+
       <div className="space-y-1.5">
         <Label>Training level</Label>
         <select

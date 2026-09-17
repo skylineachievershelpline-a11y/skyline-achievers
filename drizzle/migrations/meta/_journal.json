@@ -36,6 +36,13 @@
       "when": 1789642271045,
       "tag": "0004_member_dashboard_cover",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789664743318,
+      "tag": "0005_training_categories",
+      "breakpoints": true
     }
   ]
 }

@@ -234,6 +234,66 @@ export const adminGetLibrary = createServerFn({ method: "GET" }).handler(async (
   return adminLibrary();
 });
 
+/**
+ * Training sections (Podcast, Motivational, Training, ...). Videos are placed
+ * into one section and members browse each section from the sidebar.
+ */
+export const adminSaveTrainingCategory = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      name: string;
+      description?: string | null;
+      sortOrder: number;
+      isPublished: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          name: text(60),
+          description: optionalText(500),
+          sortOrder: z.number().int().min(0).max(999),
+          isPublished: z.boolean(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const payload = {
+      name: data.name,
+      slug: slug || `section-${Date.now()}`,
+      description: data.description,
+      sort_order: data.sortOrder,
+      is_published: data.isPublished,
+    };
+    const query = data.id
+      ? (supabaseAdmin as any).from("training_categories").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("training_categories").insert(payload);
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteTrainingCategory = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("training_categories")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 export const adminSaveLevel = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
@@ -286,6 +346,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
       id?: string;
       levelId: string;
       levelIds?: string[];
+      categoryId?: string | null;
       title: string;
       description?: string | null;
       sortOrder: number;
@@ -303,6 +364,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           levelId: uuid,
           levelIds: z.array(uuid).max(50).optional(),
+          categoryId: uuid.nullable().optional(),
           title: text(160),
           description: optionalText(4000),
           sortOrder: z.number().int().min(0).max(999),
@@ -324,6 +386,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
     const payload: Record<string, unknown> = {
       series_id: null,
       level_id: data.levelId,
+      category_id: data.categoryId ?? null,
       title: data.title,
       description: data.description,
       sort_order: data.sortOrder,

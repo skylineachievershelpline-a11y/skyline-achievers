@@ -51,8 +51,8 @@
 - [x] Uploads keep running in the background after closing the form
 
 ## Premium upline dashboard
-- [ ] Reference-style cover profile with editable background and circular DP
-- [ ] Member ID hidden by default with reveal control
-- [ ] Earnings and investment tracking recomposed as premium dashboard graphics
-- [ ] Joining date moved to profile; last login removed from home
+- [x] Reference-style cover profile with editable background and circular DP
+- [x] Member ID hidden by default with reveal control
+- [x] Earnings and investment tracking recomposed as premium dashboard graphics
+- [x] Joining date moved to profile; last login removed from home
 - [ ] Mobile and desktop verification

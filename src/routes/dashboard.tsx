@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Lock, Trophy } from "lucide-react";
-import { useEffect } from "react";
+import { Eye, EyeOff, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
 
 
 import { AvatarPicker } from "@/components/member/AvatarPicker";
+import { CoverPicker } from "@/components/member/CoverPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { EarningsPanel } from "@/components/member/EarningsPanel";
@@ -18,7 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
-import { formatDate } from "@/lib/format";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/dashboard")({
@@ -62,36 +62,68 @@ function DashboardPage() {
   }
 
   const member = data.member;
-
+  const [showId, setShowId] = useState(false);
 
   return (
     <MemberShell
       title={member?.fullName ?? "Member"}
-      subtitle={`${member?.memberId ?? ""} · ${member?.level?.name ?? "Level not assigned"}`}
+      subtitle={member?.level?.name ?? "Level not assigned"}
       executive
     >
-      <div className="grid gap-5 lg:grid-cols-12">
-        <aside className="raised-panel metal-edge overflow-hidden rounded-3xl animate-rise-in lg:col-span-4">
-          <div className="relative h-24 brand-gradient"><div className="absolute inset-x-8 bottom-0 h-px bg-cyan/60" /></div>
-          <div className="-mt-12 px-5 pb-6 text-center">
-            <AvatarPicker name={member?.fullName ?? "Member"} url={member?.avatarUrl ?? null} />
-            <p className="mt-4 text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
-            <h1 className="mt-1 break-words font-display text-2xl font-bold">{member?.fullName ?? "Member"}</h1>
-            <span className="mt-2 inline-flex rounded-xl border border-cyan/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-cyan shadow-glass">
-              {member?.level?.name ?? "Level not assigned"}
-            </span>
-            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-5 text-left">
-              <ProfileDetail label="Member ID" value={member?.memberId ?? "—"} />
-              <ProfileDetail label="Joined" value={member ? formatDate(member.createdAt) : "—"} />
-              <ProfileDetail label="Last active" value={member?.lastLoginAt ? formatDate(member.lastLoginAt) : "Today"} />
-              <ProfileDetail label="Status" value="Active" />
+      <section className="raised-panel metal-edge relative min-h-[24rem] overflow-hidden rounded-3xl animate-rise-in sm:min-h-[26rem]">
+        <CoverPicker url={member?.dashboardCoverUrl ?? null} />
+        <div className="relative z-10 flex min-h-[24rem] flex-col justify-between p-5 sm:min-h-[26rem] sm:p-7">
+          <div className="max-w-[75%]">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-cyan">
+              <Sparkles className="h-3.5 w-3.5" /> Welcome back
+            </p>
+            <h1 className="mt-1 break-words font-display text-2xl font-bold sm:text-3xl">
+              {member?.fullName ?? "Member"}
+            </h1>
+            <p className="mt-1 text-xs text-foreground/70">Here&apos;s your Skyline progress today.</p>
+          </div>
+
+          <div className="glass-panel-strong metal-edge grid gap-5 rounded-3xl p-4 backdrop-blur-md sm:grid-cols-[auto_1fr_auto] sm:items-end sm:p-5">
+            <AvatarPicker
+              name={member?.fullName ?? "Member"}
+              url={member?.avatarUrl ?? null}
+              label="Change picture"
+              hint=""
+            />
+            <div className="min-w-0 text-center sm:text-left">
+              <p className="text-[10px] font-bold uppercase text-primary">{BRAND.name} member</p>
+              <h2 className="mt-1 truncate font-display text-xl font-bold sm:text-2xl">
+                {member?.fullName ?? "Member"}
+              </h2>
+              <span className="mt-2 inline-flex rounded-xl border border-cyan/30 bg-primary/15 px-3 py-1 text-xs font-semibold text-cyan shadow-glass">
+                {member?.level?.name ?? "Level not assigned"}
+              </span>
+            </div>
+            <div className="inset-panel min-w-0 rounded-2xl p-3 text-left sm:min-w-44">
+              <p className="text-[9px] font-bold uppercase text-muted-foreground">Skyline ID</p>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <p className="truncate font-mono text-sm font-semibold tracking-wider">
+                  {showId ? member?.memberId ?? "—" : "••••••••••••"}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 rounded-xl"
+                  aria-label={showId ? "Hide member ID" : "Show member ID"}
+                  onClick={() => setShowId((value) => !value)}
+                >
+                  {showId ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
           </div>
-        </aside>
+        </div>
+      </section>
 
-        <section className="space-y-4 lg:col-span-8">
-          <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
-        </section>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} className="sm:col-span-2" />
+        <Stat icon={<Sparkles />} label="Account" value={trainingOnly ? "Training only" : "Training + working"} />
       </div>
 
       <div className="mt-6">
@@ -146,12 +178,6 @@ function Stat({
     </div>
   );
 }
-
-function ProfileDetail({ label, value }: { label: string; value: string }) {
-  return <div className="min-w-0"><p className="text-[9px] font-bold uppercase text-muted-foreground">{label}</p><p className="mt-1 truncate text-sm font-semibold">{value}</p></div>;
-}
-
-
 
 /**
  * Signed in, but this account is not an active member: no member menu here.

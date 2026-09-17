@@ -327,3 +327,38 @@ export const saveAvatar = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/** Signed upload slot for the signed-in member's dashboard cover. */
+export const getDashboardCoverUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { extension: string }) =>
+    z.object({ extension: z.enum(["png", "jpg", "jpeg", "webp"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const path = `${context.userId}/covers/${crypto.randomUUID()}.${data.extension}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("member-avatars")
+      .createSignedUploadUrl(path);
+    if (error || !signed) throw new Error(error?.message ?? "Could not prepare the upload.");
+    return { path: signed.path, token: signed.token, signedUrl: signed.signedUrl };
+  });
+
+/** Saves a cover path only for the authenticated member. */
+export const saveDashboardCover = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { path: string }) =>
+    z.object({ path: z.string().trim().min(3).max(300) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    if (!data.path.startsWith(`${context.userId}/covers/`)) {
+      throw new Error("Invalid cover upload path.");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("member_profiles")
+      .update({ dashboard_cover_path: data.path } as never)
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

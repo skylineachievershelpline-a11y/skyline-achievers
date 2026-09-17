@@ -313,7 +313,7 @@ export function EarningsPanel() {
   const absentToday = data.today.absent;
 
   return (
-    <section className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
+    <section className="raised-panel metal-edge overflow-hidden rounded-3xl p-5 animate-rise-in">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
@@ -324,6 +324,56 @@ export function EarningsPanel() {
             1 lead = PKR {data.rates.lead} investment · 1 joining = PKR {data.rates.join} earning ·
             day closes at 12:00 midnight
           </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-[1.35fr_.65fr]">
+        <div className="inset-panel rounded-2xl p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">7-day activity</p>
+              <p className="mt-1 text-sm font-semibold">Lead tracking momentum</p>
+            </div>
+            <span className="rounded-lg border border-cyan/25 bg-primary/10 px-2 py-1 text-[10px] font-semibold text-cyan">
+              {data.month.leads} this month
+            </span>
+          </div>
+          <div className="mt-5 flex h-28 items-end justify-between gap-2" aria-label="Seven day lead activity">
+            {Array.from({ length: 7 }, (_, index) => {
+              const date = new Date(`${data.today.date}T00:00:00Z`);
+              date.setUTCDate(date.getUTCDate() - (6 - index));
+              const key = date.toISOString().slice(0, 10);
+              const day = data.days.find((item) => item.date === key);
+              const max = Math.max(1, ...data.days.slice(0, 7).map((item) => item.leads));
+              const height = day?.absent ? 12 : Math.max(10, Math.round(((day?.leads ?? 0) / max) * 88));
+              return (
+                <div key={key} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                  <span
+                    className={`w-full max-w-8 rounded-t-lg border ${day?.absent ? "border-metal/30 bg-muted" : "border-cyan/30 brand-gradient shadow-brand"}`}
+                    style={{ height }}
+                    title={day?.absent ? "Absent" : `${day?.leads ?? 0} leads`}
+                  />
+                  <span className="text-[9px] font-semibold uppercase text-muted-foreground">
+                    {date.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" }).slice(0, 1)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="inset-panel flex flex-col items-center justify-center rounded-2xl p-4 text-center">
+          <div
+            className="relative grid h-28 w-28 place-items-center rounded-full"
+            style={{ background: `conic-gradient(var(--color-primary) ${Math.min(100, data.month.leads)}%, var(--color-muted) 0)` }}
+          >
+            <div className="grid h-20 w-20 place-items-center rounded-full bg-surface shadow-inner">
+              <div>
+                <p className="font-display text-xl font-bold tabular-nums">{data.month.leads}</p>
+                <p className="text-[9px] uppercase text-muted-foreground">Leads</p>
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 text-xs font-semibold">Monthly tracking</p>
         </div>
       </div>
 

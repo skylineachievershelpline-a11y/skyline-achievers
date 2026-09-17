@@ -1,0 +1,1 @@
+ALTER TABLE public.resources DROP CONSTRAINT IF EXISTS resource_parent_required;

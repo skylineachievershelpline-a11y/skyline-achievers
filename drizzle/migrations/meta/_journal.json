@@ -43,6 +43,13 @@
       "when": 1789664743318,
       "tag": "0005_training_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789665799485,
+      "tag": "0006_allow_standalone_resources",
+      "breakpoints": true
     }
   ]
 }

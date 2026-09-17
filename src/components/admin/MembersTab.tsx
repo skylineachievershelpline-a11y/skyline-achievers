@@ -155,7 +155,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   <p className="truncate text-sm font-semibold">{member.full_name}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {member.member_id} · {member.levels?.name ?? "No level"} ·{" "}
-                    {ACCOUNT_STATUS_LABEL[member.status] ?? member.status}
+                    {ACCOUNT_STATUS_LABEL[member.status] ?? member.status} ·{" "}
+                    {member.working_enabled === false ? "Training only" : "Training + working"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
                     Joined {formatDate(member.created_at)} · Last login {formatDateTime(member.last_login_at)}
@@ -184,6 +185,19 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   >
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
+                  </select>
+                  <select
+                    value={member.working_enabled === false ? "training" : "working"}
+                    onChange={(e) =>
+                      update.mutate({
+                        data: { id: member.id, workingEnabled: e.target.value === "working" },
+                      } as never)
+                    }
+                    className="h-9 rounded-xl border border-hairline bg-surface-2 px-2 text-xs"
+                    title="Access"
+                  >
+                    <option value="training">Training only</option>
+                    <option value="working">Training + working</option>
                   </select>
                   <Button
                     variant="secondary"

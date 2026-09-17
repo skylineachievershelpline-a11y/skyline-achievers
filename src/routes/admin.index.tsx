@@ -10,6 +10,7 @@ import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
+import { ReportsTab } from "@/components/admin/ReportsTab";
 import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";

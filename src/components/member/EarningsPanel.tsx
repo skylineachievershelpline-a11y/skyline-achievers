@@ -6,6 +6,7 @@ import {
   Download,
   Loader2,
   Save,
+  Share2,
   TrendingUp,
   Users,
   Wallet,
@@ -33,6 +34,7 @@ export function EarningsPanel() {
   const save = useServerFn(saveDailyLeads);
   const [leads, setLeads] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
 
   const { data, isPending } = useQuery({ queryKey: ["earnings"], queryFn: () => load() });
 
@@ -49,10 +51,9 @@ export function EarningsPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  async function downloadPdf() {
-    if (!data) return;
-    setPdfBusy(true);
-    try {
+  async function buildPdf() {
+    if (!data) return null;
+    {
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       const width = doc.internal.pageSize.getWidth();
@@ -154,11 +155,65 @@ export function EarningsPanel() {
       doc.setFontSize(8);
       doc.setTextColor(120, 128, 150);
       doc.text(`${BRAND.name} · ${BRAND.tagline}`, 40, 812);
-      doc.save(`skyline-earnings-${data.today.date}.pdf`);
+
+      const blob = doc.output("blob") as Blob;
+      const name = `skyline-earnings-${data.today.date}.pdf`;
+      return { blob, name };
+    }
+  }
+
+  /** Saves the file through a real download link so phone browsers keep it. */
+  async function downloadPdf() {
+    if (pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const file = await buildPdf();
+      if (!file) return;
+      const url = URL.createObjectURL(file.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Report downloaded");
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
       setPdfBusy(false);
+    }
+  }
+
+  async function sharePdf() {
+    if (shareBusy) return;
+    setShareBusy(true);
+    try {
+      const built = await buildPdf();
+      if (!built) return;
+      const file = new File([built.blob], built.name, { type: "application/pdf" });
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({ files: [file], title: `${BRAND.name} report` });
+          return;
+        } catch (error) {
+          if ((error as Error)?.name === "AbortError") return;
+        }
+      }
+      const url = URL.createObjectURL(built.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = built.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Report saved — attach it from your files to share");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setShareBusy(false);
     }
   }
 
@@ -184,15 +239,26 @@ export function EarningsPanel() {
             day closes at 12:00 midnight
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-2xl"
-          disabled={pdfBusy}
-          onClick={() => void downloadPdf()}
-        >
-          {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          Download PDF report
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="rounded-2xl"
+            disabled={pdfBusy}
+            onClick={() => void downloadPdf()}
+          >
+            {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Download PDF
+          </Button>
+          <Button
+            variant="brand"
+            className="rounded-2xl"
+            disabled={shareBusy}
+            onClick={() => void sharePdf()}
+          >
+            {shareBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+            Share report
+          </Button>
+        </div>
       </div>
 
       <form

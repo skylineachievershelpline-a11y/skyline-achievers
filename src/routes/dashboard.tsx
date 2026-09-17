@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, Loader2, Target, Trophy } from "lucide-react";
+import { Loader2, Trophy } from "lucide-react";
 import { useEffect } from "react";
 
 
@@ -56,10 +56,6 @@ function DashboardPage() {
   }
 
   const member = data.member;
-  const videos = (data.videos ?? []) as any[];
-  const totalMinutes = Math.round(
-    videos.reduce((sum: number, video: any) => sum + (video.duration_seconds ?? 0), 0) / 60,
-  );
 
 
   return (
@@ -88,11 +84,7 @@ function DashboardPage() {
         </aside>
 
         <section className="space-y-4 lg:col-span-8">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
-            <Stat icon={<Target />} label="Videos unlocked" value={String(videos.length)} />
-            <Stat icon={<BookOpen />} label="Watch time" value={`${totalMinutes} min`} className="col-span-2 sm:col-span-1" />
-          </div>
+          <Stat icon={<Trophy />} label="Current rank" value={member?.level?.name ?? "Unranked"} />
         </section>
       </div>
 

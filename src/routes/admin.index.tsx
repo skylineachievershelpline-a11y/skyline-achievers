@@ -10,6 +10,7 @@ import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
 import { ReelsTab } from "@/components/admin/ReelsTab";
+import { ReportsTab } from "@/components/admin/ReportsTab";
 import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";
@@ -132,6 +133,9 @@ function AdminPage() {
             <TabsTrigger value="members" className="rounded-xl">
               Members
             </TabsTrigger>
+            <TabsTrigger value="reports" className="rounded-xl">
+              Reports
+            </TabsTrigger>
             <TabsTrigger value="library" className="rounded-xl">
               Library
             </TabsTrigger>
@@ -160,6 +164,9 @@ function AdminPage() {
 
           <TabsContent value="members" className="mt-5">
             <MembersTab levels={levels as any} />
+          </TabsContent>
+          <TabsContent value="reports" className="mt-5">
+            <ReportsTab />
           </TabsContent>
           <TabsContent value="library" className="mt-5">
             <LibraryTab />

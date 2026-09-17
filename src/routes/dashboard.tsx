@@ -10,18 +10,11 @@ import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { EarningsPanel } from "@/components/member/EarningsPanel";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
-import { useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import {
-  getAvatarUploadUrl,
-  getDashboard,
-  getSessionRole,
-  saveAvatar,
-} from "@/lib/member.functions";
-import { putWithProgress } from "@/lib/upload-progress";
+import { getDashboard, getSessionRole } from "@/lib/member.functions";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({

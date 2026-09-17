@@ -55,4 +55,4 @@
 - [x] Member ID hidden by default with reveal control
 - [x] Earnings and investment tracking recomposed as premium dashboard graphics
 - [x] Joining date moved to profile; last login removed from home
-- [ ] Mobile and desktop verification
+- [x] Mobile and desktop verification

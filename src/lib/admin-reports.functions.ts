@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { JOIN_EARNING_PKR, LEAD_INVESTMENT_PKR } from "./earnings.functions";
+import { loadRates } from "./earnings.functions";
 
 /** Reports follow Pakistan time: a day closes at 12:00 midnight PKT. */
 const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
@@ -30,6 +30,7 @@ export const adminGetReports = createServerFn({ method: "POST" })
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
     const { key, start, end } = monthRange(data.month);
     const today = pktToday();
 
@@ -86,7 +87,7 @@ export const adminGetReports = createServerFn({ method: "POST" })
       if (!row) continue;
       const leads = (r.leads_count as number) ?? 0;
       row.leads += leads;
-      row.investment += leads * ((r.rate_per_lead as number) ?? LEAD_INVESTMENT_PKR);
+      row.investment += leads * ((r.rate_per_lead as number) ?? rates.lead);
       if (r.report_date === today) row.todayLeads += leads;
     }
 
@@ -94,7 +95,7 @@ export const adminGetReports = createServerFn({ method: "POST" })
       const row = rows.get(j.upline_id as string);
       if (!row) continue;
       row.joins += 1;
-      row.earning += JOIN_EARNING_PKR;
+      row.earning += rates.join;
       if (pktDay(j.created_at as string) === today) row.todayJoins += 1;
     }
 
@@ -109,7 +110,7 @@ export const adminGetReports = createServerFn({ method: "POST" })
       { leads: 0, investment: 0, joins: 0, earning: 0 },
     );
 
-    return { month: key, today, members: list, totals, rates: { lead: LEAD_INVESTMENT_PKR, join: JOIN_EARNING_PKR } };
+    return { month: key, today, members: list, totals, rates };
   });
 
 /** Day-by-day report for one member in one month. */
@@ -121,6 +122,7 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
     const { key, start, end } = monthRange(data.month);
 
     const [{ data: member }, { data: reports }, { data: joins }] = await Promise.all([
@@ -175,7 +177,7 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
       const row = day(r.report_date as string);
       const leads = (r.leads_count as number) ?? 0;
       row.leads += leads;
-      row.investment += leads * ((r.rate_per_lead as number) ?? LEAD_INVESTMENT_PKR);
+      row.investment += leads * ((r.rate_per_lead as number) ?? rates.lead);
       row.absent = Boolean(r.is_absent);
       row.absentReason = (r.absent_reason as string | null) ?? null;
     }
@@ -183,7 +185,7 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     for (const j of joins ?? []) {
       const row = day(pktDay(j.created_at as string));
       row.joins += 1;
-      row.earning += JOIN_EARNING_PKR;
+      row.earning += rates.join;
     }
 
     const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -194,4 +196,39 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
         : null,
       days,
     };
+  });
+
+
+/** Current lead / joining rates for the admin settings panel. */
+export const adminGetRates = createServerFn({ method: "POST" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  return await loadRates();
+});
+
+/** Save new lead investment and joining earning amounts. */
+export const adminSaveRates = createServerFn({ method: "POST" })
+  .inputValidator((data: { lead: number; join: number }) =>
+    z
+      .object({
+        lead: z.number().min(0).max(1_000_000),
+        join: z.number().min(0).max(1_000_000),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("earning_rates").upsert(
+      {
+        id: "default",
+        lead_investment_pkr: data.lead,
+        join_earning_pkr: data.join,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true as const, lead: data.lead, join: data.join };
   });

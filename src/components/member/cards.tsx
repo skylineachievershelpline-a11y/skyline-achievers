@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { PlayCircle, Clock } from "lucide-react";
+import { Clock, Lock, PlayCircle, Unlock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { formatClock, formatDuration } from "@/lib/format";
@@ -92,6 +92,101 @@ export function VideoCard({ video }: { video: LectureCardData }) {
           {video.levels?.name ? <span className="truncate">· {video.levels.name}</span> : null}
         </p>
       </div>
+    </Link>
+  );
+}
+
+export type LibraryVideo = LectureCardData & {
+  description?: string | null;
+  locked?: boolean;
+};
+
+/**
+ * Big training-library tile in the same style as the beginners sessions:
+ * cover, unlocked/locked badge, description and an action button. Locked
+ * videos stay visible on purpose so members see what is coming next.
+ */
+export function TrainingVideoCard({
+  video,
+  onLocked,
+}: {
+  video: LibraryVideo;
+  onLocked?: () => void;
+}) {
+  const locked = video.locked === true;
+
+  const cover = (
+    <div className="relative aspect-video bg-media">
+      {video.thumbnail_url ? (
+        <img
+          src={video.thumbnail_url}
+          alt={`${video.title} cover`}
+          loading="lazy"
+          decoding="async"
+          className={cn("h-full w-full object-cover", locked && "blur-[3px] brightness-50")}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <PlayCircle className={cn("h-9 w-9", locked ? "text-muted-foreground" : "text-brand")} />
+        </div>
+      )}
+      <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-metal/30 bg-background/70 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] backdrop-blur">
+        {locked ? (
+          <>
+            <Lock className="h-3 w-3" /> Locked
+          </>
+        ) : (
+          <>
+            <Unlock className="h-3 w-3 text-brand-glow" /> Unlocked
+          </>
+        )}
+      </span>
+    </div>
+  );
+
+  const body = (
+    <div className="p-5">
+      <h3 className="line-clamp-2 font-display text-base font-semibold">{video.title}</h3>
+      {video.description ? (
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+          {video.description}
+        </p>
+      ) : null}
+      <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Clock className="h-3 w-3" />
+        {formatDuration(video.duration_seconds)}
+        {video.levels?.name ? <span className="truncate">· {video.levels.name}</span> : null}
+      </p>
+      <span
+        className={cn(
+          "mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold",
+          locked
+            ? "border border-metal/30 bg-surface-2 text-muted-foreground"
+            : "brand-gradient text-brand-foreground shadow-brand",
+        )}
+      >
+        {locked ? <Lock className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+        {locked ? "Unlocks at a higher rank" : "Watch now"}
+      </span>
+    </div>
+  );
+
+  const shell =
+    "glass-panel metal-edge depth-hover block w-full overflow-hidden rounded-3xl text-left";
+
+  if (locked) {
+    return (
+      <button type="button" onClick={onLocked} className={shell}>
+        {cover}
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <Link to="/lecture/$lectureId" params={{ lectureId: video.id }} className={shell}>
+      {cover}
+      {body}
     </Link>
   );
 }

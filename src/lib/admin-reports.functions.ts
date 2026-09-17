@@ -131,7 +131,7 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
         .maybeSingle(),
       supabaseAdmin
         .from("member_daily_reports")
-        .select("report_date, leads_count, rate_per_lead")
+        .select("report_date, leads_count, rate_per_lead, is_absent, absent_reason")
         .eq("member_id", data.memberId)
         .gte("report_date", start)
         .lt("report_date", end),
@@ -145,10 +145,28 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
 
     const byDay = new Map<
       string,
-      { date: string; leads: number; investment: number; joins: number; earning: number }
+      {
+        date: string;
+        leads: number;
+        investment: number;
+        joins: number;
+        earning: number;
+        absent: boolean;
+        absentReason: string | null;
+      }
     >();
     const day = (date: string) => {
-      const found = byDay.get(date) ?? { date, leads: 0, investment: 0, joins: 0, earning: 0 };
+      const found =
+        byDay.get(date) ??
+        {
+          date,
+          leads: 0,
+          investment: 0,
+          joins: 0,
+          earning: 0,
+          absent: false,
+          absentReason: null as string | null,
+        };
       byDay.set(date, found);
       return found;
     };
@@ -158,7 +176,10 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
       const leads = (r.leads_count as number) ?? 0;
       row.leads += leads;
       row.investment += leads * ((r.rate_per_lead as number) ?? LEAD_INVESTMENT_PKR);
+      row.absent = Boolean(r.is_absent);
+      row.absentReason = (r.absent_reason as string | null) ?? null;
     }
+
     for (const j of joins ?? []) {
       const row = day(pktDay(j.created_at as string));
       row.joins += 1;

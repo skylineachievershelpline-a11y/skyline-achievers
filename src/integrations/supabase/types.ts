@@ -40,8 +40,10 @@ export type Database = {
           aspect_ratio: string
           created_at: string
           description: string | null
+          file_bucket: string | null
           id: string
           is_published: boolean
+          kind: string
           session_id: string
           sort_order: number
           thumbnail_path: string | null
@@ -55,8 +57,10 @@ export type Database = {
           aspect_ratio?: string
           created_at?: string
           description?: string | null
+          file_bucket?: string | null
           id?: string
           is_published?: boolean
+          kind?: string
           session_id: string
           sort_order?: number
           thumbnail_path?: string | null
@@ -70,8 +74,10 @@ export type Database = {
           aspect_ratio?: string
           created_at?: string
           description?: string | null
+          file_bucket?: string | null
           id?: string
           is_published?: boolean
+          kind?: string
           session_id?: string
           sort_order?: number
           thumbnail_path?: string | null

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { SessionExtraCard } from "@/components/media/SessionExtraCard";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { openBeginnerSession } from "@/lib/sessions.functions";
@@ -115,22 +116,7 @@ function SessionPage() {
                   More with this session
                 </h3>
                 {extras.map((extra) => (
-                  <article key={extra.id} className="raised-panel rounded-3xl p-3 sm:p-4">
-                    <SessionVideo
-                      title={extra.title}
-                      videoUrl={extra.videoUrl}
-                      aspectRatio={extra.aspectRatio}
-                      poster={extra.thumbnailUrl}
-                    />
-                    <div className="px-2 pb-1 pt-3">
-                      <p className="text-sm font-semibold">{extra.title}</p>
-                      {extra.description ? (
-                        <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
-                          {extra.description}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
+                  <SessionExtraCard key={extra.id} extra={extra} />
                 ))}
               </section>
             ) : null}

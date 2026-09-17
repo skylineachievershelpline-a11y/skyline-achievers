@@ -1,10 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { adminGetMemberReport, adminGetReports } from "@/lib/admin-reports.functions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  adminGetMemberReport,
+  adminGetRates,
+  adminGetReports,
+  adminSaveRates,
+} from "@/lib/admin-reports.functions";
 
 const money = (value: number) => `PKR ${value.toLocaleString("en-PK")}`;
 const monthKey = (date: Date) => date.toISOString().slice(0, 7);
@@ -47,6 +55,7 @@ export function ReportsTab() {
 
   return (
     <div className="space-y-5">
+      <RatesCard />
       <div className="raised-panel metal-edge rounded-3xl p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -223,6 +232,91 @@ function Tile({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
+    </div>
+  );
+}
+
+/** Admin-editable money rules: lead investment and per-joining earning. */
+function RatesCard() {
+  const queryClient = useQueryClient();
+  const load = useServerFn(adminGetRates);
+  const save = useServerFn(adminSaveRates);
+
+  const { data } = useQuery({ queryKey: ["admin-rates"], queryFn: () => load() });
+  const [lead, setLead] = useState("");
+  const [join, setJoin] = useState("");
+
+  useEffect(() => {
+    if (!data) return;
+    setLead(String(data.lead));
+    setJoin(String(data.join));
+  }, [data]);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      save({ data: { lead: Number(lead || 0), join: Number(join || 0) } } as never),
+    onSuccess: () => {
+      toast.success("Rates updated");
+      void queryClient.invalidateQueries({ queryKey: ["admin-rates"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <div className="raised-panel metal-edge rounded-3xl p-5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+        Money settings
+      </p>
+      <h2 className="mt-1 font-display text-xl font-bold">Lead &amp; joining rates</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        These amounts are used everywhere: member dashboards, reports and PDFs. Already saved past
+        days keep the lead rate they were saved with.
+      </p>
+      <form
+        className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (Number(lead) < 0 || Number(join) < 0) {
+            toast.error("Amounts cannot be negative");
+            return;
+          }
+          mutation.mutate();
+        }}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="rate-lead">Investment per lead (PKR)</Label>
+          <Input
+            id="rate-lead"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={lead}
+            onChange={(event) => setLead(event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="rate-join">Earning per joining (PKR)</Label>
+          <Input
+            id="rate-join"
+            type="number"
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={join}
+            onChange={(event) => setJoin(event.target.value)}
+          />
+        </div>
+        <Button type="submit" variant="brand" className="rounded-2xl" disabled={mutation.isPending}>
+          {mutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          Save rates
+        </Button>
+      </form>
     </div>
   );
 }

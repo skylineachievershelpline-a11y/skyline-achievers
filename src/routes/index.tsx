@@ -46,7 +46,7 @@ export const Route = createFileRoute("/")({
           "Learn how a phone and internet connection can become your income skill — guided training, mentorship and leadership levels.",
       },
     ],
-    links: [{ rel: "preload", as: "image", href: skylineBackground, fetchpriority: "high" }],
+    links: [{ rel: "preload", as: "image", href: skylineBackground, fetchPriority: "high" }],
   }),
 
   component: LandingPage,

@@ -19,6 +19,9 @@ export async function uploadToBucket(
   file: File,
   onProgress?: ProgressHandler,
 ): Promise<string> {
+  if (bucket === "training-thumbnails" && file.type.startsWith("image/")) {
+    file = await compressImageForUpload(file);
+  }
   let lastError: unknown = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {

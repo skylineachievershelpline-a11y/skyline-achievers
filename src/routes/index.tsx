@@ -13,7 +13,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
@@ -236,7 +236,7 @@ function LandingPage() {
               <article
                 key={title}
                 className={`cinematic-card glass-panel metal-edge depth-hover relative rounded-2xl p-5 pt-16 ${index % 2 === 1 ? "lg:mt-12" : ""}`}
-                style={{ "--motion-order": index } as React.CSSProperties}
+                style={{ "--motion-order": index } as CSSProperties}
               >
                 <span className="absolute -top-3 left-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
                   <Icon className="h-4.5 w-4.5" />

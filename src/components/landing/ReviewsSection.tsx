@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 
 import { SessionVideo } from "@/components/media/SessionVideo";
@@ -62,7 +62,7 @@ export function ReviewsSection() {
               <article
                 key={review.id}
                 className={`cinematic-card glass-panel metal-edge depth-hover relative flex h-full flex-col rounded-2xl p-6 ${index % 3 === 1 ? "lg:mt-10" : ""}`}
-                style={{ "--motion-order": index } as React.CSSProperties}
+                style={{ "--motion-order": index } as CSSProperties}
               >
                 <span className="absolute -left-2 top-7 h-10 w-1 rounded-full brand-gradient shadow-brand" aria-hidden />
                 {review.videoUrl ? (

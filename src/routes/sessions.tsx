@@ -275,6 +275,18 @@ function SessionLinksPage() {
                     <Button
                       variant="outline"
                       className="rounded-2xl"
+                      onClick={() => void copyCode(session.code)}
+                    >
+                      {copied === `code-${session.code}` ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                      {copied === `code-${session.code}` ? "Copied" : "Copy code"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl"
                       onClick={() => void shareLink(shareable)}
                     >
                       <Share2 className="h-4 w-4" />

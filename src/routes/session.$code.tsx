@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { SessionExtraCard } from "@/components/media/SessionExtraCard";
+import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";

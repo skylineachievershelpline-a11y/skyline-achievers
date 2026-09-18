@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BRAND } from "@/lib/brand";
 import { getInvite, registerWithInvite } from "@/lib/trainee.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/join/$token")({
   head: () => ({
@@ -72,7 +73,7 @@ function JoinPage() {
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

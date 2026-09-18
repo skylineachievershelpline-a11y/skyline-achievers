@@ -18,6 +18,7 @@ import {
 import { ACCOUNT_STATUS_LABEL } from "@/lib/brand";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 type Level = { id: string; name: string; rank_order: number };
 
@@ -178,7 +179,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
 
       {isPending ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <SkylineLoader />
         </div>
       ) : (data?.members.length ?? 0) === 0 ? (
         <p className="p-6 text-center text-sm text-muted-foreground">

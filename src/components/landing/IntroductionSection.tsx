@@ -4,6 +4,7 @@ import { Loader2, Play, Smartphone, Wifi } from "lucide-react";
 
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { getLandingIntroduction } from "@/lib/landing.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export function IntroductionSection() {
   const loadIntroduction = useServerFn(getLandingIntroduction);
@@ -47,7 +48,7 @@ export function IntroductionSection() {
             <div className="pointer-events-none absolute -bottom-3 left-8 right-8 h-5 rounded-b-xl border-x border-b border-brand/25 bg-surface-2 shadow-glass" aria-hidden />
             {isPending ? (
               <div className="flex aspect-video items-center justify-center rounded-2xl border border-hairline bg-background">
-                <Loader2 className="h-5 w-5 animate-spin text-brand" />
+                <SkylineLoader />
               </div>
             ) : introduction?.videoUrl ? (
               <SessionVideo

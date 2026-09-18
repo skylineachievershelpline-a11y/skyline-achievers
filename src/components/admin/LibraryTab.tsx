@@ -22,6 +22,7 @@ import {
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { startUpload } from "@/lib/upload-manager";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
 type Level = { id: string; name: string; rank_order: number };
@@ -125,7 +126,7 @@ export function LibraryTab() {
   if (isPending || !data) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

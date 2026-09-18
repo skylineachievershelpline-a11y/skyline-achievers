@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
   adminCreateUploadUrl,
   adminDeleteSessionExtra,
   adminGetSessionExtras,
@@ -199,7 +200,7 @@ export function SessionExtrasDialog({
 
         {isPending ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : extras.length === 0 ? (
           <p className="inset-panel rounded-2xl p-3 text-xs text-muted-foreground">

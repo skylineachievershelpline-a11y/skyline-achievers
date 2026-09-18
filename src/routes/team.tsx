@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { deleteTrainee, getMyTeam, setTraineeStatus } from "@/lib/team.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/team")({
   head: () => ({
@@ -104,7 +105,7 @@ function TeamPage() {
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

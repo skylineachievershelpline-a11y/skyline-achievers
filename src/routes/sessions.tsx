@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { formatDuration } from "@/lib/format";
 import { getLandingIntroduction } from "@/lib/landing.functions";
 import { getBeginnerSessionLinks } from "@/lib/team.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/sessions")({
   head: () => ({
@@ -201,7 +202,7 @@ function SessionLinksPage() {
 
         {isPending ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : list.length === 0 ? (
           <EmptyState

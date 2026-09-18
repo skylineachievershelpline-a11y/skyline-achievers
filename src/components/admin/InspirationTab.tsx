@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
   adminDeleteInspiration,
   adminGetInspirations,
   adminSaveInspiration,
@@ -84,7 +85,7 @@ export function InspirationTab() {
   if (isPending) {
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

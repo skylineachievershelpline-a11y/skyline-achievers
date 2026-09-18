@@ -24,6 +24,7 @@ import {
   adminSetReviewStatus,
 } from "@/lib/admin-landing.functions";
 import { formatDateTime } from "@/lib/format";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
 const fieldClass = "h-11 w-full rounded-lg border border-hairline bg-surface-2 px-3 text-sm";
@@ -157,7 +158,7 @@ function IntroductionManager() {
     }
   }
 
-  if (isPending) return <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand" />;
+  if (isPending) return <SkylineLoader className="mx-auto" />;
 
   return (
     <section>
@@ -356,7 +357,7 @@ function TestimonialsManager() {
         </div>
         <Button variant="brand" onClick={startAdd}><Plus /> Add testimonial</Button>
       </div>
-      {isPending ? <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand" /> : reviews.length === 0 ? (
+      {isPending ? <SkylineLoader className="mx-auto" /> : reviews.length === 0 ? (
         <p className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">No testimonials yet.</p>
       ) : (
         <div className="space-y-3">

@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BRAND } from "@/lib/brand";
 import { addDailyLeads, getEarnings, markTodayAbsent, type EarningsDay } from "@/lib/earnings.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 const money = (value: number) => `PKR ${value.toLocaleString("en-PK")}`;
 const dayLabel = (date: string) =>
@@ -303,7 +304,7 @@ export function EarningsPanel() {
   if (isPending) {
     return (
       <div className="raised-panel metal-edge flex h-40 items-center justify-center rounded-3xl">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

@@ -18,6 +18,7 @@ import {
   adminSaveReel,
 } from "@/lib/admin.functions";
 import { formatDateTime } from "@/lib/format";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 
@@ -112,7 +113,7 @@ export function ReelsTab() {
   if (isPending || !data) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

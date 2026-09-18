@@ -9,6 +9,7 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { ResourceList } from "@/components/member/ResourceList";
 import { getLectureDetail, saveWatchPosition } from "@/lib/member.functions";
 import { formatDuration } from "@/lib/format";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/lecture/$lectureId")({
   head: () => ({
@@ -77,7 +78,7 @@ function LecturePage() {
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

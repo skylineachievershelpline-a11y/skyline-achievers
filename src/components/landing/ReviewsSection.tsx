@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getLandingReviews } from "@/lib/landing.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 /**
  * Public testimonials wall. Visitors submit a review, it stays hidden until an
@@ -50,7 +51,7 @@ export function ReviewsSection() {
 
         {isPending ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : (data?.length ?? 0) === 0 ? (
           <p className="rounded-2xl border border-hairline bg-surface p-6 text-sm text-muted-foreground">

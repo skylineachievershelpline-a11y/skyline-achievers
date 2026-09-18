@@ -10,6 +10,7 @@ import { ResourceList } from "@/components/member/ResourceList";
 import { getMemberResources } from "@/lib/member.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -63,7 +64,7 @@ function ResourcesPage() {
 
       {!ready || isPending ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <SkylineLoader />
         </div>
       ) : resources.length === 0 ? (
         <EmptyState title="No resources here yet" hint="New material appears as soon as it is published." />

@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ChatWorkspace } from "@/components/chat/ChatWorkspace";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/chat")({
   ssr: false,
@@ -53,7 +54,7 @@ function ChatPage() {
   if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

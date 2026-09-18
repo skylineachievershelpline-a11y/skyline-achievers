@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -53,7 +54,7 @@ function DashboardPage() {
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }
@@ -230,7 +231,7 @@ function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
   if (!hasProfile) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

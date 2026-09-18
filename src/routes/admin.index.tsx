@@ -17,6 +17,7 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -76,7 +77,7 @@ function AdminPage() {
   if (sessionLost || !authed || stats.isPending || library.isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

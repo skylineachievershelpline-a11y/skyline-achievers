@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
 import { cn } from "@/lib/utils";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/training")({
   head: () => ({
@@ -113,7 +114,7 @@ function TrainingPage() {
 
       {!ready || isPending ? (
         <div className="flex justify-center py-14">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <SkylineLoader />
         </div>
       ) : !active ? (
         <section className="mt-6">

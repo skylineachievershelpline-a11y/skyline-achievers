@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { putWithProgress } from "@/lib/upload-progress";
 import {
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
   chatBootstrap,
   chatSend,
   chatSetShowAvatar,
@@ -182,7 +183,7 @@ export function ChatWorkspace() {
   if (overview.isPending) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

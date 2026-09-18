@@ -8,6 +8,7 @@ import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/session/$code")({
   loader: ({ params }) => getBeginnerSessionPreview({ data: { code: params.code } }),
@@ -55,7 +56,7 @@ function SessionPage() {
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

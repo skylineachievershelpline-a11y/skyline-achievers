@@ -920,6 +920,32 @@ export type Database = {
           },
         ]
       }
+      notification_dismissals: {
+        Row: {
+          created_at: string
+          member_id: string
+          notification_id: string
+        }
+        Insert: {
+          created_at?: string
+          member_id: string
+          notification_id: string
+        }
+        Update: {
+          created_at?: string
+          member_id?: string
+          notification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_dismissals_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_reads: {
         Row: {
           id: string

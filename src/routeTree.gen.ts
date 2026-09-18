@@ -19,6 +19,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SeatsRouteImport } from './routes/seats'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
@@ -78,6 +79,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeatsRoute = SeatsRouteImport.update({
+  id: '/seats',
+  path: '/seats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsRoute = SessionsRouteImport.update({
   id: '/sessions',
   path: '/sessions',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/seats'
     | '/sessions'
     | '/team'
     | '/training'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/seats'
     | '/sessions'
     | '/team'
     | '/training'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/seats'
     | '/sessions'
     | '/team'
     | '/training'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   ReelsRoute: typeof ReelsRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
+  SeatsRoute: typeof SeatsRoute
   SessionsRoute: typeof SessionsRoute
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
@@ -336,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seats': {
+      id: '/seats'
+      path: '/seats'
+      fullPath: '/seats'
+      preLoaderRoute: typeof SeatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions': {
       id: '/sessions'
       path: '/sessions'
@@ -406,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReelsRoute: ReelsRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
+  SeatsRoute: SeatsRoute,
   SessionsRoute: SessionsRoute,
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,

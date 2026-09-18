@@ -11,6 +11,7 @@ import {
   LogOut,
   MessageCircle,
   PlayCircle,
+  ShieldCheck,
   Unlock,
   Camera,
 } from "lucide-react";
@@ -24,7 +25,7 @@ import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { BRAND } from "@/lib/brand";
+import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import {
   getTraineeAvatarUploadUrl,
@@ -225,10 +226,10 @@ function BeginnersPage() {
             Your training access is currently not active. Please contact the person who registered
             you.
           </p>
-          <Button variant="outline" size="xl" className="mt-6" onClick={() => void signOut()}>
-            <LogOut />
-            Sign out
-          </Button>
+          <button type="button" className="logout-button mt-6 w-full" onClick={() => void signOut()}>
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
         </div>
       </main>
     );
@@ -257,11 +258,12 @@ function BeginnersPage() {
             <MessageCircle className="h-4 w-4" />
           </Link>
           <button
+            type="button"
             onClick={() => void signOut()}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-metal/30 bg-surface-2 text-muted-foreground transition-colors hover:text-destructive"
-            aria-label="Sign out"
+            className="logout-button shrink-0 px-3 py-2 text-xs"
           >
             <LogOut className="h-4 w-4" />
+            Logout
           </button>
         </div>
       </header>
@@ -533,9 +535,98 @@ function BeginnersPage() {
                 </div>
               )}
             </section>
+
+            {/* ---------- password ---------- */}
+            <TraineePasswordCard traineeCode={trainee.traineeCode} />
           </>
         )}
       </main>
     </div>
+  );
+}
+
+/** Lets the trainee replace the starting code (00000000) with their own password. */
+function TraineePasswordCard({ traineeCode }: { traineeCode: string }) {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (next.length < 8) {
+      toast.error("New password must be at least 8 characters.");
+      return;
+    }
+    if (next !== confirm) {
+      toast.error("The new passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: memberIdToAuthEmail(traineeCode),
+        password: current,
+      });
+      if (signInError) {
+        toast.error("Your current password is incorrect.");
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: next });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      toast.success("Password updated. Use it the next time you sign in.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="raised-panel metal-edge mt-6 rounded-[28px] p-6 animate-rise-in">
+      <h2 className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+        <ShieldCheck className="h-4 w-4 text-brand-glow" /> Change password
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Your account starts with the code 00000000. Choose your own password — at least 8 characters.
+      </p>
+      <form className="mt-4 space-y-3" onSubmit={(event) => void submit(event)}>
+        <Input
+          type="password"
+          autoComplete="current-password"
+          placeholder="Current password"
+          value={current}
+          onChange={(event) => setCurrent(event.target.value)}
+          className="h-12 rounded-xl"
+          required
+        />
+        <Input
+          type="password"
+          autoComplete="new-password"
+          placeholder="New password"
+          value={next}
+          onChange={(event) => setNext(event.target.value)}
+          className="h-12 rounded-xl"
+          required
+        />
+        <Input
+          type="password"
+          autoComplete="new-password"
+          placeholder="Confirm new password"
+          value={confirm}
+          onChange={(event) => setConfirm(event.target.value)}
+          className="h-12 rounded-xl"
+          required
+        />
+        <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
+          {busy ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
+          Update password
+        </Button>
+      </form>
+    </section>
   );
 }

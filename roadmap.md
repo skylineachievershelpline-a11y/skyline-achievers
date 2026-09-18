@@ -64,7 +64,7 @@
 - [x] Verify desktop and phone layouts
 
 ## Cinematic tech-noir redesign
-- [ ] Add the shared viewport, scroll, hover, navigation, and reduced-motion system
-- [ ] Recompose the landing page with cinematic hero and connected section transitions
-- [ ] Apply coordinated motion to member and admin experiences
+- [x] Add the shared viewport, scroll, hover, navigation, and reduced-motion system
+- [x] Recompose the landing page with cinematic hero and connected section transitions
+- [x] Apply coordinated motion to member and admin experiences
 - [ ] Verify desktop and phone performance, interactions, overflow, and build health

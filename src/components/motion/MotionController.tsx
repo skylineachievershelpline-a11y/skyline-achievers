@@ -47,15 +47,21 @@ export function MotionController() {
       });
     };
 
-    prepare(document);
-    const mutations = new MutationObserver(() => prepare(document));
-    mutations.observe(document.body, { childList: true, subtree: true });
+    let prepareTimer = window.setTimeout(() => {
+      prepare(document);
+      mutations.observe(document.body, { childList: true, subtree: true });
+    }, 350);
+    const mutations = new MutationObserver(() => {
+      window.clearTimeout(prepareTimer);
+      prepareTimer = window.setTimeout(() => prepare(document), 32);
+    });
     window.addEventListener("scroll", updateScroll, { passive: true });
     updateScroll();
 
     return () => {
       observer.disconnect();
       mutations.disconnect();
+      window.clearTimeout(prepareTimer);
       window.removeEventListener("scroll", updateScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };

@@ -262,7 +262,7 @@ function SessionLinksPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       variant="brand"
-                      className="flex-1 rounded-2xl"
+                      className="min-w-fit flex-1 basis-40 rounded-2xl px-4"
                       onClick={() => void copyLink(shareable)}
                     >
                       {copied === session.id ? (
@@ -274,7 +274,7 @@ function SessionLinksPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="rounded-2xl"
+                      className="min-w-fit rounded-2xl px-4"
                       onClick={() => void copyCode(session.code)}
                     >
                       {copied === `code-${session.code}` ? (
@@ -286,7 +286,7 @@ function SessionLinksPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="rounded-2xl"
+                      className="min-w-fit rounded-2xl px-4"
                       onClick={() => void shareLink(shareable)}
                     >
                       <Share2 className="h-4 w-4" />
@@ -294,7 +294,7 @@ function SessionLinksPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="rounded-2xl"
+                      className="min-w-fit rounded-2xl px-4"
                       onClick={() => window.open(linkFor(shareable), "_blank", "noopener")}
                     >
                       <ExternalLink className="h-4 w-4" />

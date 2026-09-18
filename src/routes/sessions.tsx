@@ -183,14 +183,14 @@ function SessionLinksPage() {
                   {linkFor(enrollmentVideo)}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Button variant="brand" className="flex-1 rounded-2xl" onClick={() => void copyLink(enrollmentVideo)}>
+                  <Button variant="brand" className="min-w-fit flex-1 basis-40 rounded-2xl px-4" onClick={() => void copyLink(enrollmentVideo)}>
                     {copied === enrollmentVideo.id ? <Check /> : <Copy />}
                     {copied === enrollmentVideo.id ? "Copied" : "Copy link"}
                   </Button>
-                  <Button variant="outline" className="rounded-2xl" onClick={() => void shareLink(enrollmentVideo)}>
+                  <Button variant="outline" className="min-w-fit rounded-2xl px-4" onClick={() => void shareLink(enrollmentVideo)}>
                     <Share2 /> Share
                   </Button>
-                  <Button variant="outline" className="rounded-2xl" onClick={() => window.open(linkFor(enrollmentVideo), "_blank", "noopener")}>
+                  <Button variant="outline" className="min-w-fit rounded-2xl px-4" onClick={() => window.open(linkFor(enrollmentVideo), "_blank", "noopener")}>
                     <ExternalLink /> Open
                   </Button>
                 </div>

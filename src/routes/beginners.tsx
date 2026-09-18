@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
-import { SessionExtraCard } from "@/components/media/SessionExtraCard";
+import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

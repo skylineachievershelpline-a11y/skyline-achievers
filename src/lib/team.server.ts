@@ -2,17 +2,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { memberIdToAuthEmail } from "./brand";
 
 /**
- * Simple, easy-to-remember password: a Skyline prefix, the person's first name
- * and the last three digits of their phone number (e.g. Sky@Ahmad786). The
- * prefix keeps it out of the common-password lists that auth rejects as weak.
+ * Every new Beginners Training account starts with the same simple code:
+ * eight zeros. The person changes it from their own dashboard.
  */
-export function traineePassword(fullName: string, phone: string | null): string {
-  const rawFirst = (fullName.trim().split(/\s+/)[0] ?? "").replace(/[^A-Za-z]/g, "");
-  const first = rawFirst.length > 0 ? rawFirst : "Skyline";
-  const digits = (phone ?? "").replace(/\D/g, "");
-  const last3 = digits.length >= 3 ? digits.slice(-3) : digits.padStart(3, "7");
-  const name = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
-  return `Sky@${name}${last3}`;
+export const DEFAULT_TRAINEE_PASSWORD = "00000000";
+
+export function traineePassword(_fullName?: string, _phone?: string | null): string {
+  return DEFAULT_TRAINEE_PASSWORD;
 }
 
 export type NewTrainee = {

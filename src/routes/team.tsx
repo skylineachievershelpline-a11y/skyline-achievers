@@ -1,21 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Ban,
   CalendarDays,
   CheckCircle2,
-  Copy,
   Crown,
-  Link2,
   Loader2,
-  Plus,
   Search,
   Trash2,
   UserCheck,
   UserPlus,
   Users,
-  X,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,33 +24,23 @@ import {
   useMemberGuard,
   useTrainingOnly,
 } from "@/components/member/MemberShell";
-import { WelcomeCard, type Credentials } from "@/components/team/WelcomeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/format";
-import {
-  createInviteLink,
-  deleteInviteLink,
-  deleteTrainee,
-  getMyTeam,
-  reserveSeat,
-  setInviteActive,
-  setTraineeStatus,
-} from "@/lib/team.functions";
+import { deleteTrainee, getMyTeam, setTraineeStatus } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/team")({
   head: () => ({
     meta: [
-      { title: "My Team & Seat Reservation — Skyline Achievers" },
+      { title: "Team Tree — Skyline Achievers" },
       {
         name: "description",
         content:
-          "Reserve seats for new trainees, share your registration link and track weekly and monthly progress of everyone you registered.",
+          "Your Skyline Achievers team tree: weekly and monthly progress of everyone you registered.",
       },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "My Team & Seat Reservation — Skyline Achievers" },
-      { property: "og:description", content: "Register new trainees and track their progress." },
+      { property: "og:title", content: "Team Tree — Skyline Achievers" },
+      { property: "og:description", content: "Track the progress of your registered trainees." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -67,15 +53,9 @@ function TeamPage() {
   const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getMyTeam);
-  const reserve = useServerFn(reserveSeat);
   const changeStatus = useServerFn(setTraineeStatus);
   const removePerson = useServerFn(deleteTrainee);
-  const makeLink = useServerFn(createInviteLink);
-  const toggleLink = useServerFn(setInviteActive);
-  const dropLink = useServerFn(deleteInviteLink);
 
-  const [form, setForm] = useState({ fullName: "", phone: "", age: "" });
-  const [card, setCard] = useState<Credentials | null>(null);
   const [memberSearch, setMemberSearch] = useState("");
   const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -92,24 +72,6 @@ function TeamPage() {
     void queryClient.invalidateQueries({ queryKey: ["my-team"] });
   }
 
-  const create = useMutation({
-    mutationFn: () =>
-      reserve({
-        data: {
-          fullName: form.fullName,
-          phone: form.phone,
-          age: form.age ? Number(form.age) : null,
-        },
-      } as never),
-    onSuccess: (result: any) => {
-      setCard(result.credentials as Credentials);
-      setForm({ fullName: "", phone: "", age: "" });
-      toast.success("Seat reserved");
-      refresh();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
 
   const drop = useMutation({
     mutationFn: (traineeId: string) => removePerson({ data: { traineeId } } as never),
@@ -130,30 +92,6 @@ function TeamPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const newLink = useMutation({
-    mutationFn: (label: string) => makeLink({ data: { label } } as never),
-    onSuccess: () => {
-      toast.success("Registration link created");
-      refresh();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const linkState = useMutation({
-    mutationFn: (values: { id: string; isActive: boolean }) =>
-      toggleLink({ data: values } as never),
-    onSuccess: () => refresh(),
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const linkDelete = useMutation({
-    mutationFn: (id: string) => dropLink({ data: { id } } as never),
-    onSuccess: () => {
-      toast.success("Link deleted");
-      refresh();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
 
   if (trainingOnly) {
     return (
@@ -220,18 +158,8 @@ function TeamPage() {
   }
 
   return (
-    <MemberShell title="My Team" subtitle="Reserve seats and track your people" executive>
-      {card ? (
-        <div className="mb-6">
-          <WelcomeCard credentials={card} />
-          <div className="mt-3 flex justify-center">
-            <Button variant="outline" className="rounded-2xl" onClick={() => setCard(null)}>
-              <X className="h-4 w-4" />
-              Close
-            </Button>
-          </div>
-        </div>
-      ) : null}
+    <MemberShell title="Team Tree" subtitle="Track everyone you registered" executive>
+
 
       <section className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -262,7 +190,7 @@ function TeamPage() {
               <select aria-label="Filter team status" value={memberFilter} onChange={(event) => setMemberFilter(event.target.value as typeof memberFilter)} className="h-9 rounded-lg border border-hairline bg-surface-2 px-3 text-xs">
                 <option value="all">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option>
               </select>
-              <Button variant="brand" size="sm" className="rounded-lg" onClick={() => document.getElementById("reserve-seat")?.scrollIntoView({ behavior: "smooth" })}><UserPlus />Add member</Button>
+              <Button asChild variant="brand" size="sm" className="rounded-lg"><Link to="/seats"><UserPlus />Add member</Link></Button>
             </div>
           </div>
           {selectedIds.length > 0 ? <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"><span className="mr-auto px-1 text-xs font-semibold text-primary">{selectedIds.length} selected</span><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("active")}><UserCheck />Unblock</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("blocked")}><Ban />Block</Button><Button size="sm" variant="destructive" disabled={bulkBusy} onClick={() => void applyBulk("remove")}><Trash2 />Remove</Button></div> : null}
@@ -287,130 +215,6 @@ function TeamPage() {
         )}
       </section>
 
-      {/* ---------- reserve a seat ---------- */}
-      <section id="reserve-seat" className="mt-6 grid scroll-mt-24 gap-4 lg:grid-cols-2">
-        <form
-          className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in"
-          onSubmit={(event) => {
-            event.preventDefault();
-            create.mutate();
-          }}
-        >
-          <SectionTitle className="mb-1">Reserve a seat</SectionTitle>
-          <p className="mb-5 text-xs text-muted-foreground">
-            Fill the form and the Skyline ID with password is created instantly. Your member ID is
-            attached automatically as the upline.
-          </p>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full name</Label>
-              <Input
-                id="fullName"
-                value={form.fullName}
-                onChange={(event) => setForm({ ...form, fullName: event.target.value })}
-                required
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
-                <Input
-                  id="phone"
-                  inputMode="tel"
-                  value={form.phone}
-                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="age">Age (18+ only)</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  min={18}
-                  max={90}
-                  value={form.age}
-                  onChange={(event) => setForm({ ...form, age: event.target.value })}
-                  required
-                />
-              </div>
-            </div>
-          </div>
-          <Button type="submit" variant="brand" size="xl" className="mt-6 w-full" disabled={create.isPending}>
-            {create.isPending ? <Loader2 className="animate-spin" /> : <UserPlus />}
-            Create Skyline ID
-          </Button>
-        </form>
-
-        {/* ---------- invite links ---------- */}
-        <section className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in">
-          <SectionTitle className="mb-1">Registration links</SectionTitle>
-          <p className="mb-5 text-xs text-muted-foreground">
-            Share a link so the person fills their own form. Every link works one time only — after
-            one registration it expires and disappears from here. Create a fresh link for the next
-            person.
-          </p>
-          <Button
-            variant="outline"
-            className="mb-4 w-full rounded-2xl"
-            disabled={newLink.isPending}
-            onClick={() => newLink.mutate("")}
-          >
-            {newLink.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Create a new link
-          </Button>
-
-          {invites.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No links yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {invites.map((invite) => {
-                const url = `${origin}/join/${invite.token}`;
-                return (
-                  <div key={invite.id} className="inset-panel rounded-xl p-4">
-                    <p className="break-all text-xs text-muted-foreground">{url}</p>
-                    <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                      One-time link · {invite.is_active ? "Ready to share" : "Paused"}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        variant="brand"
-                        className="rounded-xl"
-                        onClick={() => {
-                          void navigator.clipboard
-                            .writeText(url)
-                            .then(() => toast.success("Link copied"))
-                            .catch(() => toast.error("Could not copy the link"));
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                        Copy
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="rounded-xl"
-                        onClick={() => linkState.mutate({ id: invite.id, isActive: !invite.is_active })}
-                      >
-                        {invite.is_active ? "Pause" : "Activate"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="rounded-xl"
-                        onClick={() => linkDelete.mutate(invite.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </section>
 
     </MemberShell>
   );

@@ -14,6 +14,7 @@ import {
   Search,
   FolderOpen,
   User,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -59,14 +60,15 @@ const NAV = [
   { to: "/sessions", label: "Beginners Sessions", icon: Link2 },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
-  { to: "/team", label: "My Team & Seats", icon: Users },
+  { to: "/seats", label: "Seat Reservation", icon: UserPlus },
+  { to: "/team", label: "Team Tree", icon: Users },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
 ] as const;
 
 /** Areas that belong to working, not training. Locked for training-only accounts. */
-const WORKING_ROUTES: string[] = ["/reels", "/team", "/chat"];
+const WORKING_ROUTES: string[] = ["/reels", "/team", "/seats", "/chat"];
 
 /**
  * true when the admin gave this account training access only, so every
@@ -250,11 +252,12 @@ export function MemberShell({
           </nav>
 
           <button
+            type="button"
             onClick={() => void signOut()}
-            className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-hairline bg-glass px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-destructive"
+            className="logout-button mt-4 w-full font-display text-sm"
           >
             <LogOut className="h-4 w-4" />
-            Sign out
+            Logout
           </button>
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}

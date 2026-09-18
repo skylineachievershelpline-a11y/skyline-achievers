@@ -272,24 +272,47 @@ export const searchLibrary = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * Announcements only: automatic "new video" alerts are no longer shown.
+ * Anything the member deleted stays hidden for them.
+ */
 export const getNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = context.supabase as any;
-    const [{ data: notifications }, { data: reads }] = await Promise.all([
+    const [{ data: notifications }, { data: reads }, { data: dismissed }] = await Promise.all([
       db
         .from("notifications")
         .select("id, title, body, kind, link_path, created_at")
+        .in("kind", ["announcement", "admin_message"])
         .order("created_at", { ascending: false })
         .limit(60),
       db.from("notification_reads").select("notification_id").eq("member_id", context.userId),
+      db.from("notification_dismissals").select("notification_id").eq("member_id", context.userId),
     ]);
     const readSet = new Set((reads ?? []).map((r: { notification_id: string }) => r.notification_id));
-    const items = (notifications ?? []).map((n: { id: string }) => ({
-      ...n,
-      is_read: readSet.has(n.id),
-    }));
+    const hidden = new Set(
+      (dismissed ?? []).map((r: { notification_id: string }) => r.notification_id),
+    );
+    const items = (notifications ?? [])
+      .filter((n: { id: string }) => !hidden.has(n.id))
+      .map((n: { id: string }) => ({ ...n, is_read: readSet.has(n.id) }));
     return { items, unread: items.filter((n: { is_read: boolean }) => !n.is_read).length };
+  });
+
+/** Hides one announcement for this member only. */
+export const dismissNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const db = context.supabase as any;
+    await db
+      .from("notification_dismissals")
+      .upsert(
+        { notification_id: data.id, member_id: context.userId },
+        { onConflict: "notification_id,member_id", ignoreDuplicates: true },
+      );
+    return { ok: true as const };
   });
 
 export const markNotificationsRead = createServerFn({ method: "POST" })

@@ -129,6 +129,10 @@
   --destructive-foreground: oklch(0.99 0.003 250);
   --success: oklch(0.73 0.14 213);
   --warning: oklch(0.66 0.14 245);
+  /* Logout only: a clear red so signing out is never missed. */
+  --logout: oklch(0.55 0.21 25);
+  --logout-strong: oklch(0.46 0.19 25);
+  --logout-foreground: oklch(0.99 0.01 20);
 
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
@@ -211,6 +215,37 @@
 }
 
 /* ---------- reusable surface utilities ---------- */
+
+/* Raised red logout control, used on every dashboard. */
+@utility logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--logout-foreground);
+  background-image: linear-gradient(160deg, var(--logout), var(--logout-strong));
+  border: 1px solid color-mix(in oklab, var(--logout) 70%, white 30%);
+  box-shadow:
+    0 12px 26px -12px color-mix(in oklab, var(--logout) 85%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 35%, transparent);
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
 
 @utility glass-panel {
   background-image: var(--gradient-surface);

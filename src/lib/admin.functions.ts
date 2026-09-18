@@ -424,16 +424,7 @@ export const adminSaveLecture = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     await adminSetLectureAccess(inserted.id, accessLevels);
 
-    if (data.isPublished) {
-      const { adminNotify } = await import("./admin.server");
-      await adminNotify({
-        title: `New training video: ${data.title}`,
-        body: "A new training video has been published for your level.",
-        kind: "new_lecture",
-        audienceLevelId: null,
-        linkPath: `/lecture/${inserted.id}`,
-      });
-    }
+    // New videos no longer create notifications — only admin announcements do.
     return { ok: true as const };
   });
 

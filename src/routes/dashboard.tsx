@@ -5,6 +5,7 @@ import { Eye, EyeOff, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
+import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
 import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
@@ -69,6 +70,8 @@ function DashboardPage() {
       subtitle={member?.level?.name ?? "Level not assigned"}
       executive
     >
+      <AnnouncementBanner />
+
       <section className="raised-panel metal-edge relative min-h-[24rem] overflow-hidden rounded-3xl animate-rise-in sm:min-h-[26rem]">
         <div className="absolute inset-0 overflow-hidden">
           <img

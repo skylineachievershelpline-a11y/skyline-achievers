@@ -1,12 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell, Loader2, Trash2 } from "lucide-react";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
-import { getNotifications, markNotificationsRead } from "@/lib/member.functions";
+import {
+  dismissNotification,
+  getNotifications,
+  markNotificationsRead,
+} from "@/lib/member.functions";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -29,11 +34,21 @@ function NotificationsPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getNotifications);
   const markRead = useServerFn(markNotificationsRead);
+  const dismiss = useServerFn(dismissNotification);
   const queryClient = useQueryClient();
   const { data, isPending } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => load(),
     enabled: ready,
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => dismiss({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Notification deleted");
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   useEffect(() => {
@@ -84,6 +99,15 @@ function NotificationsPage() {
                     </Link>
                   ) : null}
                 </div>
+                <button
+                  type="button"
+                  aria-label={`Delete ${item.title}`}
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate(item.id)}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </li>
           ))}

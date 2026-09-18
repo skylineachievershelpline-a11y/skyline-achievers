@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Loader2, Save, X } from "lucide-react";
@@ -168,7 +169,7 @@ export function ReportsTab() {
       <div className="raised-panel metal-edge overflow-hidden rounded-3xl">
         {isPending ? (
           <div className="flex h-40 items-center justify-center">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -278,7 +279,7 @@ export function ReportsTab() {
 
           {detail.isPending ? (
             <div className="flex h-24 items-center justify-center">
-              <Loader2 className="h-5 w-5 animate-spin text-brand" />
+              <SkylineLoader />
             </div>
           ) : (detail.data?.days ?? []).length === 0 ? (
             <p className="inset-panel mt-4 rounded-xl p-4 text-sm text-muted-foreground">

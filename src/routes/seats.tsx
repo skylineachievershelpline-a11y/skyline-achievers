@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -125,7 +126,7 @@ function SeatsPage() {
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

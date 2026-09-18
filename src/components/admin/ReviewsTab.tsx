@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, EyeOff, Loader2, Pencil, Plus, Star, Trash2 } from "lucide-react";
@@ -157,7 +158,7 @@ function IntroductionManager() {
     }
   }
 
-  if (isPending) return <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand" />;
+  if (isPending) return <SkylineLoader className="mx-auto" />;
 
   return (
     <section>
@@ -356,7 +357,7 @@ function TestimonialsManager() {
         </div>
         <Button variant="brand" onClick={startAdd}><Plus /> Add testimonial</Button>
       </div>
-      {isPending ? <Loader2 className="mx-auto h-5 w-5 animate-spin text-brand" /> : reviews.length === 0 ? (
+      {isPending ? <SkylineLoader className="mx-auto" /> : reviews.length === 0 ? (
         <p className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">No testimonials yet.</p>
       ) : (
         <div className="space-y-3">

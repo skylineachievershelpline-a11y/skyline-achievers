@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -84,7 +85,7 @@ export function InspirationTab() {
   if (isPending) {
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

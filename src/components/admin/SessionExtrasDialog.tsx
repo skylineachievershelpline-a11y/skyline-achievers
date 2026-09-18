@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Plus, Trash2, Pencil } from "lucide-react";
@@ -199,7 +200,7 @@ export function SessionExtrasDialog({
 
         {isPending ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : extras.length === 0 ? (
           <p className="inset-panel rounded-2xl p-3 text-xs text-muted-foreground">

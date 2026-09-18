@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -182,7 +183,7 @@ export function ChatWorkspace() {
   if (overview.isPending) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

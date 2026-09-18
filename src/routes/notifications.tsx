@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -63,7 +64,7 @@ function NotificationsPage() {
     <MemberShell title="Announcements" subtitle="Updates from your administrators">
       {!ready || isPending ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <SkylineLoader />
         </div>
       ) : (data?.items.length ?? 0) === 0 ? (
         <EmptyState title="No announcements yet" />

@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,7 +78,7 @@ function LecturePage() {
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader variant="page" />
       </div>
     );
   }

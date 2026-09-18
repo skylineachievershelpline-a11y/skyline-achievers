@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
@@ -50,7 +51,7 @@ export function ReviewsSection() {
 
         {isPending ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="h-5 w-5 animate-spin text-brand" />
+            <SkylineLoader />
           </div>
         ) : (data?.length ?? 0) === 0 ? (
           <p className="rounded-2xl border border-hairline bg-surface p-6 text-sm text-muted-foreground">

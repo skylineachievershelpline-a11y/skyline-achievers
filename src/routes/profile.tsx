@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -48,7 +49,7 @@ function ProfilePage() {
     <MemberShell title="My profile" subtitle={member?.memberId ?? "Member account"}>
       {!ready || isPending ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-brand" />
+          <SkylineLoader />
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">

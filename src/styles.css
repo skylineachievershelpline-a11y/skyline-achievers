@@ -214,7 +214,178 @@
   }
 }
 
+/* ---------- Skyline logo loader ---------- */
+
+@keyframes skyline-ring-draw {
+  0% { stroke-dashoffset: 289; opacity: 0.2; }
+  55% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes skyline-ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes skyline-logo-build {
+  0% { clip-path: inset(100% 0 0 0); opacity: 0.15; filter: blur(6px) saturate(0.6); }
+  20% { opacity: 0.6; }
+  60% { clip-path: inset(0 0 0 0); opacity: 1; filter: blur(0) saturate(1); }
+  85% { filter: drop-shadow(0 0 16px color-mix(in oklab, var(--brand-glow, #22d3ee) 55%, transparent)); }
+  100% { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+
+@keyframes skyline-glint {
+  0% { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes skyline-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(260%); }
+}
+
+.skyline-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.skyline-loader-page {
+  position: relative;
+  width: 100%;
+  padding: 2.5rem 1.5rem;
+}
+
+.skyline-loader-halo {
+  position: absolute;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand) 28%, transparent), transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.skyline-loader-mark {
+  position: relative;
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.skyline-loader-mark-lg {
+  width: 8rem;
+  height: 8rem;
+}
+
+.skyline-loader-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  animation: skyline-ring-spin 6s linear infinite;
+}
+
+.skyline-loader-ring-track {
+  stroke: color-mix(in oklab, var(--foreground) 14%, transparent);
+  stroke-width: 1.5;
+}
+
+.skyline-loader-ring-arc {
+  stroke: var(--brand);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 289;
+  stroke-dashoffset: 289;
+  animation: skyline-ring-draw 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skyline-loader-logo {
+  position: absolute;
+  inset: 16%;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.skyline-loader-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: skyline-logo-build 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.skyline-loader-glint {
+  position: absolute;
+  inset: 0;
+  width: 55%;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, white 55%, transparent), transparent);
+  animation: skyline-glint 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.skyline-loader-text {
+  text-align: center;
+}
+
+.skyline-loader-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--foreground);
+}
+
+.skyline-loader-tagline {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+}
+
+.skyline-loader-bar {
+  position: relative;
+  width: 11rem;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.skyline-loader-bar > span {
+  position: absolute;
+  inset-block: 0;
+  width: 45%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--brand), color-mix(in oklab, var(--brand) 40%, white), transparent);
+  animation: skyline-bar 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.skyline-loader-status {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--foreground) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skyline-loader-ring,
+  .skyline-loader-ring-arc,
+  .skyline-loader-img,
+  .skyline-loader-glint,
+  .skyline-loader-bar > span {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+  .skyline-loader-img { clip-path: none; opacity: 1; filter: none; }
+}
+
 /* ---------- reusable surface utilities ---------- */
+
+
 
 /* Raised red logout control, used on every dashboard. */
 @utility logout-button {

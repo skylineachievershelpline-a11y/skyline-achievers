@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -303,7 +304,7 @@ export function EarningsPanel() {
   if (isPending) {
     return (
       <div className="raised-panel metal-edge flex h-40 items-center justify-center rounded-3xl">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        <SkylineLoader />
       </div>
     );
   }

@@ -7,25 +7,38 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SessionExtraCard } from "@/components/media/SessionExtraCard";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
-import { openBeginnerSession } from "@/lib/sessions.functions";
+import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";
 
 export const Route = createFileRoute("/session/$code")({
-  head: () => ({
-    meta: [
-      { title: "Beginners Training Session — Skyline Achievers" },
+  loader: ({ params }) => getBeginnerSessionPreview({ data: { code: params.code } }),
+  head: ({ loaderData }) => {
+    const session = loaderData?.session;
+    const title = session
+      ? `${session.title} — Skyline Achievers`
+      : "Beginners Training Session — Skyline Achievers";
+    const description =
+      session?.description ?? "Watch this Skyline Achievers Beginners Training session.";
+    return {
+      meta: [
+      { title },
       {
         name: "description",
-        content:
-          "Open your Skyline Achievers beginners training session with the code issued by your trainer.",
+        content: description,
       },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Beginners Training Session — Skyline Achievers" },
-      {
-        property: "og:description",
-        content: "Code-based beginners training session for new Skyline Achievers trainees.",
-      },
-    ],
-  }),
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      ...(session?.thumbnailUrl
+        ? [
+            { property: "og:image", content: session.thumbnailUrl },
+            { name: "twitter:image", content: session.thumbnailUrl },
+          ]
+        : []),
+      ],
+    };
+  },
   component: SessionPage,
 });
 

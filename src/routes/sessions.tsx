@@ -10,6 +10,7 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDuration } from "@/lib/format";
+import { getLandingIntroduction } from "@/lib/landing.functions";
 import { getBeginnerSessionLinks } from "@/lib/team.functions";
 
 export const Route = createFileRoute("/sessions")({
@@ -43,15 +44,32 @@ type SessionRow = {
   thumbnailUrl: string | null;
 };
 
+type ShareableVideo = {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  durationSeconds?: number | null;
+  code?: string;
+  path: string;
+};
+
 function SessionLinksPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getBeginnerSessionLinks);
+  const loadIntroduction = useServerFn(getLandingIntroduction);
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
   const { data, isPending } = useQuery({
     queryKey: ["beginner-session-links"],
     queryFn: () => load(),
+    enabled: ready,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: introductionData } = useQuery({
+    queryKey: ["landing-introduction"],
+    queryFn: () => loadIntroduction(),
     enabled: ready,
     staleTime: 5 * 60 * 1000,
   });
@@ -64,16 +82,27 @@ function SessionLinksPage() {
       )
     : sessions;
 
-  function linkFor(session: SessionRow) {
+  const introduction = introductionData?.introduction;
+  const enrollmentVideo: ShareableVideo | null = introduction?.videoUrl
+    ? {
+        id: `enrollment-${introduction.id}`,
+        title: introduction.title || "Enrollment Video",
+        description: introduction.description,
+        thumbnailUrl: introduction.thumbnailUrl,
+        path: "/enrollment-video",
+      }
+    : null;
+
+  function linkFor(video: Pick<ShareableVideo, "path">) {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return `${origin}/session/${session.code}`;
+    return `${origin}${video.path}`;
   }
 
-  async function copyLink(session: SessionRow) {
-    const url = linkFor(session);
+  async function copyLink(video: ShareableVideo) {
+    const url = linkFor(video);
     try {
       await navigator.clipboard.writeText(url);
-      setCopied(session.id);
+      setCopied(video.id);
       window.setTimeout(() => setCopied(null), 2000);
       toast.success("Link copied — send it to your trainee.");
     } catch {
@@ -81,12 +110,12 @@ function SessionLinksPage() {
     }
   }
 
-  async function shareLink(session: SessionRow) {
-    const url = linkFor(session);
-    const text = `Skyline Achievers — Beginners Training\n${session.title}\nWatch here: ${url}`;
+  async function shareLink(video: ShareableVideo) {
+    const url = linkFor(video);
+    const text = `Skyline Achievers — Beginners Training\n${video.title}\nWatch here: ${url}`;
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: session.title, text, url });
+        await navigator.share({ title: video.title, text, url });
         return;
       } catch {
         // user cancelled the share sheet
@@ -112,6 +141,53 @@ function SessionLinksPage() {
           />
         </section>
 
+        {enrollmentVideo ? (
+          <section className="glass-panel metal-edge overflow-hidden rounded-3xl" data-reveal>
+            <div className="grid sm:grid-cols-[15rem_1fr]">
+              <div className="relative aspect-video bg-media sm:aspect-auto sm:min-h-48">
+                {enrollmentVideo.thumbnailUrl ? (
+                  <img
+                    src={enrollmentVideo.thumbnailUrl}
+                    alt={`${enrollmentVideo.title} cover`}
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full min-h-48 items-center justify-center">
+                    <PlayCircle className="h-10 w-10 text-brand" />
+                  </div>
+                )}
+                <span className="absolute left-3 top-3 rounded-full border border-cyan/30 bg-background/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] backdrop-blur">
+                  Enrollment Video
+                </span>
+              </div>
+              <div className="p-5 sm:p-6">
+                <h2 className="font-display text-lg font-semibold">{enrollmentVideo.title}</h2>
+                {enrollmentVideo.description ? (
+                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                    {enrollmentVideo.description}
+                  </p>
+                ) : null}
+                <p className="mt-4 truncate rounded-2xl border border-metal/25 bg-surface-2 px-3 py-2 text-[11px] text-muted-foreground">
+                  {linkFor(enrollmentVideo)}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="brand" className="flex-1 rounded-2xl" onClick={() => void copyLink(enrollmentVideo)}>
+                    {copied === enrollmentVideo.id ? <Check /> : <Copy />}
+                    {copied === enrollmentVideo.id ? "Copied" : "Copy link"}
+                  </Button>
+                  <Button variant="outline" className="rounded-2xl" onClick={() => void shareLink(enrollmentVideo)}>
+                    <Share2 /> Share
+                  </Button>
+                  <Button variant="outline" className="rounded-2xl" onClick={() => window.open(linkFor(enrollmentVideo), "_blank", "noopener")}>
+                    <ExternalLink /> Open
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {isPending ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-5 w-5 animate-spin text-brand" />
@@ -123,7 +199,12 @@ function SessionLinksPage() {
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {list.map((session, index) => (
+            {list.map((session, index) => {
+              const shareable: ShareableVideo = {
+                ...session,
+                path: `/session/${session.code}`,
+              };
+              return (
               <article
                 key={session.id}
                 data-reveal
@@ -164,14 +245,14 @@ function SessionLinksPage() {
                   </p>
 
                   <p className="mt-3 truncate rounded-2xl border border-metal/25 bg-surface-2 px-3 py-2 text-[11px] text-muted-foreground">
-                    {linkFor(session)}
+                    {linkFor(shareable)}
                   </p>
 
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       variant="brand"
                       className="flex-1 rounded-2xl"
-                      onClick={() => void copyLink(session)}
+                      onClick={() => void copyLink(shareable)}
                     >
                       {copied === session.id ? (
                         <Check className="h-4 w-4" />
@@ -183,7 +264,7 @@ function SessionLinksPage() {
                     <Button
                       variant="outline"
                       className="rounded-2xl"
-                      onClick={() => void shareLink(session)}
+                      onClick={() => void shareLink(shareable)}
                     >
                       <Share2 className="h-4 w-4" />
                       Share
@@ -191,7 +272,7 @@ function SessionLinksPage() {
                     <Button
                       variant="outline"
                       className="rounded-2xl"
-                      onClick={() => window.open(linkFor(session), "_blank", "noopener")}
+                      onClick={() => window.open(linkFor(shareable), "_blank", "noopener")}
                     >
                       <ExternalLink className="h-4 w-4" />
                       Open
@@ -199,7 +280,8 @@ function SessionLinksPage() {
                   </div>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

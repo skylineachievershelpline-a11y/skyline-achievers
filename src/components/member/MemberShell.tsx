@@ -6,6 +6,7 @@ import {
   Clapperboard,
   GraduationCap,
   Home,
+  Link2,
   Menu,
   Lock,
   MessageCircle,
@@ -55,6 +56,7 @@ export function useMemberGuard() {
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/training", label: "Training", icon: GraduationCap },
+  { to: "/sessions", label: "Beginners Sessions", icon: Link2 },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
   { to: "/team", label: "My Team & Seats", icon: Users },

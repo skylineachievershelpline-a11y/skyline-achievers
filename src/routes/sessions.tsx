@@ -99,7 +99,7 @@ function SessionLinksPage() {
     <MemberShell title="Beginners Sessions" subtitle="Generate a watch link for anyone">
       <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5">
         <section className="glass-panel metal-edge rounded-3xl p-5" data-reveal>
-          <SectionTitle title="Share a session without a login" />
+          <SectionTitle>Share a session without a login</SectionTitle>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
             Pick a session, copy its link and send it. Whoever opens the link watches that session
             straight on the website — no ID, no password.

@@ -49,12 +49,17 @@ export function MotionController() {
 
     let prepareTimer = window.setTimeout(() => {
       prepare(document);
-      mutations.observe(document.body, { childList: true, subtree: true });
+      // Only top-level page swaps need re-scanning; watching every nested change
+      // (chat messages, lists) made phones do constant extra work.
+      mutations.observe(document.body, { childList: true, subtree: false });
+
     }, 350);
     const mutations = new MutationObserver(() => {
+      if (document.hidden) return;
       window.clearTimeout(prepareTimer);
-      prepareTimer = window.setTimeout(() => prepare(document), 32);
+      prepareTimer = window.setTimeout(() => prepare(document), 200);
     });
+
     window.addEventListener("scroll", updateScroll, { passive: true });
     updateScroll();
 

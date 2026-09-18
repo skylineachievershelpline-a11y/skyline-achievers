@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 
 import { SessionVideo } from "@/components/media/SessionVideo";
@@ -34,9 +34,9 @@ export function ReviewsSection() {
 
 
   return (
-    <section id="reviews" className="relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="reviews" className="section-flow relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div data-reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
               Success stories
@@ -61,7 +61,8 @@ export function ReviewsSection() {
             {data!.map((review, index) => (
               <article
                 key={review.id}
-                className={`glass-panel metal-edge depth-hover relative flex h-full flex-col rounded-2xl p-6 animate-rise-in ${index % 3 === 1 ? "lg:mt-10" : ""}`}
+                className={`cinematic-card glass-panel metal-edge depth-hover relative flex h-full flex-col rounded-2xl p-6 ${index % 3 === 1 ? "lg:mt-10" : ""}`}
+                style={{ "--motion-order": index } as CSSProperties}
               >
                 <span className="absolute -left-2 top-7 h-10 w-1 rounded-full brand-gradient shadow-brand" aria-hidden />
                 {review.videoUrl ? (

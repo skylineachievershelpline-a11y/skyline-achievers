@@ -142,10 +142,10 @@ export function MemberShell({
   }
 
   return (
-    <div className={cn("infographic-grid relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}> 
-      <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
+    <div className={cn("motion-scope cinematic-shell infographic-grid relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}> 
+      <div className="cinematic-ambient pointer-events-none fixed inset-0" aria-hidden />
 
-      <header className="sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
+      <header className="cinematic-nav sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <button
             type="button"
@@ -198,7 +198,7 @@ export function MemberShell({
         />
         <aside
           className={cn(
-            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-300",
+            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
             menuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
@@ -260,7 +260,7 @@ export function MemberShell({
         </aside>
       </div>
 
-      <main className="relative mx-auto max-w-6xl px-4 py-5">{children}</main>
+      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">{children}</main>
     </div>
   );
 }

@@ -62,3 +62,9 @@
 - [x] Restyle the admin member list into the same compact table system
 - [x] Add member search, filters, selection, and bulk actions to both views
 - [x] Verify desktop and phone layouts
+
+## Cinematic tech-noir redesign
+- [x] Add the shared viewport, scroll, hover, navigation, and reduced-motion system
+- [x] Recompose the landing page with cinematic hero and connected section transitions
+- [x] Apply coordinated motion to member and admin experiences
+- [x] Verify desktop and phone performance, interactions, overflow, and build health

@@ -16,9 +16,9 @@ export function IntroductionSection() {
   const introduction = data?.introduction;
 
   return (
-    <section id="introduction" className="infographic-grid border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
+    <section id="introduction" className="section-flow infographic-grid border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <div className="raised-panel grid items-center gap-10 rounded-3xl p-5 sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:p-10">
+        <div data-reveal className="cinematic-card raised-panel grid items-center gap-10 rounded-3xl p-5 sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14 lg:p-10">
           <div className="relative">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
               Start here

@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -28,7 +29,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import {
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
   getTraineeAvatarUploadUrl,
   getTraineeDashboard,
   playTraineeSession,

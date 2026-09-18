@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -18,7 +19,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { putWithProgress } from "@/lib/upload-progress";
 import {
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
   chatBootstrap,
   chatSend,
   chatSetShowAvatar,

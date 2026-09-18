@@ -173,3 +173,37 @@ export const deleteInviteLink = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * Every published beginners session with its code, so an upline can hand a
+ * direct watch link to someone who cannot manage a login yet.
+ */
+export const getBeginnerSessionLinks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signThumbnails } = await import("./storage.server");
+
+    const { data } = await (supabaseAdmin as any)
+      .from("beginner_sessions")
+      .select(
+        "id, session_code, title, description, thumbnail_path, duration_seconds, sort_order, created_at",
+      )
+      .eq("is_published", true)
+      .order("sort_order")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    const rows = await signThumbnails((data ?? []) as any[]);
+    return {
+      sessions: rows.map((row: any) => ({
+        id: row.id as string,
+        code: String(row.session_code).toUpperCase(),
+        title: row.title as string,
+        description: (row.description ?? null) as string | null,
+        durationSeconds: (row.duration_seconds ?? null) as number | null,
+        thumbnailUrl: row.thumbnail_url as string | null,
+      })),
+    };
+  });

@@ -18,6 +18,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -71,6 +72,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionsRoute = SessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/reels': typeof ReelsRoute
   '/resources': typeof ResourcesRoute
   '/search': typeof SearchRoute
+  '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/sessions'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/sessions'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/reels'
     | '/resources'
     | '/search'
+    | '/sessions'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   ReelsRoute: typeof ReelsRoute
   ResourcesRoute: typeof ResourcesRoute
   SearchRoute: typeof SearchRoute
+  SessionsRoute: typeof SessionsRoute
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions': {
+      id: '/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof SessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/team': {
       id: '/team'
       path: '/team'
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReelsRoute: ReelsRoute,
   ResourcesRoute: ResourcesRoute,
   SearchRoute: SearchRoute,
+  SessionsRoute: SessionsRoute,
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,

@@ -110,6 +110,17 @@ function SessionLinksPage() {
     }
   }
 
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(`code-${code}`);
+      window.setTimeout(() => setCopied(null), 2000);
+      toast.success("Session code copied.");
+    } catch {
+      toast.error("Could not copy. Long-press the code to copy it.");
+    }
+  }
+
   async function shareLink(video: ShareableVideo) {
     const url = linkFor(video);
     const text = `Skyline Achievers — Beginners Training\n${video.title}\nWatch here: ${url}`;
@@ -260,6 +271,18 @@ function SessionLinksPage() {
                         <Copy className="h-4 w-4" />
                       )}
                       {copied === session.id ? "Copied" : "Copy link"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl"
+                      onClick={() => void copyCode(session.code)}
+                    >
+                      {copied === `code-${session.code}` ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                      {copied === `code-${session.code}` ? "Copied" : "Copy code"}
                     </Button>
                     <Button
                       variant="outline"

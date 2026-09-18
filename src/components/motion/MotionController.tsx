@@ -51,8 +51,8 @@ export function MotionController() {
       prepare(document);
       // Only top-level page swaps need re-scanning; watching every nested change
       // (chat messages, lists) made phones do constant extra work.
-      const root = document.querySelector("main") ?? document.body;
-      mutations.observe(root, { childList: true, subtree: false });
+      mutations.observe(document.body, { childList: true, subtree: false });
+
     }, 350);
     const mutations = new MutationObserver(() => {
       if (document.hidden) return;

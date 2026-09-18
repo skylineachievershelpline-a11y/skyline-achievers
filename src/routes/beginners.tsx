@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
-import { SessionExtraCard } from "@/components/media/SessionExtraCard";
+import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -380,31 +380,20 @@ function BeginnersPage() {
               </div>
             </div>
 
-            <SessionVideo
-              title={focused.title}
-              videoUrl={focused.videoUrl}
-              aspectRatio={focused.aspectRatio}
-              poster={focused.thumbnailUrl}
-            />
+            <SessionGate key={focused.id} extras={focused.extras}>
+              <SessionVideo
+                title={focused.title}
+                videoUrl={focused.videoUrl}
+                aspectRatio={focused.aspectRatio}
+                poster={focused.thumbnailUrl}
+              />
 
-            {focused.description ? (
-              <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {focused.description}
-              </p>
-            ) : null}
-
-            {focused.extras.length > 0 ? (
-              <div className="mt-6 space-y-4">
-                <h3 className="font-display text-base font-semibold tracking-tight">
-                  More with this session
-                </h3>
-                {focused.extras.map((extra) => (
-                  <div key={extra.id} className="animate-rise-in">
-                    <SessionExtraCard extra={extra} />
-                  </div>
-                ))}
-              </div>
-            ) : null}
+              {focused.description ? (
+                <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                  {focused.description}
+                </p>
+              ) : null}
+            </SessionGate>
 
             <Button
               variant="outline"

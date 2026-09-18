@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { SessionExtraCard } from "@/components/media/SessionExtraCard";
+import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";
@@ -99,40 +99,31 @@ function SessionPage() {
           </div>
         ) : (
           <div className="animate-rise-in space-y-5">
-            <div className="raised-panel overflow-hidden rounded-3xl p-3 sm:p-4">
-              <SessionVideo
-                title={session.title}
-                videoUrl={session.videoUrl}
-                aspectRatio={session.aspectRatio}
-                poster={session.thumbnailUrl}
-              />
-            </div>
+            <SessionGate key={session.id} extras={extras}>
+              <div className="raised-panel overflow-hidden rounded-3xl p-3 sm:p-4">
+                <SessionVideo
+                  title={session.title}
+                  videoUrl={session.videoUrl}
+                  aspectRatio={session.aspectRatio}
+                  poster={session.thumbnailUrl}
+                />
+              </div>
 
-            <section className="glass-panel metal-edge rounded-3xl p-6">
-              <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                Session code · {session.code}
-              </p>
-              <h2 className="mt-2 font-display text-xl font-semibold tracking-tight">
-                {session.title}
-              </h2>
-              {session.description ? (
-                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                  {session.description}
+              <section className="glass-panel metal-edge mt-5 rounded-3xl p-6">
+                <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
+                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Session code · {session.code}
                 </p>
-              ) : null}
-            </section>
-
-            {extras.length > 0 ? (
-              <section className="space-y-4">
-                <h3 className="font-display text-base font-semibold tracking-tight">
-                  More with this session
-                </h3>
-                {extras.map((extra) => (
-                  <SessionExtraCard key={extra.id} extra={extra} />
-                ))}
+                <h2 className="mt-2 font-display text-xl font-semibold tracking-tight">
+                  {session.title}
+                </h2>
+                {session.description ? (
+                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {session.description}
+                  </p>
+                ) : null}
               </section>
-            ) : null}
+            </SessionGate>
           </div>
         )}
       </div>

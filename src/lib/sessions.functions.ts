@@ -1,6 +1,41 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+const sessionCodeSchema = z
+  .string()
+  .trim()
+  .min(4, "Enter the full session code")
+  .max(40)
+  .transform((value) => value.toUpperCase());
+
+/** Lightweight public details used by social-sharing previews. */
+export const getBeginnerSessionPreview = createServerFn({ method: "GET" })
+  .inputValidator((data: { code: string }) =>
+    z.object({ code: sessionCodeSchema }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, THUMBNAIL_BUCKET } = await import("./storage.server");
+    const { data: row } = await (supabaseAdmin as any)
+      .from("beginner_sessions")
+      .select("session_code, title, description, thumbnail_path, is_published")
+      .ilike("session_code", data.code)
+      .maybeSingle();
+
+    if (!row || !row.is_published || String(row.session_code).toUpperCase() !== data.code) {
+      return { session: null };
+    }
+
+    return {
+      session: {
+        code: data.code,
+        title: row.title as string,
+        description: (row.description ?? null) as string | null,
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 24 * 7),
+      },
+    };
+  });
+
 /**
  * Beginners Training Sessions are opened with a session code instead of a
  * member account. The table itself is unreachable from the browser: only this
@@ -8,16 +43,7 @@ import { z } from "zod";
  */
 export const openBeginnerSession = createServerFn({ method: "POST" })
   .inputValidator((data: { code: string }) =>
-    z
-      .object({
-        code: z
-          .string()
-          .trim()
-          .min(4, "Enter the full session code")
-          .max(40)
-          .transform((v) => v.toUpperCase()),
-      })
-      .parse(data),
+    z.object({ code: sessionCodeSchema }).parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

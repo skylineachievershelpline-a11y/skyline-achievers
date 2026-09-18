@@ -73,3 +73,8 @@
 - [x] Remove the upline photo and long welcome panel
 - [x] Make the Skyline ID and password fields compact and lower on the card
 - [x] Match the saved/shared poster to the compact reservation result
+
+## Enrollment video and share thumbnails
+- [x] Add the landing-page enrollment video to the upline session links screen
+- [x] Add a direct public enrollment video watch link
+- [x] Use each shared video thumbnail in WhatsApp and social link previews

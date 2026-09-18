@@ -98,6 +98,18 @@ function SessionLinksPage() {
     return `${origin}${video.path}`;
   }
 
+  async function copyLink(video: ShareableVideo) {
+    const url = linkFor(video);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(video.id);
+      window.setTimeout(() => setCopied(null), 2000);
+      toast.success("Link copied — send it to your trainee.");
+    } catch {
+      toast.error("Could not copy. Long-press the link to copy it.");
+    }
+  }
+
   async function copyCode(code: string) {
     try {
       await navigator.clipboard.writeText(code);

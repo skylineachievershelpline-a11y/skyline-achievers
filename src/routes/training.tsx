@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
 import { cn } from "@/lib/utils";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/training")({
   head: () => ({

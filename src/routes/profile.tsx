@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -14,7 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import { getMemberSession } from "@/lib/member.functions";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({

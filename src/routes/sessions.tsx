@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { formatDuration } from "@/lib/format";
 import { getLandingIntroduction } from "@/lib/landing.functions";
 import { getBeginnerSessionLinks } from "@/lib/team.functions";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/sessions")({
   head: () => ({

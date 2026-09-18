@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -29,7 +30,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BRAND } from "@/lib/brand";
 import { addDailyLeads, getEarnings, markTodayAbsent, type EarningsDay } from "@/lib/earnings.functions";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 const money = (value: number) => `PKR ${value.toLocaleString("en-PK")}`;
 const dayLabel = (date: string) =>

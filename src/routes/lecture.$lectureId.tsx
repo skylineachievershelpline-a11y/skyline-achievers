@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,7 +10,6 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { ResourceList } from "@/components/member/ResourceList";
 import { getLectureDetail, saveWatchPosition } from "@/lib/member.functions";
 import { formatDuration } from "@/lib/format";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/lecture/$lectureId")({
   head: () => ({

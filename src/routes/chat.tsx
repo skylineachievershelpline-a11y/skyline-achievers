@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -6,7 +7,6 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ChatWorkspace } from "@/components/chat/ChatWorkspace";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/chat")({
   ssr: false,

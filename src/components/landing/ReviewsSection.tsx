@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageSquareQuote, Star } from "lucide-react";
@@ -18,7 +19,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getLandingReviews } from "@/lib/landing.functions";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 /**
  * Public testimonials wall. Visitors submit a review, it stays hidden until an

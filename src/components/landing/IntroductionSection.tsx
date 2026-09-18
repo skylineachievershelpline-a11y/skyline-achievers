@@ -1,10 +1,10 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Play, Smartphone, Wifi } from "lucide-react";
 
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { getLandingIntroduction } from "@/lib/landing.functions";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export function IntroductionSection() {
   const loadIntroduction = useServerFn(getLandingIntroduction);

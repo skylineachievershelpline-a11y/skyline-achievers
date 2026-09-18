@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,7 +11,6 @@ import { ResourceList } from "@/components/member/ResourceList";
 import { getMemberResources } from "@/lib/member.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({

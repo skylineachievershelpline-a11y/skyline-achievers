@@ -1,3 +1,4 @@
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, EyeOff, Loader2, Pencil, Plus, Star, Trash2 } from "lucide-react";
@@ -24,7 +25,6 @@ import {
   adminSetReviewStatus,
 } from "@/lib/admin-landing.functions";
 import { formatDateTime } from "@/lib/format";
-import { SkylineLoader } from "@/components/brand/SkylineLoader";
 
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
 const fieldClass = "h-11 w-full rounded-lg border border-hairline bg-surface-2 px-3 text-sm";

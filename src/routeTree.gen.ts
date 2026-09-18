@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -45,6 +46,11 @@ const ChatRoute = ChatRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnrollmentVideoRoute = EnrollmentVideoRouteImport.update({
+  id: '/enrollment-video',
+  path: '/enrollment-video',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
+  '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
+  '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
+  '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
+    | '/enrollment-video'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
+    | '/enrollment-video'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/beginners'
     | '/chat'
     | '/dashboard'
+    | '/enrollment-video'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   BeginnersRoute: typeof BeginnersRoute
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
+  EnrollmentVideoRoute: typeof EnrollmentVideoRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enrollment-video': {
+      id: '/enrollment-video'
+      path: '/enrollment-video'
+      fullPath: '/enrollment-video'
+      preLoaderRoute: typeof EnrollmentVideoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   BeginnersRoute: BeginnersRoute,
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
+  EnrollmentVideoRoute: EnrollmentVideoRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,

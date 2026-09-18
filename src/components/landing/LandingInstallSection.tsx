@@ -65,10 +65,10 @@ export function LandingInstallSection() {
   return (
     <section
       id="install"
-      className="infographic-grid border-b border-hairline px-5 py-16 sm:px-8 sm:py-24"
+      className="section-flow infographic-grid border-b border-hairline px-5 py-16 sm:px-8 sm:py-24"
     >
-      <div className="raised-panel metal-edge mx-auto flex max-w-4xl flex-col items-center gap-7 rounded-3xl p-6 text-center sm:p-10">
-        <div className="flex h-32 w-32 items-center justify-center rounded-full border border-cyan/30 bg-background shadow-brand sm:h-36 sm:w-36">
+      <div data-reveal className="cinematic-card raised-panel metal-edge mx-auto flex max-w-4xl flex-col items-center gap-7 rounded-3xl p-6 text-center sm:p-10">
+        <div className="app-icon-stage flex h-32 w-32 items-center justify-center rounded-full border border-cyan/30 bg-background shadow-brand sm:h-36 sm:w-36">
           <img
             src="/app-icon-512.png"
             alt={`${BRAND.name} app icon`}

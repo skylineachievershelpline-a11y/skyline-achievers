@@ -86,6 +86,7 @@ const HOW_IT_WORKS = [
 function LandingPage() {
   const navigate = useNavigate();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const resolveRole = useServerFn(getSessionRole);
 
@@ -105,9 +106,16 @@ function LandingPage() {
     };
   }, [navigate, resolveRole]);
 
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 36);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   return (
-    <main className="min-h-screen overflow-hidden bg-background">
-      <section className="relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline shadow-lift">
+    <main className="motion-scope cinematic-landing min-h-screen overflow-hidden bg-background">
+      <section className="cinematic-hero relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline shadow-lift">
         <img
           src={skylineBackground}
           alt="Modern glass towers rising into the sky"
@@ -116,8 +124,12 @@ function LandingPage() {
           className="absolute inset-0 h-full w-full object-cover object-[64%_center]"
         />
         <div className="landing-hero-shade absolute inset-0" aria-hidden />
+        <div className="hero-grid absolute inset-0" aria-hidden />
+        <div className="hero-scanline absolute inset-y-0 left-[12%] hidden w-px lg:block" aria-hidden />
+        <div className="hero-scanline absolute inset-y-0 right-[18%] hidden w-px lg:block" aria-hidden />
+        <div className="hero-orbit absolute right-[8%] top-[22%] hidden h-72 w-72 rounded-full lg:block" aria-hidden />
 
-        <nav className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+        <nav className={`cinematic-nav fixed inset-x-0 top-0 z-40 mx-auto flex w-full items-center justify-between px-5 sm:px-8 lg:px-12 ${scrolled ? "is-compact" : ""}`}>
           <BrandLogo size="md" secretGesture />
           <div className="flex items-center gap-2">
             <Button
@@ -141,23 +153,22 @@ function LandingPage() {
           </div>
         </nav>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-5 pb-24 pt-12 sm:px-8 lg:px-12">
-          <div className="max-w-3xl animate-rise-in">
-            <div className="metal-edge mb-7 inline-flex items-center gap-2 rounded-xl border bg-background/75 px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-silver shadow-lift backdrop-blur-md">
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 items-center px-5 pb-24 pt-28 sm:px-8 lg:px-12">
+          <div className="max-w-4xl">
+            <div className="hero-sequence hero-sequence-1 metal-edge mb-7 inline-flex items-center gap-2 rounded-xl border bg-background/75 px-4 py-2 text-xs font-medium uppercase tracking-[0.16em] text-silver shadow-lift backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-brand-glow" />
               {BRAND.tagline}
             </div>
-            <h1 className="max-w-3xl font-display text-5xl font-semibold leading-[1.03] text-foreground sm:text-6xl lg:text-7xl">
-              Your phone can be
-              <br />
-              <span className="brand-text">your income skill.</span>
+            <h1 className="max-w-4xl font-display text-5xl font-extrabold leading-[0.94] text-foreground sm:text-6xl lg:text-8xl">
+              <span className="hero-line hero-sequence hero-sequence-2">SKYLINE</span>
+              <span className="hero-line hero-sequence hero-sequence-3 brand-text">ACHIEVERS</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-silver sm:text-lg">
+            <p className="hero-sequence hero-sequence-4 mt-7 max-w-xl text-base leading-7 text-silver sm:text-lg">
               {BRAND.name} teaches ordinary people how to use just a mobile phone and an internet
               connection to learn online earning — with real training, real mentorship and a clear
               path to leadership.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="hero-sequence hero-sequence-5 mt-9 flex flex-col gap-3 sm:flex-row">
               <Button variant="brand" size="xl" className="sm:min-w-44" onClick={() => setLoginOpen(true)}>
                 Login
                 <ArrowRight />
@@ -177,12 +188,16 @@ function LandingPage() {
           </div>
         </div>
 
+        <a href="#introduction" className="hero-sequence hero-sequence-6 absolute bottom-24 right-6 z-20 hidden items-center gap-3 text-[10px] font-bold uppercase tracking-[0.18em] text-silver sm:flex lg:right-12">
+          Explore <span className="scroll-indicator"><span /></span>
+        </a>
+
         <div className="absolute inset-x-0 bottom-0 z-10 border-t border-metal/20 bg-background/85 shadow-[0_-16px_36px_-28px_var(--brand)] backdrop-blur-md">
           <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-hairline px-5 sm:px-8 lg:px-12">
             {TRUST_POINTS.map(({ icon: Icon, title, detail }) => (
               <div
                 key={title}
-                className="flex items-center justify-center gap-2.5 px-2 py-4 sm:justify-start sm:px-6"
+                className="hero-sequence hero-sequence-6 flex items-center justify-center gap-2.5 px-2 py-4 sm:justify-start sm:px-6"
               >
                 <Icon className="hidden h-4 w-4 text-brand sm:block" />
                 <div>
@@ -197,9 +212,9 @@ function LandingPage() {
 
       <IntroductionSection />
 
-      <section id="about" className="infographic-grid relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <section id="about" className="section-flow infographic-grid relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div data-reveal className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
                 About {BRAND.name}
@@ -220,8 +235,8 @@ function LandingPage() {
             {HOW_IT_WORKS.map(({ icon: Icon, title, detail }, index) => (
               <article
                 key={title}
-                className={`glass-panel metal-edge depth-hover relative rounded-2xl p-5 pt-16 animate-rise-in ${index % 2 === 1 ? "lg:mt-12" : ""}`}
-                style={{ animationDelay: `${index * 70}ms` }}
+                className={`cinematic-card glass-panel metal-edge depth-hover relative rounded-2xl p-5 pt-16 ${index % 2 === 1 ? "lg:mt-12" : ""}`}
+                style={{ "--motion-order": index } as React.CSSProperties}
               >
                 <span className="absolute -top-3 left-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
                   <Icon className="h-4.5 w-4.5" />

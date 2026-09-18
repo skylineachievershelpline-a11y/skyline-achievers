@@ -121,8 +121,11 @@ function LandingPage() {
           alt="Modern glass towers rising into the sky"
           width={1600}
           height={1008}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-[64%_center]"
         />
+
         <div className="landing-hero-shade absolute inset-0" aria-hidden />
         <div className="hero-grid absolute inset-0" aria-hidden />
         <div className="hero-scanline absolute inset-y-0 left-[12%] hidden w-px lg:block" aria-hidden />

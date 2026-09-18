@@ -68,3 +68,8 @@
 - [x] Recompose the landing page with cinematic hero and connected section transitions
 - [x] Apply coordinated motion to member and admin experiences
 - [x] Verify desktop and phone performance, interactions, overflow, and build health
+
+## Compact seat reservation poster
+- [x] Remove the upline photo and long welcome panel
+- [x] Make the Skyline ID and password fields compact and lower on the card
+- [x] Match the saved/shared poster to the compact reservation result

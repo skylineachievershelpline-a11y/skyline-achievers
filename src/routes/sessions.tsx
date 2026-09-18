@@ -98,15 +98,14 @@ function SessionLinksPage() {
     return `${origin}${video.path}`;
   }
 
-  async function copyLink(video: ShareableVideo) {
-    const url = linkFor(video);
+  async function copyCode(code: string) {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(video.id);
+      await navigator.clipboard.writeText(code);
+      setCopied(`code-${code}`);
       window.setTimeout(() => setCopied(null), 2000);
-      toast.success("Link copied — send it to your trainee.");
+      toast.success("Session code copied.");
     } catch {
-      toast.error("Could not copy. Long-press the link to copy it.");
+      toast.error("Could not copy. Long-press the code to copy it.");
     }
   }
 

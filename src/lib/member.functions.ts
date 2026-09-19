@@ -333,7 +333,7 @@ export const getNotifications = createServerFn({ method: "GET" })
     const [{ data: notifications }, { data: reads }, { data: dismissed }] = await Promise.all([
       db
         .from("notifications")
-        .select("id, title, body, kind, link_path, created_at")
+        .select("id, title, body, kind, link_path, created_at, media_type, media_bucket, media_path")
         .in("kind", ["announcement", "admin_message"])
         .order("created_at", { ascending: false })
         .limit(60),
@@ -344,9 +344,18 @@ export const getNotifications = createServerFn({ method: "GET" })
     const hidden = new Set(
       (dismissed ?? []).map((r: { notification_id: string }) => r.notification_id),
     );
-    const items = (notifications ?? [])
-      .filter((n: { id: string }) => !hidden.has(n.id))
-      .map((n: { id: string }) => ({ ...n, is_read: readSet.has(n.id) }));
+    const { signPath } = await import("./storage.server");
+    const items = await Promise.all(
+      (notifications ?? [])
+        .filter((n: { id: string }) => !hidden.has(n.id))
+        .map(async (n: any) => ({
+          ...n,
+          is_read: readSet.has(n.id),
+          media_url: n.media_path
+            ? await signPath(n.media_bucket ?? "training-resources", n.media_path, 60 * 60 * 6)
+            : null,
+        })),
+    );
     return { items, unread: items.filter((n: { is_read: boolean }) => !n.is_read).length };
   });
 

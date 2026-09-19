@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Megaphone, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { NotificationMedia } from "@/components/member/NotificationMedia";
 import { getNotifications } from "@/lib/member.functions";
 
 const SEEN_KEY = "skyline-seen-announcement";

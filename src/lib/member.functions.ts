@@ -251,8 +251,11 @@ export const searchLibrary = createServerFn({ method: "POST" })
     z.object({ query: z.string().trim().min(1).max(80) }).parse(data),
   )
   .handler(async ({ data, context }) => {
+    const { signThumbnails } = await import("./storage.server");
+    const { tokenize, relevance, RELATED_THRESHOLD } = await import("./search.server");
     const db = context.supabase as any;
     const tokens = tokenize(data.query);
+
     // Everything the member may see is pulled once, then ranked by how close it
     // is to the words they typed — related topics come up too, not just exact titles.
     const [lectures, resources] = await Promise.all([

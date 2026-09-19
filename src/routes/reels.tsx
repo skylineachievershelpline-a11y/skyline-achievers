@@ -131,13 +131,16 @@ function ReelsPage() {
 function ReelCard({
   reel,
   muted,
+  onToggleMute,
   onDelete,
 }: {
   reel: { title: string; caption: string | null; url: string | null; posterUrl: string | null; authorName: string };
   muted: boolean;
+  onToggleMute: () => void;
   onDelete?: (() => void) | undefined;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [active, setActive] = useState(false);
 
   // Autoplay whichever reel is centred in the viewport, like a native feed.
   useEffect(() => {
@@ -146,7 +149,9 @@ function ReelCard({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return;
-        if (entry.intersectionRatio > 0.6) void video.play().catch(() => undefined);
+        const visible = entry.intersectionRatio > 0.6;
+        setActive(visible);
+        if (visible) void video.play().catch(() => undefined);
         else video.pause();
       },
       { threshold: [0, 0.6, 1] },
@@ -156,7 +161,11 @@ function ReelCard({
   }, []);
 
   return (
-    <article className="metal-edge relative snap-start overflow-hidden rounded-3xl border bg-media shadow-lift animate-rise-in">
+    <article
+      className={`metal-edge relative snap-start snap-always overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
+        active ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
+      }`}
+    >
       {reel.url ? (
         <video
           ref={videoRef}
@@ -165,7 +174,14 @@ function ReelCard({
           loop
           muted={muted}
           playsInline
+          preload="metadata"
           controlsList="nodownload"
+          onClick={() => {
+            const video = videoRef.current;
+            if (!video) return;
+            if (video.paused) void video.play().catch(() => undefined);
+            else video.pause();
+          }}
           className="aspect-[9/16] w-full bg-media object-cover"
         />
       ) : (
@@ -173,6 +189,18 @@ function ReelCard({
           Video unavailable
         </div>
       )}
+
+      {/* sound control sits directly on the clip */}
+      <button
+        type="button"
+        onClick={onToggleMute}
+        aria-label={muted ? "Turn sound on" : "Turn sound off"}
+        className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-3 py-1.5 text-[11px] text-foreground backdrop-blur transition-all duration-300 hover:bg-background/90 active:scale-95"
+      >
+        {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+        {muted ? "Sound off" : "Sound on"}
+      </button>
+
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-12">
         <p className="text-[11px] uppercase tracking-[0.2em] text-brand-glow">{reel.authorName}</p>
         <h3 className="mt-1 font-display text-base font-semibold">{reel.title}</h3>
@@ -184,7 +212,7 @@ function ReelCard({
         <button
           onClick={onDelete}
           aria-label="Delete reel"
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-background/70 text-muted-foreground transition-colors hover:text-destructive"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-background/70 text-muted-foreground backdrop-blur transition-all duration-300 hover:text-destructive active:scale-95"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -192,6 +220,7 @@ function ReelCard({
     </article>
   );
 }
+
 
 function ReelComposer({ onDone }: { onDone: () => void }) {
   const createUrl = useServerFn(getReelUploadUrl);

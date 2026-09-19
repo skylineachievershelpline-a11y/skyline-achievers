@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { NotificationMedia } from "@/components/member/NotificationMedia";
 import {
   dismissNotification,
   getNotifications,
@@ -87,6 +88,7 @@ function NotificationsPage() {
                   {item.body ? (
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.body}</p>
                   ) : null}
+                  <NotificationMedia mediaType={item.media_type} mediaUrl={item.media_url} />
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     {formatDateTime(item.created_at)}
                   </p>

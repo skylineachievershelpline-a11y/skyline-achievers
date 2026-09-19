@@ -990,6 +990,9 @@ export type Database = {
           id: string
           kind: string
           link_path: string | null
+          media_bucket: string | null
+          media_path: string | null
+          media_type: string | null
           title: string
         }
         Insert: {
@@ -999,6 +1002,9 @@ export type Database = {
           id?: string
           kind?: string
           link_path?: string | null
+          media_bucket?: string | null
+          media_path?: string | null
+          media_type?: string | null
           title: string
         }
         Update: {
@@ -1008,6 +1014,9 @@ export type Database = {
           id?: string
           kind?: string
           link_path?: string | null
+          media_bucket?: string | null
+          media_path?: string | null
+          media_type?: string | null
           title?: string
         }
         Relationships: [
@@ -1200,6 +1209,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stories: {
+        Row: {
+          background: string | null
+          caption: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_published: boolean
+          kind: string
+          media_bucket: string | null
+          media_path: string | null
+          text_body: string | null
+        }
+        Insert: {
+          background?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_published?: boolean
+          kind: string
+          media_bucket?: string | null
+          media_path?: string | null
+          text_body?: string | null
+        }
+        Update: {
+          background?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_published?: boolean
+          kind?: string
+          media_bucket?: string | null
+          media_path?: string | null
+          text_body?: string | null
+        }
+        Relationships: []
       }
       trainee_invites: {
         Row: {

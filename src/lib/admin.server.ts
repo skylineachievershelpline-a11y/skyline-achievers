@@ -294,13 +294,19 @@ export async function adminNotify(input: {
   kind: string;
   audienceLevelId: string | null;
   linkPath: string | null;
+  mediaType?: string | null;
+  mediaBucket?: string | null;
+  mediaPath?: string | null;
 }) {
-  const { error } = await supabaseAdmin.from("notifications").insert({
+  const { error } = await (supabaseAdmin as any).from("notifications").insert({
     title: input.title,
     body: input.body,
     kind: input.kind,
     audience_level_id: input.audienceLevelId,
     link_path: input.linkPath,
+    media_type: input.mediaType ?? null,
+    media_bucket: input.mediaBucket ?? null,
+    media_path: input.mediaPath ?? null,
   });
   if (error) throw new Error(error.message);
   return { ok: true as const };

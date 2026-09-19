@@ -21,6 +21,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getMemberSession, getNotifications } from "@/lib/member.functions";
@@ -160,9 +161,7 @@ export function MemberShell({
             <Menu className="h-4.5 w-4.5" />
           </button>
 
-          <Link to="/dashboard" className="shrink-0">
-            <BrandLogo size="sm" withWordmark={false} />
-          </Link>
+          <StoryLogo size={34} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">
               {title ?? BRAND.name}

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Megaphone, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { NotificationMedia } from "@/components/member/NotificationMedia";
 import { getNotifications } from "@/lib/member.functions";
 
 const SEEN_KEY = "skyline-seen-announcement";
@@ -26,7 +27,13 @@ export function AnnouncementBanner() {
   const [hidden, setHidden] = useState(false);
 
   const latest = (data?.items ?? [])[0] as
-    | { id: string; title: string; body: string | null }
+    | {
+        id: string;
+        title: string;
+        body: string | null;
+        media_type?: string | null;
+        media_url?: string | null;
+      }
     | undefined;
 
   useEffect(() => {
@@ -57,6 +64,9 @@ export function AnnouncementBanner() {
           <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
             {latest.body}
           </p>
+        ) : null}
+        {latest.media_type === "audio" ? (
+          <NotificationMedia mediaType={latest.media_type} mediaUrl={latest.media_url} />
         ) : null}
         <Link to="/notifications" className="mt-2 inline-block text-xs font-semibold text-brand-glow">
           Open notifications →

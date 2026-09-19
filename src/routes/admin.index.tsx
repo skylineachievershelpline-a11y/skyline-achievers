@@ -157,6 +157,9 @@ function AdminPage() {
             <TabsTrigger value="inspiration" className="rounded-xl">
               Daily Verses
             </TabsTrigger>
+            <TabsTrigger value="stories" className="rounded-xl">
+              Stories
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">

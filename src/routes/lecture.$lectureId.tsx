@@ -2,12 +2,13 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, PlayCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { ResourceList } from "@/components/member/ResourceList";
+import { Button } from "@/components/ui/button";
 import { getLectureDetail, saveWatchPosition } from "@/lib/member.functions";
 import { formatDuration } from "@/lib/format";
 
@@ -109,6 +110,13 @@ function LecturePage() {
 
   return (
     <MemberShell title={lecture.title} subtitle={lecture.levels?.name ?? undefined}>
+      <Button asChild variant="outline" className="mb-4 rounded-2xl">
+        <Link to="/training">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Training
+        </Link>
+      </Button>
+
       <div className="metal-edge overflow-hidden rounded-3xl border bg-media shadow-lift animate-rise-in">
         {data.playback?.url ? (
           isExternalEmbed ? (
@@ -159,31 +167,6 @@ function LecturePage() {
         </section>
       ) : null}
 
-      {data.siblings.length > 1 ? (
-        <section className="mt-7">
-          <SectionTitle>More training videos</SectionTitle>
-
-          <ol className="space-y-2">
-            {data.siblings
-              .filter((s: any) => s.id !== lecture.id)
-              .map((s: any) => (
-                <li key={s.id}>
-                  <Link
-                    to="/lecture/$lectureId"
-                    params={{ lectureId: s.id }}
-                    className="glass-panel flex items-center gap-3 rounded-2xl p-3"
-                  >
-                    <PlayCircle className="h-4 w-4 shrink-0 text-brand" />
-                    <span className="min-w-0 flex-1 truncate text-sm">{s.title}</span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatDuration(s.duration_seconds)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-          </ol>
-        </section>
-      ) : null}
     </MemberShell>
   );
 }

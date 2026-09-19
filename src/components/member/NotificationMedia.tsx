@@ -6,8 +6,8 @@ export function NotificationMedia({
   mediaType,
   mediaUrl,
 }: {
-  mediaType?: string | null;
-  mediaUrl?: string | null;
+  mediaType?: string | null | undefined;
+  mediaUrl?: string | null | undefined;
 }) {
   if (!mediaType || !mediaUrl) return null;
 

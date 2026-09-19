@@ -97,7 +97,11 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
       return;
     }
     if (kind !== "text" && !file) {
-      toast.error("Choose a picture or video first.");
+      toast.error(kind === "audio" ? "Record a voice note first." : "Choose a picture or video first.");
+      return;
+    }
+    if (audienceType === "level" && !audienceLevelId) {
+      toast.error("Choose a rank first.");
       return;
     }
     setBusy(true);
@@ -150,7 +154,7 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
       <section className="glass-panel-strong space-y-4 rounded-3xl p-6">
         <div className="space-y-2">
           <Label>Story type</Label>
-          <div className="flex gap-2">
+           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["text", "image", "video", "audio"] as const).map((option) => (
               <button
                 key={option}

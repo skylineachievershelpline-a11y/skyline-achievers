@@ -8,10 +8,9 @@ const uuid = z.string().uuid();
 const STORY_BUCKETS = ["training-videos", "training-thumbnails", "training-resources"] as const;
 
 /**
- * Stories behave like WhatsApp / Instagram status: an admin posts text, a
- * picture or a video and it disappears on its own after the chosen hours.
- * Reading is public so both dashboards (and even the landing page) can show
- * the glowing ring on the Skyline logo.
+ * Stories behave like status updates: an admin posts text, picture, video, or
+ * audio and it disappears after the chosen hours. Reading is authenticated so
+ * audience rules can be enforced for each viewer.
  */
 export const getActiveStories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

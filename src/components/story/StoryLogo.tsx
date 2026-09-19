@@ -7,6 +7,7 @@ import { BRAND } from "@/lib/brand";
 import { getActiveStories } from "@/lib/stories.functions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 type Story = {
   id: string;
@@ -21,15 +22,29 @@ type Story = {
 const IMAGE_MS = 6000;
 
 /**
- * The Skyline logo doubles as the platform status ring: when an admin posts a
- * story the logo gets a glowing gradient ring, and tapping it opens the
- * full-screen story viewer with Instagram-style progress segments.
+ * Shows a clear story action beside the official Skyline logo. The viewer uses
+ * familiar full-screen progress segments without altering the logo itself.
  */
 export function StoryLogo({ size = 36, className }: { size?: number; className?: string }) {
   const load = useServerFn(getActiveStories);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setUserId(data.session?.user.id ?? null);
+    });
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+    });
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
   const { data } = useQuery({
-    queryKey: ["active-stories"],
+    queryKey: ["active-stories", userId],
     queryFn: () => load(),
+    enabled: Boolean(userId),
     staleTime: 60_000,
     retry: false,
   });
@@ -72,7 +87,7 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const paused = useRef(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaRef = useRef<HTMLMediaElement | null>(null);
 
   const story = stories[index]!;
 
@@ -157,16 +172,18 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
         className="relative flex-1 select-none overflow-hidden"
         onPointerDown={() => {
           paused.current = true;
-          videoRef.current?.pause();
+          mediaRef.current?.pause();
         }}
         onPointerUp={() => {
           paused.current = false;
-          void videoRef.current?.play();
+          void mediaRef.current?.play();
         }}
       >
         {story.kind === "video" && story.mediaUrl ? (
           <video
-            ref={videoRef}
+            ref={(node) => {
+              mediaRef.current = node;
+            }}
             src={story.mediaUrl}
             autoPlay
             playsInline
@@ -186,7 +203,9 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
               </span>
               <p className="mt-5 font-display text-xl font-semibold">{story.caption || "Skyline voice story"}</p>
               <audio
-                ref={videoRef as React.RefObject<HTMLAudioElement>}
+                ref={(node) => {
+                  mediaRef.current = node;
+                }}
                 src={story.mediaUrl}
                 autoPlay
                 controls
@@ -217,13 +236,13 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
           type="button"
           aria-label="Previous story"
           onClick={prev}
-          className="absolute inset-y-0 left-0 w-1/3"
+          className="absolute inset-y-0 left-0 w-1/5"
         />
         <button
           type="button"
           aria-label="Next story"
           onClick={next}
-          className="absolute inset-y-0 right-0 w-1/3"
+          className="absolute inset-y-0 right-0 w-1/5"
         />
       </div>
 

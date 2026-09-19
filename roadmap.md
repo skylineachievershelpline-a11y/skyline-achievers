@@ -78,3 +78,9 @@
 - [x] Add the landing-page enrollment video to the upline session links screen
 - [x] Add a direct public enrollment video watch link
 - [x] Use each shared video thumbnail in WhatsApp and social link previews
+
+## Dashboard stories
+- [x] Show active stories reliably on member and Beginners Training dashboards
+- [x] Target stories to everyone, Beginners Training, or one specific rank
+- [x] Support text, picture, video, and recorded voice-note stories
+- [x] Replace the logo ring with a clear Watch Story tag

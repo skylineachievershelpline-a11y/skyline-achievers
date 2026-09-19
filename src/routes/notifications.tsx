@@ -87,6 +87,7 @@ function NotificationsPage() {
                   {item.body ? (
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.body}</p>
                   ) : null}
+                  <NotificationMedia mediaType={item.media_type} mediaUrl={item.media_url} />
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     {formatDateTime(item.created_at)}
                   </p>

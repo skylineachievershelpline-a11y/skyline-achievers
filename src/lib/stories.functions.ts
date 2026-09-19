@@ -95,8 +95,9 @@ export const adminSaveStory = createServerFn({ method: "POST" })
       background?: string | null;
       mediaBucket?: string | null;
       mediaPath?: string | null;
-      audienceType: "everyone" | "beginners" | "level";
-      audienceLevelId?: string | null;
+      audienceType: "everyone" | "custom";
+      audienceBeginners?: boolean;
+      audienceLevelIds?: string[];
       hours: number;
       isPublished: boolean;
     }) =>
@@ -109,8 +110,9 @@ export const adminSaveStory = createServerFn({ method: "POST" })
           background: z.string().trim().max(80).nullable().optional(),
           mediaBucket: z.enum(STORY_BUCKETS).nullable().optional(),
           mediaPath: z.string().trim().max(400).nullable().optional(),
-          audienceType: z.enum(["everyone", "beginners", "level"]),
-          audienceLevelId: uuid.nullable().optional(),
+          audienceType: z.enum(["everyone", "custom"]),
+          audienceBeginners: z.boolean().optional(),
+          audienceLevelIds: z.array(uuid).max(20).optional(),
           hours: z.number().int().min(1).max(168),
           isPublished: z.boolean(),
         })
@@ -125,7 +127,12 @@ export const adminSaveStory = createServerFn({ method: "POST" })
     if (data.kind !== "text" && !data.mediaPath && !data.id) {
       throw new Error("Choose or record media for this story.");
     }
-    if (data.audienceType === "level" && !data.audienceLevelId) throw new Error("Choose a rank first.");
+    const custom = data.audienceType === "custom";
+    const levelIds = custom ? (data.audienceLevelIds ?? []) : [];
+    const beginners = custom ? Boolean(data.audienceBeginners) : false;
+    if (custom && !beginners && levelIds.length === 0) {
+      throw new Error("Select at least one group that can watch this story.");
+    }
 
     const patch: Record<string, unknown> = {
       kind: data.kind,
@@ -134,12 +141,15 @@ export const adminSaveStory = createServerFn({ method: "POST" })
       background: data.background ?? null,
       is_published: data.isPublished,
       audience_type: data.audienceType,
-      audience_level_id: data.audienceType === "level" ? data.audienceLevelId : null,
+      audience_beginners: beginners,
+      audience_level_ids: levelIds,
+      audience_level_id: null,
     };
     if (data.mediaPath) {
       patch["media_path"] = data.mediaPath;
       patch["media_bucket"] = data.mediaBucket ?? "training-thumbnails";
     }
+
 
     if (data.id) {
       const { error } = await (supabaseAdmin as any)

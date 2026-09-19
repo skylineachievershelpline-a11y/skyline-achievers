@@ -71,6 +71,13 @@
       "when": 1789790988079,
       "tag": "0009_stories_and_announcement_media",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789791797060,
+      "tag": "0010_story_audiences_and_audio",
+      "breakpoints": true
     }
   ]
 }

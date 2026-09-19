@@ -1212,6 +1212,8 @@ export type Database = {
       }
       stories: {
         Row: {
+          audience_level_id: string | null
+          audience_type: string
           background: string | null
           caption: string | null
           created_at: string
@@ -1224,6 +1226,8 @@ export type Database = {
           text_body: string | null
         }
         Insert: {
+          audience_level_id?: string | null
+          audience_type?: string
           background?: string | null
           caption?: string | null
           created_at?: string
@@ -1236,6 +1240,8 @@ export type Database = {
           text_body?: string | null
         }
         Update: {
+          audience_level_id?: string | null
+          audience_type?: string
           background?: string | null
           caption?: string | null
           created_at?: string
@@ -1247,7 +1253,15 @@ export type Database = {
           media_path?: string | null
           text_body?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stories_audience_level_id_fkey"
+            columns: ["audience_level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trainee_invites: {
         Row: {

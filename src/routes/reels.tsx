@@ -84,37 +84,32 @@ function ReelsPage() {
 
   return (
     <MemberShell title="Reels" subtitle="Short clips from the Skyline team">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <button
-          onClick={() => setMuted((m) => !m)}
-          className="flex items-center gap-2 rounded-full border border-hairline bg-glass px-3 py-1.5 text-xs"
-        >
-          {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-          {muted ? "Sound off" : "Sound on"}
-        </button>
-        {data?.isManager ? (
+      {data?.isManager ? (
+        <div className="mb-4 flex items-center justify-end">
           <Button variant="brand" className="rounded-2xl" onClick={() => setComposer(true)}>
             <Plus className="h-4 w-4" /> New reel
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {reels.length === 0 ? (
         <EmptyState title="No reels yet" hint="Short clips will appear here as soon as they are posted." />
       ) : (
-        <div className="no-scrollbar mx-auto h-[calc(100vh-15rem)] max-w-md snap-y snap-mandatory overflow-y-auto rounded-3xl">
-          <div className="space-y-4">
+        <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
+          <div className="space-y-4 pb-4">
             {reels.map((reel: any) => (
               <ReelCard
                 key={reel.id}
                 reel={reel}
                 muted={muted}
+                onToggleMute={() => setMuted((m) => !m)}
                 onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
               />
             ))}
           </div>
         </div>
       )}
+
 
       <Dialog open={composer} onOpenChange={setComposer}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">

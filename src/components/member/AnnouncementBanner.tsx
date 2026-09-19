@@ -26,7 +26,13 @@ export function AnnouncementBanner() {
   const [hidden, setHidden] = useState(false);
 
   const latest = (data?.items ?? [])[0] as
-    | { id: string; title: string; body: string | null }
+    | {
+        id: string;
+        title: string;
+        body: string | null;
+        media_type?: string | null;
+        media_url?: string | null;
+      }
     | undefined;
 
   useEffect(() => {

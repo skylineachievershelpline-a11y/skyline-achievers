@@ -116,7 +116,7 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { signPath, THUMBNAIL_BUCKET } = await import("./storage.server");
-    const [{ data: sessions }, { data: unlocks }] = await Promise.all([
+    const [{ data: sessions }, { data: unlocks }, { data: reels }] = await Promise.all([
       supabaseAdmin
         .from("beginner_sessions")
         .select("id, title, description, thumbnail_path, duration_seconds, sort_order")
@@ -126,6 +126,12 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
         .from("trainee_session_unlocks")
         .select("session_id")
         .eq("trainee_id", context.userId),
+      (supabaseAdmin as any)
+        .from("reels")
+        .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, created_at")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(60),
     ]);
     const unlocked = new Set((unlocks ?? []).map((row) => row.session_id));
 
@@ -140,7 +146,20 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
       })),
     );
 
-    const { AVATAR_BUCKET } = await import("./storage.server");
+    const { AVATAR_BUCKET, VIDEO_BUCKET } = await import("./storage.server");
+    const reelList = await Promise.all(
+      (reels ?? []).map(async (reel: any) => ({
+        id: reel.id as string,
+        title: reel.title as string,
+        caption: (reel.caption ?? null) as string | null,
+        createdAt: reel.created_at as string,
+        posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
+        url:
+          reel.video_source === "external"
+            ? (reel.video_url as string | null)
+            : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
+      })),
+    );
 
     return {
       trainee: {
@@ -160,6 +179,7 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
       },
       blocked: false as const,
       sessions: list,
+      reels: reelList,
     };
   });
 

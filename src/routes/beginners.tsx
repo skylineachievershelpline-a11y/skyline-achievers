@@ -6,22 +6,27 @@ import {
   ArrowLeft,
   CheckCircle2,
   ChevronRight,
+  Clapperboard,
+  GraduationCap,
+  Home,
   KeyRound,
   Loader2,
   Lock,
   LogOut,
+  Menu,
   MessageCircle,
   PlayCircle,
+  Search,
   ShieldCheck,
   Unlock,
   Camera,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
-import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
@@ -29,6 +34,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
+import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
+import { cn } from "@/lib/utils";
 import {
   getTraineeAvatarUploadUrl,
   getTraineeDashboard,
@@ -79,6 +86,16 @@ type FocusedSession = {
   }[];
 };
 
+type BeginnerView = "home" | "training" | "reels" | "search" | "password";
+
+const BEGINNER_NAV = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "training", label: "Training", icon: GraduationCap },
+  { id: "reels", label: "Reels", icon: Clapperboard },
+  { id: "search", label: "Search", icon: Search },
+  { id: "password", label: "Change password", icon: ShieldCheck },
+] as const;
+
 function ProgressRing({ done, total }: { done: number; total: number }) {
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   const radius = 46;
@@ -128,6 +145,10 @@ function BeginnersPage() {
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState("");
   const [focused, setFocused] = useState<FocusedSession | null>(null);
+  const [view, setView] = useState<BeginnerView>("home");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [reelsMuted, setReelsMuted] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -239,7 +260,43 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
+  const reels = data.reels ?? [];
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
+  const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
+  const searchTokens = tokenize(searchQuery);
+  const searchResults = searchTokens.length < 1
+    ? []
+    : [
+        ...sessions.map((item) => ({
+          kind: "session" as const,
+          item,
+          score: relevance(searchTokens, {
+            fields: [
+              { text: item.title, weight: 1 },
+              { text: item.description, weight: 0.8 },
+            ],
+          }),
+        })),
+        ...reels.map((item: any) => ({
+          kind: "reel" as const,
+          item,
+          score: relevance(searchTokens, {
+            fields: [
+              { text: item.title, weight: 1 },
+              { text: item.caption, weight: 0.8 },
+            ],
+          }),
+        })),
+      ]
+        .filter((result) => result.score >= RELATED_THRESHOLD)
+        .sort((a, b) => b.score - a.score);
+
+  function selectView(next: BeginnerView) {
+    setFocused(null);
+    setView(next);
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
     <div className="infographic-grid relative min-h-screen pb-14">
@@ -247,6 +304,16 @@ function BeginnersPage() {
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            className="shrink-0 rounded-xl"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
           <StoryLogo size={34} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>
@@ -270,8 +337,79 @@ function BeginnersPage() {
         </div>
       </header>
 
+      <div
+        className={cn(
+          "fixed inset-0 z-40 transition-opacity duration-300",
+          menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      >
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setMenuOpen(false)}
+          className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+        />
+        <aside
+          className={cn(
+            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[84vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            menuOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <BrandLogo size="sm" />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="rounded-full"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="mt-5 rounded-2xl border border-cyan/20 bg-primary/10 p-3">
+            <p className="truncate font-display text-sm font-semibold">{trainee.fullName}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              Beginners Training
+            </p>
+          </div>
+          <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto">
+            {BEGINNER_NAV.map((item) => (
+              <Button
+                key={item.id}
+                type="button"
+                variant="ghost"
+                onClick={() => selectView(item.id)}
+                className={cn(
+                  "h-11 w-full justify-start rounded-xl px-3 text-muted-foreground",
+                  view === item.id && "border border-cyan/30 bg-primary/15 text-foreground shadow-glass",
+                )}
+              >
+                <item.icon className="h-4 w-4 text-brand-glow" />
+                {item.label}
+              </Button>
+            ))}
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/chat">
+                <MessageCircle className="h-4 w-4 text-brand-glow" />
+                Chat with Upline
+              </Link>
+            </Button>
+          </nav>
+          <button type="button" onClick={() => void signOut()} className="logout-button mt-4 w-full">
+            <LogOut className="h-4 w-4" /> Logout
+          </button>
+          <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {BRAND.tagline}
+          </p>
+        </aside>
+      </div>
+
       <main className="relative mx-auto max-w-4xl px-4 py-5">
         {/* ---------- profile + tracking ---------- */}
+        {view === "home" ? (
+          <>
         <section className="raised-panel relative overflow-hidden rounded-[30px] p-6 animate-rise-in">
           <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
@@ -358,8 +496,61 @@ function BeginnersPage() {
           </div>
         </section>
 
+        <section className="mt-5 grid grid-cols-2 gap-3 animate-rise-in sm:grid-cols-3">
+          <div className="glass-panel metal-edge rounded-2xl p-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
+              <Unlock className="h-4 w-4" />
+            </span>
+            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">{unlockedCount}</p>
+            <p className="text-[11px] text-muted-foreground">Sessions unlocked</p>
+          </div>
+          <div className="glass-panel metal-edge rounded-2xl p-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
+              <Lock className="h-4 w-4" />
+            </span>
+            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">
+              {Math.max(sessions.length - unlockedCount, 0)}
+            </p>
+            <p className="text-[11px] text-muted-foreground">Sessions remaining</p>
+          </div>
+          <div className="glass-panel metal-edge col-span-2 rounded-2xl p-4 sm:col-span-1">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
+              <GraduationCap className="h-4 w-4" />
+            </span>
+            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">{progress}%</p>
+            <p className="text-[11px] text-muted-foreground">Training progress</p>
+          </div>
+        </section>
+
+        <section className="raised-panel metal-edge mt-5 overflow-hidden rounded-[28px] p-5 animate-rise-in">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Journey map</p>
+              <h2 className="mt-1 font-display text-lg font-semibold">Your learning momentum</h2>
+            </div>
+            <span className="font-display text-2xl font-semibold text-brand-glow">{progress}%</span>
+          </div>
+          <div className="mt-5 flex h-28 items-end gap-2" aria-label={`${progress}% training progress`}>
+            {[18, 30, 42, 56, 68, 82, 100].map((height, index) => {
+              const active = progress >= Math.round(((index + 1) / 7) * 100);
+              return (
+                <span
+                  key={height}
+                  className={cn(
+                    "flex-1 rounded-t-xl border border-metal/20 transition-all duration-700",
+                    active ? "bg-primary shadow-brand" : "bg-surface-2",
+                  )}
+                  style={{ height: `${height}%` }}
+                />
+              );
+            })}
+          </div>
+        </section>
+          </>
+        ) : null}
+
         {/* ---------- focused session ---------- */}
-        {focused ? (
+        {view === "training" && focused ? (
           <section className="raised-panel relative mt-6 overflow-hidden rounded-[30px] p-4 animate-scale-in sm:p-6">
             <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />
             <div className="mb-4 flex items-center gap-3">
@@ -407,37 +598,10 @@ function BeginnersPage() {
               Back to all sessions
             </Button>
           </section>
-        ) : (
+        ) : view === "training" ? (
           <>
-            {/* ---------- chat with upline ---------- */}
-            <section className="raised-panel metal-edge mt-6 rounded-[28px] p-2 animate-rise-in">
-              <Link
-                to="/chat"
-                className="flex items-center gap-4 rounded-[24px] p-4 transition-colors hover:bg-surface-2/60"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan/30 bg-primary/15 text-brand-glow shadow-brand">
-                  <MessageCircle className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display text-base font-semibold tracking-tight">
-                    {trainee.upline
-                      ? `Chat with ${trainee.upline.fullName}`
-                      : "Chat with your Upline"}
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    Message, picture ya file — apne upline se seedha baat karein.
-                  </span>
-                </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-              </Link>
-            </section>
-
-            <div className="mt-6">
-              <DailyInspiration />
-            </div>
-
             {/* ---------- unlock ---------- */}
-            <section className="glass-panel metal-edge mt-6 rounded-[28px] p-6 animate-rise-in">
+            <section className="glass-panel metal-edge rounded-[28px] p-6 animate-rise-in">
               <h2 className="font-display text-lg font-semibold tracking-tight">Open a session</h2>
               <p className="mt-1 text-xs text-muted-foreground">
                 Your trainer shares a code for each session. Enter it here and that session opens on
@@ -527,10 +691,87 @@ function BeginnersPage() {
               )}
             </section>
 
-            {/* ---------- password ---------- */}
-            <TraineePasswordCard traineeCode={trainee.traineeCode} />
           </>
-        )}
+        ) : null}
+
+        {view === "reels" ? (
+          <section className="animate-rise-in">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Skyline feed</p>
+                <h1 className="font-display text-2xl font-semibold">Reels</h1>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setReelsMuted((value) => !value)}>
+                {reelsMuted ? "Sound off" : "Sound on"}
+              </Button>
+            </div>
+            {reels.length === 0 ? (
+              <div className="glass-panel rounded-3xl px-5 py-10 text-center text-sm text-muted-foreground">
+                No reels published yet.
+              </div>
+            ) : (
+              <div className="no-scrollbar mx-auto h-[calc(100vh-11rem)] max-w-md snap-y snap-mandatory space-y-4 overflow-y-auto rounded-3xl">
+                {reels.map((reel: any) => (
+                  <article key={reel.id} className="metal-edge relative snap-start overflow-hidden rounded-3xl bg-media shadow-lift">
+                    {reel.url ? (
+                      <video src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} loop playsInline controls className="aspect-[9/16] w-full object-cover" />
+                    ) : (
+                      <div className="flex aspect-[9/16] items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
+                      <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>
+                      {reel.caption ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{reel.caption}</p> : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {view === "search" ? (
+          <section className="animate-rise-in">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Smart discovery</p>
+            <h1 className="font-display text-2xl font-semibold">Search training</h1>
+            <div className="relative mt-4">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search sessions or related topics" className="h-12 rounded-2xl pl-11" />
+            </div>
+            <div className="mt-5 space-y-3">
+              {searchQuery.trim() && searchResults.length === 0 ? (
+                <div className="glass-panel rounded-3xl px-5 py-10 text-center text-sm text-muted-foreground">No related training found.</div>
+              ) : null}
+              {searchResults.map((result) => (
+                <button
+                  key={`${result.kind}-${result.item.id}`}
+                  type="button"
+                  disabled={result.kind === "session" && !result.item.unlocked}
+                  onClick={() => {
+                    if (result.kind === "session") {
+                      setView("training");
+                      openSession.mutate(result.item.id);
+                    } else {
+                      setView("reels");
+                    }
+                  }}
+                  className="glass-panel metal-edge flex w-full items-center gap-3 rounded-2xl p-3 text-left disabled:opacity-55"
+                >
+                  <span className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-media">
+                    {result.item.thumbnailUrl || result.item.posterUrl ? <img src={result.item.thumbnailUrl ?? result.item.posterUrl ?? undefined} alt="" className="h-full w-full object-cover" /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{result.item.title}</span>
+                    <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{result.kind === "session" ? (result.item.unlocked ? "Session · unlocked" : "Session · locked") : "Reel"}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {view === "password" ? <TraineePasswordCard traineeCode={trainee.traineeCode} /> : null}
       </main>
     </div>
   );

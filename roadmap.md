@@ -85,3 +85,9 @@
 - [x] Support text, picture, video, and recorded voice-note stories
 - [x] Replace the logo ring with a clear Watch Story tag
 - [x] Open stories in an uncropped, slide-down Skyline branded full-screen viewer
+
+## Beginners dashboard navigation
+- [x] Add a dedicated Beginners Training side menu
+- [x] Move sessions, reels, search, and password management out of Home
+- [x] Keep Home focused on an attractive graphical training tracker
+- [x] Verify the phone layout and navigation

@@ -13,6 +13,7 @@ import { ReelsTab } from "@/components/admin/ReelsTab";
 import { ReportsTab } from "@/components/admin/ReportsTab";
 import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
+import { StoriesTab } from "@/components/admin/StoriesTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";

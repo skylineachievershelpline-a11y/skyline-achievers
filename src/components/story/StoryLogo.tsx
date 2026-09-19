@@ -274,9 +274,9 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
            className="absolute inset-y-0 right-0 z-20 h-full w-1/5 rounded-none border-0 bg-transparent p-0 hover:bg-transparent"
         />
 
-        {/* visible skip controls so a story can be changed before it finishes */}
+        {/* Visible controls let viewers change stories before playback finishes. */}
         {stories.length > 1 ? (
-          <>
+          <div className="absolute inset-x-0 bottom-4 z-30 flex items-center justify-between gap-3 px-4">
             <Button
               type="button"
               aria-label="Previous story"
@@ -284,24 +284,25 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
               disabled={index === 0}
               variant="outline"
               size="icon"
-              className="absolute left-3 top-1/2 z-30 h-10 w-10 -translate-y-1/2 rounded-full bg-background/70 backdrop-blur disabled:opacity-30"
+              className="h-10 w-10 shrink-0 rounded-full bg-background/80 backdrop-blur disabled:opacity-30"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
+            <span className="rounded-full border border-hairline bg-background/80 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
+              {index + 1} / {stories.length}
+            </span>
             <Button
               type="button"
               aria-label="Next story"
               onClick={next}
-              variant="outline"
-              size="icon"
-              className="absolute right-3 top-1/2 z-30 h-10 w-10 -translate-y-1/2 rounded-full bg-background/70 backdrop-blur"
+              variant="brand"
+              size="sm"
+              className="h-10 shrink-0 rounded-full px-4 shadow-brand"
             >
+              Next
               <ChevronRight className="h-5 w-5" />
             </Button>
-            <span className="absolute bottom-3 left-1/2 z-30 -translate-x-1/2 rounded-full border border-hairline bg-background/70 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
-              {index + 1} / {stories.length}
-            </span>
-          </>
+          </div>
         ) : null}
 
       </div>

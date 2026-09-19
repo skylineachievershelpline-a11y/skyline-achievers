@@ -252,7 +252,7 @@ export const searchLibrary = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { signThumbnails } = await import("./storage.server");
-    const { tokenize, relevance, RELATED_THRESHOLD } = await import("./search.server");
+    const { tokenize, relevance, RELATED_THRESHOLD } = await import("./search-match");
     const db = context.supabase as any;
     const tokens = tokenize(data.query);
 

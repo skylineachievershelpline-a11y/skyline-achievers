@@ -53,7 +53,7 @@ function SearchPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title…"
+            placeholder="Search any topic — related videos and files also show"
             className="h-12 rounded-2xl pl-11 text-base"
           />
         </div>
@@ -75,7 +75,27 @@ function SearchPage() {
                   params={{ lectureId: lecture.id }}
                   className="glass-panel flex items-center gap-3 rounded-2xl p-3"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm">{lecture.title}</span>
+                  <span className="h-12 w-20 shrink-0 overflow-hidden rounded-xl bg-media">
+                    {lecture.thumbnail_url ? (
+                      <img
+                        src={lecture.thumbnail_url}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm">{lecture.title}</span>
+                    <span className="mt-0.5 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {lecture.training_categories?.name ?? lecture.levels?.name ?? ""}
+                      {lecture.match === "related" ? (
+                        <span className="rounded-md border border-cyan/30 px-1.5 py-0.5 text-cyan">
+                          Related
+                        </span>
+                      ) : null}
+                    </span>
+                  </span>
                   <span className="text-[11px] text-muted-foreground">
                     {formatDuration(lecture.duration_seconds)}
                   </span>
@@ -89,19 +109,32 @@ function SearchPage() {
 
       {results && results.resources.length > 0 ? (
         <section>
-          <SectionTitle>Resources</SectionTitle>
+          <SectionTitle>Files and resources</SectionTitle>
           <ul className="space-y-2">
             {results.resources.map((resource: any) => (
               <li key={resource.id} className="glass-panel rounded-2xl p-3 text-sm">
-                {resource.title}
-                <span className="ml-2 text-[11px] text-muted-foreground">
-                  {resource.lectures?.title ?? ""}
+                <span className="flex items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate">{resource.title}</span>
+                  <span className="text-[10px] uppercase text-muted-foreground">
+                    {resource.resource_type}
+                  </span>
+                  {resource.match === "related" ? (
+                    <span className="rounded-md border border-cyan/30 px-1.5 py-0.5 text-[10px] uppercase text-cyan">
+                      Related
+                    </span>
+                  ) : null}
                 </span>
+                {resource.lectures?.title ? (
+                  <span className="mt-1 block text-[11px] text-muted-foreground">
+                    {resource.lectures.title}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>
         </section>
       ) : null}
+
     </MemberShell>
   );
 }

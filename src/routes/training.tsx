@@ -12,6 +12,8 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
+import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/training")({
@@ -63,11 +65,25 @@ function TrainingPage() {
         active.id === "__none" ? !video.category_id : video.category_id === active.id,
       )
     : [];
-  const videos = inSection.filter((video) =>
-    query.trim()
-      ? String(video.title ?? "").toLowerCase().includes(query.trim().toLowerCase())
-      : true,
-  );
+  // Related topics count as a match too, not only the exact words in the title.
+  const tokens = tokenize(query);
+  const videos =
+    tokens.length === 0
+      ? inSection
+      : inSection
+          .map((video) => ({
+            video,
+            score: relevance(tokens, {
+              fields: [
+                { text: video.title, weight: 1 },
+                { text: video.description, weight: 0.8 },
+              ],
+            }),
+          }))
+          .filter((item) => item.score >= RELATED_THRESHOLD)
+          .sort((a, b) => b.score - a.score)
+          .map((item) => item.video);
+
 
   function countFor(section: Section) {
     return all.filter((video) =>

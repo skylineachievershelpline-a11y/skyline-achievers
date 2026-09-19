@@ -101,14 +101,13 @@ function SessionPage() {
         ) : (
           <div className="animate-rise-in space-y-5">
             <SessionGate key={session.id} extras={extras}>
-              <div className="raised-panel overflow-hidden rounded-3xl p-3 sm:p-4">
-                <SessionVideo
-                  title={session.title}
-                  videoUrl={session.videoUrl}
-                  aspectRatio={session.aspectRatio}
-                  poster={session.thumbnailUrl}
-                />
-              </div>
+              <SessionVideo
+                title={session.title}
+                videoUrl={session.videoUrl}
+                aspectRatio={session.aspectRatio}
+                poster={session.thumbnailUrl}
+                frameClassName="rounded-3xl border border-hairline"
+              />
 
               <section className="glass-panel metal-edge mt-5 rounded-3xl p-6">
                 <span className="connector-line absolute inset-x-0 top-0 h-1" aria-hidden />

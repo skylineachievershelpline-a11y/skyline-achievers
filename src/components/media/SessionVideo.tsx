@@ -1,6 +1,8 @@
 import { Play } from "lucide-react";
 import { useState } from "react";
 
+import { cn } from "@/lib/utils";
+
 export const RATIO_CLASS: Record<string, string> = {
   "16:9": "aspect-video",
   "9:16": "aspect-[9/16] mx-auto max-h-[78vh] w-auto",
@@ -37,11 +39,13 @@ export function SessionVideo({
   videoUrl,
   aspectRatio,
   poster,
+  frameClassName,
 }: {
   title: string;
   videoUrl: string | null;
   aspectRatio: string;
   poster?: string | null;
+  frameClassName?: string;
 }) {
   // A cover image is shown until the viewer taps play; embedded players cannot
   // display a poster themselves, so we overlay it and autoplay on click.
@@ -49,7 +53,13 @@ export function SessionVideo({
   const showCover = Boolean(poster) && !started;
 
   return (
-    <div className={`metal-edge relative overflow-hidden rounded-2xl bg-media shadow-lift ${RATIO_CLASS[aspectRatio] ?? "aspect-video"}`}>
+    <div
+      className={cn(
+        "metal-edge relative overflow-hidden rounded-2xl bg-media shadow-lift",
+        RATIO_CLASS[aspectRatio] ?? "aspect-video",
+        frameClassName,
+      )}
+    >
       {videoUrl ? (
         isEmbeddable(videoUrl) ? (
           !showCover ? (

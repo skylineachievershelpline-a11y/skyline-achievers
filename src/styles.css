@@ -591,6 +591,27 @@
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
+@keyframes story-panel-drop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -9%, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.story-viewer-layer {
+  isolation: isolate;
+  overscroll-behavior: contain;
+}
+
+.story-viewer-panel {
+  animation: story-panel-drop 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
 @utility animate-panel-in {
   animation: panel-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

@@ -84,3 +84,4 @@
 - [x] Target stories to everyone, Beginners Training, or one specific rank
 - [x] Support text, picture, video, and recorded voice-note stories
 - [x] Replace the logo ring with a clear Watch Story tag
+- [x] Open stories in an uncropped, slide-down Skyline branded full-screen viewer

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { NotificationMedia } from "@/components/member/NotificationMedia";
 import {
   dismissNotification,
   getNotifications,

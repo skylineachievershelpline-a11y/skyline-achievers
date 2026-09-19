@@ -252,24 +252,71 @@ export const searchLibrary = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = context.supabase as any;
-    const term = `%${data.query.replace(/[%_]/g, "")}%`;
+    const tokens = tokenize(data.query);
+    // Everything the member may see is pulled once, then ranked by how close it
+    // is to the words they typed — related topics come up too, not just exact titles.
     const [lectures, resources] = await Promise.all([
       db
         .from("lectures")
-        .select("id, title, duration_seconds, levels:level_id (id, name)")
-        .ilike("title", term)
-        .limit(30),
+        .select(
+          "id, title, description, duration_seconds, thumbnail_path, created_at, levels:level_id (id, name), training_categories:category_id (id, name)",
+        )
+        .limit(400),
       db
         .from("resources")
-        .select("id, title, resource_type, lectures:lecture_id (id, title)")
-        .ilike("title", term)
-        .limit(20),
+        .select(
+          "id, title, description, body, resource_type, lectures:lecture_id (id, title)",
+        )
+        .limit(400),
     ]);
+
+    const rankedLectures = (lectures.data ?? [])
+      .map((row: any) => ({
+        row,
+        score: relevance(tokens, {
+          fields: [
+            { text: row.title, weight: 1 },
+            { text: row.description, weight: 0.8 },
+            { text: row.training_categories?.name, weight: 0.7 },
+            { text: row.levels?.name, weight: 0.5 },
+          ],
+        }),
+      }))
+      .filter((item: any) => item.score >= RELATED_THRESHOLD)
+      .sort((a: any, b: any) => b.score - a.score)
+      .slice(0, 30);
+
+    const rankedResources = (resources.data ?? [])
+      .map((row: any) => ({
+        row,
+        score: relevance(tokens, {
+          fields: [
+            { text: row.title, weight: 1 },
+            { text: row.description, weight: 0.8 },
+            { text: row.body, weight: 0.5 },
+            { text: row.resource_type, weight: 0.5 },
+            { text: row.lectures?.title, weight: 0.6 },
+          ],
+        }),
+      }))
+      .filter((item: any) => item.score >= RELATED_THRESHOLD)
+      .sort((a: any, b: any) => b.score - a.score)
+      .slice(0, 30);
+
+    const signed = await signThumbnails(rankedLectures.map((item: any) => item.row));
+
     return {
-      lectures: lectures.data ?? [],
-      resources: resources.data ?? [],
+      lectures: signed.map((row: any, index: number) => ({
+        ...row,
+        match: rankedLectures[index]!.score >= 0.8 ? ("exact" as const) : ("related" as const),
+      })),
+      resources: rankedResources.map((item: any) => ({
+        ...item.row,
+        match: item.score >= 0.8 ? ("exact" as const) : ("related" as const),
+      })),
     };
   });
+
 
 
 /**

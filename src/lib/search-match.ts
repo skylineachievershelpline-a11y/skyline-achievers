@@ -122,4 +122,4 @@ export function relevance(queryTokens: string[], item: Scorable): number {
 }
 
 /** Items scoring at least this are treated as related to the search. */
-export const RELATED_THRESHOLD = 0.34;
+export const RELATED_THRESHOLD = 0.3;

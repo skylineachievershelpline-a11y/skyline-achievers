@@ -6,15 +6,22 @@ import {
   ArrowLeft,
   CheckCircle2,
   ChevronRight,
+  Clapperboard,
+  Eye,
+  GraduationCap,
+  Home,
   KeyRound,
   Loader2,
   Lock,
   LogOut,
+  Menu,
   MessageCircle,
   PlayCircle,
+  Search,
   ShieldCheck,
   Unlock,
   Camera,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +36,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
+import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
+import { cn } from "@/lib/utils";
 import {
   getTraineeAvatarUploadUrl,
   getTraineeDashboard,
@@ -79,6 +88,16 @@ type FocusedSession = {
   }[];
 };
 
+type BeginnerView = "home" | "training" | "reels" | "search" | "password";
+
+const BEGINNER_NAV = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "training", label: "Training", icon: GraduationCap },
+  { id: "reels", label: "Reels", icon: Clapperboard },
+  { id: "search", label: "Search", icon: Search },
+  { id: "password", label: "Change password", icon: ShieldCheck },
+] as const;
+
 function ProgressRing({ done, total }: { done: number; total: number }) {
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   const radius = 46;
@@ -128,6 +147,10 @@ function BeginnersPage() {
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState("");
   const [focused, setFocused] = useState<FocusedSession | null>(null);
+  const [view, setView] = useState<BeginnerView>("home");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [reelsMuted, setReelsMuted] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -239,7 +262,43 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
+  const reels = data.reels ?? [];
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
+  const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
+  const searchTokens = tokenize(searchQuery);
+  const searchResults = searchTokens.length < 1
+    ? []
+    : [
+        ...sessions.map((item) => ({
+          kind: "session" as const,
+          item,
+          score: relevance(searchTokens, {
+            fields: [
+              { text: item.title, weight: 1 },
+              { text: item.description, weight: 0.8 },
+            ],
+          }),
+        })),
+        ...reels.map((item: any) => ({
+          kind: "reel" as const,
+          item,
+          score: relevance(searchTokens, {
+            fields: [
+              { text: item.title, weight: 1 },
+              { text: item.caption, weight: 0.8 },
+            ],
+          }),
+        })),
+      ]
+        .filter((result) => result.score >= RELATED_THRESHOLD)
+        .sort((a, b) => b.score - a.score);
+
+  function selectView(next: BeginnerView) {
+    setFocused(null);
+    setView(next);
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return (
     <div className="infographic-grid relative min-h-screen pb-14">

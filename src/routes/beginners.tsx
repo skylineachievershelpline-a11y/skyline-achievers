@@ -246,7 +246,7 @@ function BeginnersPage() {
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
-          <BrandLogo size="sm" withWordmark={false} />
+          <StoryLogo size={34} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>
             <p className="truncate text-[11px] text-muted-foreground">{BRAND.tagline}</p>

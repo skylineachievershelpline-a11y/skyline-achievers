@@ -592,6 +592,9 @@ export const adminSendNotification = createServerFn({ method: "POST" })
       kind: string;
       audienceLevelId?: string | null;
       linkPath?: string | null;
+      mediaType?: string | null;
+      mediaBucket?: string | null;
+      mediaPath?: string | null;
     }) =>
       z
         .object({
@@ -600,6 +603,12 @@ export const adminSendNotification = createServerFn({ method: "POST" })
           kind: z.enum(["announcement", "new_lecture", "new_series", "admin_message"]),
           audienceLevelId: uuid.nullable().optional(),
           linkPath: optionalText(200),
+          mediaType: z.enum(["image", "video", "audio"]).nullable().optional(),
+          mediaBucket: z
+            .enum(["training-videos", "training-thumbnails", "training-resources"])
+            .nullable()
+            .optional(),
+          mediaPath: optionalText(400),
         })
         .parse(data),
   )
@@ -613,6 +622,9 @@ export const adminSendNotification = createServerFn({ method: "POST" })
       kind: data.kind,
       audienceLevelId: data.audienceLevelId ?? null,
       linkPath: data.linkPath ?? null,
+      mediaType: data.mediaType ?? null,
+      mediaBucket: data.mediaBucket ?? null,
+      mediaPath: data.mediaPath ?? null,
     });
   });
 

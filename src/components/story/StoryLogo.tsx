@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Play, Volume2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -242,7 +242,7 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
           </div>
         )}
 
-        {/* left / right tap zones */}
+        {/* left / right tap zones (hold anywhere to pause) */}
          <Button
           type="button"
           aria-label="Previous story"
@@ -273,6 +273,37 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
            variant="ghost"
            className="absolute inset-y-0 right-0 z-20 h-full w-1/5 rounded-none border-0 bg-transparent p-0 hover:bg-transparent"
         />
+
+        {/* visible skip controls so a story can be changed before it finishes */}
+        {stories.length > 1 ? (
+          <>
+            <Button
+              type="button"
+              aria-label="Previous story"
+              onClick={prev}
+              disabled={index === 0}
+              variant="outline"
+              size="icon"
+              className="absolute left-3 top-1/2 z-30 h-10 w-10 -translate-y-1/2 rounded-full bg-background/70 backdrop-blur disabled:opacity-30"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              aria-label="Next story"
+              onClick={next}
+              variant="outline"
+              size="icon"
+              className="absolute right-3 top-1/2 z-30 h-10 w-10 -translate-y-1/2 rounded-full bg-background/70 backdrop-blur"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+            <span className="absolute bottom-3 left-1/2 z-30 -translate-x-1/2 rounded-full border border-hairline bg-background/70 px-3 py-1 text-[11px] text-muted-foreground backdrop-blur">
+              {index + 1} / {stories.length}
+            </span>
+          </>
+        ) : null}
+
       </div>
 
       {story.caption ? (

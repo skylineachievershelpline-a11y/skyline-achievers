@@ -1212,7 +1212,9 @@ export type Database = {
       }
       stories: {
         Row: {
+          audience_beginners: boolean
           audience_level_id: string | null
+          audience_level_ids: string[]
           audience_type: string
           background: string | null
           caption: string | null
@@ -1226,7 +1228,9 @@ export type Database = {
           text_body: string | null
         }
         Insert: {
+          audience_beginners?: boolean
           audience_level_id?: string | null
+          audience_level_ids?: string[]
           audience_type?: string
           background?: string | null
           caption?: string | null
@@ -1240,7 +1244,9 @@ export type Database = {
           text_body?: string | null
         }
         Update: {
+          audience_beginners?: boolean
           audience_level_id?: string | null
+          audience_level_ids?: string[]
           audience_type?: string
           background?: string | null
           caption?: string | null

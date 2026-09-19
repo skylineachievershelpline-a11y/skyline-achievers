@@ -20,8 +20,11 @@ import {
   ShieldCheck,
   Unlock,
   Camera,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -701,24 +704,30 @@ function BeginnersPage() {
                 <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Skyline feed</p>
                 <h1 className="font-display text-2xl font-semibold">Reels</h1>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setReelsMuted((value) => !value)}>
-                {reelsMuted ? "Sound off" : "Sound on"}
-              </Button>
             </div>
             {reels.length === 0 ? (
               <div className="glass-panel rounded-3xl px-5 py-10 text-center text-sm text-muted-foreground">
                 No reels published yet.
               </div>
             ) : (
-              <div className="no-scrollbar mx-auto h-[calc(100vh-11rem)] max-w-md snap-y snap-mandatory space-y-4 overflow-y-auto rounded-3xl">
+              <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] max-w-md snap-y snap-mandatory space-y-4 scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
                 {reels.map((reel: any) => (
-                  <article key={reel.id} className="metal-edge relative snap-start overflow-hidden rounded-3xl bg-media shadow-lift">
+                  <article key={reel.id} className="metal-edge relative snap-start snap-always overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
-                      <video src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} loop playsInline controls className="aspect-[9/16] w-full object-cover" />
+                      <video src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} loop playsInline preload="metadata" controls className="aspect-[9/16] w-full object-cover" />
                     ) : (
                       <div className="flex aspect-[9/16] items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
                     )}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
+                    <button
+                      type="button"
+                      onClick={() => setReelsMuted((value) => !value)}
+                      aria-label={reelsMuted ? "Turn sound on" : "Turn sound off"}
+                      className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-3 py-1.5 text-[11px] text-foreground backdrop-blur transition-all duration-300 hover:bg-background/90 active:scale-95"
+                    >
+                      {reelsMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                      {reelsMuted ? "Sound off" : "Sound on"}
+                    </button>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
                       <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>
                       {reel.caption ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{reel.caption}</p> : null}
@@ -727,6 +736,7 @@ function BeginnersPage() {
                 ))}
               </div>
             )}
+
           </section>
         ) : null}
 

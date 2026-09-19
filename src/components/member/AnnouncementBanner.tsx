@@ -64,6 +64,9 @@ export function AnnouncementBanner() {
             {latest.body}
           </p>
         ) : null}
+        {latest.media_type === "audio" ? (
+          <NotificationMedia mediaType={latest.media_type} mediaUrl={latest.media_url} />
+        ) : null}
         <Link to="/notifications" className="mt-2 inline-block text-xs font-semibold text-brand-glow">
           Open notifications →
         </Link>

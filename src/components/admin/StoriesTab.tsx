@@ -51,8 +51,10 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
   const [background, setBackground] = useState<string>(BACKGROUNDS[0]);
   const [file, setFile] = useState<File | null>(null);
   const [hours, setHours] = useState(24);
-  const [audienceType, setAudienceType] = useState<"everyone" | "beginners" | "level">("everyone");
-  const [audienceLevelId, setAudienceLevelId] = useState("");
+  const [audienceType, setAudienceType] = useState<"everyone" | "custom">("everyone");
+  const [beginners, setBeginners] = useState(false);
+  const [levelIds, setLevelIds] = useState<string[]>([]);
+
   const [busy, setBusy] = useState(false);
 
   function refresh() {
@@ -78,12 +80,14 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
           caption: story.caption,
           textBody: story.text_body,
           background: story.background,
-          audienceType: story.audience_type ?? "everyone",
-          audienceLevelId: story.audience_level_id,
+          audienceType: story.audience_type === "everyone" ? "everyone" : "custom",
+          audienceBeginners: Boolean(story.audience_beginners),
+          audienceLevelIds: (story.audience_level_ids ?? []) as string[],
           hours: 24,
           isPublished: !story.is_published,
         },
       } as never),
+
     onSuccess: () => {
       toast.success("Story updated");
       refresh();
@@ -100,10 +104,11 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
       toast.error(kind === "audio" ? "Record a voice note first." : "Choose a picture or video first.");
       return;
     }
-    if (audienceType === "level" && !audienceLevelId) {
-      toast.error("Choose a rank first.");
+    if (audienceType === "custom" && !beginners && levelIds.length === 0) {
+      toast.error("Select at least one group that can watch this story.");
       return;
     }
+
     setBusy(true);
     try {
       let mediaPath: string | null = null;
@@ -130,7 +135,9 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
           mediaBucket,
           mediaPath,
           audienceType,
-          audienceLevelId: audienceType === "level" ? audienceLevelId : null,
+          audienceBeginners: audienceType === "custom" ? beginners : false,
+          audienceLevelIds: audienceType === "custom" ? levelIds : [],
+
           hours,
           isPublished: true,
         },
@@ -221,27 +228,63 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
 
         <div className="space-y-2">
           <Label>Who can watch?</Label>
-          <select
-            value={audienceType === "level" ? `level:${audienceLevelId}` : audienceType}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value.startsWith("level:")) {
-                setAudienceType("level");
-                setAudienceLevelId(value.slice(6));
-              } else {
-                setAudienceType(value as "everyone" | "beginners");
-                setAudienceLevelId("");
-              }
-            }}
-            className={fieldClass}
-          >
-            <option value="everyone">Everyone</option>
-            <option value="beginners">Beginners Training</option>
-            {levels.map((level) => (
-              <option key={level.id} value={`level:${level.id}`}>{level.name}</option>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                { value: "everyone", label: "Everyone" },
+                { value: "custom", label: "Selected groups" },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setAudienceType(option.value)}
+                className={cn(
+                  "rounded-full border border-hairline px-3 py-2 text-xs transition-colors",
+                  audienceType === option.value
+                    ? "brand-gradient text-brand-foreground"
+                    : "bg-glass text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {option.label}
+              </button>
             ))}
-          </select>
+          </div>
+          {audienceType === "custom" ? (
+            <div className="glass-panel space-y-2 rounded-2xl p-3">
+              <p className="text-[11px] text-muted-foreground">
+                Tick every group that should see this story.
+              </p>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={beginners}
+                  onChange={(event) => setBeginners(event.target.checked)}
+                  className="h-4 w-4 accent-[hsl(var(--brand))]"
+                />
+                Beginners Training
+              </label>
+              {levels.map((level) => (
+                <label key={level.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={levelIds.includes(level.id)}
+                    onChange={(event) =>
+                      setLevelIds((current) =>
+                        event.target.checked
+                          ? [...current, level.id]
+                          : current.filter((id) => id !== level.id),
+                      )
+                    }
+                    className="h-4 w-4 accent-[hsl(var(--brand))]"
+                  />
+                  {level.name}
+                </label>
+              ))}
+            </div>
+          ) : null}
         </div>
+
 
         <div className="space-y-2">
           <Label>Caption (optional)</Label>
@@ -308,8 +351,20 @@ export function StoriesTab({ levels }: { levels: Level[] }) {
                     {story.text_body || story.caption || `${story.kind} story`}
                   </p>
                   <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                    {story.live ? "Live" : "Ended"} · {story.audience_type === "beginners" ? "Beginners" : story.audience_type === "level" ? levels.find((level) => level.id === story.audience_level_id)?.name ?? "Rank" : "Everyone"} · posted {formatDateTime(story.created_at)}
+                    {story.live ? "Live" : "Ended"} ·{" "}
+                    {story.audience_type === "everyone"
+                      ? "Everyone"
+                      : [
+                          story.audience_beginners ? "Beginners" : null,
+                          ...((story.audience_level_ids ?? []) as string[]).map(
+                            (id) => levels.find((level) => level.id === id)?.name ?? "Rank",
+                          ),
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "Nobody"}{" "}
+                    · posted {formatDateTime(story.created_at)}
                   </p>
+
                 </div>
                 <button
                   onClick={() => toggle.mutate(story)}

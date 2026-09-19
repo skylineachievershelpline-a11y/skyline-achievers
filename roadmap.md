@@ -87,7 +87,7 @@
 - [x] Open stories in an uncropped, slide-down Skyline branded full-screen viewer
 
 ## Beginners dashboard navigation
-- [ ] Add a dedicated Beginners Training side menu
-- [ ] Move sessions, reels, search, and password management out of Home
-- [ ] Keep Home focused on an attractive graphical training tracker
-- [ ] Verify the phone layout and navigation
+- [x] Add a dedicated Beginners Training side menu
+- [x] Move sessions, reels, search, and password management out of Home
+- [x] Keep Home focused on an attractive graphical training tracker
+- [x] Verify the phone layout and navigation

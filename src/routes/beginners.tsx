@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clapperboard,
-  Eye,
   GraduationCap,
   Home,
   KeyRound,
@@ -28,7 +27,6 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
-import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";

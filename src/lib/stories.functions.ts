@@ -31,7 +31,7 @@ export const getActiveStories = createServerFn({ method: "GET" })
 
   const { data } = await (supabaseAdmin as any)
     .from("stories")
-    .select("id, kind, caption, text_body, background, media_bucket, media_path, audience_type, audience_level_id, created_at, expires_at")
+    .select("id, kind, caption, text_body, background, media_bucket, media_path, audience_type, audience_beginners, audience_level_ids, created_at, expires_at")
     .eq("is_published", true)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: true })
@@ -39,9 +39,11 @@ export const getActiveStories = createServerFn({ method: "GET" })
 
   const rows = ((data ?? []) as any[]).filter((row) => {
     if (row.audience_type === "everyone") return true;
-    if (row.audience_type === "beginners") return Boolean(trainee);
-    return row.audience_type === "level" && Boolean(member?.level_id) && row.audience_level_id === member?.level_id;
+    if (row.audience_beginners && trainee) return true;
+    const levelIds = (row.audience_level_ids ?? []) as string[];
+    return Boolean(member?.level_id) && levelIds.includes(member!.level_id as string);
   });
+
   const items = await Promise.all(
     rows.map(async (row) => ({
       id: row.id as string,

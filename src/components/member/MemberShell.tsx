@@ -21,6 +21,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getMemberSession, getNotifications } from "@/lib/member.functions";

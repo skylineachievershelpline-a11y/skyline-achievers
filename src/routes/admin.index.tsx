@@ -191,7 +191,7 @@ function AdminPage() {
             <InspirationTab />
           </TabsContent>
           <TabsContent value="stories" className="mt-5">
-            <StoriesTab />
+            <StoriesTab levels={levels as any} />
           </TabsContent>
         </Tabs>
       </div>

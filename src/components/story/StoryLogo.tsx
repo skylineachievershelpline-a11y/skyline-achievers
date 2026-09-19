@@ -1,15 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { X } from "lucide-react";
+import { Play, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BRAND } from "@/lib/brand";
 import { getActiveStories } from "@/lib/stories.functions";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 type Story = {
   id: string;
-  kind: "text" | "image" | "video";
+  kind: "text" | "image" | "video" | "audio";
   caption: string | null;
   textBody: string | null;
   background: string | null;
@@ -20,15 +22,29 @@ type Story = {
 const IMAGE_MS = 6000;
 
 /**
- * The Skyline logo doubles as the platform status ring: when an admin posts a
- * story the logo gets a glowing gradient ring, and tapping it opens the
- * full-screen story viewer with Instagram-style progress segments.
+ * Shows a clear story action beside the official Skyline logo. The viewer uses
+ * familiar full-screen progress segments without altering the logo itself.
  */
 export function StoryLogo({ size = 36, className }: { size?: number; className?: string }) {
   const load = useServerFn(getActiveStories);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setUserId(data.session?.user.id ?? null);
+    });
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+    });
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
   const { data } = useQuery({
-    queryKey: ["active-stories"],
+    queryKey: ["active-stories", userId],
     queryFn: () => load(),
+    enabled: Boolean(userId),
     staleTime: 60_000,
     retry: false,
   });
@@ -41,22 +57,26 @@ export function StoryLogo({ size = 36, className }: { size?: number; className?:
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => hasStory && setOpen(true)}
-        aria-label={hasStory ? "Watch Skyline story" : BRAND.name}
-        className={cn("relative shrink-0", hasStory ? "cursor-pointer" : "cursor-default", className)}
-        style={{ width: size + 8, height: size + 8 }}
-      >
-        {hasStory ? <span className="story-ring absolute inset-0 rounded-full" aria-hidden /> : null}
+       <div className={cn("flex shrink-0 items-center gap-2", className)}>
         <img
           src={BRAND.logoUrl}
           alt={BRAND.logoAlt}
           draggable={false}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover ring-1 ring-hairline"
+           className="shrink-0 rounded-full object-cover ring-1 ring-hairline"
           style={{ width: size, height: size }}
         />
-      </button>
+         {hasStory ? (
+           <Button
+             type="button"
+             variant="brand"
+             size="sm"
+             onClick={() => setOpen(true)}
+             className="h-8 rounded-full px-3 text-[11px] shadow-brand"
+           >
+             <Play className="h-3.5 w-3.5" /> Watch Story
+           </Button>
+         ) : null}
+       </div>
 
       {open && hasStory ? <StoryViewer stories={stories} onClose={() => setOpen(false)} /> : null}
     </>
@@ -67,7 +87,7 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const paused = useRef(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaRef = useRef<HTMLMediaElement | null>(null);
 
   const story = stories[index]!;
 
@@ -89,7 +109,7 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
 
   // Pictures and text auto-advance on a timer; videos advance when they end.
   useEffect(() => {
-    if (story.kind === "video") return;
+    if (story.kind === "video" || story.kind === "audio") return;
     const started = Date.now();
     let elapsed = 0;
     const timer = window.setInterval(() => {
@@ -152,16 +172,18 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
         className="relative flex-1 select-none overflow-hidden"
         onPointerDown={() => {
           paused.current = true;
-          videoRef.current?.pause();
+          mediaRef.current?.pause();
         }}
         onPointerUp={() => {
           paused.current = false;
-          void videoRef.current?.play();
+          void mediaRef.current?.play();
         }}
       >
         {story.kind === "video" && story.mediaUrl ? (
           <video
-            ref={videoRef}
+            ref={(node) => {
+              mediaRef.current = node;
+            }}
             src={story.mediaUrl}
             autoPlay
             playsInline
@@ -173,6 +195,29 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
             onEnded={next}
             className="h-full w-full object-contain"
           />
+        ) : story.kind === "audio" && story.mediaUrl ? (
+          <div className="flex h-full w-full items-center justify-center px-6">
+            <div className="glass-panel-strong w-full max-w-md rounded-3xl p-8 text-center shadow-lift">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-cyan/40 bg-primary/20 text-brand-glow shadow-brand">
+                <Volume2 className="h-7 w-7" />
+              </span>
+              <p className="mt-5 font-display text-xl font-semibold">{story.caption || "Skyline voice story"}</p>
+              <audio
+                ref={(node) => {
+                  mediaRef.current = node;
+                }}
+                src={story.mediaUrl}
+                autoPlay
+                controls
+                onTimeUpdate={(event) => {
+                  const media = event.currentTarget;
+                  if (media.duration > 0) setProgress(media.currentTime / media.duration);
+                }}
+                onEnded={next}
+                className="mt-5 w-full"
+              />
+            </div>
+          </div>
         ) : story.kind === "image" && story.mediaUrl ? (
           <img src={story.mediaUrl} alt={story.caption ?? "Story"} className="h-full w-full object-contain" />
         ) : (
@@ -191,13 +236,13 @@ function StoryViewer({ stories, onClose }: { stories: Story[]; onClose: () => vo
           type="button"
           aria-label="Previous story"
           onClick={prev}
-          className="absolute inset-y-0 left-0 w-1/3"
+          className="absolute inset-y-0 left-0 w-1/5"
         />
         <button
           type="button"
           aria-label="Next story"
           onClick={next}
-          className="absolute inset-y-0 right-0 w-1/3"
+          className="absolute inset-y-0 right-0 w-1/5"
         />
       </div>
 

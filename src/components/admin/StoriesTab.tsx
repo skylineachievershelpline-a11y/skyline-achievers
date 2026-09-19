@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
+import { VoiceRecorder } from "@/components/media/VoiceRecorder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,13 +25,15 @@ const BACKGROUNDS = [
   "linear-gradient(160deg,#0b1220,#7c3aed)",
 ] as const;
 
-type Kind = "text" | "image" | "video";
+type Kind = "text" | "image" | "video" | "audio";
+
+type Level = { id: string; name: string };
 
 /**
  * Story / status manager: post text, a picture or a video that shows on the
  * Skyline logo ring for a chosen number of hours.
  */
-export function StoriesTab() {
+export function StoriesTab({ levels }: { levels: Level[] }) {
   const queryClient = useQueryClient();
   const loadStories = useServerFn(adminGetStories);
   const save = useServerFn(adminSaveStory);
@@ -48,6 +51,8 @@ export function StoriesTab() {
   const [background, setBackground] = useState<string>(BACKGROUNDS[0]);
   const [file, setFile] = useState<File | null>(null);
   const [hours, setHours] = useState(24);
+  const [audienceType, setAudienceType] = useState<"everyone" | "beginners" | "level">("everyone");
+  const [audienceLevelId, setAudienceLevelId] = useState("");
   const [busy, setBusy] = useState(false);
 
   function refresh() {
@@ -73,6 +78,8 @@ export function StoriesTab() {
           caption: story.caption,
           textBody: story.text_body,
           background: story.background,
+          audienceType: story.audience_type ?? "everyone",
+          audienceLevelId: story.audience_level_id,
           hours: 24,
           isPublished: !story.is_published,
         },
@@ -90,15 +97,19 @@ export function StoriesTab() {
       return;
     }
     if (kind !== "text" && !file) {
-      toast.error("Choose a picture or video first.");
+      toast.error(kind === "audio" ? "Record a voice note first." : "Choose a picture or video first.");
+      return;
+    }
+    if (audienceType === "level" && !audienceLevelId) {
+      toast.error("Choose a rank first.");
       return;
     }
     setBusy(true);
     try {
       let mediaPath: string | null = null;
-      let mediaBucket: "training-videos" | "training-thumbnails" | null = null;
+       let mediaBucket: "training-videos" | "training-thumbnails" | "training-resources" | null = null;
       if (file) {
-        mediaBucket = kind === "video" ? "training-videos" : "training-thumbnails";
+         mediaBucket = kind === "video" ? "training-videos" : kind === "audio" ? "training-resources" : "training-thumbnails";
         const bucket = mediaBucket;
         mediaPath = await startUpload({
           label: `Uploading ${file.name}`,
@@ -118,6 +129,8 @@ export function StoriesTab() {
           background: kind === "text" ? background : null,
           mediaBucket,
           mediaPath,
+          audienceType,
+          audienceLevelId: audienceType === "level" ? audienceLevelId : null,
           hours,
           isPublished: true,
         },
@@ -141,8 +154,8 @@ export function StoriesTab() {
       <section className="glass-panel-strong space-y-4 rounded-3xl p-6">
         <div className="space-y-2">
           <Label>Story type</Label>
-          <div className="flex gap-2">
-            {(["text", "image", "video"] as const).map((option) => (
+           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(["text", "image", "video", "audio"] as const).map((option) => (
               <button
                 key={option}
                 type="button"
@@ -192,6 +205,8 @@ export function StoriesTab() {
               </div>
             </div>
           </>
+        ) : kind === "audio" ? (
+          <VoiceRecorder value={file} onChange={setFile} label="Story voice note" />
         ) : (
           <div className="space-y-2">
             <Label>{kind === "video" ? "Story video" : "Story picture"}</Label>
@@ -203,6 +218,30 @@ export function StoriesTab() {
             />
           </div>
         )}
+
+        <div className="space-y-2">
+          <Label>Who can watch?</Label>
+          <select
+            value={audienceType === "level" ? `level:${audienceLevelId}` : audienceType}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value.startsWith("level:")) {
+                setAudienceType("level");
+                setAudienceLevelId(value.slice(6));
+              } else {
+                setAudienceType(value as "everyone" | "beginners");
+                setAudienceLevelId("");
+              }
+            }}
+            className={fieldClass}
+          >
+            <option value="everyone">Everyone</option>
+            <option value="beginners">Beginners Training</option>
+            {levels.map((level) => (
+              <option key={level.id} value={`level:${level.id}`}>{level.name}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="space-y-2">
           <Label>Caption (optional)</Label>
@@ -258,6 +297,8 @@ export function StoriesTab() {
                     <img src={story.media_url} alt="" className="h-full w-full object-cover" />
                   ) : story.kind === "video" ? (
                     "Video"
+                  ) : story.kind === "audio" ? (
+                    "Voice"
                   ) : (
                     "Text"
                   )}
@@ -267,7 +308,7 @@ export function StoriesTab() {
                     {story.text_body || story.caption || `${story.kind} story`}
                   </p>
                   <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                    {story.live ? "Live" : "Ended"} · posted {formatDateTime(story.created_at)}
+                    {story.live ? "Live" : "Ended"} · {story.audience_type === "beginners" ? "Beginners" : story.audience_type === "level" ? levels.find((level) => level.id === story.audience_level_id)?.name ?? "Rank" : "Everyone"} · posted {formatDateTime(story.created_at)}
                   </p>
                 </div>
                 <button

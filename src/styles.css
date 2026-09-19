@@ -856,3 +856,29 @@
     border-radius: 1rem;
   }
 }
+
+/* ---------- Story ring on the Skyline logo ---------- */
+@utility story-ring {
+  background: conic-gradient(
+    from 0deg,
+    var(--color-cyan, #22d3ee),
+    var(--color-brand, #2563eb),
+    var(--color-metal, #c0c6d4),
+    var(--color-cyan, #22d3ee)
+  );
+  padding: 2px;
+  animation: story-ring-spin 4s linear infinite;
+  box-shadow: 0 0 14px -2px color-mix(in oklab, var(--color-cyan, #22d3ee) 60%, transparent);
+}
+
+@keyframes story-ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-ring {
+    animation: none;
+  }
+}

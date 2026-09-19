@@ -12,6 +12,8 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
+import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/training")({

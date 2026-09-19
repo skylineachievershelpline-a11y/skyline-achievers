@@ -160,9 +160,7 @@ export function MemberShell({
             <Menu className="h-4.5 w-4.5" />
           </button>
 
-          <Link to="/dashboard" className="shrink-0">
-            <BrandLogo size="sm" withWordmark={false} />
-          </Link>
+          <StoryLogo size={34} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">
               {title ?? BRAND.name}

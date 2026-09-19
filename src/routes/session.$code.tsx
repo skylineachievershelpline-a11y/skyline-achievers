@@ -106,6 +106,7 @@ function SessionPage() {
                 videoUrl={session.videoUrl}
                 aspectRatio={session.aspectRatio}
                 poster={session.thumbnailUrl}
+                frameClassName="rounded-3xl border border-hairline"
               />
 
               <section className="glass-panel metal-edge mt-5 rounded-3xl p-6">

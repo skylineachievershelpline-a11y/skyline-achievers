@@ -582,6 +582,7 @@ function BeginnersPage() {
                 videoUrl={focused.videoUrl}
                 aspectRatio={focused.aspectRatio}
                 poster={focused.thumbnailUrl}
+                frameClassName="rounded-3xl border border-hairline"
               />
 
               {focused.description ? (

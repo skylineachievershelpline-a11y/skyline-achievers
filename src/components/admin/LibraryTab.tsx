@@ -839,13 +839,18 @@ function ResourceForm({
           <Textarea value={body} onChange={(e) => setBody(e.target.value)} className="min-h-32 rounded-2xl" />
         </div>
       ) : (
-        <div className="space-y-1.5">
-          <Label>Upload file</Label>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-xs text-muted-foreground"
-          />
+        <div className="space-y-3">
+          {resourceType === "audio" ? (
+            <VoiceRecorder value={file} onChange={setFile} label="Record a voice note" />
+          ) : null}
+          <div className="space-y-1.5">
+            <Label>{resourceType === "audio" ? "Or upload an audio file" : "Upload file"}</Label>
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="text-xs text-muted-foreground"
+            />
+          </div>
         </div>
       )}
       <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>

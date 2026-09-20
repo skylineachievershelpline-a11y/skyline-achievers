@@ -853,7 +853,7 @@ export const adminGetReels = createServerFn({ method: "GET" }).handler(async () 
     admin
       .from("reels")
       .select(
-        "id, title, caption, base_likes, video_source, created_by_admin, created_at, author:created_by (full_name)",
+        "id, title, caption, base_likes, video_source, created_by_admin, is_published, created_at, author:created_by (full_name, member_id)",
       )
       .order("created_at", { ascending: false })
       .limit(100),

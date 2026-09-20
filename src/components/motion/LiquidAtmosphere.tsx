@@ -99,15 +99,15 @@ export function LiquidAtmosphere() {
       const time = reduceMotion ? 0 : stamp / 1000;
       context.clearRect(0, 0, width, height);
       const glow = context.createRadialGradient(width * 0.5, height * 0.48, 0, width * 0.5, height * 0.48, Math.max(width, height) * 0.72);
-      glow.addColorStop(0, "rgba(28, 91, 196, 0.12)");
-      glow.addColorStop(0.58, "rgba(4, 24, 64, 0.05)");
+      glow.addColorStop(0, "rgba(28, 91, 196, 0.2)");
+      glow.addColorStop(0.58, "rgba(4, 24, 64, 0.09)");
       glow.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = glow;
       context.fillRect(0, 0, width, height);
-      drawSilk(time, height * 0.28, Math.min(82, height * 0.1), 0.2, 0.34);
-      drawRibbon(time, height * 0.28, Math.min(82, height * 0.1), 0.45, 0.2, 0.32);
-      drawSilk(time, height * 0.74, Math.min(108, height * 0.13), 2.4, 0.25);
-      drawRibbon(time, height * 0.74, Math.min(108, height * 0.13), -0.32, 2.4, 0.22);
+      drawSilk(time, height * 0.28, Math.min(82, height * 0.1), 0.2, 0.56);
+      drawRibbon(time, height * 0.28, Math.min(82, height * 0.1), 0.45, 0.2, 0.48);
+      drawSilk(time, height * 0.74, Math.min(108, height * 0.13), 2.4, 0.44);
+      drawRibbon(time, height * 0.74, Math.min(108, height * 0.13), -0.32, 2.4, 0.36);
 
       const now = performance.now();
       for (let index = ripples.length - 1; index >= 0; index -= 1) {

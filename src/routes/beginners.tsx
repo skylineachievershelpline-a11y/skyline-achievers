@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -185,8 +186,22 @@ function BeginnersPage() {
   const [focused, setFocused] = useState<FocusedSession | null>(null);
   const [view, setView] = useState<BeginnerView>("home");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [reelsMuted, setReelsMuted] = useState(true);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     let active = true;
@@ -375,24 +390,26 @@ function BeginnersPage() {
         </div>
       </header>
 
-      <div
-        className={cn(
-          "fixed inset-0 z-40 transition-opacity duration-300",
-          menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      >
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
-          className="absolute inset-0 bg-background/70 backdrop-blur-sm"
-        />
-        <aside
-          className={cn(
-            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[84vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-            menuOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
+      {portalReady && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className={cn(
+                "fixed inset-0 z-[200] transition-opacity duration-300",
+                menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
+            >
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+                className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+              />
+              <aside
+                className={cn(
+                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[84vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  menuOpen ? "translate-x-0" : "-translate-x-full",
+                )}
+              >
           <div className="flex items-center justify-between gap-2">
             <BrandLogo size="sm" />
             <Button
@@ -447,8 +464,11 @@ function BeginnersPage() {
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}
           </p>
-        </aside>
-      </div>
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <main className="relative mx-auto max-w-4xl px-4 py-5">
         {/* ---------- profile + tracking ---------- */}

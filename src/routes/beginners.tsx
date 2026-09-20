@@ -358,7 +358,36 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
-  const reels = view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? []);
+  const reels: FeedReel[] = (view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? [])).map(
+    (reel: FeedReel) => ({ ...reel, ...(reelLocal[reel.id] ?? {}) }),
+  );
+
+  async function onReelLike(reel: FeedReel) {
+    const next = !reel.liked;
+    setReelLocal((state) => ({
+      ...state,
+      [reel.id]: { ...state[reel.id], liked: next, likes: Math.max(0, reel.likes + (next ? 1 : -1)) },
+    }));
+    try {
+      await likeReel({ data: { id: reel.id } } as never);
+    } catch {
+      setReelLocal((state) => ({
+        ...state,
+        [reel.id]: { ...state[reel.id], liked: reel.liked, likes: reel.likes },
+      }));
+    }
+  }
+
+  async function onReelSave(reel: FeedReel) {
+    const next = !reel.saved;
+    setReelLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: next } }));
+    try {
+      await saveReel({ data: { id: reel.id } } as never);
+      toast.success(next ? "Saved to your collection" : "Removed from saved");
+    } catch {
+      setReelLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: reel.saved } }));
+    }
+  }
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
   const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
   const searchTokens = tokenize(searchQuery);

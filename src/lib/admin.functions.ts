@@ -67,6 +67,73 @@ export const adminGetMember = createServerFn({ method: "POST" })
     return { detail: await adminMemberDetail(data.id) };
   });
 
+/** Read-only member dashboard data for the authenticated administrator. */
+export const adminGetMemberDashboard = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, AVATAR_BUCKET } = await import("./storage.server");
+
+    const { data: member, error } = await supabaseAdmin
+      .from("member_profiles")
+      .select(
+        "id, member_id, full_name, status, working_enabled, avatar_path, bio, created_at, levels:level_id (id, name, slug, rank_order)",
+      )
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!member) throw new Error("Member not found.");
+
+    const from = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+    const [{ data: reports }, { data: trainees }, { data: watch }] = await Promise.all([
+      supabaseAdmin
+        .from("member_daily_reports")
+        .select("report_date, leads_count, rate_per_lead, is_absent")
+        .eq("member_id", member.id)
+        .gte("report_date", from),
+      supabaseAdmin.from("trainees").select("id, status").eq("upline_id", member.id),
+      supabaseAdmin
+        .from("watch_positions")
+        .select("position_seconds, updated_at, lectures:lecture_id (id, title, duration_seconds)")
+        .eq("member_id", member.id)
+        .order("updated_at", { ascending: false })
+        .limit(8),
+    ]);
+
+    const dailyRows = reports ?? [];
+    const teamRows = trainees ?? [];
+    const leads = dailyRows.reduce((sum, row) => sum + Number(row.leads_count ?? 0), 0);
+    const investment = dailyRows.reduce(
+      (sum, row) => sum + Number(row.leads_count ?? 0) * Number(row.rate_per_lead ?? 0),
+      0,
+    );
+
+    return {
+      member: {
+        id: member.id,
+        memberId: member.member_id,
+        fullName: member.full_name,
+        status: member.status,
+        workingEnabled: (member as any).working_enabled !== false,
+        avatarUrl: await signPath(AVATAR_BUCKET, (member as any).avatar_path, 60 * 60),
+        bio: member.bio ?? null,
+        createdAt: member.created_at,
+        level: (member as any).levels ?? null,
+      },
+      tracking: {
+        leads,
+        investment,
+        activeDays: dailyRows.filter((row) => !row.is_absent && Number(row.leads_count ?? 0) > 0).length,
+        absentDays: dailyRows.filter((row) => row.is_absent).length,
+        team: teamRows.length,
+        activeTeam: teamRows.filter((row) => row.status === "active").length,
+      },
+      recentActivity: (watch ?? []).filter((row) => (row as any).lectures),
+    };
+  });
+
 export const adminAddMember = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {

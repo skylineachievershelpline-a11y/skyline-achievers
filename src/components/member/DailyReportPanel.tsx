@@ -218,20 +218,38 @@ export function DailyReportPanel() {
                 <CheckCircle2 className="h-4 w-4" /> Submitted for today
               </span>
             ) : null}
+            {!data.windowOpen ? (
+              <span className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive">
+                <Lock className="h-3.5 w-3.5" /> Locked until {data.openHourLabel}
+              </span>
+            ) : null}
             <Button
               type="button"
               variant={data.todaySubmitted ? "outline" : "brand"}
               className="rounded-2xl"
+              disabled={!data.windowOpen}
+              title={
+                data.windowOpen
+                  ? undefined
+                  : `The report unlocks at ${data.openHourLabel} Pakistan time.`
+              }
               onClick={() => setFormOpen((open) => !open)}
             >
               {formOpen ? (
                 <>
                   <X className="h-4 w-4" /> Close form
                 </>
+              ) : !data.windowOpen ? (
+                <>
+                  <Lock className="h-4 w-4" /> Report locked
+                </>
+              ) : data.todaySubmitted ? (
+                <>
+                  <PenLine className="h-4 w-4" /> Update today's report
+                </>
               ) : (
                 <>
-                  <PenLine className="h-4 w-4" />
-                  {data.todaySubmitted ? "Update today's report" : "Fill today's report"}
+                  <PenLine className="h-4 w-4" /> Fill today's report
                 </>
               )}
             </Button>

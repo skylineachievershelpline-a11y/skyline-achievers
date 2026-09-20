@@ -72,6 +72,8 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-achiever: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-achiever-display: "Sora", ui-sans-serif, system-ui, sans-serif;
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-glass: var(--glass);
@@ -89,6 +91,14 @@
   --shadow-glass: var(--shadow-glass);
   --shadow-lift: var(--shadow-lift);
   --shadow-brand: var(--shadow-brand);
+}
+
+@utility font-achiever {
+  font-family: var(--font-achiever);
+}
+
+@utility font-achiever-display {
+  font-family: var(--font-achiever-display);
 }
 
 :root {

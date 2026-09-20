@@ -98,3 +98,11 @@
 - [x] Fit vertical reels comfortably within phone screens
 - [x] Format large like and comment counts in compact K/M style
 - [x] Add visible Skyline Achievers branding to every reel
+
+## Chrome Neon member profile and inspiration
+- [ ] Rebuild the dashboard profile in the selected reference layout
+- [ ] Add member bio display and editing
+- [ ] Schedule morning, 1 PM, and 7 PM inspiration with daily or weekly rotation
+- [ ] Support Quran, Hadees, and Quote content with expandable translation
+- [ ] Generate a branded profile-style status picture for gallery and sharing
+- [ ] Verify phone layout and build health

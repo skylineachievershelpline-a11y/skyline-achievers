@@ -126,6 +126,18 @@ function CourseDetailPage() {
       return result;
     },
     onSuccess: async () => {
+      if (data?.status === "ok") {
+        setSlip({
+          courseTitle: data.course.title,
+          buyerName: data.identity.name,
+          buyerId: data.identity.code,
+          method: method.trim(),
+          amount: Number(amount),
+          reference: reference.trim(),
+          phone: (phone || data.identity.phone || "").trim(),
+          submittedAt: new Date(),
+        });
+      }
       toast.success("Payment sent for verification. Access within 24 hours.");
       await queryClient.invalidateQueries({ queryKey: ["course-detail", courseId] });
       await queryClient.invalidateQueries({ queryKey: ["course-catalog"] });

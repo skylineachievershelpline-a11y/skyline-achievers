@@ -285,8 +285,7 @@ function CourseDetailPage() {
               <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm">
                 <p className="font-display font-semibold text-amber-200">Payment under review</p>
                 <p className="mt-1 text-xs text-amber-100/80">
-                  Aapka screenshot mil gaya hai. Verification ke baad 24 ghante ke andar course unlock ho
-                  jayega.
+                  We received your screenshot. The course will unlock within 24 hours after verification.
                 </p>
               </div>
             ) : null}
@@ -306,7 +305,7 @@ function CourseDetailPage() {
               </p>
               {methods.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Admin ne abhi payment account add nahi kiya. Thodi dair baad dobara check karein.
+                  No payment account is available yet. Please check again later.
                 </p>
               ) : (
                 methods.map((item) => (
@@ -423,24 +422,24 @@ function CourseDetailPage() {
                 disabled={send.isPending || progress !== null}
                 onClick={() => {
                   if (!proofPath) {
-                    toast.error("Pehle payment ka screenshot upload karein.");
+                    toast.error("Upload your payment screenshot first.");
                     return;
                   }
                   if (!method.trim()) {
-                    toast.error("Payment method likhein ya select karein.");
+                    toast.error("Enter or select a payment method.");
                     return;
                   }
                   if (!Number(amount)) {
-                    toast.error("Amount likhein jo aapne send ki.");
+                    toast.error("Enter the amount you sent.");
                     return;
                   }
                   if (reference.trim().length < 3) {
-                    toast.error("Transaction ID likhein.");
+                    toast.error("Enter the transaction ID.");
                     return;
                   }
                   const number = (phone || identity.phone || "").trim();
                   if (number.length < 7) {
-                    toast.error("WhatsApp number likhein.");
+                    toast.error("Enter your WhatsApp number.");
                     return;
                   }
                   setPhone(number);
@@ -453,7 +452,7 @@ function CourseDetailPage() {
 
               {settings?.support_contact ? (
                 <p className="text-center text-xs text-muted-foreground">
-                  Help chahiye? {settings.support_contact}
+                  Need help? {settings.support_contact}
                 </p>
               ) : null}
             </div>
@@ -467,7 +466,7 @@ function CourseDetailPage() {
               <div>
                 <h2 className="font-display text-base font-semibold">Access unlocked</h2>
                 <p className="text-xs text-muted-foreground">
-                  {identity.name}, ab poora course aapke liye open hai.
+                  {identity.name}, the complete course is now open for you.
                 </p>
               </div>
             </div>
@@ -515,7 +514,7 @@ function CourseDetailPage() {
           ) : null}
 
           {lessons.length === 0 ? (
-            <EmptyState title="Lessons coming soon" hint="Admin is course ke lessons jald add karega." />
+            <EmptyState title="Lessons coming soon" hint="Course lessons will be added here soon." />
           ) : (
             <div className="space-y-2">
               {lessons.map((lesson, index) => (

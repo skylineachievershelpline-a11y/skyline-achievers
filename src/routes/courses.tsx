@@ -74,8 +74,8 @@ function CoursesPage() {
             <div className="min-w-0">
               <h1 className="font-display text-lg font-semibold">Premium Paid Courses</h1>
               <p className="text-xs text-muted-foreground">
-                Fees send karein, screenshot upload karein — verification ke baad 24 ghante ke andar
-                access mil jata hai.
+                Send the fee and upload your payment screenshot. Access is provided within 24 hours
+                after verification.
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ function CoursesPage() {
         {courses.length === 0 ? (
           <EmptyState
             title="No premium course yet"
-            hint="Jaise hi admin koi paid course publish karega, wo yahan show hoga."
+            hint="Published premium courses will appear here."
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">

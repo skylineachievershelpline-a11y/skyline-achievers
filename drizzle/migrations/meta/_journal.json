@@ -120,6 +120,13 @@
       "when": 1789913584207,
       "tag": "0016_allow_quote_inspirations",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789921473340,
+      "tag": "0017_paid_courses_system",
+      "breakpoints": true
     }
   ]
 }

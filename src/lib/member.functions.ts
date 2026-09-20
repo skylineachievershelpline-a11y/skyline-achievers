@@ -100,8 +100,14 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     const member = await loadMemberContext(context.supabase as never, context.userId);
     if (!member || member.status !== "active") return { videos: [], categories: [] };
 
-    const [{ data: lectures }, { data: access }, { data: categories }, { data: groups }, { data: sectionAccess }] =
-      await Promise.all([
+    const [
+      { data: lectures },
+      { data: access },
+      { data: categories },
+      { data: groups },
+      { data: sectionAccess },
+      { data: groupAccess },
+    ] = await Promise.all([
         supabaseAdmin
           .from("lectures")
           .select(

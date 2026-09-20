@@ -49,6 +49,7 @@ import {
   toggleReelSave,
 } from "@/lib/reels.functions";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
+import { fastSignOut } from "@/lib/sign-out";
 import { formatDate } from "@/lib/format";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
@@ -326,9 +327,8 @@ function BeginnersPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    await navigate({ to: "/" });
+  function signOut() {
+    fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 
   if (!ready || isPending) {
@@ -443,6 +443,18 @@ function BeginnersPage() {
           >
             <Menu className="h-4 w-4" />
           </Button>
+          {focused || view !== "home" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => (focused ? setFocused(null) : selectView("home"))}
+              aria-label="Go back"
+              className="shrink-0 rounded-xl"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          ) : null}
           <StoryLogo size={34} />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>

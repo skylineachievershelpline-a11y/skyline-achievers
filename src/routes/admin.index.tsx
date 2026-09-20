@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, LogOut } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
@@ -40,6 +40,7 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminPage() {
   const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
   const queryClient = useQueryClient();
   const checkStatus = useServerFn(adminStatus);
   const loadStats = useServerFn(adminGetStats);
@@ -103,14 +104,19 @@ function AdminPage() {
           <Button
             variant="outline"
             className="rounded-2xl"
+            disabled={signingOut}
             onClick={async () => {
-              await logout();
-              queryClient.clear();
-              await navigate({ to: "/" });
+              setSigningOut(true);
+              try {
+                await logout();
+              } finally {
+                queryClient.clear();
+                await navigate({ to: "/", replace: true });
+              }
             }}
           >
-            <LogOut className="h-4 w-4" />
-            Sign out
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            {signingOut ? "Signing out…" : "Sign out"}
           </Button>
         </header>
 

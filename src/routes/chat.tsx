@@ -1,9 +1,10 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { ChatWorkspace } from "@/components/chat/ChatWorkspace";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,11 +65,7 @@ function ChatPage() {
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
       <main className="relative mx-auto max-w-5xl px-4 py-5">
         <header className="mb-5 flex items-center gap-3">
-          <Link to="/dashboard" aria-label="Back to dashboard">
-            <Button variant="outline" size="icon" className="rounded-2xl">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <BackButton fallback="/dashboard" className="h-10 w-10 rounded-2xl" />
           <BrandLogo size="sm" withWordmark={false} />
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

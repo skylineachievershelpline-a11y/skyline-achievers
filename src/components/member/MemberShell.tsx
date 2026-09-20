@@ -24,10 +24,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getMemberSession, getNotifications } from "@/lib/member.functions";
+import { fastSignOut } from "@/lib/sign-out";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -151,9 +153,8 @@ export function MemberShell({
     retry: false,
   });
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    await navigate({ to: "/" });
+  function signOut() {
+    fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 
   return (
@@ -171,7 +172,10 @@ export function MemberShell({
             <Menu className="h-4.5 w-4.5" />
           </button>
 
+          {pathname !== "/dashboard" ? <BackButton fallback="/dashboard" /> : null}
+
           <StoryLogo size={34} />
+
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">
               {title ?? BRAND.name}

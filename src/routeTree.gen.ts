@@ -29,6 +29,7 @@ import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
+import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -130,6 +131,11 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
   path: '/session/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMemberMemberIdRoute = AdminMemberMemberIdRouteImport.update({
+  id: '/admin/member/$memberId',
+  path: '/admin/member/$memberId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
+    | '/admin/member/$memberId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin'
+    | '/admin/member/$memberId'
   id:
     | '__root__'
     | '/'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
+    | '/admin/member/$memberId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,6 +300,7 @@ export interface RootRouteChildren {
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -432,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/member/$memberId': {
+      id: '/admin/member/$memberId'
+      path: '/admin/member/$memberId'
+      fullPath: '/admin/member/$memberId'
+      preLoaderRoute: typeof AdminMemberMemberIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -456,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

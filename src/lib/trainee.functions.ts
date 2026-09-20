@@ -224,23 +224,34 @@ export const getTraineeReels = createServerFn({ method: "GET" })
     const likedSet = new Set(((myLikes ?? []) as any[]).map((row) => row.reel_id as string));
     const savedSet = new Set(((mySaves ?? []) as any[]).map((row) => row.reel_id as string));
 
+    const { loadReelAuthors } = await import("./reels.server");
+    const authors = await loadReelAuthors(
+      published.filter((reel) => !reel.created_by_admin).map((reel) => reel.created_by as string),
+    );
+
     const reels = await Promise.all(
-      published.map(async (reel) => ({
-        id: reel.id as string,
-        title: reel.title as string,
-        caption: (reel.caption ?? null) as string | null,
-        createdAt: reel.created_at as string,
-        verified: reel.created_by_admin === true,
-        likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
-        comments: commentCount.get(reel.id) ?? 0,
-        liked: likedSet.has(reel.id),
-        saved: savedSet.has(reel.id),
-        posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
-        url:
-          reel.video_source === "external"
-            ? (reel.video_url as string | null)
-            : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
-      })),
+      published.map(async (reel) => {
+        const author = reel.created_by_admin ? null : authors.get(reel.created_by as string);
+        return {
+          id: reel.id as string,
+          title: reel.title as string,
+          caption: (reel.caption ?? null) as string | null,
+          createdAt: reel.created_at as string,
+          verified: reel.created_by_admin === true,
+          authorName: reel.created_by_admin ? "Skyline Achievers" : (author?.name ?? "Skyline member"),
+          authorAvatarUrl: author?.avatarUrl ?? null,
+          authorRank: author?.rank ?? null,
+          likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
+          comments: commentCount.get(reel.id) ?? 0,
+          liked: likedSet.has(reel.id),
+          saved: savedSet.has(reel.id),
+          posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
+          url:
+            reel.video_source === "external"
+              ? (reel.video_url as string | null)
+              : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
+        };
+      }),
     );
 
     return { reels };

@@ -943,6 +943,23 @@ export const adminUpdateReel = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Approves (publishes) or unpublishes a reel a member uploaded. */
+export const adminSetReelPublished = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; publish: boolean }) =>
+    z.object({ id: uuid, publish: z.boolean() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("reels")
+      .update({ is_published: data.publish, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Comment moderation queue: nothing reaches other members until it is approved. */
 export const adminGetReelComments = createServerFn({ method: "GET" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");

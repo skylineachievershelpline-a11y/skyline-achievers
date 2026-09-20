@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -44,6 +45,7 @@ function DashboardPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
   const [showId, setShowId] = useState(false);
+  const [idCopied, setIdCopied] = useState(false);
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],
@@ -85,7 +87,7 @@ function DashboardPage() {
           </div>
           <div className="min-w-0 flex-1 pt-1">
               <div className="flex items-center gap-3">
-                <h1 className="min-w-0 break-words font-achiever-display text-xl font-bold leading-tight sm:text-2xl">
+                <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
                 {member?.fullName ?? "Member"}
               </h1>
                 <RankPin rank={member?.level?.name} className="h-16 w-16" />
@@ -105,6 +107,24 @@ function DashboardPage() {
                   onClick={() => setShowId((value) => !value)}
                 >
                   {showId ? <EyeOff /> : <Eye />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0 rounded-full"
+                    aria-label="Copy member ID"
+                    onClick={() => {
+                      const memberId = member?.memberId;
+                      if (!memberId) return;
+                      void navigator.clipboard.writeText(memberId).then(() => {
+                        setIdCopied(true);
+                        toast.success("Member ID copied");
+                        window.setTimeout(() => setIdCopied(false), 1800);
+                      }).catch(() => toast.error("Could not copy the Member ID"));
+                    }}
+                  >
+                    {idCopied ? <Check /> : <Copy />}
                   </Button>
                 </div>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>

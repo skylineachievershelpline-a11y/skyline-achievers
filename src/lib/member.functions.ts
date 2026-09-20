@@ -530,6 +530,22 @@ export const saveMemberBio = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Updates only the signed-in member's own display name. */
+export const saveMemberName = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { fullName: string }) =>
+    z.object({ fullName: z.string().trim().min(2).max(80) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("member_profiles")
+      .update({ full_name: data.fullName })
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const, fullName: data.fullName };
+  });
+
 /** Signed upload slot for the signed-in member's dashboard cover. */
 export const getDashboardCoverUploadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

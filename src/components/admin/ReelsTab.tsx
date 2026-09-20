@@ -21,6 +21,7 @@ import {
   adminGetReels,
   adminModerateReelComment,
   adminSaveReel,
+  adminSetReelPublished,
   adminUpdateReel,
 } from "@/lib/admin.functions";
 import { formatDateTime } from "@/lib/format";
@@ -55,6 +56,7 @@ function ReelList() {
   const updateReel = useServerFn(adminUpdateReel);
   const removeReel = useServerFn(adminDeleteReel);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const setPublished = useServerFn(adminSetReelPublished);
   const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery({
@@ -90,6 +92,16 @@ function ReelList() {
     onSuccess: () => {
       toast.success("Reel updated");
       setEditing(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const publish = useMutation({
+    mutationFn: (input: { id: string; publish: boolean }) =>
+      setPublished({ data: input } as never),
+    onSuccess: (_result, input) => {
+      toast.success(input.publish ? "Reel approved and live" : "Reel hidden from members");
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -158,6 +170,67 @@ function ReelList() {
   }
 
   const reels = (data.reels ?? []) as any[];
+  const waiting = reels.filter((reel) => !reel.is_published);
+  const live = reels.filter((reel) => reel.is_published);
+
+  const row = (reel: any) => (
+    <li key={reel.id} className="glass-panel flex flex-wrap items-center gap-3 rounded-2xl p-3">
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold">
+          {reel.title}
+          {reel.created_by_admin ? (
+            <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          ) : null}
+          {!reel.is_published ? (
+            <span className="rounded-full border border-hairline px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+              Waiting for approval
+            </span>
+          ) : null}
+        </p>
+        <p className="text-[11px] text-muted-foreground">
+          {reel.created_by_admin
+            ? "Skyline Achievers"
+            : `${reel.author?.full_name ?? "Member"}${reel.author?.member_id ? ` · ${reel.author.member_id}` : ""}`}{" "}
+          · {formatDateTime(reel.created_at)} · {reel.total_likes} likes ({reel.base_likes ?? 0} set +{" "}
+          {reel.real_likes} real)
+          {reel.pending_comments > 0 ? ` · ${reel.pending_comments} pending` : ""}
+        </p>
+      </div>
+      {reel.is_published ? (
+        <Button
+          variant="outline"
+          className="h-9 min-w-fit rounded-xl px-3 text-xs"
+          disabled={publish.isPending}
+          onClick={() => publish.mutate({ id: reel.id, publish: false })}
+        >
+          <X className="h-3.5 w-3.5" /> Unpublish
+        </Button>
+      ) : (
+        <Button
+          variant="brand"
+          className="h-9 min-w-fit rounded-xl px-3 text-xs"
+          disabled={publish.isPending}
+          onClick={() => publish.mutate({ id: reel.id, publish: true })}
+        >
+          <Check className="h-3.5 w-3.5" /> Approve
+        </Button>
+      )}
+      <Button
+        variant="outline"
+        className="h-9 min-w-fit rounded-xl px-3 text-xs"
+        onClick={() => setEditing(reel)}
+      >
+        Edit
+      </Button>
+      <button
+        onClick={() => del.mutate(reel.id)}
+        className="text-muted-foreground transition-colors hover:text-destructive"
+        aria-label="Delete reel"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </li>
+  );
 
   return (
     <div className="space-y-4">
@@ -165,46 +238,31 @@ function ReelList() {
         <Plus className="h-4 w-4" /> New reel
       </Button>
 
-      {reels.length === 0 ? (
-        <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
-          No reels posted yet.
+      <section className="space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+          Waiting for approval ({waiting.length})
         </p>
-      ) : (
-        <ul className="space-y-2">
-          {reels.map((reel) => (
-            <li key={reel.id} className="glass-panel flex items-center gap-3 rounded-2xl p-3">
-              <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 truncate text-sm font-semibold">
-                  {reel.title}
-                  {reel.created_by_admin ? (
-                    <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                  ) : null}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {reel.created_by_admin ? "Skyline Achievers" : (reel.author?.full_name ?? "Member")}{" "}
-                  · {formatDateTime(reel.created_at)} · {reel.total_likes} likes (
-                  {reel.base_likes ?? 0} set + {reel.real_likes} real)
-                  {reel.pending_comments > 0 ? ` · ${reel.pending_comments} pending` : ""}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="h-9 rounded-xl px-3 text-xs"
-                onClick={() => setEditing(reel)}
-              >
-                Edit
-              </Button>
-              <button
-                onClick={() => del.mutate(reel.id)}
-                className="text-muted-foreground transition-colors hover:text-destructive"
-                aria-label="Delete reel"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        {waiting.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            Nothing waiting. Member reels appear here first and only go live after you approve them.
+          </p>
+        ) : (
+          <ul className="space-y-2">{waiting.map(row)}</ul>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          Live reels ({live.length})
+        </p>
+        {live.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            No reels posted yet.
+          </p>
+        ) : (
+          <ul className="space-y-2">{live.map(row)}</ul>
+        )}
+      </section>
 
       <Dialog open={Boolean(editing)} onOpenChange={(next) => !next && setEditing(null)}>
         <DialogContent className="rounded-3xl">

@@ -853,7 +853,7 @@ export const adminGetReels = createServerFn({ method: "GET" }).handler(async () 
     admin
       .from("reels")
       .select(
-        "id, title, caption, base_likes, video_source, created_by_admin, created_at, author:created_by (full_name)",
+        "id, title, caption, base_likes, video_source, created_by_admin, is_published, created_at, author:created_by (full_name, member_id)",
       )
       .order("created_at", { ascending: false })
       .limit(100),
@@ -938,6 +938,23 @@ export const adminUpdateReel = createServerFn({ method: "POST" })
         base_likes: data.baseLikes,
         updated_at: new Date().toISOString(),
       })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** Approves (publishes) or unpublishes a reel a member uploaded. */
+export const adminSetReelPublished = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; publish: boolean }) =>
+    z.object({ id: uuid, publish: z.boolean() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("reels")
+      .update({ is_published: data.publish, updated_at: new Date().toISOString() })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };

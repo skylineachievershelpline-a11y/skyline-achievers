@@ -25,8 +25,6 @@ import {
   ShieldCheck,
   Unlock,
   Camera,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
 
@@ -37,6 +35,7 @@ import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { SessionGate } from "@/components/media/SessionGate";
+import { ReelAuthor } from "@/components/media/ReelAuthor";
 import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
@@ -116,6 +115,10 @@ type FeedReel = {
   comments: number;
   liked: boolean;
   saved: boolean;
+  verified?: boolean;
+  authorName?: string;
+  authorAvatarUrl?: string | null;
+  authorRank?: string | null;
 };
 
 function compactCount(value: number): string {
@@ -224,7 +227,6 @@ function BeginnersPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [reelsMuted, setReelsMuted] = useState(true);
   const [commentsFor, setCommentsFor] = useState<FeedReel | null>(null);
   const [reelLocal, setReelLocal] = useState<Record<string, Partial<FeedReel>>>({});
 
@@ -854,19 +856,10 @@ function BeginnersPage() {
                 {reels.map((reel) => (
                   <article key={reel.id} className="metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
-                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} className="h-full w-full bg-media object-contain" />
+                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} className="h-full w-full bg-media object-contain" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setReelsMuted((value) => !value)}
-                      aria-label={reelsMuted ? "Turn sound on" : "Turn sound off"}
-                      className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-3 py-1.5 text-[11px] text-foreground backdrop-blur transition-all duration-300 hover:bg-background/90 active:scale-95"
-                    >
-                      {reelsMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                      {reelsMuted ? "Sound off" : "Sound on"}
-                    </button>
                     <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center bg-gradient-to-b from-background/90 via-background/45 to-transparent px-16 pb-10 pt-3">
                       <div className="flex max-w-full items-center gap-2 rounded-full border border-cyan/30 bg-background/75 px-3 py-1.5 shadow-brand backdrop-blur-md">
                         <img src={BRAND.logoUrl} alt="" className="h-6 w-6 shrink-0 object-contain" />
@@ -923,7 +916,7 @@ function BeginnersPage() {
                       </button>
                     </div>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
+                      <ReelAuthor reel={reel} />
                       <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>
                       {reel.caption ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{reel.caption}</p> : null}
                     </div>

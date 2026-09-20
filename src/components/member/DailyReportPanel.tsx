@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -74,6 +74,24 @@ export function DailyReportPanel() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [seededFor, setSeededFor] = useState<string | null>(null);
+
+  // A report already sent today can still be corrected until midnight, so the
+  // form reopens with exactly the numbers that were submitted.
+  const todayRow = data?.today;
+  useEffect(() => {
+    if (!todayRow || seededFor === todayRow.date) return;
+    setSeededFor(todayRow.date);
+    if (!todayRow.submitted) return;
+    setValues({
+      leads: String(todayRow.leads ?? 0),
+      responses: String(todayRow.responses ?? 0),
+      enrollments: String(todayRow.enrollments ?? 0),
+      pending: String(todayRow.pending ?? 0),
+      twoCc: String(todayRow.twoCc ?? 0),
+      mentorshipPaid: String(todayRow.mentorshipPaid ?? 0),
+    });
+  }, [todayRow, seededFor]);
 
   // If the 8 PM window closes while the form is open, collapse it again.
   const formVisible = formOpen && data?.windowOpen !== false;

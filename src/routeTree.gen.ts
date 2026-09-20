@@ -21,7 +21,6 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SeatsRouteImport } from './routes/seats'
 import { Route as SessionsRouteImport } from './routes/sessions'
-import { Route as StatusSaverRouteImport } from './routes/status-saver'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -91,11 +90,6 @@ const SessionsRoute = SessionsRouteImport.update({
   path: '/sessions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StatusSaverRoute = StatusSaverRouteImport.update({
-  id: '/status-saver',
-  path: '/status-saver',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -150,7 +144,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
-  '/status-saver': typeof StatusSaverRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -173,7 +166,6 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
-  '/status-saver': typeof StatusSaverRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -197,7 +189,6 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
-  '/status-saver': typeof StatusSaverRoute
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
@@ -222,7 +213,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/seats'
     | '/sessions'
-    | '/status-saver'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -245,7 +235,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/seats'
     | '/sessions'
-    | '/status-saver'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -268,7 +257,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/seats'
     | '/sessions'
-    | '/status-saver'
     | '/team'
     | '/training'
     | '/admin/login'
@@ -292,7 +280,6 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SeatsRoute: typeof SeatsRoute
   SessionsRoute: typeof SessionsRoute
-  StatusSaverRoute: typeof StatusSaverRoute
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -389,13 +376,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/status-saver': {
-      id: '/status-saver'
-      path: '/status-saver'
-      fullPath: '/status-saver'
-      preLoaderRoute: typeof StatusSaverRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/team': {
       id: '/team'
       path: '/team'
@@ -468,7 +448,6 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SeatsRoute: SeatsRoute,
   SessionsRoute: SessionsRoute,
-  StatusSaverRoute: StatusSaverRoute,
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,

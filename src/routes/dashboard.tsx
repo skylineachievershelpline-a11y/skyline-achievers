@@ -88,7 +88,7 @@ function DashboardPage() {
               <h1 className="min-w-0 truncate font-achiever-display text-xl font-bold sm:text-2xl">
                 {member?.fullName ?? "Member"}
               </h1>
-              <RankPin rank={member?.level?.name} className="h-9 w-9" />
+              <RankPin rank={member?.level?.name} className="h-12 w-12" />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-5 sm:max-w-sm">
               <div className="min-w-0">
@@ -154,7 +154,7 @@ function DashboardPage() {
             </div>
             <div className="mt-5 flex max-w-full items-center justify-center gap-2">
               <h2 className="truncate font-achiever-display text-xl font-extrabold sm:text-2xl">{member?.fullName ?? "Member"}</h2>
-              <RankPin rank={member?.level?.name} className="h-10 w-10" />
+              <RankPin rank={member?.level?.name} className="h-16 w-16" />
             </div>
             <p className="mt-1 font-achiever-display text-sm font-bold text-cyan">{member?.memberId ?? "—"}</p>
           </div>

@@ -225,7 +225,7 @@ export function LibraryTab() {
     }
   }
 
-  const groups: { id: string | null; name: string; hint: string }[] = [
+  const videoGroups: { id: string | null; name: string; hint: string }[] = [
     ...categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -233,6 +233,17 @@ export function LibraryTab() {
     })),
     { id: null, name: "Not in any section", hint: "Pick a section so members can find these" },
   ];
+
+  function blankCategory(): CategoryValues {
+    return {
+      name: "",
+      description: "",
+      sortOrder: categories.length + 1,
+      isPublished: true,
+      groupId: categoryGroups[0]?.id ?? "",
+      levelIds: levels.map((l) => l.id),
+    };
+  }
 
   return (
     <div className="space-y-7">
@@ -244,20 +255,82 @@ export function LibraryTab() {
           variant="secondary"
           size="xl"
           onClick={() =>
-            setCategoryDialog({
+            setGroupDialog({
               name: "",
               description: "",
-              sortOrder: categories.length + 1,
+              sortOrder: categoryGroups.length + 1,
               isPublished: true,
             })
           }
         >
+          <Plus className="h-4 w-4" /> New category
+        </Button>
+        <Button variant="secondary" size="xl" onClick={() => setCategoryDialog(blankCategory())}>
           <Plus className="h-4 w-4" /> New training section
         </Button>
         <Button variant="secondary" size="xl" onClick={() => setResourceDialog(true)}>
           <Plus className="h-4 w-4" /> New resource
         </Button>
       </div>
+
+      <section className="raised-panel metal-edge rounded-3xl p-4">
+        <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+          Categories
+        </h3>
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Big buckets for your sections — for example Sales, Mindset, Personal Mentorship.
+        </p>
+        {categoryGroups.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            No category yet — create one, then place sections inside it.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {categoryGroups.map((group) => {
+              const count = categories.filter((c) => c.group_id === group.id).length;
+              return (
+                <li
+                  key={group.id}
+                  className="glass-panel flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{group.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {count} section{count === 1 ? "" : "s"} ·{" "}
+                      {group.is_published ? "Visible" : "Hidden"} · Order {group.sort_order}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setGroupDialog({
+                        id: group.id,
+                        name: group.name,
+                        description: group.description ?? "",
+                        sortOrder: group.sort_order,
+                        isPublished: group.is_published,
+                      })
+                    }
+                    className="text-muted-foreground transition-colors hover:text-brand-glow"
+                    aria-label="Edit category"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!window.confirm(`Delete category “${group.name}”?`)) return;
+                      delGroup.mutate(group.id);
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Delete category"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <section className="raised-panel metal-edge rounded-3xl p-4">
         <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
@@ -276,6 +349,8 @@ export function LibraryTab() {
               const count = (data.lectures as any[]).filter(
                 (l) => l.category_id === category.id,
               ).length;
+              const allowedLevels = sectionAccess[category.id] ?? [];
+              const groupName = categoryGroups.find((g) => g.id === category.group_id)?.name;
               return (
                 <li
                   key={category.id}
@@ -284,8 +359,18 @@ export function LibraryTab() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{category.name}</p>
                     <p className="text-[11px] text-muted-foreground">
+                      {groupName ? `${groupName} · ` : "No category · "}
                       {count} video{count === 1 ? "" : "s"} ·{" "}
                       {category.is_published ? "Visible" : "Hidden"} · Order {category.sort_order}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Open to:{" "}
+                      {allowedLevels.length === 0
+                        ? "everyone"
+                        : levels
+                            .filter((l) => allowedLevels.includes(l.id))
+                            .map((l) => l.name)
+                            .join(", ")}
                     </p>
                   </div>
                   <button
@@ -296,6 +381,8 @@ export function LibraryTab() {
                         description: category.description ?? "",
                         sortOrder: category.sort_order,
                         isPublished: category.is_published,
+                        groupId: category.group_id ?? "",
+                        levelIds: allowedLevels.length > 0 ? allowedLevels : levels.map((l) => l.id),
                       })
                     }
                     className="text-muted-foreground transition-colors hover:text-brand-glow"
@@ -320,7 +407,7 @@ export function LibraryTab() {
         )}
       </section>
 
-      {groups.map((group) => {
+      {videoGroups.map((group) => {
         const videos = (data.lectures as any[]).filter((l) =>
           group.id === null ? !l.category_id : l.category_id === group.id,
         );

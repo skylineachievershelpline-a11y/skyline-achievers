@@ -1,7 +1,8 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, Copy, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Ban, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -187,13 +188,13 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         </p>
       ) : (
         <div>
-          <div className="hidden grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_190px] items-center gap-3 border-b border-border bg-surface/70 px-5 py-2.5 text-[10px] font-bold uppercase text-muted-foreground lg:grid">
+          <div className="hidden grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_290px] items-center gap-3 border-b border-border bg-surface/70 px-5 py-2.5 text-[10px] font-bold uppercase text-muted-foreground lg:grid">
             <input type="checkbox" aria-label="Select all shown members" checked={allSelected} onChange={() => setSelectedIds(allSelected ? selectedIds.filter((id) => !members.some((member: any) => member.id === id)) : Array.from(new Set([...selectedIds, ...members.map((member: any) => member.id)])))} className="h-4 w-4 accent-primary" />
             <span>Member</span><span>Rank</span><span>Status</span><span>Access</span><span className="text-right">Actions</span>
           </div>
           {members.map((member: any) => (
             <article key={member.id} className={`border-b border-border px-4 py-3 transition-colors last:border-b-0 sm:px-5 ${selectedIds.includes(member.id) ? "bg-primary/15" : "hover:bg-primary/5"}`}>
-              <div className="grid gap-3 lg:grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_190px] lg:items-center">
+              <div className="grid gap-3 lg:grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_290px] lg:items-center">
                 <input type="checkbox" aria-label={`Select ${member.full_name}`} checked={selectedIds.includes(member.id)} onChange={() => toggleSelected(member.id)} className="absolute h-4 w-4 accent-primary lg:static" />
                 <div className="ml-7 flex min-w-0 items-center gap-3 lg:ml-0"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">{member.full_name.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{member.full_name}</p><p className="truncate text-[10px] text-muted-foreground">{member.member_id} · {member.phone ?? "No phone"}</p><p className="text-[10px] text-muted-foreground">Joined {formatDate(member.created_at)} · {formatDateTime(member.last_login_at)}</p></div></div>
                   <select
@@ -232,7 +233,14 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     <option value="training">Training only</option>
                     <option value="working">Training + working</option>
                   </select>
-                  <div className="flex items-center gap-1.5 lg:justify-end"><Button
+                  <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
+                  <Button asChild variant="brand" size="sm" className="h-8 rounded-lg px-2 text-[11px]">
+                    <Link to="/admin/member/$memberId" params={{ memberId: member.id }}>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Open Dashboard
+                    </Link>
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="sm"
                     className="h-8 rounded-lg px-2 text-[11px]"

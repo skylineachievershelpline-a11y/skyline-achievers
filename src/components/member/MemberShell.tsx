@@ -205,11 +205,11 @@ export function MemberShell({
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setMenuOpen(false)}
-                className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-background/70 backdrop-blur-sm"
               />
               <aside
                 className={cn(
-                  "metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl border-r border-cyan/25 bg-sidebar p-5 shadow-lift transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                   menuOpen ? "translate-x-0" : "-translate-x-full",
                 )}
               >

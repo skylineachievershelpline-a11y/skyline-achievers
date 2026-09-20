@@ -117,7 +117,7 @@
 - [ ] Verify the signed-in phone layout (blocked until a member account is signed into the preview)
 
 ## Supplied rank pin correction
-- [ ] Replace generated pins with twelve individual pins from the supplied PNG
-- [ ] Increase pin visibility beside member names
-- [ ] Remove Status Saver completely
+- [x] Replace generated pins with twelve individual pins from the supplied PNG
+- [x] Increase pin visibility beside member names
+- [x] Remove Status Saver completely
 - [x] Keep bio editing with profile and password settings

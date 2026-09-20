@@ -1,30 +1,30 @@
-import assistantSupervisor from "@/assets/rank-pins/assistant-supervisor.png";
-import supervisor from "@/assets/rank-pins/supervisor.png";
-import assistantManager from "@/assets/rank-pins/assistant-manager.png";
-import manager from "@/assets/rank-pins/manager.png";
-import seniorManager from "@/assets/rank-pins/senior-manager.png";
-import soaringManager from "@/assets/rank-pins/soaring-manager.png";
-import sapphireManager from "@/assets/rank-pins/sapphire-manager.png";
-import diamondSapphireManager from "@/assets/rank-pins/diamond-sapphire-manager.png";
-import diamondManager from "@/assets/rank-pins/diamond-manager.png";
-import doubleDiamondManager from "@/assets/rank-pins/double-diamond-manager.png";
-import tripleDiamondManager from "@/assets/rank-pins/triple-diamond-manager.png";
-import centurionManager from "@/assets/rank-pins/centurion-manager.png";
+import assistantSupervisorAsset from "@/assets/rank-pins-new/assistant-supervisor.png.asset.json";
+import supervisorAsset from "@/assets/rank-pins-new/supervisor.png.asset.json";
+import assistantManagerAsset from "@/assets/rank-pins-new/assistant-manager.png.asset.json";
+import managerAsset from "@/assets/rank-pins-new/manager.png.asset.json";
+import seniorManagerAsset from "@/assets/rank-pins-new/senior-manager.png.asset.json";
+import soaringManagerAsset from "@/assets/rank-pins-new/soaring-manager.png.asset.json";
+import sapphireManagerAsset from "@/assets/rank-pins-new/sapphire-manager.png.asset.json";
+import diamondSapphireManagerAsset from "@/assets/rank-pins-new/diamond-sapphire-manager.png.asset.json";
+import diamondManagerAsset from "@/assets/rank-pins-new/diamond-manager.png.asset.json";
+import doubleDiamondManagerAsset from "@/assets/rank-pins-new/double-diamond-manager.png.asset.json";
+import tripleDiamondManagerAsset from "@/assets/rank-pins-new/triple-diamond-manager.png.asset.json";
+import centurionManagerAsset from "@/assets/rank-pins-new/centurion-manager.png.asset.json";
 import { cn } from "@/lib/utils";
 
 const PINS: Record<string, string> = {
-  "assistant-supervisor": assistantSupervisor,
-  supervisor,
-  "assistant-manager": assistantManager,
-  manager,
-  "senior-manager": seniorManager,
-  "soaring-manager": soaringManager,
-  "sapphire-manager": sapphireManager,
-  "diamond-sapphire-manager": diamondSapphireManager,
-  "diamond-manager": diamondManager,
-  "double-diamond-manager": doubleDiamondManager,
-  "triple-diamond-manager": tripleDiamondManager,
-  "centurion-manager": centurionManager,
+  "assistant-supervisor": assistantSupervisorAsset.url,
+  supervisor: supervisorAsset.url,
+  "assistant-manager": assistantManagerAsset.url,
+  manager: managerAsset.url,
+  "senior-manager": seniorManagerAsset.url,
+  "soaring-manager": soaringManagerAsset.url,
+  "sapphire-manager": sapphireManagerAsset.url,
+  "diamond-sapphire-manager": diamondSapphireManagerAsset.url,
+  "diamond-manager": diamondManagerAsset.url,
+  "double-diamond-manager": doubleDiamondManagerAsset.url,
+  "triple-diamond-manager": tripleDiamondManagerAsset.url,
+  "centurion-manager": centurionManagerAsset.url,
 };
 
 function normalizeRank(value: string) {
@@ -45,7 +45,7 @@ export function RankPin({ rank, className }: { rank?: string | null | undefined;
     <img
       src={source}
       alt={`${rank.replace(/\s+Training$/i, "")} pin`}
-      className={cn("h-8 w-8 shrink-0 object-contain drop-shadow-[0_5px_8px_color-mix(in_oklab,var(--cyan)_22%,transparent)]", className)}
+      className={cn("h-12 w-12 shrink-0 object-contain drop-shadow-[0_5px_8px_color-mix(in_oklab,var(--cyan)_22%,transparent)]", className)}
     />
   );
 }

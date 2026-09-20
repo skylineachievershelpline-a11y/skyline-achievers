@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { SessionGate } from "@/components/media/SessionGate";
+import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

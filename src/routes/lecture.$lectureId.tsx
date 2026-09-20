@@ -42,6 +42,28 @@ function LecturePage() {
   const resumed = useRef(false);
   const lastSaved = useRef(0);
 
+  // Leaving the video on screen (or the tab) stops playback instead of letting
+  // audio keep running in the background.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry && entry.intersectionRatio < 0.3 && !video.paused) video.pause();
+      },
+      { threshold: [0, 0.3, 0.8] },
+    );
+    observer.observe(video);
+    const onHidden = () => {
+      if (document.visibilityState === "hidden" && !video.paused) video.pause();
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", onHidden);
+    };
+  }, [data]);
+
   // Resume from the stored position once the media is ready.
   useEffect(() => {
     const video = videoRef.current;

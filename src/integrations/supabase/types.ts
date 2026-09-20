@@ -240,6 +240,137 @@ export type Database = {
           },
         ]
       }
+      course_enrollments: {
+        Row: {
+          admin_note: string | null
+          amount_pkr: number | null
+          buyer_code: string | null
+          buyer_id: string
+          buyer_kind: string
+          buyer_name: string
+          course_id: string
+          created_at: string
+          id: string
+          method_label: string | null
+          note: string | null
+          phone: string | null
+          proof_path: string | null
+          reference: string | null
+          reviewed_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_pkr?: number | null
+          buyer_code?: string | null
+          buyer_id: string
+          buyer_kind?: string
+          buyer_name: string
+          course_id: string
+          created_at?: string
+          id?: string
+          method_label?: string | null
+          note?: string | null
+          phone?: string | null
+          proof_path?: string | null
+          reference?: string | null
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_pkr?: number | null
+          buyer_code?: string | null
+          buyer_id?: string
+          buyer_kind?: string
+          buyer_name?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          method_label?: string | null
+          note?: string | null
+          phone?: string | null
+          proof_path?: string | null
+          reference?: string | null
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "paid_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_payment_methods: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          created_at: string
+          id: string
+          instructions: string | null
+          is_active: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      course_payment_settings: {
+        Row: {
+          id: string
+          intro: string | null
+          steps: string | null
+          support_contact: string | null
+          turnaround_note: string | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          intro?: string | null
+          steps?: string | null
+          support_contact?: string | null
+          turnaround_note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          intro?: string | null
+          steps?: string | null
+          support_contact?: string | null
+          turnaround_note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_inspirations: {
         Row: {
           created_at: string
@@ -1037,6 +1168,116 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      paid_course_lessons: {
+        Row: {
+          aspect_ratio: string
+          course_id: string
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          is_preview: boolean
+          is_published: boolean
+          sort_order: number
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          video_path: string | null
+          video_source: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          course_id: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_preview?: boolean
+          is_published?: boolean
+          sort_order?: number
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_preview?: boolean
+          is_published?: boolean
+          sort_order?: number
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+          video_source?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paid_course_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "paid_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paid_courses: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_label: string | null
+          highlights: string[]
+          id: string
+          is_published: boolean
+          old_price_pkr: number | null
+          price_pkr: number
+          sort_order: number
+          tagline: string | null
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          highlights?: string[]
+          id?: string
+          is_published?: boolean
+          old_price_pkr?: number | null
+          price_pkr?: number
+          sort_order?: number
+          tagline?: string | null
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_label?: string | null
+          highlights?: string[]
+          id?: string
+          is_published?: boolean
+          old_price_pkr?: number | null
+          price_pkr?: number
+          sort_order?: number
+          tagline?: string | null
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       platform_settings: {
         Row: {

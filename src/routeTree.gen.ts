@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -25,6 +26,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
@@ -44,6 +46,11 @@ const BeginnersRoute = BeginnersRouteImport.update({
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesRoute = CoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -111,6 +118,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CourseCourseIdRoute = CourseCourseIdRouteImport.update({
+  id: '/course/$courseId',
+  path: '/course/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
@@ -141,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
+  '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
@@ -153,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
@@ -164,6 +178,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
+  '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
@@ -176,6 +191,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
@@ -188,6 +204,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
+  '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/notifications': typeof NotificationsRoute
@@ -200,6 +217,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
@@ -213,6 +231,7 @@ export interface FileRouteTypes {
     | '/'
     | '/beginners'
     | '/chat'
+    | '/courses'
     | '/dashboard'
     | '/enrollment-video'
     | '/notifications'
@@ -225,6 +244,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
@@ -236,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/beginners'
     | '/chat'
+    | '/courses'
     | '/dashboard'
     | '/enrollment-video'
     | '/notifications'
@@ -248,6 +269,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
@@ -259,6 +281,7 @@ export interface FileRouteTypes {
     | '/'
     | '/beginners'
     | '/chat'
+    | '/courses'
     | '/dashboard'
     | '/enrollment-video'
     | '/notifications'
@@ -271,6 +294,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
@@ -283,6 +307,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BeginnersRoute: typeof BeginnersRoute
   ChatRoute: typeof ChatRoute
+  CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   EnrollmentVideoRoute: typeof EnrollmentVideoRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -295,6 +320,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  CourseCourseIdRoute: typeof CourseCourseIdRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
@@ -324,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses': {
+      id: '/courses'
+      path: '/courses'
+      fullPath: '/courses'
+      preLoaderRoute: typeof CoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -417,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/course/$courseId': {
+      id: '/course/$courseId'
+      path: '/course/$courseId'
+      fullPath: '/course/$courseId'
+      preLoaderRoute: typeof CourseCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/$token': {
       id: '/join/$token'
       path: '/join/$token'
@@ -459,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BeginnersRoute: BeginnersRoute,
   ChatRoute: ChatRoute,
+  CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   EnrollmentVideoRoute: EnrollmentVideoRoute,
   NotificationsRoute: NotificationsRoute,
@@ -471,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,
+  CourseCourseIdRoute: CourseCourseIdRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,

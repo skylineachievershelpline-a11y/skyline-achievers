@@ -145,3 +145,9 @@
 - [x] Remove square grid patterns and add continuous blue liquid waves
 - [x] Add touch and pointer water ripples with reduced-motion support
 - [x] Verify phone and desktop interactions after the preview refreshes
+
+## Premium paid courses
+- [x] Courses + lessons + payment accounts + instructions tables
+- [x] Member catalog (/courses) and detail page with payment proof upload
+- [x] Admin Paid Courses tab: courses, lessons, accounts, instructions, request approval, direct unlock
+- [x] Premium Courses link in member and Beginners sidebars

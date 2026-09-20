@@ -14,6 +14,7 @@ import { ReportsTab } from "@/components/admin/ReportsTab";
 import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
 import { StoriesTab } from "@/components/admin/StoriesTab";
+import { CoursesTab } from "@/components/admin/CoursesTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -161,6 +162,9 @@ function AdminPage() {
             <TabsTrigger value="stories" className="rounded-xl">
               Stories
             </TabsTrigger>
+            <TabsTrigger value="courses" className="rounded-xl">
+              Paid Courses
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">
@@ -192,6 +196,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="stories" className="mt-5">
             <StoriesTab levels={levels as any} />
+          </TabsContent>
+          <TabsContent value="courses" className="mt-5">
+            <CoursesTab />
           </TabsContent>
         </Tabs>
       </div>

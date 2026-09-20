@@ -2,8 +2,21 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Plus, Trash2, Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  BadgeCheck,
+  Bookmark,
+  Clock,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Send,
+  Trash2,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
@@ -19,7 +32,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createReel, deleteReel, getReelUploadUrl, getReels } from "@/lib/reels.functions";
+import { BRAND } from "@/lib/brand";
+import {
+  addReelComment,
+  createReel,
+  deleteReel,
+  getReelComments,
+  getReelUploadUrl,
+  getReels,
+  markReelSeen,
+  toggleReelLike,
+  toggleReelSave,
+} from "@/lib/reels.functions";
 import { putWithProgress } from "@/lib/upload-progress";
 
 export const Route = createFileRoute("/reels")({
@@ -40,19 +64,42 @@ export const Route = createFileRoute("/reels")({
   component: ReelsPage,
 });
 
+type Reel = {
+  id: string;
+  title: string;
+  caption: string | null;
+  url: string | null;
+  posterUrl: string | null;
+  authorName: string;
+  verified: boolean;
+  likes: number;
+  comments: number;
+  liked: boolean;
+  saved: boolean;
+  isMine: boolean;
+};
+
 function ReelsPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getReels);
   const remove = useServerFn(deleteReel);
+  const seen = useServerFn(markReelSeen);
+  const like = useServerFn(toggleReelLike);
+  const save = useServerFn(toggleReelSave);
   const [muted, setMuted] = useState(true);
   const [composer, setComposer] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [commentsFor, setCommentsFor] = useState<Reel | null>(null);
+  const [local, setLocal] = useState<Record<string, Partial<Reel>>>({});
+  const marked = useRef<Set<string>>(new Set());
 
   const { data, isPending } = useQuery({
     queryKey: ["reels"],
     queryFn: () => load(),
     enabled: ready,
+    staleTime: 0,
   });
 
   const del = useMutation({
@@ -63,6 +110,45 @@ function ReelsPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const reels = useMemo(
+    () => ((data?.reels ?? []) as Reel[]).map((r) => ({ ...r, ...(local[r.id] ?? {}) })),
+    [data, local],
+  );
+
+  function onActive(id: string) {
+    setActiveId(id);
+    if (marked.current.has(id)) return;
+    marked.current.add(id);
+    void seen({ data: { id } }).catch(() => undefined);
+  }
+
+  async function onLike(reel: Reel) {
+    const next = !reel.liked;
+    setLocal((state) => ({
+      ...state,
+      [reel.id]: { ...state[reel.id], liked: next, likes: reel.likes + (next ? 1 : -1) },
+    }));
+    try {
+      await like({ data: { id: reel.id } });
+    } catch {
+      setLocal((state) => ({
+        ...state,
+        [reel.id]: { ...state[reel.id], liked: reel.liked, likes: reel.likes },
+      }));
+    }
+  }
+
+  async function onSave(reel: Reel) {
+    const next = !reel.saved;
+    setLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: next } }));
+    try {
+      await save({ data: { id: reel.id } });
+      toast.success(next ? "Saved to your collection" : "Removed from saved");
+    } catch {
+      setLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: reel.saved } }));
+    }
+  }
 
   if (trainingOnly) {
     return (
@@ -80,29 +166,74 @@ function ReelsPage() {
     );
   }
 
-  const reels = data?.reels ?? [];
+  const watched = data?.watchedToday ?? 0;
+  const limit = data?.dailyLimit ?? 15;
 
   return (
     <MemberShell title="Reels" subtitle="Short clips from the Skyline team">
-      {data?.isManager ? (
+      <div className="glass-panel metal-edge mb-4 rounded-2xl p-3.5">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
+            <Clock className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold">
+              Our motive is to inform you — not to waste your time.
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              That is why reels are limited to {limit} per day, and you get a different set every
+              time you come back. Watched today: {Math.min(watched, limit)} / {limit}.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-cyan transition-all duration-500"
+            style={{ width: `${Math.min(100, (watched / limit) * 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {data?.canPost ? (
         <div className="mb-4 flex items-center justify-end">
           <Button variant="brand" className="rounded-2xl" onClick={() => setComposer(true)}>
-            <Plus className="h-4 w-4" /> New reel
+            <Plus className="h-4 w-4" /> Upload reel
           </Button>
         </div>
       ) : null}
 
-      {reels.length === 0 ? (
-        <EmptyState title="No reels yet" hint="Short clips will appear here as soon as they are posted." />
+      {data?.limitReached ? (
+        <div className="glass-panel-strong metal-edge mx-auto max-w-md rounded-3xl p-6 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
+            <Clock className="h-6 w-6" />
+          </span>
+          <h3 className="mt-3 font-display text-lg font-semibold">
+            That&apos;s your {limit} reels for today
+          </h3>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            Aaj ke liye bas. Hamara maqsad aapko information dena hai, aapka waqt zaya karna nahi.
+            Kal phir naye reels aapka intezaar kar rahe honge.
+          </p>
+        </div>
+      ) : reels.length === 0 ? (
+        <EmptyState
+          title="No reels yet"
+          hint="Short clips will appear here as soon as they are posted."
+        />
       ) : (
         <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
           <div className="space-y-4 pb-4">
-            {reels.map((reel: any) => (
+            {reels.map((reel) => (
               <ReelCard
                 key={reel.id}
                 reel={reel}
                 muted={muted}
+                isActive={activeId === reel.id}
+                onActive={() => onActive(reel.id)}
                 onToggleMute={() => setMuted((m) => !m)}
+                onLike={() => void onLike(reel)}
+                onSave={() => void onSave(reel)}
+                onComments={() => setCommentsFor(reel)}
                 onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
               />
             ))}
@@ -110,6 +241,14 @@ function ReelsPage() {
         </div>
       )}
 
+      <Dialog open={Boolean(commentsFor)} onOpenChange={(next) => !next && setCommentsFor(null)}>
+        <DialogContent className="max-h-[85vh] overflow-hidden rounded-3xl p-0">
+          <DialogHeader className="border-b border-hairline px-5 py-4">
+            <DialogTitle>Comments</DialogTitle>
+          </DialogHeader>
+          {commentsFor ? <CommentsPanel reelId={commentsFor.id} /> : null}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={composer} onOpenChange={setComposer}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
@@ -131,39 +270,60 @@ function ReelsPage() {
 function ReelCard({
   reel,
   muted,
+  isActive,
+  onActive,
   onToggleMute,
+  onLike,
+  onSave,
+  onComments,
   onDelete,
 }: {
-  reel: { title: string; caption: string | null; url: string | null; posterUrl: string | null; authorName: string };
+  reel: Reel;
   muted: boolean;
+  isActive: boolean;
+  onActive: () => void;
   onToggleMute: () => void;
+  onLike: () => void;
+  onSave: () => void;
+  onComments: () => void;
   onDelete?: (() => void) | undefined;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [active, setActive] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  // Autoplay whichever reel is centred in the viewport, like a native feed.
+  // Only the centred clip plays; every other one is paused and silenced so two
+  // reels can never be heard at once.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return;
-        const visible = entry.intersectionRatio > 0.6;
-        setActive(visible);
-        if (visible) void video.play().catch(() => undefined);
-        else video.pause();
+        const centred = entry.intersectionRatio > 0.6;
+        setVisible(centred);
+        if (centred) onActive();
       },
       { threshold: [0, 0.6, 1] },
     );
     observer.observe(video);
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (visible && isActive) void video.play().catch(() => undefined);
+    else {
+      video.pause();
+      video.currentTime = video.currentTime;
+    }
+  }, [visible, isActive]);
 
   return (
     <article
       className={`metal-edge relative snap-start snap-always overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
-        active ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
+        visible ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
       }`}
     >
       {reel.url ? (
@@ -172,7 +332,7 @@ function ReelCard({
           src={reel.url}
           poster={reel.posterUrl ?? undefined}
           loop
-          muted={muted}
+          muted={muted || !isActive}
           playsInline
           preload="metadata"
           controlsList="nodownload"
@@ -190,7 +350,6 @@ function ReelCard({
         </div>
       )}
 
-      {/* sound control sits directly on the clip */}
       <button
         type="button"
         onClick={onToggleMute}
@@ -201,13 +360,53 @@ function ReelCard({
         {muted ? "Sound off" : "Sound on"}
       </button>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-12">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-brand-glow">{reel.authorName}</p>
-        <h3 className="mt-1 font-display text-base font-semibold">{reel.title}</h3>
+      {/* action rail, TikTok style */}
+      <div className="absolute bottom-24 right-3 flex flex-col items-center gap-4">
+        <ActionButton
+          label={reel.likes.toLocaleString()}
+          active={reel.liked}
+          onClick={onLike}
+          aria-label={reel.liked ? "Remove like" : "Like reel"}
+        >
+          <Heart className={`h-5 w-5 ${reel.liked ? "fill-current" : ""}`} />
+        </ActionButton>
+        <ActionButton label={String(reel.comments)} onClick={onComments} aria-label="Comments">
+          <MessageCircle className="h-5 w-5" />
+        </ActionButton>
+        <ActionButton
+          label={reel.saved ? "Saved" : "Save"}
+          active={reel.saved}
+          onClick={onSave}
+          aria-label={reel.saved ? "Remove from saved" : "Save reel"}
+        >
+          <Bookmark className={`h-5 w-5 ${reel.saved ? "fill-current" : ""}`} />
+        </ActionButton>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
+        <div className="flex items-center gap-2">
+          {reel.verified ? (
+            <img
+              src={BRAND.logoUrl}
+              alt=""
+              className="h-8 w-8 rounded-full border border-cyan/40 bg-surface-2 object-contain p-0.5"
+            />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-surface-2 text-[11px] font-semibold">
+              {reel.authorName.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+          <span className="truncate text-xs font-semibold">{reel.authorName}</span>
+          {reel.verified ? (
+            <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" aria-label="Verified" />
+          ) : null}
+        </div>
+        <h3 className="mt-2 font-display text-base font-semibold">{reel.title}</h3>
         {reel.caption ? (
           <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{reel.caption}</p>
         ) : null}
       </div>
+
       {onDelete ? (
         <button
           onClick={onDelete}
@@ -221,6 +420,109 @@ function ReelCard({
   );
 }
 
+function ActionButton({
+  children,
+  label,
+  active,
+  onClick,
+  ...rest
+}: {
+  children: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+} & React.ComponentProps<"button">) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      {...rest}
+      className={`flex flex-col items-center gap-1 transition-transform duration-300 active:scale-90 ${
+        active ? "text-brand-glow" : "text-foreground"
+      }`}
+    >
+      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+        {children}
+      </span>
+      <span className="text-[10px] font-semibold">{label}</span>
+    </button>
+  );
+}
+
+function CommentsPanel({ reelId }: { reelId: string }) {
+  const loadComments = useServerFn(getReelComments);
+  const send = useServerFn(addReelComment);
+  const queryClient = useQueryClient();
+  const [body, setBody] = useState("");
+
+  const { data, isPending } = useQuery({
+    queryKey: ["reel-comments", reelId],
+    queryFn: () => loadComments({ data: { id: reelId } }),
+  });
+
+  const post = useMutation({
+    mutationFn: (value: string) => send({ data: { id: reelId, body: value } }),
+    onSuccess: () => {
+      setBody("");
+      toast.success("Comment sent — it appears to others once approved.");
+      void queryClient.invalidateQueries({ queryKey: ["reel-comments", reelId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const comments = data?.comments ?? [];
+
+  return (
+    <div className="flex max-h-[70vh] flex-col">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {isPending ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          </div>
+        ) : comments.length === 0 ? (
+          <p className="py-6 text-center text-xs text-muted-foreground">
+            No comments yet. Be the first one.
+          </p>
+        ) : (
+          comments.map((comment) => (
+            <div key={comment.id} className="glass-panel rounded-2xl p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hairline bg-surface-2 text-[10px] font-semibold">
+                  {comment.authorName.slice(0, 1).toUpperCase()}
+                </span>
+                <p className="truncate text-xs font-semibold">{comment.authorName}</p>
+                {comment.pending ? (
+                  <span className="ml-auto rounded-full border border-hairline px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                    Awaiting approval
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{comment.body}</p>
+            </div>
+          ))
+        )}
+      </div>
+      <form
+        className="flex items-center gap-2 border-t border-hairline px-4 py-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!body.trim()) return;
+          post.mutate(body.trim());
+        }}
+      >
+        <Input
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Add a comment…"
+          className="h-11 rounded-2xl"
+        />
+        <Button type="submit" variant="brand" className="rounded-2xl" disabled={post.isPending}>
+          {post.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </form>
+    </div>
+  );
+}
 
 function ReelComposer({ onDone }: { onDone: () => void }) {
   const createUrl = useServerFn(getReelUploadUrl);

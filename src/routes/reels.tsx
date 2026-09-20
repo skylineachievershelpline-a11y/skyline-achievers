@@ -13,8 +13,6 @@ import {
   Plus,
   Send,
   Trash2,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";

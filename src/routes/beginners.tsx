@@ -932,6 +932,15 @@ function BeginnersPage() {
               </div>
             )}
 
+            <Dialog open={Boolean(commentsFor)} onOpenChange={(next) => !next && setCommentsFor(null)}>
+              <DialogContent className="max-h-[85vh] overflow-hidden rounded-3xl p-0">
+                <DialogHeader className="border-b border-hairline px-5 py-4">
+                  <DialogTitle>Comments</DialogTitle>
+                </DialogHeader>
+                {commentsFor ? <TraineeReelComments reelId={commentsFor.id} /> : null}
+              </DialogContent>
+            </Dialog>
+
           </section>
         ) : null}
 

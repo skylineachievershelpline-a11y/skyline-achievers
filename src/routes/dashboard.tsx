@@ -86,11 +86,11 @@ function DashboardPage() {
             />
           </div>
           <div className="min-w-0 flex-1 pt-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
                 <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
-                {member?.fullName ?? "Member"}
-              </h1>
-                <RankPin rank={member?.level?.name} className="h-16 w-16" />
+                 {member?.fullName ?? "Member"}
+               </h1>
+                 <RankPin rank={member?.level?.name} className="h-12 w-12" />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-5 sm:max-w-sm">
               <div className="min-w-0">

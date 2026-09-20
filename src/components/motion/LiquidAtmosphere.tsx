@@ -71,6 +71,29 @@ export function LiquidAtmosphere() {
       }
     };
 
+    const drawSilk = (time: number, center: number, amplitude: number, phase: number, alpha: number) => {
+      const top: Array<{ x: number; y: number }> = [];
+      const bottom: Array<{ x: number; y: number }> = [];
+      for (let x = -40; x <= width + 40; x += 20) {
+        const base = center + Math.sin(x * 0.007 + time * 0.22 + phase) * amplitude;
+        const fold = Math.sin(x * 0.015 - time * 0.16 + phase * 1.7) * amplitude * 0.34;
+        const thickness = 26 + Math.sin(x * 0.01 + time * 0.18) * 12;
+        top.push({ x, y: base + fold - thickness });
+        bottom.push({ x, y: base - fold + thickness });
+      }
+      context.beginPath();
+      top.forEach((point, index) => index === 0 ? context.moveTo(point.x, point.y) : context.lineTo(point.x, point.y));
+      [...bottom].reverse().forEach((point) => context.lineTo(point.x, point.y));
+      context.closePath();
+      const gradient = context.createLinearGradient(0, center - amplitude, width, center + amplitude);
+      gradient.addColorStop(0, `rgba(20, 54, 138, ${alpha * 0.2})`);
+      gradient.addColorStop(0.42, `rgba(40, 92, 224, ${alpha * 0.52})`);
+      gradient.addColorStop(0.7, `rgba(73, 198, 255, ${alpha * 0.7})`);
+      gradient.addColorStop(1, `rgba(12, 39, 116, ${alpha * 0.16})`);
+      context.fillStyle = gradient;
+      context.fill();
+    };
+
     const draw = (stamp: number) => {
       if (!running) return;
       const time = reduceMotion ? 0 : stamp / 1000;
@@ -81,8 +104,10 @@ export function LiquidAtmosphere() {
       glow.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = glow;
       context.fillRect(0, 0, width, height);
-      drawRibbon(time, height * 0.3, Math.min(70, height * 0.08), 0.45, 0.2, 0.16);
-      drawRibbon(time, height * 0.7, Math.min(92, height * 0.11), -0.32, 2.4, 0.1);
+      drawSilk(time, height * 0.28, Math.min(82, height * 0.1), 0.2, 0.34);
+      drawRibbon(time, height * 0.28, Math.min(82, height * 0.1), 0.45, 0.2, 0.32);
+      drawSilk(time, height * 0.74, Math.min(108, height * 0.13), 2.4, 0.25);
+      drawRibbon(time, height * 0.74, Math.min(108, height * 0.13), -0.32, 2.4, 0.22);
 
       const now = performance.now();
       for (let index = ripples.length - 1; index >= 0; index -= 1) {

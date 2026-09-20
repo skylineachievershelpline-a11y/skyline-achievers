@@ -666,12 +666,12 @@ body > div > :not(.liquid-atmosphere) {
 .cinematic-landing,
 .cinematic-shell,
 .member-workspace {
-  background-color: color-mix(in oklab, var(--background) 84%, transparent) !important;
+  background-color: color-mix(in oklab, var(--background) 68%, transparent) !important;
 }
 
 .cinematic-landing > .section-flow,
 .cinematic-landing > footer {
-  background-color: color-mix(in oklab, var(--background) 70%, transparent);
+  background-color: color-mix(in oklab, var(--background) 76%, transparent);
 }
 
 .cinematic-ambient {

@@ -748,6 +748,50 @@ export type Database = {
         }
         Relationships: []
       }
+      leave_applications: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          from_date: string
+          id: string
+          member_id: string
+          reason: string
+          reviewed_at: string | null
+          status: string
+          to_date: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          from_date: string
+          id?: string
+          member_id: string
+          reason: string
+          reviewed_at?: string | null
+          status?: string
+          to_date: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          from_date?: string
+          id?: string
+          member_id?: string
+          reason?: string
+          reviewed_at?: string | null
+          status?: string
+          to_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_applications_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lectures: {
         Row: {
           aspect_ratio: string
@@ -960,34 +1004,52 @@ export type Database = {
         Row: {
           absent_reason: string | null
           created_at: string
+          enrollments: number
           id: string
           is_absent: boolean
           leads_count: number
           member_id: string
+          mentorship_paid: number
+          pending_count: number
           rate_per_lead: number
           report_date: string
+          responses: number
+          submitted_at: string | null
+          two_cc: number
           updated_at: string
         }
         Insert: {
           absent_reason?: string | null
           created_at?: string
+          enrollments?: number
           id?: string
           is_absent?: boolean
           leads_count?: number
           member_id: string
+          mentorship_paid?: number
+          pending_count?: number
           rate_per_lead?: number
           report_date: string
+          responses?: number
+          submitted_at?: string | null
+          two_cc?: number
           updated_at?: string
         }
         Update: {
           absent_reason?: string | null
           created_at?: string
+          enrollments?: number
           id?: string
           is_absent?: boolean
           leads_count?: number
           member_id?: string
+          mentorship_paid?: number
+          pending_count?: number
           rate_per_lead?: number
           report_date?: string
+          responses?: number
+          submitted_at?: string | null
+          two_cc?: number
           updated_at?: string
         }
         Relationships: []

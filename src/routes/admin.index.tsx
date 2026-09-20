@@ -6,6 +6,7 @@ import { Loader2, LogOut } from "lucide-react";
 import { useEffect } from "react";
 
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
+import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
 import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
@@ -112,6 +113,8 @@ function AdminPage() {
             Sign out
           </Button>
         </header>
+
+        <ApprovalsBar />
 
         <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[

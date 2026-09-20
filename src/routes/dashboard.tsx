@@ -9,7 +9,7 @@ import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
 import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
-import { EarningsPanel } from "@/components/member/EarningsPanel";
+import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import {
   MemberShell,
@@ -160,7 +160,7 @@ function DashboardPage() {
             </p>
           </div>
         ) : (
-          <EarningsPanel />
+          <DailyReportPanel />
         )}
       </div>
 

@@ -15,6 +15,7 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
+import { Route as LeaveRouteImport } from './routes/leave'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReelsRouteImport } from './routes/reels'
@@ -61,6 +62,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const EnrollmentVideoRoute = EnrollmentVideoRouteImport.update({
   id: '/enrollment-video',
   path: '/enrollment-video',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaveRoute = LeaveRouteImport.update({
+  id: '/leave',
+  path: '/leave',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/reels': typeof ReelsRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/leave'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/leave'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/leave'
     | '/notifications'
     | '/profile'
     | '/reels'
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   EnrollmentVideoRoute: typeof EnrollmentVideoRoute
+  LeaveRoute: typeof LeaveRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   ReelsRoute: typeof ReelsRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/enrollment-video'
       fullPath: '/enrollment-video'
       preLoaderRoute: typeof EnrollmentVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leave': {
+      id: '/leave'
+      path: '/leave'
+      fullPath: '/leave'
+      preLoaderRoute: typeof LeaveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -502,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   EnrollmentVideoRoute: EnrollmentVideoRoute,
+  LeaveRoute: LeaveRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   ReelsRoute: ReelsRoute,

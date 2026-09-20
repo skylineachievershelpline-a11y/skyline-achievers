@@ -108,7 +108,6 @@ function ReelsPage() {
   const seen = useServerFn(markReelSeen);
   const like = useServerFn(toggleReelLike);
   const save = useServerFn(toggleReelSave);
-  const [muted, setMuted] = useState(true);
   const [composer, setComposer] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [commentsFor, setCommentsFor] = useState<Reel | null>(null);

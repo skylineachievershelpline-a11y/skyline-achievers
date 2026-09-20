@@ -248,10 +248,12 @@ export type Database = {
           kind: string
           part_of_day: string
           reference: string | null
+          schedule_type: string
           sort_order: number
           text_en: string | null
           text_ur: string | null
           updated_at: string
+          weekday: number | null
         }
         Insert: {
           created_at?: string
@@ -260,10 +262,12 @@ export type Database = {
           kind: string
           part_of_day: string
           reference?: string | null
+          schedule_type?: string
           sort_order?: number
           text_en?: string | null
           text_ur?: string | null
           updated_at?: string
+          weekday?: number | null
         }
         Update: {
           created_at?: string
@@ -272,10 +276,12 @@ export type Database = {
           kind?: string
           part_of_day?: string
           reference?: string | null
+          schedule_type?: string
           sort_order?: number
           text_en?: string | null
           text_ur?: string | null
           updated_at?: string
+          weekday?: number | null
         }
         Relationships: []
       }
@@ -859,6 +865,7 @@ export type Database = {
         Row: {
           age: number | null
           avatar_path: string | null
+          bio: string | null
           cnic: string | null
           created_at: string
           dashboard_cover_path: string | null
@@ -877,6 +884,7 @@ export type Database = {
         Insert: {
           age?: number | null
           avatar_path?: string | null
+          bio?: string | null
           cnic?: string | null
           created_at?: string
           dashboard_cover_path?: string | null
@@ -895,6 +903,7 @@ export type Database = {
         Update: {
           age?: number | null
           avatar_path?: string | null
+          bio?: string | null
           cnic?: string | null
           created_at?: string
           dashboard_cover_path?: string | null

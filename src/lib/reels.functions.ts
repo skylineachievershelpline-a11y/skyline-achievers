@@ -97,27 +97,36 @@ export const getReels = createServerFn({ method: "GET" })
       commentCount.set(row.reel_id, (commentCount.get(row.reel_id) ?? 0) + 1);
 
     const { signPath, VIDEO_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
+    const { loadReelAuthors } = await import("./reels.server");
+    const authors = await loadReelAuthors(
+      picked.filter((r) => !r.created_by_admin).map((r) => r.created_by as string),
+    );
     const reels = await Promise.all(
-      picked.map(async (reel: any) => ({
-        id: reel.id as string,
-        title: reel.title as string,
-        caption: (reel.caption ?? null) as string | null,
-        createdAt: reel.created_at as string,
-        isMine: reel.created_by === context.userId,
-        verified: reel.created_by_admin === true,
-        authorName: reel.created_by_admin
-          ? "Skyline Achievers"
-          : ((reel.author?.full_name as string) ?? "Skyline Achievers"),
-        likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
-        comments: commentCount.get(reel.id) ?? 0,
-        liked: likedSet.has(reel.id),
-        saved: savedSet.has(reel.id),
-        posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
-        url:
-          reel.video_source === "external"
-            ? (reel.video_url as string | null)
-            : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
-      })),
+      picked.map(async (reel: any) => {
+        const author = reel.created_by_admin ? null : authors.get(reel.created_by as string);
+        return {
+          id: reel.id as string,
+          title: reel.title as string,
+          caption: (reel.caption ?? null) as string | null,
+          createdAt: reel.created_at as string,
+          isMine: reel.created_by === context.userId,
+          verified: reel.created_by_admin === true,
+          authorName: reel.created_by_admin
+            ? "Skyline Achievers"
+            : (author?.name ?? (reel.author?.full_name as string) ?? "Skyline Achievers"),
+          authorAvatarUrl: author?.avatarUrl ?? null,
+          authorRank: author?.rank ?? null,
+          likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
+          comments: commentCount.get(reel.id) ?? 0,
+          liked: likedSet.has(reel.id),
+          saved: savedSet.has(reel.id),
+          posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
+          url:
+            reel.video_source === "external"
+              ? (reel.video_url as string | null)
+              : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
+        };
+      }),
     );
 
     return {

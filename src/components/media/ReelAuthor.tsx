@@ -4,10 +4,10 @@ import { RankPin } from "@/components/member/RankPin";
 import { BRAND } from "@/lib/brand";
 
 export type ReelAuthorInfo = {
-  authorName: string;
-  verified: boolean;
-  authorAvatarUrl?: string | null;
-  authorRank?: string | null;
+  authorName?: string | undefined;
+  verified?: boolean | undefined;
+  authorAvatarUrl?: string | null | undefined;
+  authorRank?: string | null | undefined;
 };
 
 /**

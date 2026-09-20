@@ -115,6 +115,10 @@ type FeedReel = {
   comments: number;
   liked: boolean;
   saved: boolean;
+  verified?: boolean;
+  authorName?: string;
+  authorAvatarUrl?: string | null;
+  authorRank?: string | null;
 };
 
 function compactCount(value: number): string {

@@ -210,6 +210,8 @@ function BeginnersPage() {
   const queryClient = useQueryClient();
   const load = useServerFn(getTraineeDashboard);
   const loadReels = useServerFn(getTraineeReels);
+  const likeReel = useServerFn(toggleReelLike);
+  const saveReel = useServerFn(toggleReelSave);
   const unlock = useServerFn(unlockTraineeSession);
   const play = useServerFn(playTraineeSession);
   const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);

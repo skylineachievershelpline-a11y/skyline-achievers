@@ -223,6 +223,8 @@ function BeginnersPage() {
   const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [reelsMuted, setReelsMuted] = useState(true);
+  const [commentsFor, setCommentsFor] = useState<FeedReel | null>(null);
+  const [reelLocal, setReelLocal] = useState<Record<string, Partial<FeedReel>>>({});
 
   useEffect(() => {
     setPortalReady(true);

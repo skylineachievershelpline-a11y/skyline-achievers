@@ -48,6 +48,7 @@ type Bucket = { id: string; name: string };
 function TrainingPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getTrainingLibrary);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 

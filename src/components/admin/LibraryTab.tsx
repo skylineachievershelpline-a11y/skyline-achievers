@@ -79,6 +79,7 @@ type GroupValues = {
   description: string;
   sortOrder: number;
   isPublished: boolean;
+  levelIds: string[];
 };
 
 export function LibraryTab() {
@@ -179,6 +180,7 @@ export function LibraryTab() {
           description: values.description.trim() || null,
           sortOrder: values.sortOrder,
           isPublished: values.isPublished,
+          levelIds: values.levelIds,
         },
       } as never),
     onSuccess: () => {
@@ -201,6 +203,7 @@ export function LibraryTab() {
   const categories = ((data as any).categories ?? []) as Category[];
   const categoryGroups = ((data as any).groups ?? []) as Group[];
   const sectionAccess = (((data as any).sectionAccess ?? {}) as Record<string, string[]>);
+  const groupAccess = (((data as any).groupAccess ?? {}) as Record<string, string[]>);
   const access = (data as any).access as Record<string, string[]>;
 
   function blankVideo(): VideoValues {
@@ -327,6 +330,7 @@ export function LibraryTab() {
               description: "",
               sortOrder: categoryGroups.length + 1,
               isPublished: true,
+              levelIds: levels.map((l) => l.id),
             })
           }
         >
@@ -364,7 +368,13 @@ export function LibraryTab() {
                     <p className="truncate text-sm font-semibold">{group.name}</p>
                     <p className="text-[11px] text-muted-foreground">
                       {count} section{count === 1 ? "" : "s"} ·{" "}
-                      {group.is_published ? "Visible" : "Hidden"} · Order {group.sort_order}
+                      {group.is_published ? "Visible" : "Hidden"} · Unlocked for:{" "}
+                      {(groupAccess[group.id] ?? []).length === 0
+                        ? "everyone"
+                        : levels
+                            .filter((l) => (groupAccess[group.id] ?? []).includes(l.id))
+                            .map((l) => l.name)
+                            .join(", ")}
                     </p>
                   </div>
                   <button
@@ -375,6 +385,7 @@ export function LibraryTab() {
                         description: group.description ?? "",
                         sortOrder: group.sort_order,
                         isPublished: group.is_published,
+                        levelIds: groupAccess[group.id] ?? levels.map((l) => l.id),
                       })
                     }
                     className="text-muted-foreground transition-colors hover:text-brand-glow"
@@ -800,6 +811,37 @@ export function LibraryTab() {
                   }
                   className="h-11 rounded-2xl"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Who can open this category?</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {levels.map((level) => {
+                    const on = groupDialog.levelIds.includes(level.id);
+                    return (
+                      <label
+                        key={level.id}
+                        className="glass-panel flex items-center gap-2 rounded-2xl px-3 py-2 text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={(e) =>
+                            setGroupDialog({
+                              ...groupDialog,
+                              levelIds: e.target.checked
+                                ? [...groupDialog.levelIds, level.id]
+                                : groupDialog.levelIds.filter((id) => id !== level.id),
+                            })
+                          }
+                        />
+                        <span className="truncate">{level.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Unticked ranks stay locked out. Tick none to leave it open to everyone.
+                </p>
               </div>
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
                 <input

@@ -568,6 +568,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       storagePath?: string | null;
       externalUrl?: string | null;
       body?: string | null;
+      thumbnailPath?: string | null;
       sortOrder: number;
       isPublished: boolean;
     }) =>
@@ -575,12 +576,13 @@ export const adminSaveResource = createServerFn({ method: "POST" })
         .object({
           id: uuid.optional(),
           lectureId: uuid.nullish(),
-          resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note"]),
+          resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note", "image"]),
           title: text(160),
           description: optionalText(1000),
           storagePath: optionalText(400),
           externalUrl: optionalText(600),
           body: optionalText(8000),
+          thumbnailPath: optionalText(400),
           sortOrder: z.number().int().min(0).max(999),
           isPublished: z.boolean(),
         })
@@ -600,9 +602,11 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       storage_path: data.storagePath ?? null,
       external_url: data.externalUrl ?? null,
       body: data.body ?? null,
+      thumbnail_path: data.thumbnailPath ?? null,
       sort_order: data.sortOrder,
       is_published: data.isPublished,
     };
+
     const query = data.id
       ? (supabaseAdmin as any).from("resources").update(payload).eq("id", data.id)
       : (supabaseAdmin as any).from("resources").insert(payload);

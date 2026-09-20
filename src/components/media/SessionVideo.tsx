@@ -1,6 +1,7 @@
 import { Play } from "lucide-react";
 import { useState } from "react";
 
+import { useAutoPauseVideo } from "@/hooks/useAutoPauseVideo";
 import { cn } from "@/lib/utils";
 
 export const RATIO_CLASS: Record<string, string> = {

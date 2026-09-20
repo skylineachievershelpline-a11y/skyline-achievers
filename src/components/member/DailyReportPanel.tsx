@@ -260,7 +260,7 @@ export function DailyReportPanel() {
           </div>
         </div>
 
-        {formOpen ? (
+        {formVisible ? (
           <form
             className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-rise-in"
             onSubmit={(event) => {

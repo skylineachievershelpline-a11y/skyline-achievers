@@ -50,17 +50,7 @@ export function LiquidAtmosphere() {
         for (let x = -30; x <= width + 30; x += 18) {
           const wave = Math.sin(x * 0.008 + time * speed + phase) * amplitude;
           const secondary = Math.sin(x * 0.017 - time * speed * 0.55 + phase) * amplitude * 0.28;
-          let disturbance = 0;
-          for (const ripple of ripples) {
-            const age = time * 1000 - ripple.born;
-            const dx = x - ripple.x;
-            const radius = age * 0.16;
-            const distance = Math.abs(dx) - radius;
-            const proximity = Math.exp(-(distance * distance) / 4300);
-            const verticalReach = Math.exp(-Math.abs(center - ripple.y) / Math.max(height * 0.42, 1));
-            disturbance += Math.sin(distance * 0.055) * proximity * verticalReach * 30 * ripple.strength * Math.max(0, 1 - age / 1500);
-          }
-          const y = center + wave + secondary + disturbance + (strand - strands / 2) * 5.5;
+          const y = center + wave + secondary + (strand - strands / 2) * 5.5;
           if (x === -30) context.moveTo(x, y);
           else context.lineTo(x, y);
         }
@@ -118,11 +108,30 @@ export function LiquidAtmosphere() {
           ripples.splice(index, 1);
           continue;
         }
-        context.beginPath();
-        context.arc(ripple.x, ripple.y, age * 0.16, 0, Math.PI * 2);
-        context.strokeStyle = `rgba(94, 218, 255, ${0.2 * (1 - age / 1500)})`;
-        context.lineWidth = 1.2;
-        context.stroke();
+        const life = Math.max(0, 1 - age / 1500);
+        const radius = age * 0.14;
+        const rippleGlow = context.createRadialGradient(
+          ripple.x,
+          ripple.y,
+          Math.max(0, radius - 18),
+          ripple.x,
+          ripple.y,
+          radius + 24,
+        );
+        rippleGlow.addColorStop(0, "rgba(94, 218, 255, 0)");
+        rippleGlow.addColorStop(0.66, `rgba(94, 218, 255, ${0.09 * life * ripple.strength})`);
+        rippleGlow.addColorStop(1, "rgba(94, 218, 255, 0)");
+        context.fillStyle = rippleGlow;
+        context.fillRect(ripple.x - radius - 24, ripple.y - radius - 24, (radius + 24) * 2, (radius + 24) * 2);
+
+        for (let ring = 0; ring < 3; ring += 1) {
+          const ringRadius = Math.max(2, radius - ring * 18);
+          context.beginPath();
+          context.arc(ripple.x, ripple.y, ringRadius, 0, Math.PI * 2);
+          context.strokeStyle = `rgba(94, 218, 255, ${life * ripple.strength * (0.28 - ring * 0.065)})`;
+          context.lineWidth = ring === 0 ? 1.6 : 0.9;
+          context.stroke();
+        }
       }
       if (!reduceMotion) frame = window.requestAnimationFrame(draw);
     };

@@ -497,6 +497,50 @@ export function LibraryTab() {
                 />
               </div>
               <div className="space-y-1.5">
+                <Label>Category</Label>
+                <select
+                  value={categoryDialog.groupId}
+                  onChange={(e) => setCategoryDialog({ ...categoryDialog, groupId: e.target.value })}
+                  className={fieldClass}
+                >
+                  <option value="">No category</option>
+                  {categoryGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-muted-foreground">
+                  Categories group sections together, for example Sales or Mindset.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Who can open this section</Label>
+                <div className="space-y-2 rounded-2xl border border-border p-3">
+                  {levels.map((level) => (
+                    <label key={level.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={categoryDialog.levelIds.includes(level.id)}
+                        onChange={() =>
+                          setCategoryDialog({
+                            ...categoryDialog,
+                            levelIds: categoryDialog.levelIds.includes(level.id)
+                              ? categoryDialog.levelIds.filter((x) => x !== level.id)
+                              : [...categoryDialog.levelIds, level.id],
+                          })
+                        }
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      {level.name}
+                    </label>
+                  ))}
+                  <p className="text-[11px] text-muted-foreground">
+                    Leave every rank ticked to let all members open it.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
                 <Label>Order in the menu</Label>
                 <Input
                   value={String(categoryDialog.sortOrder)}

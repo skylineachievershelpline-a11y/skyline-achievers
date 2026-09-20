@@ -111,6 +111,7 @@ export function MemberShell({
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
 
@@ -118,6 +119,10 @@ export function MemberShell({
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   // Only ask the server once a browser session actually exists, otherwise the
   // protected server function rejects with "No authorization header".
@@ -188,7 +193,7 @@ export function MemberShell({
       </header>
 
       {/* Render outside animated page layers so the menu always stays visible. */}
-      {typeof document !== "undefined"
+      {portalReady && typeof document !== "undefined"
         ? createPortal(
             <div
               className={cn(

@@ -69,6 +69,8 @@ type Reel = {
   url: string | null;
   posterUrl: string | null;
   authorName: string;
+  authorAvatarUrl?: string | null;
+  authorRank?: string | null;
   verified: boolean;
   likes: number;
   comments: number;

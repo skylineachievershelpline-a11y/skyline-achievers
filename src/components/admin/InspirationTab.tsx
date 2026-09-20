@@ -15,7 +15,7 @@ import {
   adminSaveInspiration,
 } from "@/lib/admin-inspiration.functions";
 
-type Kind = "ayat" | "hadees";
+type Kind = "ayat" | "hadees" | "quote";
 type Part = "morning" | "evening" | "night";
 
 type FormState = {
@@ -27,6 +27,8 @@ type FormState = {
   reference: string;
   isActive: boolean;
   sortOrder: number;
+  scheduleType: "daily" | "weekly";
+  weekday: number | null;
 };
 
 const EMPTY: FormState = {
@@ -37,6 +39,8 @@ const EMPTY: FormState = {
   reference: "",
   isActive: true,
   sortOrder: 0,
+  scheduleType: "daily",
+  weekday: null,
 };
 
 const PARTS: Part[] = ["morning", "evening", "night"];
@@ -96,7 +100,7 @@ export function InspirationTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Members see one verse and one hadees, changing with morning, evening and night.
+          Schedule an Ayat, Hadees or Quote for morning, 1 PM or 7 PM. Daily items rotate each day; weekly items stay for the selected week.
         </p>
         <Button variant="brand" className="rounded-2xl" onClick={() => setForm({ ...EMPTY })}>
           <Plus className="h-4 w-4" />
@@ -125,7 +129,7 @@ export function InspirationTab() {
             <div className="space-y-2">
               <Label>Type</Label>
               <div className="flex gap-2">
-                {(["ayat", "hadees"] as Kind[]).map((kind) => (
+                {(["ayat", "hadees", "quote"] as Kind[]).map((kind) => (
                   <Button
                     key={kind}
                     type="button"
@@ -134,7 +138,7 @@ export function InspirationTab() {
                     className="rounded-xl capitalize"
                     onClick={() => setForm({ ...form, kind })}
                   >
-                    {kind === "ayat" ? "Quran verse" : "Hadees"}
+                    {kind === "ayat" ? "Quran verse" : kind === "hadees" ? "Hadees" : "Quote"}
                   </Button>
                 ))}
               </div>
@@ -151,10 +155,18 @@ export function InspirationTab() {
                     className="rounded-xl"
                     onClick={() => setForm({ ...form, partOfDay: part })}
                   >
-                    {PART_LABEL[part]}
+                    {part === "morning" ? "Morning" : part === "evening" ? "1 PM" : "7 PM"}
                   </Button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>How long should it run?</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" variant={form.scheduleType === "daily" ? "brand" : "outline"} onClick={() => setForm({ ...form, scheduleType: "daily", weekday: null })}>Daily rotation</Button>
+              <Button type="button" size="sm" variant={form.scheduleType === "weekly" ? "brand" : "outline"} onClick={() => setForm({ ...form, scheduleType: "weekly" })}>Whole week</Button>
             </div>
           </div>
 
@@ -169,7 +181,7 @@ export function InspirationTab() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="textEn">English text</Label>
+              <Label htmlFor="textEn">Translation / explanation</Label>
             <Textarea
               id="textEn"
               rows={3}
@@ -231,11 +243,12 @@ export function InspirationTab() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   <span className="rounded-full border border-hairline px-2 py-0.5">
-                    {item.kind === "ayat" ? "Quran" : "Hadees"}
+                    {item.kind === "ayat" ? "Quran" : item.kind === "hadees" ? "Hadees" : "Quote"}
                   </span>
                   <span className="rounded-full border border-hairline px-2 py-0.5">
-                    {PART_LABEL[item.part_of_day as Part]}
+                    {item.part_of_day === "morning" ? "Morning" : item.part_of_day === "evening" ? "1 PM" : "7 PM"}
                   </span>
+                  <span className="rounded-full border border-hairline px-2 py-0.5">{item.schedule_type === "weekly" ? "Whole week" : "Daily"}</span>
                   {!item.is_active ? (
                     <span className="rounded-full border border-hairline px-2 py-0.5 text-destructive-foreground">
                       Hidden
@@ -257,6 +270,8 @@ export function InspirationTab() {
                         reference: item.reference ?? "",
                         isActive: item.is_active,
                         sortOrder: item.sort_order ?? 0,
+                        scheduleType: item.schedule_type ?? "daily",
+                        weekday: item.weekday ?? null,
                       })
                     }
                   >

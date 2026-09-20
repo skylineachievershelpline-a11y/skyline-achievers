@@ -514,6 +514,22 @@ export const saveAvatar = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** Saves the signed-in member's short public-facing dashboard bio. */
+export const saveMemberBio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { bio: string }) =>
+    z.object({ bio: z.string().trim().max(240) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("member_profiles")
+      .update({ bio: data.bio || null })
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Signed upload slot for the signed-in member's dashboard cover. */
 export const getDashboardCoverUploadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -25,13 +25,14 @@ export type MemberContext = {
   lastLoginAt: string | null;
   avatarUrl: string | null;
   dashboardCoverUrl: string | null;
+  bio: string | null;
 };
 
 export async function loadMemberContext(db: Db, userId: string): Promise<MemberContext | null> {
   const { data, error } = await db
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, status, working_enabled, email, phone, avatar_path, dashboard_cover_path, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
+      "id, member_id, full_name, status, working_enabled, email, phone, avatar_path, dashboard_cover_path, bio, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -52,6 +53,7 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
       (data as any).dashboard_cover_path,
       60 * 60 * 6,
     ),
+    bio: data.bio ?? null,
     level: (data as any).levels ?? null,
   };
 }

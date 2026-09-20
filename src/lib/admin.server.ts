@@ -209,6 +209,8 @@ export async function adminLibrary() {
     { data: resources },
     { data: access },
     { data: categories },
+    { data: groups },
+    { data: sectionAccess },
   ] = await Promise.all([
     supabaseAdmin.from("levels").select("*").order("rank_order"),
     supabaseAdmin
@@ -225,14 +227,25 @@ export async function adminLibrary() {
       .eq("content_type", "lecture"),
     (supabaseAdmin as any)
       .from("training_categories")
+      .select("id, name, slug, description, sort_order, is_published, group_id")
+      .order("sort_order"),
+    (supabaseAdmin as any)
+      .from("training_groups")
       .select("id, name, slug, description, sort_order, is_published")
       .order("sort_order"),
+    (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
   ]);
 
   // Which levels can watch each video.
   const accessMap: Record<string, string[]> = {};
   for (const row of access ?? []) {
     (accessMap[row.content_id] ??= []).push(row.level_id);
+  }
+
+  // Which levels can open each training section.
+  const sectionAccessMap: Record<string, string[]> = {};
+  for (const row of (sectionAccess ?? []) as { category_id: string; level_id: string }[]) {
+    (sectionAccessMap[row.category_id] ??= []).push(row.level_id);
   }
 
   return {
@@ -244,12 +257,23 @@ export async function adminLibrary() {
       description: string | null;
       sort_order: number;
       is_published: boolean;
+      group_id: string | null;
     }[],
+    groups: (groups ?? []) as {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      sort_order: number;
+      is_published: boolean;
+    }[],
+    sectionAccess: sectionAccessMap,
     lectures: await signThumbnails(lectures ?? []),
-    resources: resources ?? [],
+    resources: await signThumbnails(resources ?? []),
     access: accessMap,
   };
 }
+
 
 /** Sets exactly which training levels may watch one video. */
 export async function adminSetLectureAccess(lectureId: string, levelIds: string[]) {

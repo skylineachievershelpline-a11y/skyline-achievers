@@ -922,7 +922,7 @@ function BeginnersPage() {
                         <span className="text-[10px] font-semibold">{reel.saved ? "Saved" : "Save"}</span>
                       </button>
                     </div>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
                       <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>
                       {reel.caption ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{reel.caption}</p> : null}

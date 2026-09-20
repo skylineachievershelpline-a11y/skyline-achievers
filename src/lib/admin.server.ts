@@ -250,6 +250,12 @@ export async function adminLibrary() {
     (sectionAccessMap[row.category_id] ??= []).push(row.level_id);
   }
 
+  // Which levels can open each category.
+  const groupAccessMap: Record<string, string[]> = {};
+  for (const row of (groupAccess ?? []) as { group_id: string; level_id: string }[]) {
+    (groupAccessMap[row.group_id] ??= []).push(row.level_id);
+  }
+
   return {
     levels: levels ?? [],
     categories: (categories ?? []) as {

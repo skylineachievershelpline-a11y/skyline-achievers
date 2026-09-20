@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clapperboard,
+  Crown,
   Download,
   GraduationCap,
   Home,

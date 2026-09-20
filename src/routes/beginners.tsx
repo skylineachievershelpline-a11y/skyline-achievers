@@ -41,6 +41,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
+import { getReels } from "@/lib/reels.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
 import {
@@ -176,6 +177,7 @@ function BeginnersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const load = useServerFn(getTraineeDashboard);
+  const loadReels = useServerFn(getReels);
   const unlock = useServerFn(unlockTraineeSession);
   const play = useServerFn(playTraineeSession);
   const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);
@@ -224,6 +226,13 @@ function BeginnersPage() {
     queryFn: () => load(),
     enabled: ready,
     retry: false,
+  });
+
+  const { data: reelFeed, isPending: reelsPending } = useQuery({
+    queryKey: ["reels"],
+    queryFn: () => loadReels(),
+    enabled: ready && view === "reels",
+    staleTime: 0,
   });
 
   const openSession = useMutation({
@@ -313,7 +322,7 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
-  const reels = data.reels ?? [];
+  const reels = reelFeed?.reels ?? data.reels ?? [];
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
   const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
   const searchTokens = tokenize(searchQuery);
@@ -767,7 +776,11 @@ function BeginnersPage() {
                 <h1 className="font-display text-2xl font-semibold">Reels</h1>
               </div>
             </div>
-            {reels.length === 0 ? (
+            {reelsPending ? (
+              <div className="flex min-h-[31rem] items-center justify-center">
+                <SkylineLoader variant="inline" />
+              </div>
+            ) : reels.length === 0 ? (
               <div className="glass-panel rounded-3xl px-5 py-10 text-center text-sm text-muted-foreground">
                 No reels published yet.
               </div>

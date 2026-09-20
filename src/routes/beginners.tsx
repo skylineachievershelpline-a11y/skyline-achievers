@@ -428,6 +428,12 @@ function BeginnersPage() {
               </Button>
             ))}
             <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/courses">
+                <Crown className="h-4 w-4 text-brand-glow" />
+                Premium Courses
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
               <Link to="/chat">
                 <MessageCircle className="h-4 w-4 text-brand-glow" />
                 Chat with Upline

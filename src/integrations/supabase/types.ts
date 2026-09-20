@@ -1482,6 +1482,42 @@ export type Database = {
           },
         ]
       }
+      training_group_access: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          level_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          level_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          level_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_group_access_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "training_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_group_access_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_groups: {
         Row: {
           created_at: string

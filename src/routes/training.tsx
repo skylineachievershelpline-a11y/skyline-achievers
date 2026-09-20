@@ -37,7 +37,13 @@ export const Route = createFileRoute("/training")({
   component: TrainingPage,
 });
 
-type Section = { id: string; name: string; description: string | null };
+type Section = {
+  id: string;
+  name: string;
+  description: string | null;
+  group_id?: string | null;
+};
+type Bucket = { id: string; name: string };
 
 function TrainingPage() {
   const ready = useMemberGuard();
@@ -55,10 +61,24 @@ function TrainingPage() {
   const sections = ((data?.categories ?? []) as Section[]).slice();
   const hasLoose = all.some((video) => !video.category_id);
   const menu: Section[] = hasLoose
-    ? [...sections, { id: "__none", name: "Other videos", description: null }]
+    ? [...sections, { id: "__none", name: "Other videos", description: null, group_id: null }]
     : sections;
 
   const active = menu.find((section) => section.id === openSection) ?? null;
+
+  // Sections are grouped under the categories the admin created (Sales, Mindset…).
+  const buckets = ((data as any)?.groups ?? []) as Bucket[];
+  const grouped: { bucket: Bucket; items: Section[] }[] = [];
+  for (const bucket of buckets) {
+    const items = menu.filter((section) => section.group_id === bucket.id);
+    if (items.length > 0) grouped.push({ bucket, items });
+  }
+  const ungrouped = menu.filter(
+    (section) => !section.group_id || !buckets.some((b) => b.id === section.group_id),
+  );
+  if (ungrouped.length > 0) {
+    grouped.push({ bucket: { id: "__other", name: "More sections" }, items: ungrouped });
+  }
 
   const inSection = active
     ? all.filter((video) =>
@@ -141,49 +161,58 @@ function TrainingPage() {
               hint="Sections appear here as soon as they are published."
             />
           ) : (
-            <ul className="space-y-2">
-              {menu.map((section, index) => {
-                const total = countFor(section);
-                const open = all.filter(
-                  (video) =>
-                    !video.locked &&
-                    (section.id === "__none"
-                      ? !video.category_id
-                      : video.category_id === section.id),
-                ).length;
-                return (
-                  <li
-                    key={section.id}
-                    className="animate-rise-in"
-                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpenSection(section.id);
-                        setQuery("");
-                      }}
-                      className={cn(
-                        "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
-                      )}
-                    >
-                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
-                        <PlayCircle className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-display text-sm font-semibold">
-                          {section.name}
-                        </span>
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {total} video{total === 1 ? "" : "s"} · {open} unlocked
-                        </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="space-y-5">
+              {grouped.map(({ bucket, items }) => (
+                <div key={bucket.id}>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {bucket.name}
+                  </p>
+                  <ul className="space-y-2">
+                    {items.map((section, index) => {
+                      const total = countFor(section);
+                      const open = all.filter(
+                        (video) =>
+                          !video.locked &&
+                          (section.id === "__none"
+                            ? !video.category_id
+                            : video.category_id === section.id),
+                      ).length;
+                      return (
+                        <li
+                          key={section.id}
+                          className="animate-rise-in"
+                          style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenSection(section.id);
+                              setQuery("");
+                            }}
+                            className={cn(
+                              "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
+                            )}
+                          >
+                            <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
+                              <PlayCircle className="h-5 w-5" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-display text-sm font-semibold">
+                                {section.name}
+                              </span>
+                              <span className="block truncate text-[11px] text-muted-foreground">
+                                {total} video{total === 1 ? "" : "s"} · {open} unlocked
+                              </span>
+                            </span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
           )}
         </section>
       ) : (

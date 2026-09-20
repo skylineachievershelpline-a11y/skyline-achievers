@@ -1,7 +1,7 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, Copy, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -17,10 +17,12 @@ import {
   adminCreateUploadUrl,
   adminDeleteContent,
   adminDeleteTrainingCategory,
+  adminDeleteTrainingGroup,
   adminGetLibrary,
   adminSaveLecture,
   adminSaveResource,
   adminSaveTrainingCategory,
+  adminSaveTrainingGroup,
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { startUpload } from "@/lib/upload-manager";
@@ -28,6 +30,14 @@ import { startUpload } from "@/lib/upload-manager";
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
 type Level = { id: string; name: string; rank_order: number };
 type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_published: boolean;
+  group_id: string | null;
+};
+type Group = {
   id: string;
   name: string;
   description: string | null;
@@ -59,6 +69,16 @@ type CategoryValues = {
   description: string;
   sortOrder: number;
   isPublished: boolean;
+  groupId: string;
+  levelIds: string[];
+};
+
+type GroupValues = {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+  isPublished: boolean;
 };
 
 export function LibraryTab() {
@@ -70,6 +90,8 @@ export function LibraryTab() {
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const saveCategory = useServerFn(adminSaveTrainingCategory);
   const removeCategory = useServerFn(adminDeleteTrainingCategory);
+  const saveGroup = useServerFn(adminSaveTrainingGroup);
+  const removeGroup = useServerFn(adminDeleteTrainingGroup);
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
@@ -79,12 +101,25 @@ export function LibraryTab() {
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
   const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
+  const [groupDialog, setGroupDialog] = useState<GroupValues | null>(null);
   const [resourceDialog, setResourceDialog] = useState(false);
+  const [copiedResource, setCopiedResource] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-library"] });
     void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+  }
+
+  async function copyResourceLink(id: string) {
+    const link = `${window.location.origin}/resource/${id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt("Copy this link", link);
+    }
+    setCopiedResource(id);
+    window.setTimeout(() => setCopiedResource((prev) => (prev === id ? null : prev)), 1800);
   }
 
   const del = useMutation({
@@ -105,6 +140,15 @@ export function LibraryTab() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const delGroup = useMutation({
+    mutationFn: (id: string) => removeGroup({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Category deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const storeCategory = useMutation({
     mutationFn: (values: CategoryValues) =>
       saveCategory({
@@ -114,11 +158,32 @@ export function LibraryTab() {
           description: values.description.trim() || null,
           sortOrder: values.sortOrder,
           isPublished: values.isPublished,
+          groupId: values.groupId || null,
+          levelIds: values.levelIds,
         },
       } as never),
     onSuccess: () => {
       toast.success("Section saved");
       setCategoryDialog(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const storeGroup = useMutation({
+    mutationFn: (values: GroupValues) =>
+      saveGroup({
+        data: {
+          ...(values.id ? { id: values.id } : {}),
+          name: values.name.trim(),
+          description: values.description.trim() || null,
+          sortOrder: values.sortOrder,
+          isPublished: values.isPublished,
+        },
+      } as never),
+    onSuccess: () => {
+      toast.success("Category saved");
+      setGroupDialog(null);
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -134,6 +199,8 @@ export function LibraryTab() {
 
   const levels = data.levels as unknown as Level[];
   const categories = ((data as any).categories ?? []) as Category[];
+  const categoryGroups = ((data as any).groups ?? []) as Group[];
+  const sectionAccess = (((data as any).sectionAccess ?? {}) as Record<string, string[]>);
   const access = (data as any).access as Record<string, string[]>;
 
   function blankVideo(): VideoValues {
@@ -225,7 +292,7 @@ export function LibraryTab() {
     }
   }
 
-  const groups: { id: string | null; name: string; hint: string }[] = [
+  const videoGroups: { id: string | null; name: string; hint: string }[] = [
     ...categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -233,6 +300,17 @@ export function LibraryTab() {
     })),
     { id: null, name: "Not in any section", hint: "Pick a section so members can find these" },
   ];
+
+  function blankCategory(): CategoryValues {
+    return {
+      name: "",
+      description: "",
+      sortOrder: categories.length + 1,
+      isPublished: true,
+      groupId: categoryGroups[0]?.id ?? "",
+      levelIds: levels.map((l) => l.id),
+    };
+  }
 
   return (
     <div className="space-y-7">
@@ -244,20 +322,82 @@ export function LibraryTab() {
           variant="secondary"
           size="xl"
           onClick={() =>
-            setCategoryDialog({
+            setGroupDialog({
               name: "",
               description: "",
-              sortOrder: categories.length + 1,
+              sortOrder: categoryGroups.length + 1,
               isPublished: true,
             })
           }
         >
+          <Plus className="h-4 w-4" /> New category
+        </Button>
+        <Button variant="secondary" size="xl" onClick={() => setCategoryDialog(blankCategory())}>
           <Plus className="h-4 w-4" /> New training section
         </Button>
         <Button variant="secondary" size="xl" onClick={() => setResourceDialog(true)}>
           <Plus className="h-4 w-4" /> New resource
         </Button>
       </div>
+
+      <section className="raised-panel metal-edge rounded-3xl p-4">
+        <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
+          Categories
+        </h3>
+        <p className="mb-3 text-[11px] text-muted-foreground">
+          Big buckets for your sections — for example Sales, Mindset, Personal Mentorship.
+        </p>
+        {categoryGroups.length === 0 ? (
+          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
+            No category yet — create one, then place sections inside it.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {categoryGroups.map((group) => {
+              const count = categories.filter((c) => c.group_id === group.id).length;
+              return (
+                <li
+                  key={group.id}
+                  className="glass-panel flex items-center gap-3 rounded-2xl px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{group.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {count} section{count === 1 ? "" : "s"} ·{" "}
+                      {group.is_published ? "Visible" : "Hidden"} · Order {group.sort_order}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setGroupDialog({
+                        id: group.id,
+                        name: group.name,
+                        description: group.description ?? "",
+                        sortOrder: group.sort_order,
+                        isPublished: group.is_published,
+                      })
+                    }
+                    className="text-muted-foreground transition-colors hover:text-brand-glow"
+                    aria-label="Edit category"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!window.confirm(`Delete category “${group.name}”?`)) return;
+                      delGroup.mutate(group.id);
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Delete category"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <section className="raised-panel metal-edge rounded-3xl p-4">
         <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
@@ -276,6 +416,8 @@ export function LibraryTab() {
               const count = (data.lectures as any[]).filter(
                 (l) => l.category_id === category.id,
               ).length;
+              const allowedLevels = sectionAccess[category.id] ?? [];
+              const groupName = categoryGroups.find((g) => g.id === category.group_id)?.name;
               return (
                 <li
                   key={category.id}
@@ -284,8 +426,18 @@ export function LibraryTab() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{category.name}</p>
                     <p className="text-[11px] text-muted-foreground">
+                      {groupName ? `${groupName} · ` : "No category · "}
                       {count} video{count === 1 ? "" : "s"} ·{" "}
                       {category.is_published ? "Visible" : "Hidden"} · Order {category.sort_order}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Open to:{" "}
+                      {allowedLevels.length === 0
+                        ? "everyone"
+                        : levels
+                            .filter((l) => allowedLevels.includes(l.id))
+                            .map((l) => l.name)
+                            .join(", ")}
                     </p>
                   </div>
                   <button
@@ -296,6 +448,8 @@ export function LibraryTab() {
                         description: category.description ?? "",
                         sortOrder: category.sort_order,
                         isPublished: category.is_published,
+                        groupId: category.group_id ?? "",
+                        levelIds: allowedLevels.length > 0 ? allowedLevels : levels.map((l) => l.id),
                       })
                     }
                     className="text-muted-foreground transition-colors hover:text-brand-glow"
@@ -320,7 +474,7 @@ export function LibraryTab() {
         )}
       </section>
 
-      {groups.map((group) => {
+      {videoGroups.map((group) => {
         const videos = (data.lectures as any[]).filter((l) =>
           group.id === null ? !l.category_id : l.category_id === group.id,
         );
@@ -420,10 +574,32 @@ export function LibraryTab() {
           <ul className="space-y-2">
             {(data.resources as any[]).map((r) => (
               <li key={r.id} className="glass-panel flex items-center gap-3 rounded-2xl p-3 text-sm">
-                <span className="min-w-0 flex-1 truncate">{r.title}</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {RESOURCE_TYPE_LABEL[r.resource_type] ?? r.resource_type}
+                {r.thumbnail_url ? (
+                  <img
+                    src={r.thumbnail_url}
+                    alt=""
+                    loading="lazy"
+                    className="h-10 w-10 shrink-0 rounded-xl border border-border object-cover"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{r.title}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">
+                    {RESOURCE_TYPE_LABEL[r.resource_type] ?? r.resource_type}
+                    {r.lectures?.title ? ` · ${r.lectures.title}` : " · Standalone"}
+                  </span>
                 </span>
+                <button
+                  onClick={() => void copyResourceLink(r.id)}
+                  className="inline-flex min-w-fit items-center gap-1.5 rounded-full border border-hairline bg-glass px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {copiedResource === r.id ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedResource === r.id ? "Copied" : "Copy link"}
+                </button>
                 <button
                   onClick={() => del.mutate({ table: "resources", id: r.id })}
                   className="text-muted-foreground transition-colors hover:text-destructive"
@@ -497,6 +673,50 @@ export function LibraryTab() {
                 />
               </div>
               <div className="space-y-1.5">
+                <Label>Category</Label>
+                <select
+                  value={categoryDialog.groupId}
+                  onChange={(e) => setCategoryDialog({ ...categoryDialog, groupId: e.target.value })}
+                  className={fieldClass}
+                >
+                  <option value="">No category</option>
+                  {categoryGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-muted-foreground">
+                  Categories group sections together, for example Sales or Mindset.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Who can open this section</Label>
+                <div className="space-y-2 rounded-2xl border border-border p-3">
+                  {levels.map((level) => (
+                    <label key={level.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={categoryDialog.levelIds.includes(level.id)}
+                        onChange={() =>
+                          setCategoryDialog({
+                            ...categoryDialog,
+                            levelIds: categoryDialog.levelIds.includes(level.id)
+                              ? categoryDialog.levelIds.filter((x) => x !== level.id)
+                              : [...categoryDialog.levelIds, level.id],
+                          })
+                        }
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      {level.name}
+                    </label>
+                  ))}
+                  <p className="text-[11px] text-muted-foreground">
+                    Leave every rank ticked to let all members open it.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
                 <Label>Order in the menu</Label>
                 <Input
                   value={String(categoryDialog.sortOrder)}
@@ -534,6 +754,77 @@ export function LibraryTab() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={groupDialog !== null} onOpenChange={(open) => !open && setGroupDialog(null)}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>{groupDialog?.id ? "Edit category" : "New category"}</DialogTitle>
+          </DialogHeader>
+          {groupDialog ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!groupDialog.name.trim()) {
+                  toast.error("Give the category a name.");
+                  return;
+                }
+                storeGroup.mutate(groupDialog);
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1.5">
+                <Label>Category name</Label>
+                <Input
+                  value={groupDialog.name}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, name: e.target.value })}
+                  placeholder="Sales"
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Short description</Label>
+                <Textarea
+                  value={groupDialog.description}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, description: e.target.value })}
+                  className="rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Order in the menu</Label>
+                <Input
+                  value={String(groupDialog.sortOrder)}
+                  onChange={(e) =>
+                    setGroupDialog({
+                      ...groupDialog,
+                      sortOrder: Number(e.target.value.replace(/\D/g, "")) || 0,
+                    })
+                  }
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={groupDialog.isPublished}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, isPublished: e.target.checked })}
+                />
+                Visible to members
+              </label>
+              <Button
+                type="submit"
+                variant="brand"
+                size="xl"
+                className="w-full"
+                disabled={storeGroup.isPending}
+              >
+                {storeGroup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {groupDialog.id ? "Save category" : "Create category"}
+              </Button>
+            </form>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={resourceDialog} onOpenChange={setResourceDialog}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
           <DialogHeader>
@@ -546,6 +837,7 @@ export function LibraryTab() {
               setBusy(true);
               try {
                 let storagePath: string | null = null;
+                let thumbnailPath: string | null = null;
                 if (values.file) {
                   const file = values.file;
                   storagePath = await startUpload({
@@ -557,6 +849,17 @@ export function LibraryTab() {
                       } as never) as Promise<{ path: string; signedUrl: string }>,
                   });
                 }
+                if (values.thumbnail) {
+                  const cover = values.thumbnail;
+                  thumbnailPath = await startUpload({
+                    label: "Uploading cover",
+                    file: cover,
+                    createSlot: () =>
+                      createUploadUrl({
+                        data: { bucket: "training-thumbnails", fileName: cover.name },
+                      } as never) as Promise<{ path: string; signedUrl: string }>,
+                  });
+                }
                 await saveResource({
                   data: {
                     lectureId: values.lectureId || null,
@@ -564,6 +867,7 @@ export function LibraryTab() {
                     title: values.title,
                     description: values.description || null,
                     storagePath,
+                    thumbnailPath,
                     externalUrl: values.externalUrl || null,
                     body: values.body || null,
                     sortOrder: 0,
@@ -751,6 +1055,18 @@ function VideoForm({
   );
 }
 
+const RESOURCE_TYPES = [
+  "pdf",
+  "audio",
+  "presentation",
+  "book",
+  "link",
+  "note",
+  "image",
+] as const;
+
+type ResourceType = (typeof RESOURCE_TYPES)[number];
+
 function ResourceForm({
   videos,
   busy,
@@ -760,30 +1076,39 @@ function ResourceForm({
   busy: boolean;
   onSubmit: (values: {
     lectureId: string;
-    resourceType: "pdf" | "audio" | "presentation" | "book" | "link" | "note";
+    resourceType: ResourceType;
     title: string;
     description: string;
     externalUrl: string;
     body: string;
     file: File | null;
+    thumbnail: File | null;
   }) => void;
 }) {
   const [lectureId, setLectureId] = useState("");
-  const [resourceType, setResourceType] = useState<
-    "pdf" | "audio" | "presentation" | "book" | "link" | "note"
-  >("pdf");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
-        onSubmit({ lectureId, resourceType, title: title.trim(), description, externalUrl, body, file });
+        onSubmit({
+          lectureId,
+          resourceType,
+          title: title.trim(),
+          description,
+          externalUrl,
+          body,
+          file,
+          thumbnail,
+        });
       }}
       className="space-y-3"
     >
@@ -791,12 +1116,12 @@ function ResourceForm({
         <Label>Type</Label>
         <select
           value={resourceType}
-          onChange={(e) => setResourceType(e.target.value as typeof resourceType)}
+          onChange={(e) => setResourceType(e.target.value as ResourceType)}
           className={fieldClass}
         >
-          {(["pdf", "audio", "presentation", "book", "link", "note"] as const).map((type) => (
+          {RESOURCE_TYPES.map((type) => (
             <option key={type} value={type}>
-              {RESOURCE_TYPE_LABEL[type]}
+              {RESOURCE_TYPE_LABEL[type] ?? type}
             </option>
           ))}
         </select>
@@ -845,15 +1170,34 @@ function ResourceForm({
             <VoiceRecorder value={file} onChange={setFile} label="Record a voice note" />
           ) : null}
           <div className="space-y-1.5">
-            <Label>{resourceType === "audio" ? "Or upload an audio file" : "Upload file"}</Label>
+            <Label>
+              {resourceType === "audio"
+                ? "Or upload an audio file"
+                : resourceType === "image"
+                  ? "Upload picture"
+                  : "Upload file"}
+            </Label>
             <input
               type="file"
+              accept={resourceType === "image" ? "image/*" : undefined}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="text-xs text-muted-foreground"
             />
           </div>
         </div>
       )}
+      <div className="space-y-1.5">
+        <Label>Cover picture (optional)</Label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
+          className="text-xs text-muted-foreground"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Shown on the resource card and in the preview when the link is shared.
+        </p>
+      </div>
       <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Save resource

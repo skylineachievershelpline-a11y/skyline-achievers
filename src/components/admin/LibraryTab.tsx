@@ -751,6 +751,18 @@ function VideoForm({
   );
 }
 
+const RESOURCE_TYPES = [
+  "pdf",
+  "audio",
+  "presentation",
+  "book",
+  "link",
+  "note",
+  "image",
+] as const;
+
+type ResourceType = (typeof RESOURCE_TYPES)[number];
+
 function ResourceForm({
   videos,
   busy,
@@ -760,30 +772,39 @@ function ResourceForm({
   busy: boolean;
   onSubmit: (values: {
     lectureId: string;
-    resourceType: "pdf" | "audio" | "presentation" | "book" | "link" | "note";
+    resourceType: ResourceType;
     title: string;
     description: string;
     externalUrl: string;
     body: string;
     file: File | null;
+    thumbnail: File | null;
   }) => void;
 }) {
   const [lectureId, setLectureId] = useState("");
-  const [resourceType, setResourceType] = useState<
-    "pdf" | "audio" | "presentation" | "book" | "link" | "note"
-  >("pdf");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
-        onSubmit({ lectureId, resourceType, title: title.trim(), description, externalUrl, body, file });
+        onSubmit({
+          lectureId,
+          resourceType,
+          title: title.trim(),
+          description,
+          externalUrl,
+          body,
+          file,
+          thumbnail,
+        });
       }}
       className="space-y-3"
     >
@@ -791,12 +812,12 @@ function ResourceForm({
         <Label>Type</Label>
         <select
           value={resourceType}
-          onChange={(e) => setResourceType(e.target.value as typeof resourceType)}
+          onChange={(e) => setResourceType(e.target.value as ResourceType)}
           className={fieldClass}
         >
-          {(["pdf", "audio", "presentation", "book", "link", "note"] as const).map((type) => (
+          {RESOURCE_TYPES.map((type) => (
             <option key={type} value={type}>
-              {RESOURCE_TYPE_LABEL[type]}
+              {RESOURCE_TYPE_LABEL[type] ?? type}
             </option>
           ))}
         </select>
@@ -845,15 +866,34 @@ function ResourceForm({
             <VoiceRecorder value={file} onChange={setFile} label="Record a voice note" />
           ) : null}
           <div className="space-y-1.5">
-            <Label>{resourceType === "audio" ? "Or upload an audio file" : "Upload file"}</Label>
+            <Label>
+              {resourceType === "audio"
+                ? "Or upload an audio file"
+                : resourceType === "image"
+                  ? "Upload picture"
+                  : "Upload file"}
+            </Label>
             <input
               type="file"
+              accept={resourceType === "image" ? "image/*" : undefined}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="text-xs text-muted-foreground"
             />
           </div>
         </div>
       )}
+      <div className="space-y-1.5">
+        <Label>Cover picture (optional)</Label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setThumbnail(e.target.files?.[0] ?? null)}
+          className="text-xs text-muted-foreground"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Shown on the resource card and in the preview when the link is shared.
+        </p>
+      </div>
       <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Save resource

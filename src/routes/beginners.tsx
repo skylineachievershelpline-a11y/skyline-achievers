@@ -854,19 +854,10 @@ function BeginnersPage() {
                 {reels.map((reel) => (
                   <article key={reel.id} className="metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
-                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} className="h-full w-full bg-media object-contain" />
+                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} className="h-full w-full bg-media object-contain" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setReelsMuted((value) => !value)}
-                      aria-label={reelsMuted ? "Turn sound on" : "Turn sound off"}
-                      className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-3 py-1.5 text-[11px] text-foreground backdrop-blur transition-all duration-300 hover:bg-background/90 active:scale-95"
-                    >
-                      {reelsMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                      {reelsMuted ? "Sound off" : "Sound on"}
-                    </button>
                     <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center bg-gradient-to-b from-background/90 via-background/45 to-transparent px-16 pb-10 pt-3">
                       <div className="flex max-w-full items-center gap-2 rounded-full border border-cyan/30 bg-background/75 px-3 py-1.5 shadow-brand backdrop-blur-md">
                         <img src={BRAND.logoUrl} alt="" className="h-6 w-6 shrink-0 object-contain" />

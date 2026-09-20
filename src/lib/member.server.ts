@@ -53,7 +53,7 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
       (data as any).dashboard_cover_path,
       60 * 60 * 6,
     ),
-    bio: (data as any).bio ?? null,
+    bio: data.bio ?? null,
     level: (data as any).levels ?? null,
   };
 }

@@ -165,13 +165,19 @@ export function MemberStatusSaver({ member }: { member: StatusMember }) {
   }
 
   async function save() {
-    if (!file) return toast.error(busy ? "Status picture is preparing…" : "Status picture could not be created.");
+    if (!file) {
+      toast.error(busy ? "Status picture is preparing…" : "Status picture could not be created.");
+      return;
+    }
     download(file);
     toast.success("Status picture saved to your gallery");
   }
 
   async function share() {
-    if (!file) return toast.error(busy ? "Status picture is preparing…" : "Status picture could not be created.");
+    if (!file) {
+      toast.error(busy ? "Status picture is preparing…" : "Status picture could not be created.");
+      return;
+    }
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
         await navigator.share({ files: [file], title: `${member.fullName} — ${BRAND.name}` });

@@ -1,6 +1,7 @@
 import { Play } from "lucide-react";
 import { useState } from "react";
 
+import { useAutoPauseVideo } from "@/hooks/useAutoPauseVideo";
 import { cn } from "@/lib/utils";
 
 export const RATIO_CLASS: Record<string, string> = {
@@ -51,6 +52,7 @@ export function SessionVideo({
   // display a poster themselves, so we overlay it and autoplay on click.
   const [started, setStarted] = useState(false);
   const showCover = Boolean(poster) && !started;
+  const videoRef = useAutoPauseVideo<HTMLVideoElement>();
 
   return (
     <div
@@ -73,6 +75,7 @@ export function SessionVideo({
           ) : null
         ) : (
           <video
+            ref={videoRef}
             src={videoUrl}
             poster={poster ?? undefined}
             controls

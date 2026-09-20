@@ -1047,8 +1047,137 @@ export type Database = {
         }
         Relationships: []
       }
+      reel_comments: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          reel_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          reel_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          reel_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_comments_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_likes: {
+        Row: {
+          created_at: string
+          id: string
+          reel_id: string
+          viewer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reel_id: string
+          viewer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reel_id?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_likes_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_saves: {
+        Row: {
+          created_at: string
+          id: string
+          reel_id: string
+          viewer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reel_id: string
+          viewer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reel_id?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_saves_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_views: {
+        Row: {
+          id: string
+          reel_id: string
+          seen_at: string
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          reel_id: string
+          seen_at?: string
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          reel_id?: string
+          seen_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_views_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reels: {
         Row: {
+          base_likes: number
           caption: string | null
           created_at: string
           created_by: string | null
@@ -1063,6 +1192,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          base_likes?: number
           caption?: string | null
           created_at?: string
           created_by?: string | null
@@ -1077,6 +1207,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          base_likes?: number
           caption?: string | null
           created_at?: string
           created_by?: string | null
@@ -1640,6 +1771,7 @@ export type Database = {
         Returns: boolean
       }
       can_access_series: { Args: { _series_id: string }; Returns: boolean }
+      can_post_reels: { Args: never; Returns: boolean }
       current_member_level: { Args: never; Returns: string }
       generate_member_id: { Args: never; Returns: string }
       generate_trainee_id: { Args: never; Returns: string }

@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { SessionGate } from "@/components/media/SessionGate";
+import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -715,7 +716,7 @@ function BeginnersPage() {
                 {reels.map((reel: any) => (
                   <article key={reel.id} className="metal-edge relative snap-start snap-always overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
-                      <video src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} loop playsInline preload="metadata" controls className="aspect-[9/16] w-full object-cover" />
+                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} />
                     ) : (
                       <div className="flex aspect-[9/16] items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
                     )}

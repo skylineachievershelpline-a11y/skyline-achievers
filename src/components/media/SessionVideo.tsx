@@ -52,6 +52,7 @@ export function SessionVideo({
   // display a poster themselves, so we overlay it and autoplay on click.
   const [started, setStarted] = useState(false);
   const showCover = Boolean(poster) && !started;
+  const videoRef = useAutoPauseVideo<HTMLVideoElement>();
 
   return (
     <div
@@ -74,6 +75,7 @@ export function SessionVideo({
           ) : null
         ) : (
           <video
+            ref={videoRef}
             src={videoUrl}
             poster={poster ?? undefined}
             controls

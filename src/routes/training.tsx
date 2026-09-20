@@ -264,7 +264,7 @@ function TrainingPage() {
         </section>
       ) : (
         <section className="mt-6">
-          <SectionTitle>{active.name}</SectionTitle>
+          <SectionTitle>{active?.name ?? "Videos"}</SectionTitle>
           {videos.length === 0 ? (
             <EmptyState
               title="No videos here yet"

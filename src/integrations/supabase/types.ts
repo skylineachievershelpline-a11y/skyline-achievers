@@ -1113,6 +1113,7 @@ export type Database = {
           series_id: string | null
           sort_order: number
           storage_path: string | null
+          thumbnail_path: string | null
           title: string
           updated_at: string
         }
@@ -1128,6 +1129,7 @@ export type Database = {
           series_id?: string | null
           sort_order?: number
           storage_path?: string | null
+          thumbnail_path?: string | null
           title: string
           updated_at?: string
         }
@@ -1143,6 +1145,7 @@ export type Database = {
           series_id?: string | null
           sort_order?: number
           storage_path?: string | null
+          thumbnail_path?: string | null
           title?: string
           updated_at?: string
         }
@@ -1400,6 +1403,86 @@ export type Database = {
         ]
       }
       training_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_id: string | null
+          id: string
+          is_published: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          is_published?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_categories_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "training_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_category_access: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          level_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          level_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          level_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_category_access_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "training_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_category_access_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_groups: {
         Row: {
           created_at: string
           description: string | null

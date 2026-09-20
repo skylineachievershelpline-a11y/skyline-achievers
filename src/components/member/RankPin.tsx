@@ -1,3 +1,4 @@
+import skylineLogoAsset from "@/assets/skyline-logo.png.asset.json";
 import pin01Asset from "@/assets/rank-pins-separate/pin-01.png.asset.json";
 import pin02Asset from "@/assets/rank-pins-separate/pin-02.png.asset.json";
 import pin03Asset from "@/assets/rank-pins-separate/pin-03.png.asset.json";
@@ -10,6 +11,7 @@ import pin09Asset from "@/assets/rank-pins-separate/pin-09.png.asset.json";
 import { cn } from "@/lib/utils";
 
 const PINS: Record<string, string> = {
+  "personal-mentorship": skylineLogoAsset.url,
   "assistant-supervisor": pin01Asset.url,
   supervisor: pin02Asset.url,
   "assistant-manager": pin02Asset.url,

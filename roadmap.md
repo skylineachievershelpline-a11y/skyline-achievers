@@ -105,4 +105,5 @@
 - [x] Schedule morning, 1 PM, and 7 PM inspiration with daily or weekly rotation
 - [x] Support Quran, Hadees, and Quote content with expandable translation
 - [x] Generate a branded profile-style status picture for gallery and sharing
-- [ ] Verify phone layout and build health
+- [x] Verify build health
+- [ ] Verify the signed-in phone layout (blocked until a member account is signed into the preview)

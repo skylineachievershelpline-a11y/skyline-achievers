@@ -781,14 +781,32 @@ export const adminGetReels = createServerFn({ method: "GET" }).handler(async () 
   const { requireAdmin } = await import("./admin-session.server");
   await requireAdmin();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await (supabaseAdmin as any)
-    .from("reels")
-    .select(
-      "id, title, caption, video_source, created_by_admin, created_at, author:created_by (full_name)",
-    )
-    .order("created_at", { ascending: false })
-    .limit(100);
-  return { reels: data ?? [] };
+  const admin = supabaseAdmin as any;
+  const [{ data }, { data: likeRows }, { data: commentRows }] = await Promise.all([
+    admin
+      .from("reels")
+      .select(
+        "id, title, caption, base_likes, video_source, created_by_admin, created_at, author:created_by (full_name)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(100),
+    admin.from("reel_likes").select("reel_id"),
+    admin.from("reel_comments").select("reel_id, status"),
+  ]);
+  const likes = new Map<string, number>();
+  for (const row of (likeRows ?? []) as any[])
+    likes.set(row.reel_id, (likes.get(row.reel_id) ?? 0) + 1);
+  const pending = new Map<string, number>();
+  for (const row of (commentRows ?? []) as any[])
+    if (row.status === "pending") pending.set(row.reel_id, (pending.get(row.reel_id) ?? 0) + 1);
+
+  const reels = ((data ?? []) as any[]).map((reel) => ({
+    ...reel,
+    real_likes: likes.get(reel.id) ?? 0,
+    total_likes: (reel.base_likes ?? 0) + (likes.get(reel.id) ?? 0),
+    pending_comments: pending.get(reel.id) ?? 0,
+  }));
+  return { reels };
 });
 
 export const adminSaveReel = createServerFn({ method: "POST" })
@@ -799,6 +817,7 @@ export const adminSaveReel = createServerFn({ method: "POST" })
       videoPath?: string | null;
       videoUrl?: string | null;
       thumbnailPath?: string | null;
+      baseLikes?: number;
     }) =>
       z
         .object({
@@ -807,6 +826,7 @@ export const adminSaveReel = createServerFn({ method: "POST" })
           videoPath: optionalText(400),
           videoUrl: optionalText(600),
           thumbnailPath: optionalText(400),
+          baseLikes: z.number().int().min(0).max(1_000_000).optional(),
         })
         .refine((v) => Boolean(v.videoPath || v.videoUrl), {
           message: "Upload a video file or paste a video link.",
@@ -820,6 +840,7 @@ export const adminSaveReel = createServerFn({ method: "POST" })
     const { error } = await (supabaseAdmin as any).from("reels").insert({
       title: data.title,
       caption: data.caption,
+      base_likes: data.baseLikes ?? 0,
       video_source: data.videoPath ? "upload" : "external",
       video_path: data.videoPath,
       video_url: data.videoUrl,
@@ -830,6 +851,87 @@ export const adminSaveReel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/** Edits an existing reel: caption, title and the like count it starts from. */
+export const adminUpdateReel = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; title: string; caption?: string | null; baseLikes: number }) =>
+    z
+      .object({
+        id: uuid,
+        title: text(140),
+        caption: optionalText(600),
+        baseLikes: z.number().int().min(0).max(1_000_000),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("reels")
+      .update({
+        title: data.title,
+        caption: data.caption,
+        base_likes: data.baseLikes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** Comment moderation queue: nothing reaches other members until it is approved. */
+export const adminGetReelComments = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("reel_comments")
+    .select("id, reel_id, author_name, body, status, created_at, reel:reel_id (title)")
+    .order("created_at", { ascending: false })
+    .limit(300);
+  return { comments: data ?? [] };
+});
+
+export const adminModerateReelComment = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; status: "approved" | "rejected" | "pending"; body?: string }) =>
+    z
+      .object({
+        id: uuid,
+        status: z.enum(["approved", "rejected", "pending"]),
+        body: z.string().trim().min(1).max(600).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload: Record<string, unknown> = {
+      status: data.status,
+      updated_at: new Date().toISOString(),
+    };
+    if (data.body) payload["body"] = data.body;
+    const { error } = await (supabaseAdmin as any)
+      .from("reel_comments")
+      .update(payload)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+export const adminDeleteReelComment = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any).from("reel_comments").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 
 export const adminDeleteReel = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))

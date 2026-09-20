@@ -1,6 +1,6 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getMemberSession } from "@/lib/member.functions";
+import { getMemberSession, saveMemberBio } from "@/lib/member.functions";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfilePage() {
+  const queryClient = useQueryClient();
   const ready = useMemberGuard();
   const load = useServerFn(getMemberSession);
   const { data, isPending } = useQuery({
@@ -63,6 +65,10 @@ function ProfilePage() {
               <Row label="Email" value={member?.email ?? "—"} />
               <Row label="Joined" value={member ? formatDate(member.createdAt) : "—"} />
             </dl>
+            {member ? <BioEditor initialBio={member.bio ?? ""} onSaved={() => {
+              void queryClient.invalidateQueries({ queryKey: ["member-session"] });
+              void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            }} /> : null}
           </section>
 
           <div className="space-y-4">
@@ -72,6 +78,28 @@ function ProfilePage() {
         </div>
       )}
     </MemberShell>
+  );
+}
+
+function BioEditor({ initialBio, onSaved }: { initialBio: string; onSaved: () => void }) {
+  const save = useServerFn(saveMemberBio);
+  const [bio, setBio] = useState(initialBio);
+  const mutation = useMutation({
+    mutationFn: () => save({ data: { bio } } as never),
+    onSuccess: () => { toast.success("Bio updated"); onSaved(); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  return (
+    <div className="mt-5 space-y-2 border-t border-hairline pt-4">
+      <Label htmlFor="profile-bio">Dashboard bio</Label>
+      <Textarea id="profile-bio" rows={4} maxLength={240} value={bio} onChange={(event) => setBio(event.target.value)} placeholder="Write a short introduction about yourself…" />
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10px] text-muted-foreground">{bio.length}/240</span>
+        <Button type="button" size="sm" variant="brand" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Save bio
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -3,13 +3,15 @@ import { z } from "zod";
 
 const saveSchema = z.object({
   id: z.string().uuid().optional(),
-  kind: z.enum(["ayat", "hadees"]),
+  kind: z.enum(["ayat", "hadees", "quote"]),
   partOfDay: z.enum(["morning", "evening", "night"]),
   textUr: z.string().trim().max(1200).optional(),
   textEn: z.string().trim().max(1200).optional(),
   reference: z.string().trim().max(160).optional(),
   isActive: z.boolean(),
   sortOrder: z.number().int().min(0).max(9999),
+  scheduleType: z.enum(["daily", "weekly"]),
+  weekday: z.number().int().min(0).max(6).nullable().optional(),
 });
 
 export type InspirationInput = z.infer<typeof saveSchema>;
@@ -46,6 +48,8 @@ export const adminSaveInspiration = createServerFn({ method: "POST" })
       reference: data.reference || null,
       is_active: data.isActive,
       sort_order: data.sortOrder,
+      schedule_type: data.scheduleType,
+      weekday: data.scheduleType === "weekly" ? (data.weekday ?? null) : null,
     };
     if (data.id) {
       const { error } = await supabaseAdmin

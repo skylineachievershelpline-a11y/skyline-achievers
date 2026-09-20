@@ -546,6 +546,7 @@ export function LibraryTab() {
               setBusy(true);
               try {
                 let storagePath: string | null = null;
+                let thumbnailPath: string | null = null;
                 if (values.file) {
                   const file = values.file;
                   storagePath = await startUpload({
@@ -557,6 +558,17 @@ export function LibraryTab() {
                       } as never) as Promise<{ path: string; signedUrl: string }>,
                   });
                 }
+                if (values.thumbnail) {
+                  const cover = values.thumbnail;
+                  thumbnailPath = await startUpload({
+                    label: "Uploading cover",
+                    file: cover,
+                    createSlot: () =>
+                      createUploadUrl({
+                        data: { bucket: "training-thumbnails", fileName: cover.name },
+                      } as never) as Promise<{ path: string; signedUrl: string }>,
+                  });
+                }
                 await saveResource({
                   data: {
                     lectureId: values.lectureId || null,
@@ -564,6 +576,7 @@ export function LibraryTab() {
                     title: values.title,
                     description: values.description || null,
                     storagePath,
+                    thumbnailPath,
                     externalUrl: values.externalUrl || null,
                     body: values.body || null,
                     sortOrder: 0,

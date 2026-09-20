@@ -345,6 +345,7 @@ export const adminSaveTrainingGroup = createServerFn({ method: "POST" })
           description: optionalText(500),
           sortOrder: z.number().int().min(0).max(999),
           isPublished: z.boolean(),
+          levelIds: z.array(uuid).max(50).optional(),
         })
         .parse(data),
   )
@@ -363,11 +364,36 @@ export const adminSaveTrainingGroup = createServerFn({ method: "POST" })
       sort_order: data.sortOrder,
       is_published: data.isPublished,
     };
-    const query = data.id
-      ? (supabaseAdmin as any).from("training_groups").update(payload).eq("id", data.id)
-      : (supabaseAdmin as any).from("training_groups").insert(payload);
-    const { error } = await query;
-    if (error) throw new Error(error.message);
+    let groupId = data.id ?? null;
+    if (groupId) {
+      const { error } = await (supabaseAdmin as any)
+        .from("training_groups")
+        .update(payload)
+        .eq("id", groupId);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: created, error } = await (supabaseAdmin as any)
+        .from("training_groups")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      groupId = created.id as string;
+    }
+
+    // Exactly which ranks may open this category.
+    if (data.levelIds) {
+      await (supabaseAdmin as any)
+        .from("training_group_access")
+        .delete()
+        .eq("group_id", groupId);
+      if (data.levelIds.length > 0) {
+        const { error } = await (supabaseAdmin as any)
+          .from("training_group_access")
+          .insert(data.levelIds.map((levelId) => ({ group_id: groupId, level_id: levelId })));
+        if (error) throw new Error(error.message);
+      }
+    }
     return { ok: true as const };
   });
 

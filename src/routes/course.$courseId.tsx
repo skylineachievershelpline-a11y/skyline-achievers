@@ -574,6 +574,8 @@ function CourseDetailPage() {
           )}
         </section>
       </div>
+
+      <PaymentSlip open={slip !== null} data={slip} onClose={() => setSlip(null)} />
     </MemberShell>
   );
 }

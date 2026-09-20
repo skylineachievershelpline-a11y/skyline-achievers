@@ -336,6 +336,7 @@ export const adminSaveTrainingGroup = createServerFn({ method: "POST" })
       description?: string | null;
       sortOrder: number;
       isPublished: boolean;
+      levelIds?: string[];
     }) =>
       z
         .object({

@@ -40,14 +40,20 @@ function normalizeRank(value: string) {
 
 export function RankPin({ rank, className }: { rank?: string | null | undefined; className?: string }) {
   if (!rank) return null;
-  const source = PINS[normalizeRank(rank)];
+  const key = normalizeRank(rank);
+  const source = PINS[key];
   if (!source) return null;
+  const isLogoPin = key === "personal-mentorship";
 
   return (
     <img
       src={source}
       alt={`${formatRankName(rank)} pin`}
-      className={cn("h-14 w-14 shrink-0 object-contain drop-shadow-[0_5px_8px_color-mix(in_oklab,var(--cyan)_22%,transparent)]", className)}
+      className={cn(
+        "h-14 w-14 shrink-0 object-contain drop-shadow-[0_5px_8px_color-mix(in_oklab,var(--cyan)_22%,transparent)]",
+        isLogoPin && "scale-[0.55]",
+        className,
+      )}
     />
   );
 }

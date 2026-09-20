@@ -36,7 +36,7 @@ function normalizeRank(value: string) {
     .replace(/^-|-$/g, "");
 }
 
-export function RankPin({ rank, className }: { rank?: string | null; className?: string }) {
+export function RankPin({ rank, className }: { rank?: string | null | undefined; className?: string }) {
   if (!rank) return null;
   const source = PINS[normalizeRank(rank)];
   if (!source) return null;

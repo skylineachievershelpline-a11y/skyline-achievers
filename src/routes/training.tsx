@@ -61,10 +61,24 @@ function TrainingPage() {
   const sections = ((data?.categories ?? []) as Section[]).slice();
   const hasLoose = all.some((video) => !video.category_id);
   const menu: Section[] = hasLoose
-    ? [...sections, { id: "__none", name: "Other videos", description: null }]
+    ? [...sections, { id: "__none", name: "Other videos", description: null, group_id: null }]
     : sections;
 
   const active = menu.find((section) => section.id === openSection) ?? null;
+
+  // Sections are grouped under the categories the admin created (Sales, Mindset…).
+  const buckets = ((data as any)?.groups ?? []) as Bucket[];
+  const grouped: { bucket: Bucket; items: Section[] }[] = [];
+  for (const bucket of buckets) {
+    const items = menu.filter((section) => section.group_id === bucket.id);
+    if (items.length > 0) grouped.push({ bucket, items });
+  }
+  const ungrouped = menu.filter(
+    (section) => !section.group_id || !buckets.some((b) => b.id === section.group_id),
+  );
+  if (ungrouped.length > 0) {
+    grouped.push({ bucket: { id: "__other", name: "More sections" }, items: ungrouped });
+  }
 
   const inSection = active
     ? all.filter((video) =>

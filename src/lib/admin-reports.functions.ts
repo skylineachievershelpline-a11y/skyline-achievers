@@ -6,54 +6,65 @@ import { loadRates } from "./earnings.functions";
 /** Reports follow Pakistan time: a day closes at 12:00 midnight PKT. */
 const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
 const pktToday = () => new Date(Date.now() + PKT_OFFSET_MS).toISOString().slice(0, 10);
-const pktDay = (iso: string) =>
-  new Date(new Date(iso).getTime() + PKT_OFFSET_MS).toISOString().slice(0, 10);
+const shiftDay = (date: string, days: number) =>
+  new Date(new Date(`${date}T00:00:00Z`).getTime() + days * 86_400_000).toISOString().slice(0, 10);
 
-const monthInput = z
-  .string()
-  .regex(/^\d{4}-\d{2}$/)
-  .optional();
+const dateInput = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-function monthRange(month?: string) {
-  const key = month ?? pktToday().slice(0, 7);
-  const start = `${key}-01`;
-  const year = Number(key.slice(0, 4));
-  const m = Number(key.slice(5, 7));
-  const nextMonth = m === 12 ? `${year + 1}-01-01` : `${year}-${String(m + 1).padStart(2, "0")}-01`;
-  return { key, start, end: nextMonth };
+const METRIC_SELECT =
+  "member_id, report_date, leads_count, responses, enrollments, pending_count, two_cc, mentorship_paid";
+
+type Totals = {
+  leads: number;
+  responses: number;
+  enrollments: number;
+  pending: number;
+  twoCc: number;
+  mentorshipPaid: number;
+};
+
+const emptyTotals = (): Totals => ({
+  leads: 0,
+  responses: 0,
+  enrollments: 0,
+  pending: 0,
+  twoCc: 0,
+  mentorshipPaid: 0,
+});
+
+function add(target: Totals, row: Record<string, unknown>) {
+  target.leads += Number(row["leads_count"] ?? 0);
+  target.responses += Number(row["responses"] ?? 0);
+  target.enrollments += Number(row["enrollments"] ?? 0);
+  target.pending += Number(row["pending_count"] ?? 0);
+  target.twoCc += Number(row["two_cc"] ?? 0);
+  target.mentorshipPaid += Number(row["mentorship_paid"] ?? 0);
 }
 
-/** Every member's leads, investment, joinings and earning for one month. */
+/** Every member's daily-report numbers for any custom range of days. */
 export const adminGetReports = createServerFn({ method: "POST" })
-  .inputValidator((data: { month?: string; all?: boolean }) =>
-    z.object({ month: monthInput, all: z.boolean().optional() }).parse(data ?? {}),
+  .inputValidator((data: { from?: string; to?: string }) =>
+    z.object({ from: dateInput.optional(), to: dateInput.optional() }).parse(data ?? {}),
   )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const rates = await loadRates();
-    const { key, start, end } = monthRange(data.month);
-    const today = pktToday();
-    // "all" pulls the complete record instead of a single month.
-    const from = data.all ? "1970-01-01" : start;
-    const to = data.all ? "2999-01-01" : end;
 
-    const [{ data: members }, { data: reports }, { data: joins }] = await Promise.all([
+    const today = pktToday();
+    const to = data.to ?? today;
+    const from = data.from ?? shiftDay(to, -6);
+
+    const [{ data: members }, { data: reports }] = await Promise.all([
       supabaseAdmin
         .from("member_profiles")
         .select("id, member_id, full_name, status, levels:level_id (name)")
         .order("full_name"),
       supabaseAdmin
         .from("member_daily_reports")
-        .select("member_id, report_date, leads_count, rate_per_lead")
+        .select(METRIC_SELECT)
         .gte("report_date", from)
-        .lt("report_date", to),
-      supabaseAdmin
-        .from("trainees")
-        .select("id, upline_id, created_at")
-        .gte("created_at", `${from}T00:00:00Z`)
-        .lt("created_at", `${to}T00:00:00Z`),
+        .lte("report_date", to),
     ]);
 
     type Row = {
@@ -62,79 +73,65 @@ export const adminGetReports = createServerFn({ method: "POST" })
       fullName: string;
       status: string;
       level: string | null;
-      leads: number;
-      investment: number;
-      joins: number;
-      earning: number;
-      todayLeads: number;
-      todayJoins: number;
-    };
+      days: number;
+      submittedToday: boolean;
+    } & Totals;
 
     const rows = new Map<string, Row>();
-    for (const m of members ?? []) {
-      rows.set(m.id as string, {
-        id: m.id as string,
-        memberId: (m.member_id as string) ?? "—",
-        fullName: (m.full_name as string) ?? "—",
-        status: (m.status as string) ?? "active",
-        level: ((m as { levels?: { name?: string } }).levels?.name ?? null) as string | null,
-        leads: 0,
-        investment: 0,
-        joins: 0,
-        earning: 0,
-        todayLeads: 0,
-        todayJoins: 0,
+    for (const member of members ?? []) {
+      rows.set(member.id as string, {
+        id: member.id as string,
+        memberId: (member.member_id as string) ?? "—",
+        fullName: (member.full_name as string) ?? "—",
+        status: (member.status as string) ?? "active",
+        level: ((member as { levels?: { name?: string } }).levels?.name ?? null) as string | null,
+        days: 0,
+        submittedToday: false,
+        ...emptyTotals(),
       });
     }
 
-    for (const r of reports ?? []) {
-      const row = rows.get(r.member_id as string);
+    for (const report of reports ?? []) {
+      const row = rows.get(report.member_id as string);
       if (!row) continue;
-      const leads = (r.leads_count as number) ?? 0;
-      row.leads += leads;
-      row.investment += leads * ((r.rate_per_lead as number) ?? rates.lead);
-      if (r.report_date === today) row.todayLeads += leads;
+      add(row, report as Record<string, unknown>);
+      row.days += 1;
+      if (report.report_date === today) row.submittedToday = true;
     }
 
-    for (const j of joins ?? []) {
-      const row = rows.get(j.upline_id as string);
-      if (!row) continue;
-      row.joins += 1;
-      row.earning += rates.join;
-      if (pktDay(j.created_at as string) === today) row.todayJoins += 1;
-    }
-
-    const list = [...rows.values()].sort((a, b) => b.earning - a.earning || b.leads - a.leads);
-    const totals = list.reduce(
-      (acc, row) => ({
-        leads: acc.leads + row.leads,
-        investment: acc.investment + row.investment,
-        joins: acc.joins + row.joins,
-        earning: acc.earning + row.earning,
-      }),
-      { leads: 0, investment: 0, joins: 0, earning: 0 },
+    const list = [...rows.values()].sort(
+      (a, b) => b.enrollments - a.enrollments || b.leads - a.leads,
     );
+    const totals = emptyTotals();
+    for (const row of list) {
+      totals.leads += row.leads;
+      totals.responses += row.responses;
+      totals.enrollments += row.enrollments;
+      totals.pending += row.pending;
+      totals.twoCc += row.twoCc;
+      totals.mentorshipPaid += row.mentorshipPaid;
+    }
 
-    return { month: key, all: Boolean(data.all), today, members: list, totals, rates };
+    return { from, to, today, members: list, totals };
   });
 
-/** Day-by-day report for one member in one month. */
+/** Day-by-day daily report for one member in any range. */
 export const adminGetMemberReport = createServerFn({ method: "POST" })
-  .inputValidator((data: { memberId: string; month?: string; all?: boolean }) =>
+  .inputValidator((data: { memberId: string; from?: string; to?: string }) =>
     z
-      .object({ memberId: z.string().uuid(), month: monthInput, all: z.boolean().optional() })
+      .object({ memberId: z.string().uuid(), from: dateInput.optional(), to: dateInput.optional() })
       .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const rates = await loadRates();
-    const { key, start, end } = monthRange(data.month);
-    const from = data.all ? "1970-01-01" : start;
-    const to = data.all ? "2999-01-01" : end;
 
-    const [{ data: member }, { data: reports }, { data: joins }] = await Promise.all([
+    const today = pktToday();
+    const to = data.to ?? today;
+    const from = data.from ?? shiftDay(to, -6);
+
+    const [{ data: member }, { data: reports }] = await Promise.all([
       supabaseAdmin
         .from("member_profiles")
         .select("id, member_id, full_name")
@@ -142,66 +139,28 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
         .maybeSingle(),
       supabaseAdmin
         .from("member_daily_reports")
-        .select("report_date, leads_count, rate_per_lead, is_absent, absent_reason")
+        .select(`${METRIC_SELECT}, is_absent, absent_reason`)
         .eq("member_id", data.memberId)
         .gte("report_date", from)
-        .lt("report_date", to),
-      supabaseAdmin
-        .from("trainees")
-        .select("id, created_at")
-        .eq("upline_id", data.memberId)
-        .gte("created_at", `${from}T00:00:00Z`)
-        .lt("created_at", `${to}T00:00:00Z`),
+        .lte("report_date", to)
+        .order("report_date", { ascending: false }),
     ]);
 
-    const byDay = new Map<
-      string,
-      {
-        date: string;
-        leads: number;
-        investment: number;
-        joins: number;
-        earning: number;
-        absent: boolean;
-        absentReason: string | null;
-      }
-    >();
-    const day = (date: string) => {
-      const found =
-        byDay.get(date) ??
-        {
-          date,
-          leads: 0,
-          investment: 0,
-          joins: 0,
-          earning: 0,
-          absent: false,
-          absentReason: null as string | null,
-        };
-      byDay.set(date, found);
-      return found;
-    };
+    const days = (reports ?? []).map((row) => ({
+      date: row.report_date as string,
+      leads: Number(row.leads_count ?? 0),
+      responses: Number(row.responses ?? 0),
+      enrollments: Number(row.enrollments ?? 0),
+      pending: Number(row.pending_count ?? 0),
+      twoCc: Number(row.two_cc ?? 0),
+      mentorshipPaid: Number(row.mentorship_paid ?? 0),
+      absent: Boolean(row.is_absent),
+      absentReason: (row.absent_reason as string | null) ?? null,
+    }));
 
-    for (const r of reports ?? []) {
-      const row = day(r.report_date as string);
-      const leads = (r.leads_count as number) ?? 0;
-      row.leads += leads;
-      row.investment += leads * ((r.rate_per_lead as number) ?? rates.lead);
-      row.absent = Boolean(r.is_absent);
-      row.absentReason = (r.absent_reason as string | null) ?? null;
-    }
-
-    for (const j of joins ?? []) {
-      const row = day(pktDay(j.created_at as string));
-      row.joins += 1;
-      row.earning += rates.join;
-    }
-
-    const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
     return {
-      month: key,
-      all: Boolean(data.all),
-      rates,
+      from,
+      to,
       member: member
         ? { fullName: member.full_name as string, memberId: member.member_id as string }
         : null,
@@ -209,6 +168,77 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     };
   });
 
+/** Everything waiting for an admin decision, shown at the top of the panel. */
+export const adminGetApprovals = createServerFn({ method: "POST" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const [{ data: leaves }, { data: enrollments }] = await Promise.all([
+    supabaseAdmin
+      .from("leave_applications")
+      .select(
+        "id, from_date, to_date, reason, status, created_at, member:member_id (full_name, member_id)",
+      )
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabaseAdmin
+      .from("course_enrollments")
+      .select("id, buyer_name, buyer_code, amount_pkr, created_at, course:course_id (title)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  return {
+    leaves: (leaves ?? []).map((row) => ({
+      id: row.id as string,
+      fromDate: row.from_date as string,
+      toDate: row.to_date as string,
+      reason: row.reason as string,
+      createdAt: row.created_at as string,
+      memberName:
+        ((row as { member?: { full_name?: string } }).member?.full_name as string) ?? "Member",
+      memberCode: ((row as { member?: { member_id?: string } }).member?.member_id as string) ?? "—",
+    })),
+    courses: (enrollments ?? []).map((row) => ({
+      id: row.id as string,
+      buyerName: row.buyer_name as string,
+      buyerCode: (row.buyer_code as string | null) ?? "—",
+      amount: Number(row.amount_pkr ?? 0),
+      createdAt: row.created_at as string,
+      courseTitle: ((row as { course?: { title?: string } }).course?.title as string) ?? "Course",
+    })),
+  };
+});
+
+/** Approve or reject a leave application. */
+export const adminDecideLeave = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; status: "approved" | "rejected"; adminNote?: string | null }) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["approved", "rejected"]),
+        adminNote: z.string().trim().max(400).optional().nullable(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("leave_applications")
+      .update({
+        status: data.status,
+        admin_note: data.adminNote ?? null,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
 
 /** Current lead / joining rates for the admin settings panel. */
 export const adminGetRates = createServerFn({ method: "POST" }).handler(async () => {

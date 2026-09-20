@@ -4,12 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
+  Bookmark,
   CheckCircle2,
   ChevronRight,
   Clapperboard,
   Crown,
   Download,
   GraduationCap,
+  Heart,
   Home,
   KeyRound,
   Loader2,
@@ -19,6 +21,7 @@ import {
   MessageCircle,
   PlayCircle,
   Search,
+  Send,
   ShieldCheck,
   Unlock,
   Camera,
@@ -37,8 +40,15 @@ import { SessionGate } from "@/components/media/SessionGate";
 import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  addReelComment,
+  getReelComments,
+  toggleReelLike,
+  toggleReelSave,
+} from "@/lib/reels.functions";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
@@ -95,6 +105,28 @@ type FocusedSession = {
 };
 
 type BeginnerView = "home" | "training" | "reels" | "search" | "password";
+
+type FeedReel = {
+  id: string;
+  title: string;
+  caption: string | null;
+  url: string | null;
+  posterUrl: string | null;
+  likes: number;
+  comments: number;
+  liked: boolean;
+  saved: boolean;
+};
+
+function compactCount(value: number): string {
+  if (value < 1_000) return String(value);
+  if (value < 1_000_000) {
+    const count = value / 1_000;
+    return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}K`;
+  }
+  const count = value / 1_000_000;
+  return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}M`;
+}
 
 function reelDownloadName(title: string): string {
   const slug = title
@@ -178,6 +210,8 @@ function BeginnersPage() {
   const queryClient = useQueryClient();
   const load = useServerFn(getTraineeDashboard);
   const loadReels = useServerFn(getTraineeReels);
+  const likeReel = useServerFn(toggleReelLike);
+  const saveReel = useServerFn(toggleReelSave);
   const unlock = useServerFn(unlockTraineeSession);
   const play = useServerFn(playTraineeSession);
   const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);
@@ -191,6 +225,8 @@ function BeginnersPage() {
   const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [reelsMuted, setReelsMuted] = useState(true);
+  const [commentsFor, setCommentsFor] = useState<FeedReel | null>(null);
+  const [reelLocal, setReelLocal] = useState<Record<string, Partial<FeedReel>>>({});
 
   useEffect(() => {
     setPortalReady(true);
@@ -322,7 +358,36 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
-  const reels = view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? []);
+  const reels: FeedReel[] = (view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? [])).map(
+    (reel: FeedReel) => ({ ...reel, ...(reelLocal[reel.id] ?? {}) }),
+  );
+
+  async function onReelLike(reel: FeedReel) {
+    const next = !reel.liked;
+    setReelLocal((state) => ({
+      ...state,
+      [reel.id]: { ...state[reel.id], liked: next, likes: Math.max(0, reel.likes + (next ? 1 : -1)) },
+    }));
+    try {
+      await likeReel({ data: { id: reel.id } } as never);
+    } catch {
+      setReelLocal((state) => ({
+        ...state,
+        [reel.id]: { ...state[reel.id], liked: reel.liked, likes: reel.likes },
+      }));
+    }
+  }
+
+  async function onReelSave(reel: FeedReel) {
+    const next = !reel.saved;
+    setReelLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: next } }));
+    try {
+      await saveReel({ data: { id: reel.id } } as never);
+      toast.success(next ? "Saved to your collection" : "Removed from saved");
+    } catch {
+      setReelLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: reel.saved } }));
+    }
+  }
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
   const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
   const searchTokens = tokenize(searchQuery);
@@ -786,7 +851,7 @@ function BeginnersPage() {
               </div>
             ) : (
               <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory space-y-6 scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
-                {reels.map((reel: any) => (
+                {reels.map((reel) => (
                   <article key={reel.id} className="metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
                       <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} className="h-full w-full bg-media object-contain" />
@@ -811,18 +876,53 @@ function BeginnersPage() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void downloadReelToGallery(reel)}
-                      aria-label="Save reel to gallery"
-                      className="absolute bottom-24 right-3 flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
-                    >
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
-                        <Download className="h-5 w-5" />
-                      </span>
-                      <span className="text-[10px] font-semibold">Gallery</span>
-                    </button>
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
+                    <div className="absolute bottom-24 right-3 flex flex-col items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => void onReelLike(reel)}
+                        aria-label={reel.liked ? "Remove like" : "Like reel"}
+                        className={`flex flex-col items-center gap-1 transition-transform duration-300 active:scale-90 ${reel.liked ? "text-brand-glow" : "text-foreground"}`}
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Heart className={`h-5 w-5 ${reel.liked ? "fill-current" : ""}`} />
+                        </span>
+                        <span className="text-[10px] font-semibold">{compactCount(reel.likes)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCommentsFor(reel)}
+                        aria-label="Comments"
+                        className="flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <MessageCircle className="h-5 w-5" />
+                        </span>
+                        <span className="text-[10px] font-semibold">{compactCount(reel.comments)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void downloadReelToGallery(reel)}
+                        aria-label="Save reel to gallery"
+                        className="flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Download className="h-5 w-5" />
+                        </span>
+                        <span className="text-[10px] font-semibold">Gallery</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void onReelSave(reel)}
+                        aria-label={reel.saved ? "Remove from saved" : "Save reel"}
+                        className={`flex flex-col items-center gap-1 transition-transform duration-300 active:scale-90 ${reel.saved ? "text-brand-glow" : "text-foreground"}`}
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Bookmark className={`h-5 w-5 ${reel.saved ? "fill-current" : ""}`} />
+                        </span>
+                        <span className="text-[10px] font-semibold">{reel.saved ? "Saved" : "Save"}</span>
+                      </button>
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
                       <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>
                       {reel.caption ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{reel.caption}</p> : null}
@@ -831,6 +931,15 @@ function BeginnersPage() {
                 ))}
               </div>
             )}
+
+            <Dialog open={Boolean(commentsFor)} onOpenChange={(next) => !next && setCommentsFor(null)}>
+              <DialogContent className="max-h-[85vh] overflow-hidden rounded-3xl p-0">
+                <DialogHeader className="border-b border-hairline px-5 py-4">
+                  <DialogTitle>Comments</DialogTitle>
+                </DialogHeader>
+                {commentsFor ? <TraineeReelComments reelId={commentsFor.id} /> : null}
+              </DialogContent>
+            </Dialog>
 
           </section>
         ) : null}
@@ -965,5 +1074,80 @@ function TraineePasswordCard({ traineeCode }: { traineeCode: string }) {
         </Button>
       </form>
     </section>
+  );
+}
+
+function TraineeReelComments({ reelId }: { reelId: string }) {
+  const loadComments = useServerFn(getReelComments);
+  const send = useServerFn(addReelComment);
+  const queryClient = useQueryClient();
+  const [body, setBody] = useState("");
+
+  const { data, isPending } = useQuery({
+    queryKey: ["reel-comments", reelId],
+    queryFn: () => loadComments({ data: { id: reelId } } as never),
+  });
+
+  const post = useMutation({
+    mutationFn: (value: string) => send({ data: { id: reelId, body: value } } as never),
+    onSuccess: () => {
+      setBody("");
+      toast.success("Comment sent — it appears to others once approved.");
+      void queryClient.invalidateQueries({ queryKey: ["reel-comments", reelId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const comments = data?.comments ?? [];
+
+  return (
+    <div className="flex max-h-[70vh] flex-col">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {isPending ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          </div>
+        ) : comments.length === 0 ? (
+          <p className="py-6 text-center text-xs text-muted-foreground">
+            No comments yet. Be the first one.
+          </p>
+        ) : (
+          comments.map((comment: any) => (
+            <div key={comment.id} className="glass-panel rounded-2xl p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hairline bg-surface-2 text-[10px] font-semibold">
+                  {comment.authorName.slice(0, 1).toUpperCase()}
+                </span>
+                <p className="truncate text-xs font-semibold">{comment.authorName}</p>
+                {comment.pending ? (
+                  <span className="ml-auto rounded-full border border-hairline px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                    Awaiting approval
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{comment.body}</p>
+            </div>
+          ))
+        )}
+      </div>
+      <form
+        className="flex items-center gap-2 border-t border-hairline px-4 py-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!body.trim()) return;
+          post.mutate(body.trim());
+        }}
+      >
+        <Input
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Add a comment…"
+          className="h-11 rounded-2xl"
+        />
+        <Button type="submit" variant="brand" className="rounded-2xl" disabled={post.isPending}>
+          {post.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </form>
+    </div>
   );
 }

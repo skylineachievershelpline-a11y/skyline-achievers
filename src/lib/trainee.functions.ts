@@ -191,20 +191,50 @@ export const getTraineeReels = createServerFn({ method: "GET" })
     if (!trainee || trainee.status !== "active") return { reels: [] };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
     const { signPath, THUMBNAIL_BUCKET, VIDEO_BUCKET } = await import("./storage.server");
-    const { data: rows } = await (supabaseAdmin as any)
+    const { data: rows } = await admin
       .from("reels")
-      .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, created_at")
+      .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, base_likes, created_by_admin, created_at")
       .eq("is_published", true)
       .order("created_at", { ascending: false })
       .limit(60);
 
+    const published = (rows ?? []) as any[];
+    const ids = published.map((reel) => reel.id as string);
+    const [{ data: likeRows }, { data: commentRows }, { data: myLikes }, { data: mySaves }] =
+      await Promise.all([
+        ids.length ? admin.from("reel_likes").select("reel_id").in("reel_id", ids) : { data: [] },
+        ids.length
+          ? admin.from("reel_comments").select("reel_id").eq("status", "approved").in("reel_id", ids)
+          : { data: [] },
+        ids.length
+          ? admin.from("reel_likes").select("reel_id").eq("viewer_id", context.userId).in("reel_id", ids)
+          : { data: [] },
+        ids.length
+          ? admin.from("reel_saves").select("reel_id").eq("viewer_id", context.userId).in("reel_id", ids)
+          : { data: [] },
+      ]);
+    const likeCount = new Map<string, number>();
+    for (const row of (likeRows ?? []) as any[])
+      likeCount.set(row.reel_id, (likeCount.get(row.reel_id) ?? 0) + 1);
+    const commentCount = new Map<string, number>();
+    for (const row of (commentRows ?? []) as any[])
+      commentCount.set(row.reel_id, (commentCount.get(row.reel_id) ?? 0) + 1);
+    const likedSet = new Set(((myLikes ?? []) as any[]).map((row) => row.reel_id as string));
+    const savedSet = new Set(((mySaves ?? []) as any[]).map((row) => row.reel_id as string));
+
     const reels = await Promise.all(
-      ((rows ?? []) as any[]).map(async (reel) => ({
+      published.map(async (reel) => ({
         id: reel.id as string,
         title: reel.title as string,
         caption: (reel.caption ?? null) as string | null,
         createdAt: reel.created_at as string,
+        verified: reel.created_by_admin === true,
+        likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
+        comments: commentCount.get(reel.id) ?? 0,
+        liked: likedSet.has(reel.id),
+        saved: savedSet.has(reel.id),
         posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
         url:
           reel.video_source === "external"

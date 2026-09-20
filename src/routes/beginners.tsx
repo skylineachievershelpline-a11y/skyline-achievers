@@ -41,12 +41,12 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getReels } from "@/lib/reels.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
 import {
   getTraineeAvatarUploadUrl,
   getTraineeDashboard,
+  getTraineeReels,
   playTraineeSession,
   saveTraineeAvatar,
   unlockTraineeSession,
@@ -177,7 +177,7 @@ function BeginnersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const load = useServerFn(getTraineeDashboard);
-  const loadReels = useServerFn(getReels);
+  const loadReels = useServerFn(getTraineeReels);
   const unlock = useServerFn(unlockTraineeSession);
   const play = useServerFn(playTraineeSession);
   const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);
@@ -229,7 +229,7 @@ function BeginnersPage() {
   });
 
   const { data: reelFeed, isPending: reelsPending } = useQuery({
-    queryKey: ["reels"],
+    queryKey: ["trainee-reels"],
     queryFn: () => loadReels(),
     enabled: ready && view === "reels",
     staleTime: 0,
@@ -322,7 +322,7 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
-  const reels = reelFeed?.reels ?? data.reels ?? [];
+  const reels = view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? []);
   const unlockedCount = sessions.filter((session) => session.unlocked).length;
   const progress = sessions.length > 0 ? Math.round((unlockedCount / sessions.length) * 100) : 0;
   const searchTokens = tokenize(searchQuery);

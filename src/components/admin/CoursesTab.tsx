@@ -116,7 +116,7 @@ export function CoursesTab() {
 
   async function submitCourse() {
     if ((form.title ?? "").trim().length < 2) {
-      toast.error("Course ka title likhein.");
+      toast.error("Enter the course title.");
       return;
     }
     setBusy(true);
@@ -227,7 +227,7 @@ export function CoursesTab() {
                 checked={form.is_published ?? false}
                 onCheckedChange={(checked) => setForm((state) => ({ ...state, is_published: checked }))}
               />
-              <span className="text-xs text-muted-foreground">Published (members ko show ho)</span>
+              <span className="text-xs text-muted-foreground">Published (visible to members)</span>
             </div>
             <div className="flex gap-2">
               <Button type="button" className="min-w-fit rounded-xl" disabled={busy} onClick={() => void submitCourse()}>
@@ -250,7 +250,7 @@ export function CoursesTab() {
 
         <div className="mt-4 space-y-2">
           {courses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Abhi koi paid course nahi hai.</p>
+            <p className="text-sm text-muted-foreground">No paid courses yet.</p>
           ) : (
             courses.map((course) => (
               <div key={course.id} className="rounded-2xl border border-hairline bg-surface p-3">
@@ -333,7 +333,7 @@ export function CoursesTab() {
                           onClick={async () => {
                             const result = await grant({ data: { courseId: course.id, code: grantCode.trim() } });
                             if (!result.ok) {
-                              toast.error("Is ID ka koi account nahi mila.");
+                              toast.error("No account was found for this ID.");
                               return;
                             }
                             toast.success(`Access given to ${result.name}`);
@@ -366,7 +366,7 @@ export function CoursesTab() {
       <section className="glass-panel metal-edge rounded-2xl p-4">
         <h3 className="font-display text-sm font-semibold">Payment accounts</h3>
         <p className="text-xs text-muted-foreground">
-          Ye details member ko course page par show hoti hain.
+          These details are shown to members on the course page.
         </p>
 
         <div className="mt-3 space-y-2">
@@ -481,7 +481,7 @@ export function CoursesTab() {
 
         <div className="mt-3 space-y-2">
           {requests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Abhi koi request nahi aayi.</p>
+            <p className="text-sm text-muted-foreground">No payment requests yet.</p>
           ) : (
             requests.map((request) => (
               <div key={request.id} className="rounded-2xl border border-hairline bg-surface p-3">
@@ -519,7 +519,7 @@ export function CoursesTab() {
                       onClick={async () => {
                         const { url } = await signProof({ data: { path: request.proof_path } });
                         if (!url) {
-                          toast.error("Screenshot open nahi ho saka.");
+                          toast.error("The screenshot could not be opened.");
                           return;
                         }
                         window.open(url, "_blank", "noopener");
@@ -546,7 +546,7 @@ export function CoursesTab() {
                     size="sm"
                     className="min-w-fit rounded-xl"
                     onClick={async () => {
-                      const note = prompt("Reason for rejection (member ko show hoga)") ?? "";
+                      const note = prompt("Reason for rejection (shown to the member)") ?? "";
                       await decide({ data: { id: request.id, status: "rejected", adminNote: note } });
                       toast.success("Request rejected");
                       await refresh();
@@ -617,7 +617,7 @@ function MethodForm({
         disabled={busy}
         onClick={async () => {
           if (label.trim().length < 2) {
-            toast.error("Account ka naam likhein.");
+            toast.error("Enter the account name.");
             return;
           }
           setBusy(true);
@@ -672,7 +672,7 @@ function LessonEditor({
       <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Lessons</p>
       <div className="space-y-1">
         {lessons.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Is course ka koi lesson nahi hai.</p>
+          <p className="text-xs text-muted-foreground">This course has no lessons yet.</p>
         ) : (
           lessons.map((lesson, index) => (
             <div key={lesson.id} className="flex items-center gap-2 rounded-xl border border-hairline bg-surface p-2">
@@ -742,11 +742,11 @@ function LessonEditor({
           disabled={progress !== null}
           onClick={async () => {
             if (title.trim().length < 2) {
-              toast.error("Lesson ka title likhein.");
+              toast.error("Enter the lesson title.");
               return;
             }
             if (!videoFile) {
-              toast.error("Lesson ki video select karein.");
+              toast.error("Select a video for the lesson.");
               return;
             }
             setProgress(1);
@@ -782,7 +782,7 @@ function LessonEditor({
               setThumbFile(null);
               await onSaved();
             } catch (error) {
-              toast.error(error instanceof Error ? error.message : "Lesson save nahi hua.");
+              toast.error(error instanceof Error ? error.message : "The lesson could not be saved.");
             } finally {
               setProgress(null);
             }

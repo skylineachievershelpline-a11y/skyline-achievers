@@ -183,6 +183,39 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
     };
   });
 
+/** Always-current published reel feed for Beginners Training accounts. */
+export const getTraineeReels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const trainee = await loadTrainee(context.userId);
+    if (!trainee || trainee.status !== "active") return { reels: [] };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, THUMBNAIL_BUCKET, VIDEO_BUCKET } = await import("./storage.server");
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("reels")
+      .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, created_at")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(60);
+
+    const reels = await Promise.all(
+      ((rows ?? []) as any[]).map(async (reel) => ({
+        id: reel.id as string,
+        title: reel.title as string,
+        caption: (reel.caption ?? null) as string | null,
+        createdAt: reel.created_at as string,
+        posterUrl: await signPath(THUMBNAIL_BUCKET, reel.thumbnail_path, 60 * 60 * 6),
+        url:
+          reel.video_source === "external"
+            ? (reel.video_url as string | null)
+            : await signPath(VIDEO_BUCKET, reel.video_path, 60 * 60 * 4),
+      })),
+    );
+
+    return { reels };
+  });
+
 /** Unlocks one session with the code the trainer shares. */
 export const unlockTraineeSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

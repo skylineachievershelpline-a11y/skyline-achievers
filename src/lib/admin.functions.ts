@@ -246,6 +246,96 @@ export const adminSaveTrainingCategory = createServerFn({ method: "POST" })
       description?: string | null;
       sortOrder: number;
       isPublished: boolean;
+      groupId?: string | null;
+      levelIds?: string[];
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          name: text(60),
+          description: optionalText(500),
+          sortOrder: z.number().int().min(0).max(999),
+          isPublished: z.boolean(),
+          groupId: uuid.nullish(),
+          levelIds: z.array(uuid).max(50).optional(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const payload = {
+      name: data.name,
+      slug: slug || `section-${Date.now()}`,
+      description: data.description,
+      sort_order: data.sortOrder,
+      is_published: data.isPublished,
+      group_id: data.groupId ?? null,
+    };
+    let categoryId = data.id ?? null;
+    if (categoryId) {
+      const { error } = await (supabaseAdmin as any)
+        .from("training_categories")
+        .update(payload)
+        .eq("id", categoryId);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: created, error } = await (supabaseAdmin as any)
+        .from("training_categories")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      categoryId = created.id as string;
+    }
+
+    // Exactly which ranks may open this section.
+    if (data.levelIds) {
+      await (supabaseAdmin as any)
+        .from("training_category_access")
+        .delete()
+        .eq("category_id", categoryId);
+      if (data.levelIds.length > 0) {
+        const { error } = await (supabaseAdmin as any).from("training_category_access").insert(
+          data.levelIds.map((levelId) => ({ category_id: categoryId, level_id: levelId })),
+        );
+        if (error) throw new Error(error.message);
+      }
+    }
+    return { ok: true as const };
+  });
+
+export const adminDeleteTrainingCategory = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("training_categories")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Categories group the training sections together (Sales, Mindset, Personal
+ * Mentorship, ...). Each section belongs to one category.
+ */
+export const adminSaveTrainingGroup = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      name: string;
+      description?: string | null;
+      sortOrder: number;
+      isPublished: boolean;
     }) =>
       z
         .object({
@@ -267,32 +357,33 @@ export const adminSaveTrainingCategory = createServerFn({ method: "POST" })
       .replace(/^-|-$/g, "");
     const payload = {
       name: data.name,
-      slug: slug || `section-${Date.now()}`,
+      slug: slug || `category-${Date.now()}`,
       description: data.description,
       sort_order: data.sortOrder,
       is_published: data.isPublished,
     };
     const query = data.id
-      ? (supabaseAdmin as any).from("training_categories").update(payload).eq("id", data.id)
-      : (supabaseAdmin as any).from("training_categories").insert(payload);
+      ? (supabaseAdmin as any).from("training_groups").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("training_groups").insert(payload);
     const { error } = await query;
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
 
-export const adminDeleteTrainingCategory = createServerFn({ method: "POST" })
+export const adminDeleteTrainingGroup = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await (supabaseAdmin as any)
-      .from("training_categories")
+      .from("training_groups")
       .delete()
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
 
 export const adminSaveLevel = createServerFn({ method: "POST" })
   .inputValidator(

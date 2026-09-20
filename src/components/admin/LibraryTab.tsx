@@ -420,10 +420,32 @@ export function LibraryTab() {
           <ul className="space-y-2">
             {(data.resources as any[]).map((r) => (
               <li key={r.id} className="glass-panel flex items-center gap-3 rounded-2xl p-3 text-sm">
-                <span className="min-w-0 flex-1 truncate">{r.title}</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {RESOURCE_TYPE_LABEL[r.resource_type] ?? r.resource_type}
+                {r.thumbnail_url ? (
+                  <img
+                    src={r.thumbnail_url}
+                    alt=""
+                    loading="lazy"
+                    className="h-10 w-10 shrink-0 rounded-xl border border-border object-cover"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{r.title}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">
+                    {RESOURCE_TYPE_LABEL[r.resource_type] ?? r.resource_type}
+                    {r.lectures?.title ? ` · ${r.lectures.title}` : " · Standalone"}
+                  </span>
                 </span>
+                <button
+                  onClick={() => void copyResourceLink(r.id)}
+                  className="inline-flex min-w-fit items-center gap-1.5 rounded-full border border-hairline bg-glass px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {copiedResource === r.id ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedResource === r.id ? "Copied" : "Copy link"}
+                </button>
                 <button
                   onClick={() => del.mutate({ table: "resources", id: r.id })}
                   className="text-muted-foreground transition-colors hover:text-destructive"

@@ -309,10 +309,8 @@ function ReelsPage() {
 
 function ReelCard({
   reel,
-  muted,
   isActive,
   onActive,
-  onToggleMute,
   onLike,
   onSave,
   onDownload,
@@ -320,10 +318,8 @@ function ReelCard({
   onDelete,
 }: {
   reel: Reel;
-  muted: boolean;
   isActive: boolean;
   onActive: () => void;
-  onToggleMute: () => void;
   onLike: () => void;
   onSave: () => void;
   onDownload: () => void;
@@ -332,6 +328,7 @@ function ReelCard({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Only the centred clip plays; every other one is paused and silenced so two
   // reels can never be heard at once.
@@ -355,10 +352,16 @@ function ReelCard({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (visible && isActive) void video.play().catch(() => undefined);
-    else {
+    if (visible && isActive) {
+      video.muted = false;
+      void video.play().catch(() => {
+        // Some phones refuse sound before the first tap — fall back to silent play.
+        video.muted = true;
+        void video.play().catch(() => undefined);
+      });
+    } else {
       video.pause();
-      video.currentTime = video.currentTime;
+      video.muted = true;
     }
   }, [visible, isActive]);
 
@@ -374,9 +377,11 @@ function ReelCard({
           src={reel.url}
           poster={reel.posterUrl ?? undefined}
           loop
-          muted={muted || !isActive}
           playsInline
           preload="metadata"
+          onWaiting={() => setLoading(true)}
+          onCanPlay={() => setLoading(false)}
+          onPlaying={() => setLoading(false)}
           onClick={() => {
             const video = videoRef.current;
             if (!video) return;
@@ -391,15 +396,11 @@ function ReelCard({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onToggleMute}
-        aria-label={muted ? "Turn sound on" : "Turn sound off"}
-        className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-hairline bg-background/70 px-3 py-1.5 text-[11px] text-foreground backdrop-blur transition-all duration-300 hover:bg-background/90 active:scale-95"
-      >
-        {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-        {muted ? "Sound off" : "Sound on"}
-      </button>
+      {reel.url && loading ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/45 backdrop-blur-[2px]">
+          <SkylineLoader />
+        </div>
+      ) : null}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center bg-gradient-to-b from-background/90 via-background/45 to-transparent px-16 pb-10 pt-3">
         <div className="flex max-w-full items-center gap-2 rounded-full border border-cyan/30 bg-background/75 px-3 py-1.5 shadow-brand backdrop-blur-md">
@@ -438,23 +439,7 @@ function ReelCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
-        <div className="flex items-center gap-2">
-          {reel.verified ? (
-            <img
-              src={BRAND.logoUrl}
-              alt=""
-              className="h-8 w-8 rounded-full border border-cyan/40 bg-surface-2 object-contain p-0.5"
-            />
-          ) : (
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-surface-2 text-[11px] font-semibold">
-              {reel.authorName.slice(0, 1).toUpperCase()}
-            </span>
-          )}
-          <span className="truncate text-xs font-semibold">{reel.authorName}</span>
-          {reel.verified ? (
-            <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" aria-label="Verified" />
-          ) : null}
-        </div>
+        <ReelAuthor reel={reel} />
         <h3 className="mt-2 font-display text-base font-semibold">{reel.title}</h3>
         {reel.caption ? (
           <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{reel.caption}</p>

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { createProofUploadUrl, getCourseDetail, submitCoursePayment } from "@/lib/courses.functions";
 import { putWithProgress } from "@/lib/upload-progress";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,7 @@ function CourseDetailPage() {
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [playing, setPlaying] = useState<string | null>(null);
+  const [slip, setSlip] = useState<PaymentSlipData | null>(null);
 
   const { data, isPending } = useQuery({
     queryKey: ["course-detail", courseId],
@@ -124,6 +126,18 @@ function CourseDetailPage() {
       return result;
     },
     onSuccess: async () => {
+      if (data?.status === "ok") {
+        setSlip({
+          courseTitle: data.course.title,
+          buyerName: data.identity.name,
+          buyerId: data.identity.code,
+          method: method.trim(),
+          amount: Number(amount),
+          reference: reference.trim(),
+          phone: (phone || data.identity.phone || "").trim(),
+          submittedAt: new Date(),
+        });
+      }
       toast.success("Payment sent for verification. Access within 24 hours.");
       await queryClient.invalidateQueries({ queryKey: ["course-detail", courseId] });
       await queryClient.invalidateQueries({ queryKey: ["course-catalog"] });
@@ -560,6 +574,8 @@ function CourseDetailPage() {
           )}
         </section>
       </div>
+
+      <PaymentSlip open={slip !== null} data={slip} onClose={() => setSlip(null)} />
     </MemberShell>
   );
 }

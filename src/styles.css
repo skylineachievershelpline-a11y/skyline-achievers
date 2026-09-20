@@ -818,8 +818,8 @@ body > div > :not(.liquid-atmosphere) {
 }
 
 .review-card[data-depth="0"] { z-index: 3; transform: translateY(0) scale(1); }
-.review-card[data-depth="1"] { z-index: 2; transform: translateY(1.25rem) scale(.95); opacity: .72; filter: brightness(.76); }
-.review-card[data-depth="2"] { z-index: 1; transform: translateY(2.35rem) scale(.89); opacity: .42; filter: brightness(.58); }
+.review-card[data-depth="1"] { z-index: 2; transform: translateY(1.9rem) scaleX(.94); opacity: .92; filter: brightness(.82); }
+.review-card[data-depth="2"] { z-index: 1; transform: translateY(3.5rem) scaleX(.87); opacity: .8; filter: brightness(.64); }
 .review-card.is-leaving { transform: translate3d(0, -115%, 0) rotate(-1.5deg) scale(.97); opacity: 0; }
 
 .review-card-inner {

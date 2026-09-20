@@ -6,6 +6,7 @@ import {
   Clapperboard,
   GraduationCap,
   Home,
+  ImageDown,
   Link2,
   Menu,
   Lock,
@@ -66,6 +67,7 @@ const NAV = [
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
+  { to: "/status-saver", label: "Status Saver", icon: ImageDown },
 ] as const;
 
 /** Areas that belong to working, not training. Locked for training-only accounts. */

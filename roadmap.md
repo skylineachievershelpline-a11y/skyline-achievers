@@ -107,3 +107,11 @@
 - [x] Generate a branded profile-style status picture for gallery and sharing
 - [x] Verify build health
 - [ ] Verify the signed-in phone layout (blocked until a member account is signed into the preview)
+
+## Reference-style identity and rank pins
+- [x] Remove the decorative star beside the member name
+- [x] Add the branded Skyline Achievers identity panel below the profile
+- [x] Move Status Saver from Home into the side menu
+- [x] Remove “Training” from rank names and add the advanced manager ranks
+- [x] Create and assign a distinct supplied-reference pin to every ranked level
+- [ ] Verify the signed-in phone layout (blocked until a member account is signed into the preview)

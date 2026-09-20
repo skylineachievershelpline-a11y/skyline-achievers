@@ -210,65 +210,86 @@ export function DailyReportPanel() {
               absent.
             </p>
           </div>
-          {data.todaySubmitted ? (
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-cyan">
-              <CheckCircle2 className="h-4 w-4" /> Submitted for today
-            </span>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {data.todaySubmitted ? (
+              <span className="inline-flex items-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-cyan">
+                <CheckCircle2 className="h-4 w-4" /> Submitted for today
+              </span>
+            ) : null}
+            <Button
+              type="button"
+              variant={data.todaySubmitted ? "outline" : "brand"}
+              className="rounded-2xl"
+              onClick={() => setFormOpen((open) => !open)}
+            >
+              {formOpen ? (
+                <>
+                  <X className="h-4 w-4" /> Close form
+                </>
+              ) : (
+                <>
+                  <PenLine className="h-4 w-4" />
+                  {data.todaySubmitted ? "Update today's report" : "Fill today's report"}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        <form
-          className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!data.windowOpen) {
-              toast.error("The daily report opens at 8:00 PM.");
-              return;
-            }
-            submit.mutate();
-          }}
-        >
-          {FIELDS.map((field) => (
-            <div key={field.key} className="inset-panel space-y-2 rounded-2xl p-3">
-              <Label htmlFor={`report-${field.key}`} className="text-xs">
-                {field.label}
-              </Label>
-              <Input
-                id={`report-${field.key}`}
-                type="number"
-                min={0}
-                inputMode="numeric"
-                placeholder={String(data.today[field.key as keyof ReportDay] ?? 0)}
-                value={values[field.key]}
-                onChange={(event) =>
-                  setValues((current) => ({ ...current, [field.key]: event.target.value }))
-                }
-              />
-              <p className="text-[10px] text-muted-foreground">{field.hint}</p>
-            </div>
-          ))}
+        {formOpen ? (
+          <form
+            className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 animate-rise-in"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!data.windowOpen) {
+                toast.error("The daily report opens at 8:00 PM.");
+                return;
+              }
+              submit.mutate();
+            }}
+          >
+            {FIELDS.map((field) => (
+              <div key={field.key} className="inset-panel space-y-2 rounded-2xl p-3">
+                <Label htmlFor={`report-${field.key}`} className="text-xs">
+                  {field.label}
+                </Label>
+                <Input
+                  id={`report-${field.key}`}
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  placeholder={String(data.today[field.key as keyof ReportDay] ?? 0)}
+                  value={values[field.key]}
+                  onChange={(event) =>
+                    setValues((current) => ({ ...current, [field.key]: event.target.value }))
+                  }
+                />
+                <p className="text-[10px] text-muted-foreground">{field.hint}</p>
+              </div>
+            ))}
 
-          <div className="sm:col-span-2 lg:col-span-3">
-            <Button
-              type="submit"
-              variant="brand"
-              className="w-full rounded-2xl sm:w-auto"
-              disabled={submit.isPending || !data.windowOpen}
-            >
-              {submit.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              {data.todaySubmitted ? "Update today's report" : "Submit daily report"}
-            </Button>
-            {!data.windowOpen ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                The form unlocks at {data.openHourLabel} Pakistan time.
-              </p>
-            ) : null}
-          </div>
-        </form>
+            <div className="sm:col-span-2 lg:col-span-3">
+              <Button
+                type="submit"
+                variant="brand"
+                className="w-full rounded-2xl sm:w-auto"
+                disabled={submit.isPending || !data.windowOpen}
+              >
+                {submit.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {data.todaySubmitted ? "Update today's report" : "Submit daily report"}
+              </Button>
+              {!data.windowOpen ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The form unlocks at {data.openHourLabel} Pakistan time.
+                </p>
+              ) : null}
+            </div>
+          </form>
+        ) : null}
       </section>
 
       <TrendChart days={chartDays} />

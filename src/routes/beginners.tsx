@@ -4,12 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
+  Bookmark,
   CheckCircle2,
   ChevronRight,
   Clapperboard,
   Crown,
   Download,
   GraduationCap,
+  Heart,
   Home,
   KeyRound,
   Loader2,
@@ -19,6 +21,7 @@ import {
   MessageCircle,
   PlayCircle,
   Search,
+  Send,
   ShieldCheck,
   Unlock,
   Camera,
@@ -37,8 +40,15 @@ import { SessionGate } from "@/components/media/SessionGate";
 import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  addReelComment,
+  getReelComments,
+  toggleReelLike,
+  toggleReelSave,
+} from "@/lib/reels.functions";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";

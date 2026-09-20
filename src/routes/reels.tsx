@@ -268,10 +268,8 @@ function ReelsPage() {
               <ReelCard
                 key={reel.id}
                 reel={reel}
-                muted={muted}
                 isActive={activeId === reel.id}
                 onActive={() => onActive(reel.id)}
-                onToggleMute={() => setMuted((m) => !m)}
                 onLike={() => void onLike(reel)}
                 onSave={() => void onSave(reel)}
                  onDownload={() => void onDownload(reel)}

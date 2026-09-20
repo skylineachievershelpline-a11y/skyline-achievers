@@ -604,7 +604,7 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
               thumbnailPath: null,
             },
           } as never);
-          toast.success("Reel posted");
+          toast.success("Reel sent for admin approval — it goes live once approved.");
           onDone();
         } catch (error) {
           toast.error((error as Error).message);

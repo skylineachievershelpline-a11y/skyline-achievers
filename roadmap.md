@@ -144,4 +144,4 @@
 - [x] Add the large Skyline Achievers review watermark and layered cards
 - [x] Remove square grid patterns and add continuous blue liquid waves
 - [x] Add touch and pointer water ripples with reduced-motion support
-- [ ] Verify phone and desktop interactions after the preview refreshes
+- [x] Verify phone and desktop interactions after the preview refreshes

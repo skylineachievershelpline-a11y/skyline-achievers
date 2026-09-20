@@ -99,11 +99,26 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
       </div>
       <div
         className="review-stack"
+        onTouchStart={(event) => {
+          const touch = event.touches[0];
+          if (touch) start.current = { x: touch.clientX, y: touch.clientY };
+        }}
+        onTouchEnd={(event) => {
+          const origin = start.current;
+          const touch = event.changedTouches[0];
+          start.current = null;
+          if (!origin || !touch) return;
+          const dx = touch.clientX - origin.x;
+          const dy = touch.clientY - origin.y;
+          if (dy < -52 && Math.abs(dy) > Math.abs(dx) * 1.15) next();
+        }}
         onPointerDown={(event) => {
+          if (event.pointerType === "touch") return;
           event.currentTarget.setPointerCapture(event.pointerId);
           start.current = { x: event.clientX, y: event.clientY };
         }}
         onPointerMove={(event) => {
+          if (event.pointerType === "touch") return;
           const origin = start.current;
           if (!origin) return;
           const dx = event.clientX - origin.x;
@@ -114,6 +129,7 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
           }
         }}
         onPointerUp={(event) => {
+          if (event.pointerType === "touch") return;
           const origin = start.current;
           start.current = null;
           if (!origin) return;

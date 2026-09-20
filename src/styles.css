@@ -791,7 +791,7 @@ body { isolation: isolate; }
   position: relative;
   z-index: 2;
   min-height: 24rem;
-  touch-action: pan-y;
+  touch-action: pan-x;
   user-select: none;
   cursor: grab;
 }

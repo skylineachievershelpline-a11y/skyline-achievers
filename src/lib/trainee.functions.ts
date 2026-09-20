@@ -195,7 +195,7 @@ export const getTraineeReels = createServerFn({ method: "GET" })
     const { signPath, THUMBNAIL_BUCKET, VIDEO_BUCKET } = await import("./storage.server");
     const { data: rows } = await admin
       .from("reels")
-      .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, base_likes, created_by_admin, created_at")
+      .select("id, title, caption, video_source, video_path, video_url, thumbnail_path, base_likes, created_by, created_by_admin, created_at")
       .eq("is_published", true)
       .order("created_at", { ascending: false })
       .limit(60);

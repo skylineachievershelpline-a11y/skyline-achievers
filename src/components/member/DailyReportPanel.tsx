@@ -7,8 +7,10 @@ import {
   Clock,
   Download,
   Loader2,
+  PenLine,
   Send,
   Share2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 

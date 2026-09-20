@@ -112,6 +112,158 @@ function TrainingPage() {
     ).length;
   }
 
+  const activeBucket = grouped.find((entry) => entry.bucket.id === openGroup) ?? null;
+
+  return (
+    <MemberShell title="Training" subtitle="Your training library" executive>
+      <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          Skyline training library
+        </p>
+        <h1 className="mt-1 font-display text-2xl font-bold">
+          {active ? active.name : activeBucket ? activeBucket.bucket.name : "Training categories"}
+        </h1>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {active
+            ? (active.description ??
+              `${inSection.filter((v) => !v.locked).length} of ${inSection.length} videos unlocked for your rank.`)
+            : activeBucket
+              ? "Choose a section to open its videos."
+              : "Choose a category to see the sections inside it."}
+        </p>
+        {active || activeBucket ? (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            {active ? (
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={`Search in ${active.name}`}
+                className="h-11 rounded-2xl"
+              />
+            ) : null}
+            <Button
+              variant="secondary"
+              size="xl"
+              className="min-w-fit"
+              onClick={() => {
+                setQuery("");
+                if (active) setOpenSection(null);
+                else setOpenGroup(null);
+              }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {active ? "All sections" : "All categories"}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+
+      {!ready || isPending ? (
+        <div className="flex justify-center py-14">
+          <SkylineLoader />
+        </div>
+      ) : !active && !activeBucket ? (
+        <section className="mt-6">
+          <SectionTitle>Categories</SectionTitle>
+          {grouped.length === 0 ? (
+            <EmptyState
+              title="No training categories yet"
+              hint="Categories appear here as soon as they are published."
+            />
+          ) : (
+            <ul className="space-y-2">
+              {grouped.map(({ bucket, items }, index) => {
+                const videoCount = items.reduce((sum, section) => sum + countFor(section), 0);
+                return (
+                  <li
+                    key={bucket.id}
+                    className="animate-rise-in"
+                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenGroup(bucket.id);
+                        setQuery("");
+                      }}
+                      className="glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left"
+                    >
+                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
+                        <Layers className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display text-sm font-semibold">
+                          {bucket.name}
+                        </span>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {items.length} section{items.length === 1 ? "" : "s"} · {videoCount} video
+                          {videoCount === 1 ? "" : "s"}
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      ) : !active && activeBucket ? (
+        <section className="mt-6">
+          <SectionTitle>Sections</SectionTitle>
+          {activeBucket.items.length === 0 ? (
+            <EmptyState
+              title="No sections here yet"
+              hint="Sections appear here as soon as they are published."
+            />
+          ) : (
+            <ul className="space-y-2">
+              {activeBucket.items.map((section, index) => {
+                const total = countFor(section);
+                const open = all.filter(
+                  (video) =>
+                    !video.locked &&
+                    (section.id === "__none"
+                      ? !video.category_id
+                      : video.category_id === section.id),
+                ).length;
+                return (
+                  <li
+                    key={section.id}
+                    className="animate-rise-in"
+                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenSection(section.id);
+                        setQuery("");
+                      }}
+                      className={cn(
+                        "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
+                      )}
+                    >
+                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
+                        <PlayCircle className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display text-sm font-semibold">
+                          {section.name}
+                        </span>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {total} video{total === 1 ? "" : "s"} · {open} unlocked
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+
   return (
     <MemberShell title="Training" subtitle="Your training library" executive>
       <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">

@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, Pencil, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getMemberSession, saveMemberBio } from "@/lib/member.functions";
+import { getMemberSession, saveMemberBio, saveMemberName } from "@/lib/member.functions";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/profile")({
@@ -59,8 +59,11 @@ function ProfilePage() {
           <section className="glass-panel-strong rounded-3xl p-5">
             <SectionTitle className="mb-4">Membership</SectionTitle>
             <dl className="space-y-2.5 text-sm">
-              <Row label="Full name" value={member?.fullName ?? "—"} />
-              <Row label="Member ID" value={member?.memberId ?? "—"} />
+              {member ? <NameEditor initialName={member.fullName} onSaved={() => {
+                void queryClient.invalidateQueries({ queryKey: ["member-session"] });
+                void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+              }} /> : null}
+              <CopyableId value={member?.memberId ?? ""} />
               <Row label="Level" value={formatRankName(member?.level?.name)} />
               <Row label="Phone" value={member?.phone ?? "—"} />
               <Row label="Email" value={member?.email ?? "—"} />
@@ -79,6 +82,75 @@ function ProfilePage() {
         </div>
       )}
     </MemberShell>
+  );
+}
+
+function NameEditor({ initialName, onSaved }: { initialName: string; onSaved: () => void }) {
+  const save = useServerFn(saveMemberName);
+  const [name, setName] = useState(initialName);
+  const mutation = useMutation({
+    mutationFn: () => save({ data: { fullName: name } }),
+    onSuccess: () => {
+      toast.success("Name updated");
+      onSaved();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <div className="space-y-2 border-b border-hairline/60 pb-3">
+      <Label htmlFor="profile-name" className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        Full name
+      </Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id="profile-name"
+          value={name}
+          minLength={2}
+          maxLength={80}
+          onChange={(event) => setName(event.target.value)}
+          className="h-11 font-display text-base font-semibold"
+        />
+        <Button
+          type="button"
+          size="icon"
+          variant="brand"
+          aria-label="Save name"
+          disabled={mutation.isPending || name.trim().length < 2 || name.trim() === initialName}
+          onClick={() => mutation.mutate()}
+        >
+          {mutation.isPending ? <Loader2 className="animate-spin" /> : <Pencil />}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CopyableId({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyId() {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success("Member ID copied");
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error("Could not copy the Member ID");
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-hairline/60 pb-2">
+      <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Member ID</dt>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <dd className="truncate font-mono text-sm font-semibold text-cyan">{value || "—"}</dd>
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label="Copy member ID" onClick={() => void copyId()} disabled={!value}>
+          {copied ? <Check /> : <Copy />}
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -128,3 +128,8 @@
 - [x] Share the Manager pin with Senior Manager
 - [x] Show complete rank names without clipping or the old “Training” suffix
 - [ ] Add the remaining final rank pins when supplied
+
+## Member profile controls
+- [x] Let signed-in members edit their own name
+- [x] Add one-tap Member ID copying on the dashboard and profile
+- [x] Use the website's original display font for the dashboard name

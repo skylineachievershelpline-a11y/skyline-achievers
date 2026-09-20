@@ -851,7 +851,7 @@ function BeginnersPage() {
               </div>
             ) : (
               <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory space-y-6 scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
-                {reels.map((reel: any) => (
+                {reels.map((reel) => (
                   <article key={reel.id} className="metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
                       <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} className="h-full w-full bg-media object-contain" />
@@ -876,17 +876,52 @@ function BeginnersPage() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void downloadReelToGallery(reel)}
-                      aria-label="Save reel to gallery"
-                      className="absolute bottom-24 right-3 flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
-                    >
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
-                        <Download className="h-5 w-5" />
-                      </span>
-                      <span className="text-[10px] font-semibold">Gallery</span>
-                    </button>
+                    <div className="absolute bottom-24 right-3 flex flex-col items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => void onReelLike(reel)}
+                        aria-label={reel.liked ? "Remove like" : "Like reel"}
+                        className={`flex flex-col items-center gap-1 transition-transform duration-300 active:scale-90 ${reel.liked ? "text-brand-glow" : "text-foreground"}`}
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Heart className={`h-5 w-5 ${reel.liked ? "fill-current" : ""}`} />
+                        </span>
+                        <span className="text-[10px] font-semibold">{compactCount(reel.likes)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCommentsFor(reel)}
+                        aria-label="Comments"
+                        className="flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <MessageCircle className="h-5 w-5" />
+                        </span>
+                        <span className="text-[10px] font-semibold">{compactCount(reel.comments)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void downloadReelToGallery(reel)}
+                        aria-label="Save reel to gallery"
+                        className="flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Download className="h-5 w-5" />
+                        </span>
+                        <span className="text-[10px] font-semibold">Gallery</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void onReelSave(reel)}
+                        aria-label={reel.saved ? "Remove from saved" : "Save reel"}
+                        className={`flex flex-col items-center gap-1 transition-transform duration-300 active:scale-90 ${reel.saved ? "text-brand-glow" : "text-foreground"}`}
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                          <Bookmark className={`h-5 w-5 ${reel.saved ? "fill-current" : ""}`} />
+                        </span>
+                        <span className="text-[10px] font-semibold">{reel.saved ? "Saved" : "Save"}</span>
+                      </button>
+                    </div>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>
                       <h2 className="mt-1 font-display text-base font-semibold">{reel.title}</h2>

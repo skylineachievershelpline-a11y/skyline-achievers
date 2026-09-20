@@ -211,6 +211,7 @@ export async function adminLibrary() {
     { data: categories },
     { data: groups },
     { data: sectionAccess },
+    { data: groupAccess },
   ] = await Promise.all([
     supabaseAdmin.from("levels").select("*").order("rank_order"),
     supabaseAdmin
@@ -234,6 +235,7 @@ export async function adminLibrary() {
       .select("id, name, slug, description, sort_order, is_published")
       .order("sort_order"),
     (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
+    (supabaseAdmin as any).from("training_group_access").select("group_id, level_id"),
   ]);
 
   // Which levels can watch each video.
@@ -246,6 +248,12 @@ export async function adminLibrary() {
   const sectionAccessMap: Record<string, string[]> = {};
   for (const row of (sectionAccess ?? []) as { category_id: string; level_id: string }[]) {
     (sectionAccessMap[row.category_id] ??= []).push(row.level_id);
+  }
+
+  // Which levels can open each category.
+  const groupAccessMap: Record<string, string[]> = {};
+  for (const row of (groupAccess ?? []) as { group_id: string; level_id: string }[]) {
+    (groupAccessMap[row.group_id] ??= []).push(row.level_id);
   }
 
   return {
@@ -268,6 +276,7 @@ export async function adminLibrary() {
       is_published: boolean;
     }[],
     sectionAccess: sectionAccessMap,
+    groupAccess: groupAccessMap,
     lectures: await signThumbnails(lectures ?? []),
     resources: await signThumbnails(resources ?? []),
     access: accessMap,

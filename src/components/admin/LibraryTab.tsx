@@ -90,6 +90,8 @@ export function LibraryTab() {
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const saveCategory = useServerFn(adminSaveTrainingCategory);
   const removeCategory = useServerFn(adminDeleteTrainingCategory);
+  const saveGroup = useServerFn(adminSaveTrainingGroup);
+  const removeGroup = useServerFn(adminDeleteTrainingGroup);
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
@@ -99,12 +101,25 @@ export function LibraryTab() {
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
   const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
+  const [groupDialog, setGroupDialog] = useState<GroupValues | null>(null);
   const [resourceDialog, setResourceDialog] = useState(false);
+  const [copiedResource, setCopiedResource] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-library"] });
     void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+  }
+
+  async function copyResourceLink(id: string) {
+    const link = `${window.location.origin}/resource/${id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt("Copy this link", link);
+    }
+    setCopiedResource(id);
+    window.setTimeout(() => setCopiedResource((prev) => (prev === id ? null : prev)), 1800);
   }
 
   const del = useMutation({
@@ -125,6 +140,15 @@ export function LibraryTab() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const delGroup = useMutation({
+    mutationFn: (id: string) => removeGroup({ data: { id } } as never),
+    onSuccess: () => {
+      toast.success("Category deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const storeCategory = useMutation({
     mutationFn: (values: CategoryValues) =>
       saveCategory({
@@ -134,11 +158,32 @@ export function LibraryTab() {
           description: values.description.trim() || null,
           sortOrder: values.sortOrder,
           isPublished: values.isPublished,
+          groupId: values.groupId || null,
+          levelIds: values.levelIds,
         },
       } as never),
     onSuccess: () => {
       toast.success("Section saved");
       setCategoryDialog(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const storeGroup = useMutation({
+    mutationFn: (values: GroupValues) =>
+      saveGroup({
+        data: {
+          ...(values.id ? { id: values.id } : {}),
+          name: values.name.trim(),
+          description: values.description.trim() || null,
+          sortOrder: values.sortOrder,
+          isPublished: values.isPublished,
+        },
+      } as never),
+    onSuccess: () => {
+      toast.success("Category saved");
+      setGroupDialog(null);
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -154,6 +199,8 @@ export function LibraryTab() {
 
   const levels = data.levels as unknown as Level[];
   const categories = ((data as any).categories ?? []) as Category[];
+  const categoryGroups = ((data as any).groups ?? []) as Group[];
+  const sectionAccess = (((data as any).sectionAccess ?? {}) as Record<string, string[]>);
   const access = (data as any).access as Record<string, string[]>;
 
   function blankVideo(): VideoValues {

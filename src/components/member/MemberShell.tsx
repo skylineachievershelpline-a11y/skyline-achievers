@@ -5,6 +5,7 @@ import {
   Bell,
   Clapperboard,
   GraduationCap,
+  Crown,
   Home,
   Link2,
   Menu,

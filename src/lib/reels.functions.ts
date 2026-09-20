@@ -268,20 +268,15 @@ export const createReel = createServerFn({ method: "POST" })
     (data: {
       title: string;
       caption?: string | null;
-      videoPath?: string | null;
-      videoUrl?: string | null;
+      videoPath: string;
       thumbnailPath?: string | null;
     }) =>
       z
         .object({
           title: z.string().trim().min(1).max(140),
           caption: z.string().trim().max(600).nullable().optional(),
-          videoPath: z.string().trim().max(400).nullable().optional(),
-          videoUrl: z.string().trim().url().max(600).nullable().optional(),
+          videoPath: z.string().trim().min(1).max(400),
           thumbnailPath: z.string().trim().max(400).nullable().optional(),
-        })
-        .refine((v) => Boolean(v.videoPath || v.videoUrl), {
-          message: "Upload a video file or paste a video link.",
         })
         .parse(data),
   )
@@ -291,9 +286,9 @@ export const createReel = createServerFn({ method: "POST" })
     const { error } = await db.from("reels").insert({
       title: data.title,
       caption: data.caption ?? null,
-      video_source: data.videoPath ? "upload" : "external",
-      video_path: data.videoPath ?? null,
-      video_url: data.videoUrl ?? null,
+      video_source: "upload",
+      video_path: data.videoPath,
+      video_url: null,
       thumbnail_path: data.thumbnailPath ?? null,
       created_by: context.userId,
       created_by_admin: false,

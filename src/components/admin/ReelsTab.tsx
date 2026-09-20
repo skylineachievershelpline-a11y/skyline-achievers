@@ -67,7 +67,6 @@ function ReelList() {
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [baseLikes, setBaseLikes] = useState("0");
-  const [videoUrl, setVideoUrl] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [cover, setCover] = useState<File | null>(null);
   const [editing, setEditing] = useState<any | null>(null);
@@ -99,8 +98,8 @@ function ReelList() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim()) return;
-    if (!videoFile && !videoUrl.trim()) {
-      toast.error("Upload a video file or paste a video link.");
+    if (!videoFile) {
+      toast.error("Choose a video file to upload.");
       return;
     }
     setBusy(true);
@@ -130,7 +129,6 @@ function ReelList() {
           title: title.trim(),
           caption: caption || null,
           videoPath,
-          videoUrl: videoUrl.trim() || null,
           thumbnailPath,
           baseLikes: Number(baseLikes) || 0,
         },
@@ -140,7 +138,6 @@ function ReelList() {
       setTitle("");
       setCaption("");
       setBaseLikes("0");
-      setVideoUrl("");
       setVideoFile(null);
       setCover(null);
       refresh();
@@ -304,16 +301,7 @@ function ReelList() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Video link (optional)</Label>
-              <Input
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="Leave empty if uploading a file"
-                className="h-11 rounded-2xl"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Or upload a vertical video</Label>
+              <Label>Upload a vertical video</Label>
               <input
                 type="file"
                 accept="video/*"

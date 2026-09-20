@@ -814,8 +814,7 @@ export const adminSaveReel = createServerFn({ method: "POST" })
     (data: {
       title: string;
       caption?: string | null;
-      videoPath?: string | null;
-      videoUrl?: string | null;
+      videoPath: string;
       thumbnailPath?: string | null;
       baseLikes?: number;
     }) =>
@@ -823,13 +822,9 @@ export const adminSaveReel = createServerFn({ method: "POST" })
         .object({
           title: text(140),
           caption: optionalText(600),
-          videoPath: optionalText(400),
-          videoUrl: optionalText(600),
+          videoPath: text(400),
           thumbnailPath: optionalText(400),
           baseLikes: z.number().int().min(0).max(1_000_000).optional(),
-        })
-        .refine((v) => Boolean(v.videoPath || v.videoUrl), {
-          message: "Upload a video file or paste a video link.",
         })
         .parse(data),
   )
@@ -841,9 +836,9 @@ export const adminSaveReel = createServerFn({ method: "POST" })
       title: data.title,
       caption: data.caption,
       base_likes: data.baseLikes ?? 0,
-      video_source: data.videoPath ? "upload" : "external",
+      video_source: "upload",
       video_path: data.videoPath,
-      video_url: data.videoUrl,
+      video_url: null,
       thumbnail_path: data.thumbnailPath,
       created_by_admin: true,
       is_published: true,

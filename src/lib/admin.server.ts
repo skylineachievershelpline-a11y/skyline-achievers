@@ -276,6 +276,7 @@ export async function adminLibrary() {
       is_published: boolean;
     }[],
     sectionAccess: sectionAccessMap,
+    groupAccess: groupAccessMap,
     lectures: await signThumbnails(lectures ?? []),
     resources: await signThumbnails(resources ?? []),
     access: accessMap,

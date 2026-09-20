@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { Button } from "@/components/ui/button";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { getSharedResource } from "@/lib/member.functions";
@@ -43,6 +44,7 @@ function SharedResourcePage() {
       <div className="cinematic-ambient pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-2xl">
         <header className="mb-6 flex items-center gap-3">
+          <BackButton fallback="/resources" />
           <BrandLogo size="sm" />
         </header>
 

@@ -106,6 +106,28 @@ type FocusedSession = {
 
 type BeginnerView = "home" | "training" | "reels" | "search" | "password";
 
+type FeedReel = {
+  id: string;
+  title: string;
+  caption: string | null;
+  url: string | null;
+  posterUrl: string | null;
+  likes: number;
+  comments: number;
+  liked: boolean;
+  saved: boolean;
+};
+
+function compactCount(value: number): string {
+  if (value < 1_000) return String(value);
+  if (value < 1_000_000) {
+    const count = value / 1_000;
+    return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}K`;
+  }
+  const count = value / 1_000_000;
+  return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}M`;
+}
+
 function reelDownloadName(title: string): string {
   const slug = title
     .trim()

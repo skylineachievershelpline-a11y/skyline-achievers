@@ -271,13 +271,52 @@ export const getMemberResources = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = context.supabase as any;
+    const { signThumbnails } = await import("./storage.server");
     const { data } = await db
       .from("resources")
-      .select("id, title, description, resource_type, created_at, lectures:lecture_id (id, title)")
+      .select(
+        "id, title, description, resource_type, thumbnail_path, created_at, lectures:lecture_id (id, title)",
+      )
       .order("created_at", { ascending: false })
       .limit(200);
-    return { resources: data ?? [] };
+    return { resources: await signThumbnails(data ?? []) };
   });
+
+/**
+ * Public preview of one resource. Anybody holding the shared link can open the
+ * item itself (PDF, picture, voice note, link or note) without an account.
+ */
+export const getSharedResource = createServerFn({ method: "GET" })
+  .inputValidator((data: { resourceId: string }) =>
+    z.object({ resourceId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, RESOURCE_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
+    const { data: resource } = await (supabaseAdmin as any)
+      .from("resources")
+      .select(
+        "id, title, description, resource_type, body, external_url, storage_path, thumbnail_path, is_published",
+      )
+      .eq("id", data.resourceId)
+      .maybeSingle();
+    if (!resource || !resource.is_published) return { resource: null };
+    const week = 60 * 60 * 24 * 7;
+    return {
+      resource: {
+        id: resource.id as string,
+        title: resource.title as string,
+        description: (resource.description ?? null) as string | null,
+        resourceType: resource.resource_type as string,
+        body: (resource.body ?? null) as string | null,
+        url:
+          (resource.external_url as string | null) ??
+          (await signPath(RESOURCE_BUCKET, resource.storage_path, week)),
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, resource.thumbnail_path, week),
+      },
+    };
+  });
+
 
 export const searchLibrary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

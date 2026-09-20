@@ -115,3 +115,9 @@
 - [x] Remove “Training” from rank names and add the advanced manager ranks
 - [x] Create and assign a distinct supplied-reference pin to every ranked level
 - [ ] Verify the signed-in phone layout (blocked until a member account is signed into the preview)
+
+## Supplied rank pin correction
+- [ ] Replace generated pins with twelve individual pins from the supplied PNG
+- [ ] Increase pin visibility beside member names
+- [ ] Remove Status Saver completely
+- [x] Keep bio editing with profile and password settings

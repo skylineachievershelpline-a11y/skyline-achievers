@@ -133,3 +133,8 @@
 - [x] Let signed-in members edit their own name
 - [x] Add one-tap Member ID copying on the dashboard and profile
 - [x] Use the website's original display font for the dashboard name
+
+## Admin member dashboard access
+- [x] Add an Open Dashboard action to every admin member row
+- [x] Keep admin dashboard previews secure and read-only without member credentials
+- [x] Show the selected member profile, rank, status, tracking, and recent activity

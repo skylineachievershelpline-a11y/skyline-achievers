@@ -21,6 +21,7 @@ import {
   adminGetReels,
   adminModerateReelComment,
   adminSaveReel,
+  adminSetReelPublished,
   adminUpdateReel,
 } from "@/lib/admin.functions";
 import { formatDateTime } from "@/lib/format";
@@ -90,6 +91,16 @@ function ReelList() {
     onSuccess: () => {
       toast.success("Reel updated");
       setEditing(null);
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const publish = useMutation({
+    mutationFn: (input: { id: string; publish: boolean }) =>
+      setPublished({ data: input } as never),
+    onSuccess: (_result, input) => {
+      toast.success(input.publish ? "Reel approved and live" : "Reel hidden from members");
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),

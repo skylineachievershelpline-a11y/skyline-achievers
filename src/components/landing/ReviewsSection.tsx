@@ -167,7 +167,7 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
                   ))}
                 </div>
               </div>
-              {review.reviewText ? <p className="mt-4 text-sm leading-6 text-silver">“{review.reviewText}”</p> : null}
+              {review.reviewText ? <p className="review-copy mt-4 text-sm leading-6 text-silver">“{review.reviewText}”</p> : null}
             </div>
           </article>
         ))}

@@ -764,7 +764,7 @@ body { isolation: isolate; }
 .review-stage {
   position: relative;
   max-width: 52rem;
-  min-height: 34rem;
+  min-height: 42rem;
   margin-inline: auto;
   padding-top: 7.5rem;
 }
@@ -790,7 +790,7 @@ body { isolation: isolate; }
 .review-stack {
   position: relative;
   z-index: 2;
-  min-height: 24rem;
+  min-height: 31rem;
   touch-action: pan-x;
   user-select: none;
   cursor: grab;
@@ -802,7 +802,7 @@ body { isolation: isolate; }
   position: absolute;
   inset: 0;
   display: flex;
-  min-height: 21rem;
+  min-height: 29rem;
   overflow: hidden;
   border-radius: 1.75rem;
   background:
@@ -830,6 +830,13 @@ body { isolation: isolate; }
 }
 
 .review-video > * { max-height: 15rem; }
+
+.review-copy {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
 
 .review-quote-mark {
   display: flex;
@@ -980,9 +987,9 @@ body { isolation: isolate; }
   .hero-orbit, .hero-scanline { display: none; }
   .cinematic-card::after { display: none; }
   .cinematic-ambient { display: none; }
-  .review-stage { min-height: 31rem; padding-top: 5.25rem; }
-  .review-stack { min-height: 22.5rem; }
-  .review-card { min-height: 20rem; border-radius: 1.25rem; }
+  .review-stage { min-height: 40rem; padding-top: 5.25rem; }
+  .review-stack { min-height: 31rem; }
+  .review-card { min-height: 29rem; border-radius: 1.25rem; }
   .review-watermark span { font-size: 3.15rem; }
   .review-watermark strong { font-size: 3.55rem; }
   .review-controls { gap: .65rem; }

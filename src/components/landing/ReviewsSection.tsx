@@ -1,8 +1,8 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, MessageSquareQuote, Star } from "lucide-react";
-import { useState, type CSSProperties } from "react";
+import { ArrowUp, Loader2, MessageSquareQuote, Star } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { SessionVideo } from "@/components/media/SessionVideo";
@@ -58,48 +58,106 @@ export function ReviewsSection() {
             No testimonials published yet. Be the first to share your experience.
           </p>
         ) : (
-          <div className="grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data!.map((review, index) => (
-              <article
-                key={review.id}
-                className={`cinematic-card glass-panel metal-edge depth-hover relative flex h-full flex-col rounded-2xl p-6 ${index % 3 === 1 ? "lg:mt-10" : ""}`}
-                style={{ "--motion-order": index } as CSSProperties}
-              >
-                <span className="absolute -left-2 top-7 h-10 w-1 rounded-full brand-gradient shadow-brand" aria-hidden />
-                {review.videoUrl ? (
-                  <div className="mb-4 overflow-hidden rounded-xl">
-                    <SessionVideo
-                      title={review.personName}
-                      videoUrl={review.videoUrl}
-                      aspectRatio={review.aspectRatio}
-                    />
-                  </div>
-                ) : null}
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan/30 bg-primary/15 text-cyan shadow-glass"><MessageSquareQuote className="h-5 w-5" /></span>
-                <p className="mt-4 flex-1 text-sm leading-6 text-muted-foreground">
-                  “{review.reviewText}”
-                </p>
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {review.personName}
-                    </p>
-                    {review.designation ? (
-                      <p className="truncate text-xs text-muted-foreground">{review.designation}</p>
-                    ) : null}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    {Array.from({ length: review.rating ?? 5 }).map((_, index) => (
-                      <Star key={index} className="h-3.5 w-3.5 fill-brand text-brand" />
-                    ))}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <ReviewStack reviews={data ?? []} />
         )}
       </div>
     </section>
+  );
+}
+
+type Review = NonNullable<Awaited<ReturnType<typeof getLandingReviews>>["reviews"]>[number];
+
+function ReviewStack({ reviews }: { reviews: Review[] }) {
+  const [active, setActive] = useState(0);
+  const [leaving, setLeaving] = useState(false);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (timer.current) window.clearTimeout(timer.current);
+  }, []);
+
+  const next = () => {
+    if (leaving || reviews.length < 2) return;
+    setLeaving(true);
+    timer.current = window.setTimeout(() => {
+      setActive((current) => (current + 1) % reviews.length);
+      setLeaving(false);
+    }, 420);
+  };
+
+  const visible = Array.from({ length: Math.min(3, reviews.length) }, (_, offset) => ({
+    review: reviews[(active + offset) % reviews.length],
+    offset,
+  }));
+
+  return (
+    <div className="review-stage" aria-live="polite">
+      <div className="review-watermark" aria-hidden>
+        <span>SKYLINE</span>
+        <strong>ACHIEVERS</strong>
+      </div>
+      <div
+        className="review-stack"
+        onPointerDown={(event) => {
+          start.current = { x: event.clientX, y: event.clientY };
+        }}
+        onPointerUp={(event) => {
+          const origin = start.current;
+          start.current = null;
+          if (!origin) return;
+          const dx = event.clientX - origin.x;
+          const dy = event.clientY - origin.y;
+          if (dy < -52 && Math.abs(dy) > Math.abs(dx) * 1.15) next();
+        }}
+        onPointerCancel={() => {
+          start.current = null;
+        }}
+      >
+        {visible.slice().reverse().map(({ review, offset }) => (
+          <article
+            key={`${review.id}-${active}-${offset}`}
+            className={`review-card metal-edge ${offset === 0 && leaving ? "is-leaving" : ""}`}
+            data-depth={offset}
+            aria-hidden={offset !== 0}
+          >
+            <div className="review-card-inner">
+              {review.videoUrl ? (
+                <div className="review-video">
+                  <SessionVideo title={review.personName} videoUrl={review.videoUrl} aspectRatio={review.aspectRatio} />
+                </div>
+              ) : (
+                <span className="review-quote-mark"><MessageSquareQuote className="h-5 w-5" /></span>
+              )}
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-display text-lg font-bold text-foreground">{review.personName}</p>
+                  {review.designation ? <p className="truncate text-xs text-muted-foreground">{review.designation}</p> : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-0.5" aria-label={`${review.rating ?? 5} stars`}>
+                  {Array.from({ length: review.rating ?? 5 }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-cyan text-cyan" />
+                  ))}
+                </div>
+              </div>
+              {review.reviewText ? <p className="mt-4 text-sm leading-6 text-silver">“{review.reviewText}”</p> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="review-controls">
+        <div className="flex items-center gap-2" aria-label={`Review ${active + 1} of ${reviews.length}`}>
+          {reviews.map((review, index) => (
+            <span key={review.id} className={`review-dot ${index === active ? "is-active" : ""}`} />
+          ))}
+        </div>
+        <span className="text-xs font-medium text-muted-foreground">{active + 1} / {reviews.length}</span>
+        <Button variant="brand" size="sm" onClick={next} disabled={reviews.length < 2}>
+          Next <ArrowUp className="h-4 w-4" />
+        </Button>
+      </div>
+      <p className="mt-4 text-center text-xs text-muted-foreground sm:hidden">Swipe up for the next story</p>
+    </div>
   );
 }
 

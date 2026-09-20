@@ -138,3 +138,10 @@
 - [x] Add an Open Dashboard action to every admin member row
 - [x] Keep admin dashboard previews secure and read-only without member credentials
 - [x] Show the selected member profile, rank, status, tracking, and recent activity
+
+## Liquid reviews and site atmosphere
+- [x] Replace the reviews wall with a stacked Next and swipe-up carousel
+- [x] Add the large Skyline Achievers review watermark and layered cards
+- [x] Remove square grid patterns and add continuous blue liquid waves
+- [x] Add touch and pointer water ripples with reduced-motion support
+- [ ] Verify phone and desktop interactions after the preview refreshes

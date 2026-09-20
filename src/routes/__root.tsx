@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { isPreviewContext } from "../lib/pwa-install";
 import { MotionController } from "../components/motion/MotionController";
+import { LiquidAtmosphere } from "../components/motion/LiquidAtmosphere";
 
 function NotFoundComponent() {
   return (
@@ -166,6 +167,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LiquidAtmosphere />
       <MotionController />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />

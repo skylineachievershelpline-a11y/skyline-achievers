@@ -116,7 +116,7 @@ function LandingPage() {
   }, []);
 
   return (
-    <main className="motion-scope cinematic-landing min-h-screen overflow-hidden bg-background">
+    <main className="motion-scope cinematic-landing relative min-h-screen overflow-hidden">
       <section className="cinematic-hero relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline shadow-lift">
         <img
           src={skylineBackground}
@@ -129,7 +129,7 @@ function LandingPage() {
         />
 
         <div className="landing-hero-shade absolute inset-0" aria-hidden />
-        <div className="hero-grid absolute inset-0" aria-hidden />
+        <div className="hero-liquid-glow absolute inset-0" aria-hidden />
         <div className="hero-scanline absolute inset-y-0 left-[12%] hidden w-px lg:block" aria-hidden />
         <div className="hero-scanline absolute inset-y-0 right-[18%] hidden w-px lg:block" aria-hidden />
         <div className="hero-orbit absolute right-[8%] top-[22%] hidden h-72 w-72 rounded-full lg:block" aria-hidden />
@@ -217,7 +217,7 @@ function LandingPage() {
 
       <IntroductionSection />
 
-      <section id="about" className="section-flow infographic-grid relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <section id="about" className="section-flow relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <div data-reveal className="mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>

@@ -1,5 +1,15 @@
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, FileText, Headphones, Link2, NotebookPen, Presentation } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  FileText,
+  Headphones,
+  ImageIcon,
+  Link2,
+  NotebookPen,
+  Presentation,
+  Share2,
+} from "lucide-react";
 import { useState } from "react";
 
 import { getResourceLink } from "@/lib/member.functions";
@@ -12,6 +22,7 @@ const ICONS: Record<string, typeof FileText> = {
   book: BookOpen,
   link: Link2,
   note: NotebookPen,
+  image: ImageIcon,
 };
 
 export type MemberResource = {
@@ -20,6 +31,7 @@ export type MemberResource = {
   description?: string | null;
   resource_type: string;
   body?: string | null;
+  thumbnail_url?: string | null;
   lectures?: { id: string; title: string } | null;
 
 };
@@ -28,6 +40,7 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
   const resolve = useServerFn(getResourceLink);
   const [busy, setBusy] = useState<string | null>(null);
   const [openNote, setOpenNote] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   async function open(resource: MemberResource) {
     if (resource.resource_type === "note" && resource.body) {
@@ -40,6 +53,17 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  async function share(resource: MemberResource) {
+    const link = `${window.location.origin}/resource/${resource.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      window.prompt("Copy this link", link);
+    }
+    setCopied(resource.id);
+    window.setTimeout(() => setCopied((id) => (id === resource.id ? null : id)), 1800);
+  }
+
   return (
     <ul className="space-y-2">
       {resources.map((resource) => {
@@ -50,9 +74,18 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
               onClick={() => void open(resource)}
               className="flex w-full items-center gap-3 p-3 text-left"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-hairline bg-glass text-brand-glow">
-                <Icon className="h-4 w-4" />
-              </span>
+              {resource.thumbnail_url ? (
+                <img
+                  src={resource.thumbnail_url}
+                  alt=""
+                  loading="lazy"
+                  className="h-10 w-10 shrink-0 rounded-xl border border-hairline object-cover"
+                />
+              ) : (
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-hairline bg-glass text-brand-glow">
+                  <Icon className="h-4 w-4" />
+                </span>
+              )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{resource.title}</span>
                 <span className="block truncate text-[11px] text-muted-foreground">
@@ -65,6 +98,20 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
                 {busy === resource.id ? "Opening…" : resource.resource_type === "note" ? "Read" : "Open"}
               </span>
             </button>
+            <div className="flex items-center justify-end border-t border-hairline px-3 py-2">
+              <button
+                type="button"
+                onClick={() => void share(resource)}
+                className="inline-flex min-w-fit items-center gap-1.5 rounded-full border border-hairline bg-glass px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {copied === resource.id ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5" />
+                )}
+                {copied === resource.id ? "Link copied" : "Copy link"}
+              </button>
+            </div>
             {openNote === resource.id && resource.body ? (
               <p className="whitespace-pre-wrap border-t border-hairline px-4 py-3 text-sm leading-relaxed text-muted-foreground">
                 {resource.body}

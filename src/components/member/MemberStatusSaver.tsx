@@ -1,4 +1,4 @@
-import { ChevronRight, Download, Share2 } from "lucide-react";
+import { Download, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -45,7 +45,7 @@ function wrapText(ctx: CanvasRenderingContext2D, value: string, x: number, y: nu
   return currentY;
 }
 
-export function MemberStatusSaver({ member }: { member: StatusMember }) {
+export function MemberStatusSaver({ member, expanded = false }: { member: StatusMember; expanded?: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(true);
 
@@ -111,7 +111,7 @@ export function MemberStatusSaver({ member }: { member: StatusMember }) {
       ctx.fillText(member.memberId, 310, 430);
       ctx.fillStyle = "rgba(232,238,247,.55)";
       ctx.font = "700 19px Manrope, sans-serif";
-      ctx.fillText(`${member.levelName.toUpperCase()}  •  SKYLINE ACHIEVER`, 310, 470);
+      ctx.fillText("OFFICIAL SKYLINE ACHIEVER", 310, 470);
 
       ctx.fillStyle = "rgba(35,43,56,.94)";
       ctx.strokeStyle = "rgba(0,200,255,.24)";
@@ -191,19 +191,27 @@ export function MemberStatusSaver({ member }: { member: StatusMember }) {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-cyan p-5 text-background shadow-brand">
-      <div className="relative flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-achiever-display text-base font-extrabold">Status Saver</p>
-          <p className="mt-1 text-[11px] font-bold uppercase text-background/60">Your branded profile picture</p>
+    <section className="relative overflow-hidden rounded-2xl border border-cyan/20 bg-surface-2 p-5 shadow-lift sm:p-7">
+      {expanded ? (
+        <div className="relative mb-6 overflow-hidden rounded-xl border border-metal/20 bg-background p-5 text-center">
+          <p aria-hidden className="absolute inset-x-0 top-10 font-achiever-display text-5xl font-extrabold leading-none text-foreground/[0.05]">SKYLINE<br />ACHIEVERS</p>
+          <img src={BRAND.logoUrl} alt={BRAND.logoAlt} className="relative mx-auto h-12 w-12 object-contain" />
+          <div className="relative mx-auto mt-8 h-28 w-28 overflow-hidden rounded-full border-4 border-cyan/50 bg-muted shadow-brand">
+            {member.avatarUrl ? <img src={member.avatarUrl} alt={member.fullName} className="h-full w-full object-cover" /> : null}
+          </div>
+          <p className="relative mt-4 font-achiever-display text-lg font-extrabold">{member.fullName}</p>
+          <p className="relative mt-1 text-xs font-bold text-cyan">{member.memberId}</p>
         </div>
-        <ChevronRight className="h-5 w-5 shrink-0" />
+      ) : null}
+      <div className="relative">
+        <p className="font-achiever-display text-base font-extrabold">Status Saver</p>
+        <p className="mt-1 text-[11px] font-bold uppercase text-muted-foreground">Save or share your official profile status</p>
       </div>
       <div className="relative mt-4 grid grid-cols-2 gap-2">
-        <Button variant="secondary" onClick={() => void save()} disabled={busy} className="border-background/15 bg-background text-foreground hover:bg-background/90">
+        <Button onClick={() => void save()} disabled={busy}>
           <Download /> Gallery
         </Button>
-        <Button variant="secondary" onClick={() => void share()} disabled={busy} className="border-background/15 bg-background text-foreground hover:bg-background/90">
+        <Button variant="secondary" onClick={() => void share()} disabled={busy}>
           <Share2 /> Status
         </Button>
       </div>

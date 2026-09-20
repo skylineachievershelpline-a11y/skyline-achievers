@@ -25,8 +25,6 @@ import {
   ShieldCheck,
   Unlock,
   Camera,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
 
@@ -37,6 +35,7 @@ import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { SessionGate } from "@/components/media/SessionGate";
+import { ReelAuthor } from "@/components/media/ReelAuthor";
 import { ReelVideo } from "@/components/media/ReelVideo";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
@@ -224,7 +223,6 @@ function BeginnersPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [reelsMuted, setReelsMuted] = useState(true);
   const [commentsFor, setCommentsFor] = useState<FeedReel | null>(null);
   const [reelLocal, setReelLocal] = useState<Record<string, Partial<FeedReel>>>({});
 

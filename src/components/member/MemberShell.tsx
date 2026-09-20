@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
@@ -110,6 +111,7 @@ export function MemberShell({
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
 
@@ -117,6 +119,10 @@ export function MemberShell({
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   // Only ask the server once a browser session actually exists, otherwise the
   // protected server function rejects with "No authorization header".
@@ -186,83 +192,88 @@ export function MemberShell({
         </div>
       </header>
 
-      {/* ---------- side menu ---------- */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 transition-opacity duration-300",
-          menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      >
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
-          className="absolute inset-0 bg-background/70 backdrop-blur-sm"
-        />
-        <aside
-          className={cn(
-            "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-            menuOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <BrandLogo size="sm" />
-            <button
-              type="button"
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground"
+      {/* Render outside animated page layers so the menu always stays visible. */}
+      {portalReady && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className={cn(
+                "fixed inset-0 z-[200] transition-opacity duration-300",
+                menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
             >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+                className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              />
+              <aside
+                className={cn(
+                  "metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl border-r border-cyan/25 bg-sidebar p-5 shadow-lift transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  menuOpen ? "translate-x-0" : "-translate-x-full",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <BrandLogo size="sm" />
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-          <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
-            {NAV.map((item) =>
-              trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
+                  {NAV.map((item) =>
+                    trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                      <button
+                        key={item.to}
+                        type="button"
+                        onClick={() =>
+                          toast.info("This part is locked. Your account is set to training only.")
+                        }
+                        className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
+                      >
+                        <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
+                        {item.label}
+                        <span className="ml-auto text-[10px] uppercase tracking-[0.14em]">Locked</span>
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                        activeProps={{
+                          className:
+                            "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
+                        }}
+                      >
+                        <item.icon className="h-4.5 w-4.5 text-brand-glow" />
+                        {item.label}
+                      </Link>
+                    ),
+                  )}
+                </nav>
+
                 <button
-                  key={item.to}
                   type="button"
-                  onClick={() =>
-                    toast.info("This part is locked. Your account is set to training only.")
-                  }
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
+                  onClick={() => void signOut()}
+                  className="logout-button mt-4 w-full font-display text-sm"
                 >
-                  <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
-                  {item.label}
-                  <span className="ml-auto text-[10px] uppercase tracking-[0.14em]">Locked</span>
+                  <LogOut className="h-4 w-4" />
+                  Logout
                 </button>
-              ) : (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMenuOpen(false)}
-                   className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
-                  activeProps={{
-                    className:
-                      "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
-                  }}
-                >
-                  <item.icon className="h-4.5 w-4.5 text-brand-glow" />
-                  {item.label}
-                </Link>
-              ),
-            )}
-          </nav>
-
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="logout-button mt-4 w-full font-display text-sm"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-          <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {BRAND.tagline}
-          </p>
-        </aside>
-      </div>
+                <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {BRAND.tagline}
+                </p>
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">{children}</main>
     </div>

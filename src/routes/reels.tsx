@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ReelAuthor } from "@/components/media/ReelAuthor";
 import { EmptyState } from "@/components/member/cards";
 import {
   MemberShell,

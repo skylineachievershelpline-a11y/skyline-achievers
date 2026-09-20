@@ -70,6 +70,7 @@ export function DailyReportPanel() {
   const [toDate, setToDate] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
   const submit = useMutation({
     mutationFn: () =>

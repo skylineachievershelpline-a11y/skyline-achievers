@@ -56,6 +56,7 @@ function ReelList() {
   const updateReel = useServerFn(adminUpdateReel);
   const removeReel = useServerFn(adminDeleteReel);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
+  const setPublished = useServerFn(adminSetReelPublished);
   const uploadProgress = useUploadProgress();
 
   const { data, isPending } = useQuery({

@@ -209,8 +209,7 @@ function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
-    await navigate({ to: "/", replace: true });
+    fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 
   if (!hasProfile) {

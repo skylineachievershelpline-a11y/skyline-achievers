@@ -7,6 +7,7 @@ import {
   Clock,
   Download,
   Loader2,
+  Lock,
   PenLine,
   Send,
   Share2,
@@ -73,6 +74,9 @@ export function DailyReportPanel() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+
+  // If the 8 PM window closes while the form is open, collapse it again.
+  const formVisible = formOpen && data?.windowOpen !== false;
 
   const submit = useMutation({
     mutationFn: () =>

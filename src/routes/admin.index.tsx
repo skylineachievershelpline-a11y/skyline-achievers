@@ -103,14 +103,19 @@ function AdminPage() {
           <Button
             variant="outline"
             className="rounded-2xl"
+            disabled={signingOut}
             onClick={async () => {
-              await logout();
-              queryClient.clear();
-              await navigate({ to: "/" });
+              setSigningOut(true);
+              try {
+                await logout();
+              } finally {
+                queryClient.clear();
+                await navigate({ to: "/", replace: true });
+              }
             }}
           >
-            <LogOut className="h-4 w-4" />
-            Sign out
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            {signingOut ? "Signing out…" : "Sign out"}
           </Button>
         </header>
 

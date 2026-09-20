@@ -121,3 +121,10 @@
 - [x] Increase pin visibility beside member names
 - [x] Remove Status Saver completely
 - [x] Keep bio editing with profile and password settings
+
+## Separate rank pin assignment
+- [x] Replace cropped pin sheet images with the separately supplied pin pictures
+- [x] Share the Supervisor pin with Assistant Manager
+- [x] Share the Manager pin with Senior Manager
+- [x] Show complete rank names without clipping or the old “Training” suffix
+- [ ] Add the remaining final rank pins when supplied

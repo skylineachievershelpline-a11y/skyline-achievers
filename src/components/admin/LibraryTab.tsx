@@ -17,10 +17,12 @@ import {
   adminCreateUploadUrl,
   adminDeleteContent,
   adminDeleteTrainingCategory,
+  adminDeleteTrainingGroup,
   adminGetLibrary,
   adminSaveLecture,
   adminSaveResource,
   adminSaveTrainingCategory,
+  adminSaveTrainingGroup,
 } from "@/lib/admin.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { startUpload } from "@/lib/upload-manager";
@@ -28,6 +30,14 @@ import { startUpload } from "@/lib/upload-manager";
 type Library = Awaited<ReturnType<typeof adminGetLibrary>>;
 type Level = { id: string; name: string; rank_order: number };
 type Category = {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_published: boolean;
+  group_id: string | null;
+};
+type Group = {
   id: string;
   name: string;
   description: string | null;
@@ -54,6 +64,16 @@ type VideoValues = {
 };
 
 type CategoryValues = {
+  id?: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+  isPublished: boolean;
+  groupId: string;
+  levelIds: string[];
+};
+
+type GroupValues = {
   id?: string;
   name: string;
   description: string;

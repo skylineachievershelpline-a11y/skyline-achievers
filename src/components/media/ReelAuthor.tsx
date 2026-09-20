@@ -1,6 +1,6 @@
 import { BadgeCheck } from "lucide-react";
 
-import { formatRankName, RankPin } from "@/components/member/RankPin";
+import { RankPin } from "@/components/member/RankPin";
 import { BRAND } from "@/lib/brand";
 
 export type ReelAuthorInfo = {

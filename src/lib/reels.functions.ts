@@ -301,7 +301,8 @@ export const createReel = createServerFn({ method: "POST" })
       thumbnail_path: data.thumbnailPath ?? null,
       created_by: context.userId,
       created_by_admin: false,
-      is_published: true,
+      // Member reels always wait for admin approval before anyone can see them.
+      is_published: false,
     });
     if (error) throw new Error("Assistant Supervisor rank and above can post reels.");
     return { ok: true as const };

@@ -86,10 +86,10 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
     }, 420);
   };
 
-  const visible = Array.from({ length: Math.min(3, reviews.length) }, (_, offset) => ({
-    review: reviews[(active + offset) % reviews.length],
-    offset,
-  }));
+  const visible = Array.from({ length: Math.min(3, reviews.length) }, (_, offset) => {
+    const review = reviews[(active + offset) % reviews.length];
+    return review ? { review, offset } : null;
+  }).filter((item): item is { review: Review; offset: number } => item !== null);
 
   return (
     <div className="review-stage" aria-live="polite">
@@ -100,7 +100,18 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
       <div
         className="review-stack"
         onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
           start.current = { x: event.clientX, y: event.clientY };
+        }}
+        onPointerMove={(event) => {
+          const origin = start.current;
+          if (!origin) return;
+          const dx = event.clientX - origin.x;
+          const dy = event.clientY - origin.y;
+          if (dy < -64 && Math.abs(dy) > Math.abs(dx) * 1.15) {
+            start.current = null;
+            next();
+          }
         }}
         onPointerUp={(event) => {
           const origin = start.current;

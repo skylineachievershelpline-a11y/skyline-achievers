@@ -87,6 +87,7 @@ export function LiquidAtmosphere() {
       const now = performance.now();
       for (let index = ripples.length - 1; index >= 0; index -= 1) {
         const ripple = ripples[index];
+        if (!ripple) continue;
         const age = now - ripple.born;
         if (age > 1500) {
           ripples.splice(index, 1);

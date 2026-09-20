@@ -161,49 +161,58 @@ function TrainingPage() {
               hint="Sections appear here as soon as they are published."
             />
           ) : (
-            <ul className="space-y-2">
-              {menu.map((section, index) => {
-                const total = countFor(section);
-                const open = all.filter(
-                  (video) =>
-                    !video.locked &&
-                    (section.id === "__none"
-                      ? !video.category_id
-                      : video.category_id === section.id),
-                ).length;
-                return (
-                  <li
-                    key={section.id}
-                    className="animate-rise-in"
-                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpenSection(section.id);
-                        setQuery("");
-                      }}
-                      className={cn(
-                        "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
-                      )}
-                    >
-                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
-                        <PlayCircle className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-display text-sm font-semibold">
-                          {section.name}
-                        </span>
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {total} video{total === 1 ? "" : "s"} · {open} unlocked
-                        </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="space-y-5">
+              {grouped.map(({ bucket, items }) => (
+                <div key={bucket.id}>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {bucket.name}
+                  </p>
+                  <ul className="space-y-2">
+                    {items.map((section, index) => {
+                      const total = countFor(section);
+                      const open = all.filter(
+                        (video) =>
+                          !video.locked &&
+                          (section.id === "__none"
+                            ? !video.category_id
+                            : video.category_id === section.id),
+                      ).length;
+                      return (
+                        <li
+                          key={section.id}
+                          className="animate-rise-in"
+                          style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenSection(section.id);
+                              setQuery("");
+                            }}
+                            className={cn(
+                              "glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left",
+                            )}
+                          >
+                            <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
+                              <PlayCircle className="h-5 w-5" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate font-display text-sm font-semibold">
+                                {section.name}
+                              </span>
+                              <span className="block truncate text-[11px] text-muted-foreground">
+                                {total} video{total === 1 ? "" : "s"} · {open} unlocked
+                              </span>
+                            </span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
           )}
         </section>
       ) : (

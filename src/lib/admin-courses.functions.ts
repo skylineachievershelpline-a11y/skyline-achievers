@@ -83,7 +83,7 @@ export const adminSaveCourse = createServerFn({ method: "POST" })
       sort_order: data.sortOrder,
     };
     if (data.thumbnailPath) row['thumbnail_path'] = data.thumbnailPath;
-    if (data.id) await db.from("paid_courses").update(row).eq("id", data.id);
+    if (data.id) await db.from("paid_courses").update(row as never).eq("id", data.id);
     else await db.from("paid_courses").insert(row as never);
     return { ok: true as const };
   });
@@ -130,7 +130,7 @@ export const adminSaveCourseLesson = createServerFn({ method: "POST" })
     };
     if (data.videoSource === "upload" && data.videoPath) row['video_path'] = data.videoPath;
     if (data.thumbnailPath) row['thumbnail_path'] = data.thumbnailPath;
-    if (data.id) await db.from("paid_course_lessons").update(row).eq("id", data.id);
+    if (data.id) await db.from("paid_course_lessons").update(row as never).eq("id", data.id);
     else await db.from("paid_course_lessons").insert(row as never);
     return { ok: true as const };
   });
@@ -167,7 +167,7 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
       is_active: data.isActive,
       sort_order: data.sortOrder,
     };
-    if (data.id) await db.from("course_payment_methods").update(row).eq("id", data.id);
+    if (data.id) await db.from("course_payment_methods").update(row as never).eq("id", data.id);
     else await db.from("course_payment_methods").insert(row as never);
     return { ok: true as const };
   });

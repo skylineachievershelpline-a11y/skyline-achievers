@@ -171,7 +171,8 @@ export const getCourseDetail = createServerFn({ method: "POST" })
       }),
     );
 
-    const [{ thumbnail_url: coverUrl }] = await signThumbnails([course]);
+    const signedCourses = (await signThumbnails([course])) as Array<{ thumbnail_url?: string | null }>;
+    const coverUrl = signedCourses[0]?.thumbnail_url ?? null;
 
     return {
       status: "ok" as const,

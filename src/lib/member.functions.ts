@@ -100,43 +100,77 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     const member = await loadMemberContext(context.supabase as never, context.userId);
     if (!member || member.status !== "active") return { videos: [], categories: [] };
 
-    const [{ data: lectures }, { data: access }, { data: categories }] = await Promise.all([
-      supabaseAdmin
-        .from("lectures")
-        .select(
-          "id, title, description, duration_seconds, thumbnail_path, sort_order, created_at, category_id, levels:level_id (id, name, slug, rank_order)",
-        )
-        .eq("is_published", true)
-        .eq("is_archived", false)
-        .order("sort_order")
-        .order("created_at", { ascending: false })
-        .limit(300),
-      member.level
-        ? supabaseAdmin
-            .from("content_access")
-            .select("content_id")
-            .eq("content_type", "lecture")
-            .eq("level_id", member.level.id)
-        : Promise.resolve({ data: [] as { content_id: string }[] }),
-      (supabaseAdmin as any)
-        .from("training_categories")
-        .select("id, name, slug, description, sort_order")
-        .eq("is_published", true)
-        .order("sort_order"),
-    ]);
+    const [{ data: lectures }, { data: access }, { data: categories }, { data: groups }, { data: sectionAccess }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("lectures")
+          .select(
+            "id, title, description, duration_seconds, thumbnail_path, sort_order, created_at, category_id, levels:level_id (id, name, slug, rank_order)",
+          )
+          .eq("is_published", true)
+          .eq("is_archived", false)
+          .order("sort_order")
+          .order("created_at", { ascending: false })
+          .limit(300),
+        member.level
+          ? supabaseAdmin
+              .from("content_access")
+              .select("content_id")
+              .eq("content_type", "lecture")
+              .eq("level_id", member.level.id)
+          : Promise.resolve({ data: [] as { content_id: string }[] }),
+        (supabaseAdmin as any)
+          .from("training_categories")
+          .select("id, name, slug, description, sort_order, group_id")
+          .eq("is_published", true)
+          .order("sort_order"),
+        (supabaseAdmin as any)
+          .from("training_groups")
+          .select("id, name, slug, description, sort_order")
+          .eq("is_published", true)
+          .order("sort_order"),
+        (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
+      ]);
 
     const allowed = new Set((access ?? []).map((row) => row.content_id));
     const signed = await signThumbnails(lectures ?? []);
+
+    // A section with no access list stays open to everyone; once ranks are
+    // picked, only those ranks may open it.
+    const sectionLevels = new Map<string, string[]>();
+    for (const row of (sectionAccess ?? []) as { category_id: string; level_id: string }[]) {
+      sectionLevels.set(row.category_id, [
+        ...(sectionLevels.get(row.category_id) ?? []),
+        row.level_id,
+      ]);
+    }
+    const visibleCategories = ((categories ?? []) as any[]).filter((category) => {
+      const list = sectionLevels.get(category.id);
+      if (!list || list.length === 0) return true;
+      return member.level ? list.includes(member.level.id) : false;
+    });
+    const visibleIds = new Set(visibleCategories.map((c) => c.id));
+
     return {
-      categories: (categories ?? []) as {
+      groups: (groups ?? []) as {
         id: string;
         name: string;
         slug: string;
         description: string | null;
       }[],
-      videos: signed.map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
+      categories: visibleCategories as {
+        id: string;
+        name: string;
+        slug: string;
+        description: string | null;
+        group_id: string | null;
+      }[],
+      videos: signed
+        .filter((video: any) => !video.category_id || visibleIds.has(video.category_id))
+        .map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
     };
   });
+
 
 
 export const getLectureDetail = createServerFn({ method: "GET" })
@@ -237,13 +271,52 @@ export const getMemberResources = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = context.supabase as any;
+    const { signThumbnails } = await import("./storage.server");
     const { data } = await db
       .from("resources")
-      .select("id, title, description, resource_type, created_at, lectures:lecture_id (id, title)")
+      .select(
+        "id, title, description, resource_type, thumbnail_path, created_at, lectures:lecture_id (id, title)",
+      )
       .order("created_at", { ascending: false })
       .limit(200);
-    return { resources: data ?? [] };
+    return { resources: await signThumbnails(data ?? []) };
   });
+
+/**
+ * Public preview of one resource. Anybody holding the shared link can open the
+ * item itself (PDF, picture, voice note, link or note) without an account.
+ */
+export const getSharedResource = createServerFn({ method: "GET" })
+  .inputValidator((data: { resourceId: string }) =>
+    z.object({ resourceId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, RESOURCE_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
+    const { data: resource } = await (supabaseAdmin as any)
+      .from("resources")
+      .select(
+        "id, title, description, resource_type, body, external_url, storage_path, thumbnail_path, is_published",
+      )
+      .eq("id", data.resourceId)
+      .maybeSingle();
+    if (!resource || !resource.is_published) return { resource: null };
+    const week = 60 * 60 * 24 * 7;
+    return {
+      resource: {
+        id: resource.id as string,
+        title: resource.title as string,
+        description: (resource.description ?? null) as string | null,
+        resourceType: resource.resource_type as string,
+        body: (resource.body ?? null) as string | null,
+        url:
+          (resource.external_url as string | null) ??
+          (await signPath(RESOURCE_BUCKET, resource.storage_path, week)),
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, resource.thumbnail_path, week),
+      },
+    };
+  });
+
 
 export const searchLibrary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

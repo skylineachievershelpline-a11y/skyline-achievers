@@ -27,7 +27,7 @@ export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
 });
 
-const FILTERS = ["all", "pdf", "audio", "presentation", "book", "link", "note"] as const;
+const FILTERS = ["all", "pdf", "image", "audio", "presentation", "book", "link", "note"] as const;
 
 function ResourcesPage() {
   const ready = useMemberGuard();

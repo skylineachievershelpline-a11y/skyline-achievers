@@ -85,6 +85,13 @@
       "when": 1789793248899,
       "tag": "0011_story_multi_audience",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789869241405,
+      "tag": "0012_training_groups_section_access_image_resources",
+      "breakpoints": true
     }
   ]
 }

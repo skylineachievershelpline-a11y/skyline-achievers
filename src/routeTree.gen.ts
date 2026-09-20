@@ -27,6 +27,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
+import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +120,11 @@ const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   path: '/lecture/$lectureId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourceResourceIdRoute = ResourceResourceIdRouteImport.update({
+  id: '/resource/$resourceId',
+  path: '/resource/$resourceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionCodeRoute = SessionCodeRouteImport.update({
   id: '/session/$code',
   path: '/session/$code',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/resource/$resourceId'
     | '/session/$code'
     | '/admin'
   id:
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
+  ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LectureLectureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resource/$resourceId': {
+      id: '/resource/$resourceId'
+      path: '/resource/$resourceId'
+      fullPath: '/resource/$resourceId'
+      preLoaderRoute: typeof ResourceResourceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/session/$code': {
       id: '/session/$code'
       path: '/session/$code'
@@ -433,6 +453,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
+  ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

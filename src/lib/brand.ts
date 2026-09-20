@@ -40,4 +40,6 @@ export const RESOURCE_TYPE_LABEL: Record<string, string> = {
   book: "Book",
   link: "Important Link",
   note: "Notes",
+  image: "Picture",
 };
+

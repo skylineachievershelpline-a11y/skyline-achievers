@@ -24,10 +24,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getMemberSession, getNotifications } from "@/lib/member.functions";
+import { fastSignOut } from "@/lib/sign-out";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

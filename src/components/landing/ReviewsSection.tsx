@@ -70,7 +70,6 @@ type Review = NonNullable<Awaited<ReturnType<typeof getLandingReviews>>["reviews
 function ReviewStack({ reviews }: { reviews: Review[] }) {
   const [active, setActive] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const start = useRef<{ x: number; y: number } | null>(null);
   const timer = useRef<number | null>(null);
 
   useEffect(() => () => {
@@ -140,7 +139,6 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
           Next <ArrowUp className="h-4 w-4" />
         </Button>
       </div>
-      <p className="mt-4 text-center text-xs text-muted-foreground sm:hidden">Swipe up for the next story</p>
     </div>
   );
 }

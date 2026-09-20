@@ -37,7 +37,13 @@ export const Route = createFileRoute("/training")({
   component: TrainingPage,
 });
 
-type Section = { id: string; name: string; description: string | null };
+type Section = {
+  id: string;
+  name: string;
+  description: string | null;
+  group_id?: string | null;
+};
+type Bucket = { id: string; name: string };
 
 function TrainingPage() {
   const ready = useMemberGuard();

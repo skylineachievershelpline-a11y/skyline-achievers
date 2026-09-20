@@ -91,3 +91,10 @@
 - [x] Move sessions, reels, search, and password management out of Home
 - [x] Keep Home focused on an attractive graphical training tracker
 - [x] Verify the phone layout and navigation
+
+## Reel gallery and presentation upgrade
+- [x] Add gallery download while keeping in-app Save separate
+- [x] Remove external-link creation so reels are upload-only
+- [x] Fit vertical reels comfortably within phone screens
+- [x] Format large like and comment counts in compact K/M style
+- [x] Add visible Skyline Achievers branding to every reel

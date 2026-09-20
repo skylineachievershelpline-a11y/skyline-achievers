@@ -6,6 +6,7 @@ import {
   BadgeCheck,
   Bookmark,
   Clock,
+  Download,
   Heart,
   Loader2,
   MessageCircle,
@@ -78,6 +79,26 @@ type Reel = {
   isMine: boolean;
 };
 
+function compactCount(value: number): string {
+  if (value < 1_000) return String(value);
+  if (value < 1_000_000) {
+    const count = value / 1_000;
+    return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}K`;
+  }
+  const count = value / 1_000_000;
+  return `${count >= 10 || Number.isInteger(count) ? count.toFixed(0) : count.toFixed(1)}M`;
+}
+
+function reelFileName(title: string): string {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48);
+  return `skyline-achievers-${slug || "reel"}.mp4`;
+}
+
 function ReelsPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
@@ -146,6 +167,28 @@ function ReelsPage() {
       toast.success(next ? "Saved to your collection" : "Removed from saved");
     } catch {
       setLocal((state) => ({ ...state, [reel.id]: { ...state[reel.id], saved: reel.saved } }));
+    }
+  }
+
+  async function onDownload(reel: Reel) {
+    if (!reel.url) return;
+    const loading = toast.loading("Preparing reel for your gallery…");
+    try {
+      const response = await fetch(reel.url);
+      if (!response.ok) throw new Error("download");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = reelFileName(reel.title);
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Reel saved to your gallery", { id: loading });
+    } catch {
+      toast.error("This reel could not be saved. Please try again.", { id: loading });
     }
   }
 
@@ -220,8 +263,8 @@ function ReelsPage() {
           hint="Short clips will appear here as soon as they are posted."
         />
       ) : (
-        <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
-          <div className="space-y-4 pb-4">
+        <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
+          <div className="space-y-6 pb-4">
             {reels.map((reel) => (
               <ReelCard
                 key={reel.id}
@@ -232,6 +275,7 @@ function ReelsPage() {
                 onToggleMute={() => setMuted((m) => !m)}
                 onLike={() => void onLike(reel)}
                 onSave={() => void onSave(reel)}
+                 onDownload={() => void onDownload(reel)}
                 onComments={() => setCommentsFor(reel)}
                 onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
               />
@@ -274,6 +318,7 @@ function ReelCard({
   onToggleMute,
   onLike,
   onSave,
+  onDownload,
   onComments,
   onDelete,
 }: {
@@ -284,6 +329,7 @@ function ReelCard({
   onToggleMute: () => void;
   onLike: () => void;
   onSave: () => void;
+  onDownload: () => void;
   onComments: () => void;
   onDelete?: (() => void) | undefined;
 }) {
@@ -321,7 +367,7 @@ function ReelCard({
 
   return (
     <article
-      className={`metal-edge relative snap-start snap-always overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
+      className={`metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
         visible ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
       }`}
     >
@@ -334,17 +380,16 @@ function ReelCard({
           muted={muted || !isActive}
           playsInline
           preload="metadata"
-          controlsList="nodownload"
           onClick={() => {
             const video = videoRef.current;
             if (!video) return;
             if (video.paused) void video.play().catch(() => undefined);
             else video.pause();
           }}
-          className="aspect-[9/16] w-full bg-media object-cover"
+          className="h-full w-full bg-media object-contain"
         />
       ) : (
-        <div className="flex aspect-[9/16] w-full items-center justify-center text-sm text-muted-foreground">
+        <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
           Video unavailable
         </div>
       )}
@@ -359,18 +404,31 @@ function ReelCard({
         {muted ? "Sound off" : "Sound on"}
       </button>
 
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center bg-gradient-to-b from-background/90 via-background/45 to-transparent px-16 pb-10 pt-3">
+        <div className="flex max-w-full items-center gap-2 rounded-full border border-cyan/30 bg-background/75 px-3 py-1.5 shadow-brand backdrop-blur-md">
+          <img src={BRAND.logoUrl} alt="" className="h-6 w-6 shrink-0 object-contain" />
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-bold uppercase text-foreground">{BRAND.name}</p>
+            <p className="text-[8px] uppercase text-silver">Learn • Earn • Lead</p>
+          </div>
+        </div>
+      </div>
+
       {/* action rail, TikTok style */}
       <div className="absolute bottom-24 right-3 flex flex-col items-center gap-4">
         <ActionButton
-          label={reel.likes.toLocaleString()}
+           label={compactCount(reel.likes)}
           active={reel.liked}
           onClick={onLike}
           aria-label={reel.liked ? "Remove like" : "Like reel"}
         >
           <Heart className={`h-5 w-5 ${reel.liked ? "fill-current" : ""}`} />
         </ActionButton>
-        <ActionButton label={String(reel.comments)} onClick={onComments} aria-label="Comments">
+        <ActionButton label={compactCount(reel.comments)} onClick={onComments} aria-label="Comments">
           <MessageCircle className="h-5 w-5" />
+        </ActionButton>
+        <ActionButton label="Gallery" onClick={onDownload} aria-label="Save reel to gallery">
+          <Download className="h-5 w-5" />
         </ActionButton>
         <ActionButton
           label={reel.saved ? "Saved" : "Save"}
@@ -528,7 +586,6 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
   const save = useServerFn(createReel);
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const uploadProgress = useUploadProgress();
@@ -549,7 +606,10 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
       className="space-y-3"
       onSubmit={async (event) => {
         event.preventDefault();
-        if (!title.trim() || (!file && !videoUrl.trim())) return;
+        if (!title.trim() || !file) {
+          toast.error("Choose a video file to upload.");
+          return;
+        }
         setBusy(true);
         uploadProgress.clear();
         try {
@@ -559,7 +619,6 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
               title: title.trim(),
               caption: caption.trim() || null,
               videoPath,
-              videoUrl: videoPath ? null : videoUrl.trim(),
               thumbnailPath: null,
             },
           } as never);
@@ -588,15 +647,6 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
           accept="video/*"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="text-xs text-muted-foreground"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Or paste a video link</Label>
-        <Input
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-          placeholder="https://..."
-          className="h-11 rounded-2xl"
         />
       </div>
       <UploadProgress state={uploadProgress.state} />

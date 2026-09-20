@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clapperboard,
+  Download,
   GraduationCap,
   Home,
   KeyRound,
@@ -91,6 +92,38 @@ type FocusedSession = {
 };
 
 type BeginnerView = "home" | "training" | "reels" | "search" | "password";
+
+function reelDownloadName(title: string): string {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48);
+  return `skyline-achievers-${slug || "reel"}.mp4`;
+}
+
+async function downloadReelToGallery(reel: { url?: string | null; title: string }) {
+  if (!reel.url) return;
+  const loading = toast.loading("Preparing reel for your gallery…");
+  try {
+    const response = await fetch(reel.url);
+    if (!response.ok) throw new Error("download");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = reelDownloadName(reel.title);
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    toast.success("Reel saved to your gallery", { id: loading });
+  } catch {
+    toast.error("This reel could not be saved. Please try again.", { id: loading });
+  }
+}
 
 const BEGINNER_NAV = [
   { id: "home", label: "Home", icon: Home },
@@ -712,13 +745,13 @@ function BeginnersPage() {
                 No reels published yet.
               </div>
             ) : (
-              <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] max-w-md snap-y snap-mandatory space-y-4 scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
+              <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory space-y-6 scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
                 {reels.map((reel: any) => (
-                  <article key={reel.id} className="metal-edge relative snap-start snap-always overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
+                  <article key={reel.id} className="metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl bg-media shadow-lift transition-all duration-500 ease-out">
                     {reel.url ? (
-                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} />
+                      <ReelVideo src={reel.url} poster={reel.posterUrl ?? undefined} muted={reelsMuted} className="h-full w-full bg-media object-contain" />
                     ) : (
-                      <div className="flex aspect-[9/16] items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
+                      <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">Video unavailable</div>
                     )}
                     <button
                       type="button"
@@ -728,6 +761,26 @@ function BeginnersPage() {
                     >
                       {reelsMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
                       {reelsMuted ? "Sound off" : "Sound on"}
+                    </button>
+                    <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center bg-gradient-to-b from-background/90 via-background/45 to-transparent px-16 pb-10 pt-3">
+                      <div className="flex max-w-full items-center gap-2 rounded-full border border-cyan/30 bg-background/75 px-3 py-1.5 shadow-brand backdrop-blur-md">
+                        <img src={BRAND.logoUrl} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                        <div className="min-w-0">
+                          <p className="truncate text-[10px] font-bold uppercase text-foreground">{BRAND.name}</p>
+                          <p className="text-[8px] uppercase text-silver">Learn • Earn • Lead</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void downloadReelToGallery(reel)}
+                      aria-label="Save reel to gallery"
+                      className="absolute bottom-24 right-3 flex flex-col items-center gap-1 text-foreground transition-transform duration-300 active:scale-90"
+                    >
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-background/70 backdrop-blur">
+                        <Download className="h-5 w-5" />
+                      </span>
+                      <span className="text-[10px] font-semibold">Gallery</span>
                     </button>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pt-14">
                       <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Skyline Achievers</p>

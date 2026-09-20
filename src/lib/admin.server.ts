@@ -211,6 +211,7 @@ export async function adminLibrary() {
     { data: categories },
     { data: groups },
     { data: sectionAccess },
+    { data: groupAccess },
   ] = await Promise.all([
     supabaseAdmin.from("levels").select("*").order("rank_order"),
     supabaseAdmin
@@ -234,6 +235,7 @@ export async function adminLibrary() {
       .select("id, name, slug, description, sort_order, is_published")
       .order("sort_order"),
     (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
+    (supabaseAdmin as any).from("training_group_access").select("group_id, level_id"),
   ]);
 
   // Which levels can watch each video.

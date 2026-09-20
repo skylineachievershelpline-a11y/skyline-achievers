@@ -110,7 +110,7 @@
 
 ## Reference-style identity and rank pins
 - [x] Remove the decorative star beside the member name
-- [x] Add the branded Skyline Achievers identity panel below the profile
+- [x] Remove the rejected large Skyline Achievers identity panel from the dashboard
 - [x] Remove Status Saver from Home (later removed completely)
 - [x] Remove “Training” from rank names and add the advanced manager ranks
 - [x] Create and assign a distinct supplied-reference pin to every ranked level

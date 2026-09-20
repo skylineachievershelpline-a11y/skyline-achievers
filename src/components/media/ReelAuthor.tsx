@@ -38,11 +38,7 @@ export function ReelAuthor({ reel }: { reel: ReelAuthorInfo }) {
       {reel.verified ? (
         <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" aria-label="Verified" />
       ) : reel.authorRank ? (
-        <RankPin
-          rank={reel.authorRank}
-          className="h-8 w-8"
-          aria-label={`${formatRankName(reel.authorRank)} pin`}
-        />
+        <RankPin rank={reel.authorRank} className="h-8 w-8" />
       ) : null}
     </div>
   );

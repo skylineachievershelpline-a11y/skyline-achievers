@@ -754,6 +754,77 @@ export function LibraryTab() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={groupDialog !== null} onOpenChange={(open) => !open && setGroupDialog(null)}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>{groupDialog?.id ? "Edit category" : "New category"}</DialogTitle>
+          </DialogHeader>
+          {groupDialog ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!groupDialog.name.trim()) {
+                  toast.error("Give the category a name.");
+                  return;
+                }
+                storeGroup.mutate(groupDialog);
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1.5">
+                <Label>Category name</Label>
+                <Input
+                  value={groupDialog.name}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, name: e.target.value })}
+                  placeholder="Sales"
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Short description</Label>
+                <Textarea
+                  value={groupDialog.description}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, description: e.target.value })}
+                  className="rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Order in the menu</Label>
+                <Input
+                  value={String(groupDialog.sortOrder)}
+                  onChange={(e) =>
+                    setGroupDialog({
+                      ...groupDialog,
+                      sortOrder: Number(e.target.value.replace(/\D/g, "")) || 0,
+                    })
+                  }
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={groupDialog.isPublished}
+                  onChange={(e) => setGroupDialog({ ...groupDialog, isPublished: e.target.checked })}
+                />
+                Visible to members
+              </label>
+              <Button
+                type="submit"
+                variant="brand"
+                size="xl"
+                className="w-full"
+                disabled={storeGroup.isPending}
+              >
+                {storeGroup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {groupDialog.id ? "Save category" : "Create category"}
+              </Button>
+            </form>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={resourceDialog} onOpenChange={setResourceDialog}>
         <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
           <DialogHeader>

@@ -10,7 +10,7 @@ import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { EarningsPanel } from "@/components/member/EarningsPanel";
-import { RankPin } from "@/components/member/RankPin";
+import { formatRankName, RankPin } from "@/components/member/RankPin";
 import {
   MemberShell,
   SectionTitle,
@@ -84,11 +84,11 @@ function DashboardPage() {
             />
           </div>
           <div className="min-w-0 flex-1 pt-1">
-            <div className="flex items-center gap-2">
-              <h1 className="min-w-0 truncate font-achiever-display text-xl font-bold sm:text-2xl">
+              <div className="flex items-center gap-3">
+                <h1 className="min-w-0 break-words font-achiever-display text-xl font-bold leading-tight sm:text-2xl">
                 {member?.fullName ?? "Member"}
               </h1>
-              <RankPin rank={member?.level?.name} className="h-12 w-12" />
+                <RankPin rank={member?.level?.name} className="h-16 w-16" />
             </div>
             <div className="mt-5 grid grid-cols-2 gap-5 sm:max-w-sm">
               <div className="min-w-0">
@@ -110,7 +110,7 @@ function DashboardPage() {
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
               </div>
               <div className="min-w-0">
-                <p className="truncate font-achiever-display text-sm font-bold sm:text-base">{member?.level?.name ?? "Unranked"}</p>
+                <p className="break-words font-achiever-display text-sm font-bold leading-snug sm:text-base">{formatRankName(member?.level?.name)}</p>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
               </div>
             </div>

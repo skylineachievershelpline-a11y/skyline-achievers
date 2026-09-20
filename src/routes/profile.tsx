@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { InstallApp } from "@/components/member/InstallApp";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import { formatRankName } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +61,7 @@ function ProfilePage() {
             <dl className="space-y-2.5 text-sm">
               <Row label="Full name" value={member?.fullName ?? "—"} />
               <Row label="Member ID" value={member?.memberId ?? "—"} />
-              <Row label="Level" value={member?.level?.name ?? "Not assigned"} />
+              <Row label="Level" value={formatRankName(member?.level?.name)} />
               <Row label="Phone" value={member?.phone ?? "—"} />
               <Row label="Email" value={member?.email ?? "—"} />
               <Row label="Joined" value={member ? formatDate(member.createdAt) : "—"} />
@@ -107,7 +108,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-hairline/60 pb-2 last:border-0">
       <dt className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
-      <dd className="text-right text-sm font-medium">{value}</dd>
+      <dd className="max-w-[65%] break-words text-right text-sm font-medium leading-snug">{value}</dd>
     </div>
   );
 }

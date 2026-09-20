@@ -1076,3 +1076,78 @@ function TraineePasswordCard({ traineeCode }: { traineeCode: string }) {
     </section>
   );
 }
+
+function TraineeReelComments({ reelId }: { reelId: string }) {
+  const loadComments = useServerFn(getReelComments);
+  const send = useServerFn(addReelComment);
+  const queryClient = useQueryClient();
+  const [body, setBody] = useState("");
+
+  const { data, isPending } = useQuery({
+    queryKey: ["reel-comments", reelId],
+    queryFn: () => loadComments({ data: { id: reelId } } as never),
+  });
+
+  const post = useMutation({
+    mutationFn: (value: string) => send({ data: { id: reelId, body: value } } as never),
+    onSuccess: () => {
+      setBody("");
+      toast.success("Comment sent — it appears to others once approved.");
+      void queryClient.invalidateQueries({ queryKey: ["reel-comments", reelId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const comments = data?.comments ?? [];
+
+  return (
+    <div className="flex max-h-[70vh] flex-col">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        {isPending ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          </div>
+        ) : comments.length === 0 ? (
+          <p className="py-6 text-center text-xs text-muted-foreground">
+            No comments yet. Be the first one.
+          </p>
+        ) : (
+          comments.map((comment: any) => (
+            <div key={comment.id} className="glass-panel rounded-2xl p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-hairline bg-surface-2 text-[10px] font-semibold">
+                  {comment.authorName.slice(0, 1).toUpperCase()}
+                </span>
+                <p className="truncate text-xs font-semibold">{comment.authorName}</p>
+                {comment.pending ? (
+                  <span className="ml-auto rounded-full border border-hairline px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                    Awaiting approval
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{comment.body}</p>
+            </div>
+          ))
+        )}
+      </div>
+      <form
+        className="flex items-center gap-2 border-t border-hairline px-4 py-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!body.trim()) return;
+          post.mutate(body.trim());
+        }}
+      >
+        <Input
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Add a comment…"
+          className="h-11 rounded-2xl"
+        />
+        <Button type="submit" variant="brand" className="rounded-2xl" disabled={post.isPending}>
+          {post.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </form>
+    </div>
+  );
+}

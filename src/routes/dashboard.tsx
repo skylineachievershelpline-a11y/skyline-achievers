@@ -125,40 +125,6 @@ function DashboardPage() {
           <p className="pt-1 text-xs font-semibold text-cyan">{BRAND.name} • {BRAND.tagline}</p>
         </div>
 
-        <div className="relative isolate min-h-[390px] overflow-hidden rounded-2xl border border-metal/20 bg-surface-2 px-5 pb-7 pt-9 shadow-lift sm:min-h-[430px] sm:px-8">
-          <p aria-hidden className="pointer-events-none absolute inset-x-0 top-10 -z-10 overflow-hidden text-center font-achiever-display text-[clamp(3.25rem,12vw,7.4rem)] font-extrabold leading-[0.88] text-foreground/[0.055]">
-            SKYLINE<br />ACHIEVERS
-          </p>
-          <div className="flex justify-center">
-            <div className="inline-flex items-center gap-2 border-y border-cyan/25 px-4 py-2">
-              <img src={BRAND.logoUrl} alt="" className="h-7 w-7 object-contain" />
-              <div>
-                <p className="font-achiever-display text-[11px] font-extrabold uppercase text-foreground">{BRAND.name}</p>
-                <p className="text-[8px] font-bold uppercase text-cyan">{BRAND.tagline}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative mx-auto mt-16 flex max-w-sm flex-col items-center text-center sm:mt-20">
-            <div className="relative">
-              <div className="absolute -inset-3 rounded-full border border-cyan/20 bg-cyan/5 blur-sm" />
-              <div className="relative h-36 w-36 overflow-hidden rounded-full border-4 border-cyan/55 bg-muted shadow-brand sm:h-40 sm:w-40">
-                {member?.avatarUrl ? (
-                  <img src={member.avatarUrl} alt={member.fullName} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center font-achiever-display text-5xl font-bold text-muted-foreground">
-                    {(member?.fullName ?? "M").slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="mt-5 flex max-w-full items-center justify-center gap-2">
-              <h2 className="truncate font-achiever-display text-xl font-extrabold sm:text-2xl">{member?.fullName ?? "Member"}</h2>
-              <RankPin rank={member?.level?.name} className="h-16 w-16" />
-            </div>
-            <p className="mt-1 font-achiever-display text-sm font-bold text-cyan">{member?.memberId ?? "—"}</p>
-          </div>
-        </div>
       </section>
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>

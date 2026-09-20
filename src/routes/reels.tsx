@@ -14,7 +14,6 @@ import {
   Trash2,
   Volume2,
   VolumeX,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";

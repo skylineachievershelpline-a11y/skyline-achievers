@@ -177,9 +177,28 @@ function TeamPage() {
 
   return (
     <MemberShell title="Team Tree" subtitle="Track everyone you registered" executive>
+      <div className="raised-panel metal-edge flex gap-2 rounded-2xl p-2 animate-rise-in">
+        <button
+          type="button"
+          onClick={() => setTab("fbo")}
+          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "fbo" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          FBO team tree
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("customers")}
+          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "customers" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          Preferred customer tree
+        </button>
+      </div>
 
+      {tab === "fbo" ? <FboTree ready={ready} /> : null}
 
-      <section className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
+      <div className={tab === "customers" ? "" : "hidden"}>
+      <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
+
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div><p className="text-[10px] font-bold uppercase text-primary">Network performance</p><h1 className="mt-1 font-display text-2xl font-bold">Your team at a glance</h1></div>
           <p className="text-xs text-muted-foreground">Weekly, monthly and training activity</p>

@@ -1175,6 +1175,8 @@ export type Database = {
           age: number | null
           avatar_path: string | null
           bio: string | null
+          cc_due_at: string | null
+          cc_extensions: number
           cnic: string | null
           created_at: string
           dashboard_cover_path: string | null
@@ -1183,10 +1185,17 @@ export type Database = {
           id: string
           last_login_at: string | null
           level_id: string | null
+          level_since: string
           member_id: string
+          mentorship_completed_at: string | null
+          mentorship_due_at: string | null
+          mentorship_extensions: number
+          mentorship_fee_pkr: number
+          mentorship_paid_pkr: number
           notes: string | null
           phone: string | null
           status: string
+          training_locked: boolean
           updated_at: string
           working_enabled: boolean
         }
@@ -1194,6 +1203,8 @@ export type Database = {
           age?: number | null
           avatar_path?: string | null
           bio?: string | null
+          cc_due_at?: string | null
+          cc_extensions?: number
           cnic?: string | null
           created_at?: string
           dashboard_cover_path?: string | null
@@ -1202,10 +1213,17 @@ export type Database = {
           id: string
           last_login_at?: string | null
           level_id?: string | null
+          level_since?: string
           member_id: string
+          mentorship_completed_at?: string | null
+          mentorship_due_at?: string | null
+          mentorship_extensions?: number
+          mentorship_fee_pkr?: number
+          mentorship_paid_pkr?: number
           notes?: string | null
           phone?: string | null
           status?: string
+          training_locked?: boolean
           updated_at?: string
           working_enabled?: boolean
         }
@@ -1213,6 +1231,8 @@ export type Database = {
           age?: number | null
           avatar_path?: string | null
           bio?: string | null
+          cc_due_at?: string | null
+          cc_extensions?: number
           cnic?: string | null
           created_at?: string
           dashboard_cover_path?: string | null
@@ -1221,10 +1241,17 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           level_id?: string | null
+          level_since?: string
           member_id?: string
+          mentorship_completed_at?: string | null
+          mentorship_due_at?: string | null
+          mentorship_extensions?: number
+          mentorship_fee_pkr?: number
+          mentorship_paid_pkr?: number
           notes?: string | null
           phone?: string | null
           status?: string
+          training_locked?: boolean
           updated_at?: string
           working_enabled?: boolean
         }

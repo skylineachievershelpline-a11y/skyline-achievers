@@ -85,7 +85,7 @@ const WORKING_ROUTES: string[] = ["/team", "/seats", "/chat", "/leave"];
  * true when the admin gave this account training access only, so every
  * working area (earnings, team, reels, messages) must stay locked.
  */
-export function useTrainingOnly() {
+function useMemberAccess() {
   const loadSession = useServerFn(getMemberSession);
   const [hasSession, setHasSession] = useState(false);
   useEffect(() => {
@@ -103,7 +103,17 @@ export function useTrainingOnly() {
     enabled: hasSession,
     retry: false,
   });
+  return data ?? null;
+}
+
+export function useTrainingOnly() {
+  const data = useMemberAccess();
   return data?.member ? data.member.workingEnabled === false : false;
+}
+
+/** Personal Mentorship money + target state for the signed-in member. */
+export function useMemberProgress() {
+  return useMemberAccess()?.progress ?? null;
 }
 
 export function MemberShell({
@@ -123,6 +133,21 @@ export function MemberShell({
   const [portalReady, setPortalReady] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
+  const progress = useMemberProgress();
+
+  /** Which menu entry is locked right now, and why. */
+  function lockReason(to: string): string | null {
+    if (progress?.feeLocked && to !== "/dashboard" && to !== "/profile") {
+      return "Locked. Complete your Personal Mentorship amount to open this.";
+    }
+    if (progress?.trainingLocked && (to === "/training" || to === "/sessions")) {
+      return "Training is locked right now. Your admin can unlock it.";
+    }
+    if (trainingOnly && WORKING_ROUTES.includes(to)) {
+      return "This part is locked. Your account is set to training only.";
+    }
+    return null;
+  }
 
   // Close the side menu whenever the route changes.
   useEffect(() => {
@@ -238,13 +263,11 @@ export function MemberShell({
 
                 <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
                   {NAV.map((item) =>
-                    trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                    lockReason(item.to) ? (
                       <button
                         key={item.to}
                         type="button"
-                        onClick={() =>
-                          toast.info("This part is locked. Your account is set to training only.")
-                        }
+                        onClick={() => toast.info(lockReason(item.to) as string)}
                         className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
                       >
                         <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
@@ -286,7 +309,17 @@ export function MemberShell({
           )
         : null}
 
-      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">{children}</main>
+      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">
+        {lockReason(pathname) && pathname !== "/notifications" ? (
+          <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
+            <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
+            <h1 className="mt-4 font-display text-lg font-semibold">This section is locked</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{lockReason(pathname)}</p>
+          </div>
+        ) : (
+          children
+        )}
+      </main>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -16,6 +16,7 @@ import {
   adminDeleteMember,
   adminGetMembers,
   adminResetPassword,
+  adminSetMentorship,
 } from "@/lib/admin.functions";
 import { ACCOUNT_STATUS_LABEL } from "@/lib/brand";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -84,6 +85,18 @@ export function MembersTab({ levels }: { levels: Level[] }) {
 
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
+  const [moneyTarget, setMoneyTarget] = useState<any | null>(null);
+
+  const setMentorship = useServerFn(adminSetMentorship);
+  const mentorship = useMutation({
+    mutationFn: (input: Record<string, unknown>) => setMentorship({ data: input } as never),
+    onSuccess: () => {
+      toast.success("Personal Mentorship updated");
+      setMoneyTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const reset = useMutation({
     mutationFn: (input: { id: string; newPassword: string | null }) =>
@@ -241,6 +254,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     </Link>
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg px-2 text-[11px]"
+                    onClick={() => setMoneyTarget(member)}
+                  >
+                    <CircleDollarSign className="h-3.5 w-3.5" />
+                    Payment
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="sm"
                     className="h-8 rounded-lg px-2 text-[11px]"
@@ -327,6 +349,13 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       </Dialog>
 
 
+      <MentorshipDialog
+        member={moneyTarget}
+        onClose={() => setMoneyTarget(null)}
+        onSave={(input) => mentorship.mutate(input)}
+        pending={mentorship.isPending}
+      />
+
       <Dialog open={credentials !== null} onOpenChange={() => setCredentials(null)}>
         <DialogContent className="rounded-3xl">
           <DialogHeader>
@@ -382,17 +411,19 @@ function AddMemberDialog({
   onSubmit: (values: {
     fullName: string;
     age: number | null;
-    cnic: string | null;
     email: string | null;
     phone: string | null;
     levelId: string;
     status: string;
     workingEnabled: boolean;
+    feePkr: number;
+    paidPkr: number;
   }) => void;
 }) {
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
-  const [cnic, setCnic] = useState("");
+  const [feePkr, setFeePkr] = useState("50000");
+  const [paidPkr, setPaidPkr] = useState("0");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
@@ -422,12 +453,13 @@ function AddMemberDialog({
             onSubmit({
               fullName: fullName.trim(),
               age: age ? Number(age) : null,
-              cnic: cnic.trim() || null,
               email: email.trim() || null,
               phone: phone.trim() || null,
               levelId,
               status: "active",
               workingEnabled,
+              feePkr: Number(feePkr || 0),
+              paidPkr: Number(paidPkr || 0),
             });
           }}
           className="space-y-3"
@@ -446,9 +478,15 @@ function AddMemberDialog({
               <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 rounded-2xl" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="cnic">CNIC</Label>
-            <Input id="cnic" value={cnic} onChange={(e) => setCnic(e.target.value)} className="h-11 rounded-2xl" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="feePkr">Personal Mentorship amount (Rs.)</Label>
+              <Input id="feePkr" inputMode="numeric" value={feePkr} onChange={(e) => setFeePkr(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="paidPkr">Amount received (Rs.)</Label>
+              <Input id="paidPkr" inputMode="numeric" value={paidPkr} onChange={(e) => setPaidPkr(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email (optional)</Label>
@@ -487,6 +525,93 @@ function AddMemberDialog({
             Create member
           </Button>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Personal Mentorship money, extra days, training lock and account unblock. */
+function MentorshipDialog({
+  member,
+  onClose,
+  onSave,
+  pending,
+}: {
+  member: any | null;
+  onClose: () => void;
+  onSave: (input: Record<string, unknown>) => void;
+  pending: boolean;
+}) {
+  const [feeTotal, setFeeTotal] = useState("");
+  const [paid, setPaid] = useState("");
+
+  useEffect(() => {
+    if (!member) return;
+    setFeeTotal(String(Number(member.mentorship_fee_pkr ?? 50000)));
+    setPaid(String(Number(member.mentorship_paid_pkr ?? 0)));
+  }, [member]);
+
+  if (!member) return null;
+  const total = Number(feeTotal || 0);
+  const received = Number(paid || 0);
+  const remaining = Math.max(total - received, 0);
+  const used = Number(member.mentorship_extensions ?? 0);
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
+        <DialogHeader>
+          <DialogTitle>Personal Mentorship — {member.full_name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="fee-total">Total amount (Rs.)</Label>
+              <Input id="fee-total" inputMode="numeric" value={feeTotal} onChange={(e) => setFeeTotal(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="fee-paid">Amount received (Rs.)</Label>
+              <Input id="fee-paid" inputMode="numeric" value={paid} onChange={(e) => setPaid(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Remaining: <span className="font-semibold text-foreground">Rs. {remaining.toLocaleString("en-PK")}</span>
+            {" · "}Deadline: {member.mentorship_due_at ? formatDateTime(member.mentorship_due_at) : "not set"}
+            {" · "}Extra days used: {used}/3
+          </p>
+
+          <Button
+            variant="brand"
+            size="xl"
+            className="w-full"
+            disabled={pending}
+            onClick={() => onSave({ id: member.id, feeTotal: total, paid: received })}
+          >
+            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save amount
+          </Button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, grantDay: true })}>
+              +1 day for payment
+            </Button>
+            <Button variant="secondary" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, grantCcDay: true })}>
+              +1 day for CC target
+            </Button>
+            <Button variant="outline" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, resetCcTimer: true })}>
+              Restart CC week
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 rounded-xl"
+              disabled={pending}
+              onClick={() => onSave({ id: member.id, trainingLocked: !member.training_locked })}
+            >
+              {member.training_locked ? "Unlock training" : "Lock training"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -12,6 +12,7 @@ import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
+import { MentorshipFeeCard, TargetCard } from "@/components/member/MentorshipPanel";
 import {
   MemberShell,
   SectionTitle,
@@ -67,6 +68,7 @@ function DashboardPage() {
   }
 
   const member = data.member;
+  const progress = data.progress ?? null;
 
   return (
     <MemberShell
@@ -131,6 +133,18 @@ function DashboardPage() {
 
       </section>
 
+      {progress && progress.feeLocked ? (
+        <div className="mx-auto mt-2 w-full max-w-3xl">
+          <MentorshipFeeCard progress={progress} />
+        </div>
+      ) : null}
+
+      {progress && !progress.feeLocked ? (
+        <div className="mx-auto mt-6 w-full max-w-3xl">
+          <TargetCard progress={progress} />
+        </div>
+      ) : null}
+
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 
       <div className="relative mx-auto mt-4 w-full max-w-3xl py-4">
@@ -141,7 +155,7 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6">
-        {trainingOnly ? (
+        {progress?.feeLocked ? null : trainingOnly ? (
           <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
             <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
             <p className="mt-3 font-display text-base font-semibold">Working section locked</p>
@@ -155,7 +169,7 @@ function DashboardPage() {
         )}
       </div>
 
-      {data.continueWatching.length > 0 ? (
+      {!progress?.feeLocked && data.continueWatching.length > 0 ? (
         <section className="mt-7">
           <SectionTitle>Continue your progress</SectionTitle>
           <Rail>{data.continueWatching.map((lecture: any) => <LectureCard key={lecture.id} lecture={lecture} resume />)}</Rail>

@@ -33,11 +33,30 @@ export const getSessionRole = createServerFn({ method: "GET" })
 export const getMemberSession = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { loadMemberContext } = await import("./member.server");
+    const { loadMemberContext, loadCaseCredits } = await import("./member.server");
+    const { computeMemberProgress } = await import("./mentorship");
     const member = await loadMemberContext(context.supabase as never, context.userId);
-    if (!member) return { member: null, reason: "no_profile" as const };
-    if (member.status !== "active") return { member, reason: member.status as "blocked" | "removed" };
-    return { member, reason: "ok" as const };
+    if (!member) return { member: null, reason: "no_profile" as const, progress: null };
+    const ccDone = await loadCaseCredits(
+      context.supabase as never,
+      context.userId,
+      member.mentorship.levelSince,
+    );
+    const progress = computeMemberProgress({
+      levelSlug: member.level?.slug ?? null,
+      feeTotal: member.mentorship.feeTotal,
+      feePaid: member.mentorship.feePaid,
+      dueAt: member.mentorship.dueAt,
+      extensions: member.mentorship.extensions,
+      completedAt: member.mentorship.completedAt,
+      ccDueAt: member.mentorship.ccDueAt,
+      ccExtensions: member.mentorship.ccExtensions,
+      trainingLocked: member.mentorship.trainingLocked,
+      ccDone,
+    });
+    if (member.status !== "active")
+      return { member, reason: member.status as "blocked" | "removed", progress };
+    return { member, reason: "ok" as const, progress };
   });
 
 export const recordLogin = createServerFn({ method: "POST" })
@@ -61,21 +80,41 @@ export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = context.supabase as never;
-    const { loadMemberContext, loadTrainingVideos, loadContinueWatching } = await import(
-      "./member.server"
-    );
+    const { loadMemberContext, loadTrainingVideos, loadContinueWatching, loadCaseCredits } =
+      await import("./member.server");
+    const { computeMemberProgress } = await import("./mentorship");
 
     const member = await loadMemberContext(db, context.userId);
     if (!member || member.status !== "active") {
-      return { member, blocked: true as const, videos: [], continueWatching: [] };
+      return {
+        member,
+        blocked: true as const,
+        videos: [],
+        continueWatching: [],
+        progress: null,
+      };
     }
 
-    const [videos, continueWatching] = await Promise.all([
+    const [videos, continueWatching, ccDone] = await Promise.all([
       loadTrainingVideos(db, 60),
       loadContinueWatching(db, context.userId),
+      loadCaseCredits(db, context.userId, member.mentorship.levelSince),
     ]);
 
-    return { member, blocked: false as const, videos, continueWatching };
+    const progress = computeMemberProgress({
+      levelSlug: member.level?.slug ?? null,
+      feeTotal: member.mentorship.feeTotal,
+      feePaid: member.mentorship.feePaid,
+      dueAt: member.mentorship.dueAt,
+      extensions: member.mentorship.extensions,
+      completedAt: member.mentorship.completedAt,
+      ccDueAt: member.mentorship.ccDueAt,
+      ccExtensions: member.mentorship.ccExtensions,
+      trainingLocked: member.mentorship.trainingLocked,
+      ccDone,
+    });
+
+    return { member, blocked: false as const, videos, continueWatching, progress };
   });
 
 /** Every training video unlocked for this member. */

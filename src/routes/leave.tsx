@@ -70,6 +70,14 @@ function LeavePage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  if (trainingOnly) {
+    return (
+      <MemberShell title="Leave Application">
+        <TrainingOnlyLock area="Leave Application" />
+      </MemberShell>
+    );
+  }
+
   return (
     <MemberShell title="Leave Application" subtitle="Ask your admin for approved leave days">
       {!ready || isPending ? (

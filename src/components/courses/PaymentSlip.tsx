@@ -184,7 +184,121 @@ async function blobFromCanvas(canvas: HTMLCanvasElement) {
   });
 }
 
+async function loadReceiptLogo() {
+  try {
+    const response = await fetch(BRAND.logoUrl);
+    if (!response.ok) return null;
+    return await createImageBitmap(await response.blob());
+  } catch {
+    return null;
+  }
+}
+
+async function createDailyReportImage(data: PaymentSlipData) {
+  const root = getComputedStyle(document.documentElement);
+  const token = (name: string) => root.getPropertyValue(name).trim();
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1914;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Report image is not available on this device.");
+
+  await document.fonts.ready;
+  const logo = await loadReceiptLogo();
+  const paper = token("--receipt-paper");
+  const ink = token("--receipt-ink");
+  const muted = token("--receipt-muted");
+  const line = token("--receipt-line");
+  const blue = token("--brand");
+
+  ctx.fillStyle = paper;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (logo) {
+    const size = 170;
+    ctx.drawImage(logo, (canvas.width - size) / 2, 56, size, size);
+    logo.close();
+  }
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = blue;
+  ctx.font = "900 47px Outfit, sans-serif";
+  ctx.fillText("SKYLINE ACHIEVERS", 540, 298);
+  ctx.fillStyle = muted;
+  ctx.font = "800 28px Manrope, sans-serif";
+  ctx.fillText("LEARN • EARN • LEAD", 540, 360);
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = ink;
+  ctx.font = "900 39px Outfit, sans-serif";
+  ctx.fillText("DAILY WORKING REPORT", 50, 470);
+  ctx.fillStyle = blue;
+  ctx.font = "900 75px Outfit, sans-serif";
+  ctx.fillText(slipPrimaryValue(data), 50, 610);
+
+  const stamp = data.submittedAt;
+  const date = stamp.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const time = stamp.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  ctx.fillStyle = muted;
+  ctx.font = "800 26px Manrope, sans-serif";
+  ctx.fillText(`${date} • ${time} • ${receiptNumber(data)}`, 50, 680);
+
+  ctx.save();
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([32, 24]);
+  ctx.beginPath();
+  ctx.moveTo(50, 744);
+  ctx.lineTo(1030, 744);
+  ctx.stroke();
+  ctx.restore();
+
+  let y = 840;
+  ctx.font = "800 29px Manrope, sans-serif";
+  for (const [label, value] of details(data)) {
+    ctx.fillStyle = muted;
+    ctx.textAlign = "left";
+    ctx.fillText(label.toUpperCase(), 50, y);
+    ctx.fillStyle = ink;
+    ctx.textAlign = "right";
+    ctx.fillText(String(value), 1030, y);
+    y += 70;
+  }
+
+  ctx.save();
+  ctx.strokeStyle = line;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([32, 24]);
+  ctx.beginPath();
+  ctx.moveTo(50, 1632);
+  ctx.lineTo(1030, 1632);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = muted;
+  ctx.font = "500 29px Manrope, sans-serif";
+  ctx.fillText(data.note ?? "Keep this report for your record.", 540, 1722);
+  ctx.fillStyle = blue;
+  ctx.font = "900 31px Outfit, sans-serif";
+  ctx.fillText(slipFooter(data), 540, 1820);
+
+  ctx.fillStyle = line;
+  for (let x = 0; x < canvas.width; x += 46) {
+    ctx.beginPath();
+    ctx.moveTo(x, canvas.height);
+    ctx.lineTo(x + 23, canvas.height - 24);
+    ctx.lineTo(x + 46, canvas.height);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  return blobFromCanvas(canvas);
+}
+
 async function createReceiptImage(data: PaymentSlipData) {
+  if (data.kind === "daily-report") return createDailyReportImage(data);
+
   const root = getComputedStyle(document.documentElement);
   const token = (name: string) => root.getPropertyValue(name).trim();
   const canvas = document.createElement("canvas");

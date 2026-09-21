@@ -133,6 +133,21 @@ export function MemberShell({
   const [portalReady, setPortalReady] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
+  const progress = useMemberProgress();
+
+  /** Which menu entry is locked right now, and why. */
+  function lockReason(to: string): string | null {
+    if (progress?.feeLocked && to !== "/dashboard" && to !== "/profile") {
+      return "Locked. Complete your Personal Mentorship amount to open this.";
+    }
+    if (progress?.trainingLocked && (to === "/training" || to === "/sessions")) {
+      return "Training is locked right now. Your admin can unlock it.";
+    }
+    if (trainingOnly && WORKING_ROUTES.includes(to)) {
+      return "This part is locked. Your account is set to training only.";
+    }
+    return null;
+  }
 
   // Close the side menu whenever the route changes.
   useEffect(() => {

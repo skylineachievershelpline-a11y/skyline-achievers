@@ -1610,6 +1610,7 @@ export type Database = {
           section_id: string | null
           series_id: string | null
           session_id: string | null
+          session_section_id: string | null
           sort_order: number
           storage_path: string | null
           thumbnail_path: string | null
@@ -1628,6 +1629,7 @@ export type Database = {
           section_id?: string | null
           series_id?: string | null
           session_id?: string | null
+          session_section_id?: string | null
           sort_order?: number
           storage_path?: string | null
           thumbnail_path?: string | null
@@ -1646,6 +1648,7 @@ export type Database = {
           section_id?: string | null
           series_id?: string | null
           session_id?: string | null
+          session_section_id?: string | null
           sort_order?: number
           storage_path?: string | null
           thumbnail_path?: string | null
@@ -1679,6 +1682,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "beginner_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_session_section_id_fkey"
+            columns: ["session_section_id"]
+            isOneToOne: false
+            referencedRelation: "content_sections"
             referencedColumns: ["id"]
           },
         ]

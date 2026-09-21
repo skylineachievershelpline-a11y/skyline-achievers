@@ -14,6 +14,7 @@ import {
   adminGetRates,
   adminGetReports,
   adminSaveRates,
+  adminUpdateMemberReport,
 } from "@/lib/admin-reports.functions";
 import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
 

@@ -135,13 +135,6 @@ export function TargetCard({ progress }: { progress: MemberProgress }) {
         <p className="text-xs text-muted-foreground">{progress.requirementNote}</p>
       )}
 
-      {progress.feePaid > 0 && onPrintReceipt ? (
-        <Button type="button" variant="outline" className="w-full rounded-2xl font-display" onClick={onPrintReceipt}>
-          <ReceiptText className="h-4 w-4" />
-          Print Personal Mentorship receipt
-        </Button>
-      ) : null}
-
       {progress.ccDueAt && (progress.ccRemaining ?? 0) > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
           <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">

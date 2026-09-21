@@ -450,7 +450,6 @@ export function LibraryTab() {
                 (l) => l.category_id === category.id,
               ).length;
               const allowedLevels = sectionAccess[category.id] ?? [];
-              const groupName = categoryGroups.find((g) => g.id === category.group_id)?.name;
               return (
                 <li
                   key={category.id}
@@ -459,7 +458,7 @@ export function LibraryTab() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{category.name}</p>
                     <p className="text-[11px] text-muted-foreground">
-                      {groupName ? `${groupName} · ` : "No category · "}
+
                       {count} video{count === 1 ? "" : "s"} ·{" "}
                       {category.is_published ? "Visible" : "Hidden"} · Order {category.sort_order}
                     </p>

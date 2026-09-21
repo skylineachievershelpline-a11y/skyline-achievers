@@ -492,12 +492,14 @@ function AddMemberDialog({
   open,
   onOpenChange,
   levels,
+  uplines,
   pending,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (value: boolean) => void;
   levels: Level[];
+  uplines: Upline[];
   pending: boolean;
   onSubmit: (values: {
     fullName: string;
@@ -505,6 +507,7 @@ function AddMemberDialog({
     email: string | null;
     phone: string | null;
     levelId: string;
+    uplineId: string;
     status: string;
     workingEnabled: boolean;
     feePkr: number;
@@ -518,6 +521,7 @@ function AddMemberDialog({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [uplineId, setUplineId] = useState("");
   const [workingEnabled, setWorkingEnabled] = useState(true);
 
   useEffect(() => {
@@ -530,6 +534,15 @@ function AddMemberDialog({
       setLevelId(levels[0]?.id ?? "");
     }
   }, [levelId, levels, open]);
+
+  // Every new account must sit under an upline; default to the official one.
+  useEffect(() => {
+    if (!open || uplines.length === 0) return;
+    if (!uplines.some((upline) => upline.id === uplineId)) {
+      setUplineId((uplines.find((upline) => upline.isOfficial) ?? uplines[0]!).id);
+    }
+  }, [open, uplineId, uplines]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

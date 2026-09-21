@@ -387,11 +387,14 @@ function AddMemberDialog({
     levelId: string;
     status: string;
     workingEnabled: boolean;
+    feePkr: number;
+    paidPkr: number;
   }) => void;
 }) {
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
-  const [cnic, setCnic] = useState("");
+  const [feePkr, setFeePkr] = useState("50000");
+  const [paidPkr, setPaidPkr] = useState("0");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");

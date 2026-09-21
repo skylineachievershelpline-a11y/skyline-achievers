@@ -77,6 +77,14 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     queryFn: () => listMembers({ data: { search: term, status } }),
   });
 
+  const loadUplines = useServerFn(adminGetUplines);
+  const { data: uplineData } = useQuery({
+    queryKey: ["admin-uplines"],
+    queryFn: () => loadUplines(),
+  });
+  const uplines = (uplineData?.uplines ?? []) as Upline[];
+
+
   const create = useMutation({
     mutationFn: (input: Parameters<typeof adminAddMember>[0]) => addMember(input),
     onSuccess: (result) => {

@@ -223,10 +223,15 @@ export const adminEditMember = createServerFn({ method: "POST" })
     if (data.workingEnabled !== undefined) patch["working_enabled"] = data.workingEnabled;
     if (data.fullName !== undefined) patch["full_name"] = data.fullName;
     if (data.age !== undefined) patch["age"] = data.age;
-    if (data.cnic !== undefined) patch["cnic"] = data.cnic;
     if (data.email !== undefined) patch["email"] = data.email;
     if (data.phone !== undefined) patch["phone"] = data.phone;
-    if (data.levelId !== undefined) patch["level_id"] = data.levelId;
+    if (data.levelId !== undefined) {
+      patch["level_id"] = data.levelId;
+      // New rank: case credits and the target week both start again.
+      patch["level_since"] = new Date().toISOString();
+      patch["cc_extensions"] = 0;
+      patch["cc_due_at"] = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    }
     if (data.status !== undefined) patch["status"] = data.status;
     if (data.notes !== undefined) patch["notes"] = data.notes;
     return adminUpdateMember(data.id, patch);

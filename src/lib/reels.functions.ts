@@ -69,7 +69,6 @@ export const getReels = createServerFn({ method: "GET" })
 
     const dayStart = startOfLocalDay();
     const seenToday = (views ?? []).filter((v: any) => v.seen_at >= dayStart).length;
-    const remaining = Math.max(0, DAILY_REEL_LIMIT - seenToday);
 
     const seenAt = new Map<string, string>((views ?? []).map((v: any) => [v.reel_id, v.seen_at]));
     const published = (rows ?? []) as any[];
@@ -77,7 +76,8 @@ export const getReels = createServerFn({ method: "GET" })
     const repeats = published
       .filter((r) => seenAt.has(r.id))
       .sort((a, b) => String(seenAt.get(a.id)).localeCompare(String(seenAt.get(b.id))));
-    const picked = [...fresh, ...repeats].slice(0, remaining);
+    // No daily cap: members may watch as many reels as they like.
+    const picked = [...fresh, ...repeats];
 
     const likedSet = new Set((likes ?? []).map((l: any) => l.reel_id));
     const savedSet = new Set((saves ?? []).map((s: any) => s.reel_id));

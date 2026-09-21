@@ -1,8 +1,8 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, Eye, EyeOff, Lock } from "lucide-react";
+import { Bot, Check, Copy, Eye, EyeOff, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -149,6 +149,12 @@ function DashboardPage() {
       </section>
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
+
+      <div className="mx-auto mt-4 w-full max-w-3xl">
+        <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
+          <Link to="/ai"><span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span><span className="text-xs opacity-80">Ask for help</span></Link>
+        </Button>
+      </div>
 
       <div className="mt-6">
         {trainingOnly ? (

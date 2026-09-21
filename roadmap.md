@@ -160,9 +160,9 @@
 
 
 ## Complete dashboard, training, account, and Skyline AI update
-- [ ] Restore Resources to a direct list and fix empty admin-created Training categories
-- [ ] Collapse dashboard report details and fit full Member ID/rank on one line
-- [ ] Correct desktop testimony video framing
-- [ ] Use mobile number + 00000000 for new Beginners accounts and add secure upline reset
-- [ ] Add account-persisted threaded Skyline Achievers AI with strict access/privacy rules
+- [x] Restore Resources to a direct list and fix empty admin-created Training categories
+- [x] Collapse dashboard report details and fit full Member ID/rank on one line
+- [x] Correct desktop testimony video framing
+- [x] Use mobile number + 00000000 for new Beginners accounts and add secure upline reset
+- [x] Add account-persisted threaded Skyline Achievers AI with strict access/privacy rules
 - [ ] Verify phone, desktop, authentication, reset, and two separate AI threads

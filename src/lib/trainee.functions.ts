@@ -20,10 +20,10 @@ export const resolveLoginIdentifier = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
       .from("trainees")
-      .select("trainee_code")
-      .eq("phone", digits)
-      .limit(2);
-    const code = rows?.length === 1 ? rows[0]?.trainee_code : digits;
+      .select("trainee_code, phone")
+      .limit(5000);
+    const matches = (rows ?? []).filter((row) => (row.phone ?? "").replace(/\D/g, "") === digits);
+    const code = matches.length === 1 ? matches[0]?.trainee_code : digits;
     return { email: memberIdToAuthEmail(code ?? digits) };
   });
 

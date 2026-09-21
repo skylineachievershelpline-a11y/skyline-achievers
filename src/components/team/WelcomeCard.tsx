@@ -270,7 +270,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
         </p>
 
         <div className="mt-7 grid w-full gap-2 sm:grid-cols-2">
-          <Field label="Skyline ID" value={credentials.traineeCode} />
+          <Field label="Mobile number" value={credentials.traineeCode} />
           <Field label="Password" value={credentials.password} />
         </div>
 

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Bell,
+  Bot,
   Clapperboard,
   GraduationCap,
   Crown,
@@ -67,6 +68,7 @@ const NAV = [
   { to: "/sessions", label: "Beginners Sessions", icon: Link2 },
   { to: "/reels", label: "Reels", icon: Clapperboard },
   { to: "/chat", label: "Messages", icon: MessageCircle },
+  { to: "/ai", label: "Skyline Achievers AI", icon: Bot },
   { to: "/seats", label: "Seat Reservation", icon: UserPlus },
   { to: "/leave", label: "Leave Application", icon: FileText },
   { to: "/team", label: "Team Tree", icon: Users },

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
   Bookmark,
+  Bot,
   CheckCircle2,
   ChevronRight,
   Clapperboard,
@@ -551,6 +552,12 @@ function BeginnersPage() {
                 Chat with Upline
               </Link>
             </Button>
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/ai">
+                <Bot className="h-4 w-4 text-brand-glow" />
+                Skyline Achievers AI
+              </Link>
+            </Button>
           </nav>
           <button type="button" onClick={() => void signOut()} className="logout-button mt-4 w-full">
             <LogOut className="h-4 w-4" /> Logout
@@ -653,6 +660,13 @@ function BeginnersPage() {
             </ol>
           </div>
         </section>
+
+        <Button asChild variant="brand" size="xl" className="mt-4 w-full justify-between rounded-2xl">
+          <Link to="/ai">
+            <span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span>
+            <span className="text-xs opacity-80">Ask for help</span>
+          </Link>
+        </Button>
 
         <section className="mt-5 grid grid-cols-2 gap-3 animate-rise-in sm:grid-cols-3">
           <div className="glass-panel metal-edge rounded-2xl p-4">

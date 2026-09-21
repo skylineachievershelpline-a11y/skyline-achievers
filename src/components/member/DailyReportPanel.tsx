@@ -432,7 +432,7 @@ export function DailyReportPanel() {
             onClick={printReportSlip}
           >
             <ReceiptText className="h-4 w-4" />
-            Slip
+            Print Slip
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">

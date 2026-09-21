@@ -251,7 +251,7 @@ export function ReportsTab() {
                         ) : (
                           <ReceiptText className="h-4 w-4" />
                         )}
-                        Slip
+                        Print Slip
                       </Button>
                     </td>
                   </tr>
@@ -306,7 +306,7 @@ export function ReportsTab() {
                 onClick={() => void printMemberSlip(openMember)}
               >
                 {busy === openMember ? <Loader2 className="h-4 w-4 animate-spin" /> : <ReceiptText className="h-4 w-4" />}
-                Slip
+                Print Slip
               </Button>
               <Button
                 variant="outline"

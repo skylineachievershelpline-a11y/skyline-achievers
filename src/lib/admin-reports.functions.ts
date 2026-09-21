@@ -168,6 +168,66 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     };
   });
 
+/** Admin fixes a wrong daily report; the member's dashboard shows the corrected numbers. */
+export const adminUpdateMemberReport = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      memberId: string;
+      date: string;
+      leads: number;
+      responses: number;
+      enrollments: number;
+      pending: number;
+      twoCc: number;
+      mentorshipPaid: number;
+      absent?: boolean;
+      absentReason?: string | null;
+    }) => {
+      const count = z.number().int().min(0).max(100_000);
+      return z
+        .object({
+          memberId: z.string().uuid(),
+          date: dateInput,
+          leads: count,
+          responses: count,
+          enrollments: count,
+          pending: count,
+          twoCc: count,
+          mentorshipPaid: count,
+          absent: z.boolean().optional(),
+          absentReason: z.string().trim().max(300).optional().nullable(),
+        })
+        .parse(data);
+    },
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rates = await loadRates();
+
+    const { error } = await supabaseAdmin.from("member_daily_reports").upsert(
+      {
+        member_id: data.memberId,
+        report_date: data.date,
+        leads_count: data.leads,
+        responses: data.responses,
+        enrollments: data.enrollments,
+        pending_count: data.pending,
+        two_cc: data.twoCc,
+        mentorship_paid: data.mentorshipPaid,
+        rate_per_lead: rates.lead,
+        is_absent: data.absent ?? false,
+        absent_reason: data.absent ? (data.absentReason ?? null) : null,
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "member_id,report_date" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Everything waiting for an admin decision, shown at the top of the panel. */
 export const adminGetApprovals = createServerFn({ method: "POST" }).handler(async () => {
   const { requireAdmin } = await import("./admin-session.server");

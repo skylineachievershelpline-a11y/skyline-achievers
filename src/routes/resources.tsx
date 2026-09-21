@@ -30,11 +30,13 @@ export const Route = createFileRoute("/resources")({
 });
 
 const FILTERS = ["all", "pdf", "image", "audio", "presentation", "book", "link", "note"] as const;
+const OTHER = "__other__";
 
 function ResourcesPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getMemberResources);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const { data, isPending } = useQuery({
     queryKey: ["member-resources"],
     queryFn: () => load(),

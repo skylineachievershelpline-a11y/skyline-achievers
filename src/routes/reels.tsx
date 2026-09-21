@@ -19,7 +19,6 @@ import { ReelAuthor } from "@/components/media/ReelAuthor";
 import { EmptyState } from "@/components/member/cards";
 import {
   MemberShell,
-  TrainingOnlyLock,
   useMemberGuard,
   useTrainingOnly,
 } from "@/components/member/MemberShell";

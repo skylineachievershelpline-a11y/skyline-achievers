@@ -178,7 +178,8 @@ function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
   useEffect(() => {
     if (hasProfile) return;
     let active = true;
-    void resolveRole()
+    void getAccessToken()
+      .then((token) => (token ? resolveRole().catch(() => null) : null))
       .catch(() => null)
       .then(async (role) => {
         if (!active) return;

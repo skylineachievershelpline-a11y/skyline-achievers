@@ -33,6 +33,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
+import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { SessionGate } from "@/components/media/SessionGate";
@@ -661,12 +662,15 @@ function BeginnersPage() {
           </div>
         </section>
 
-        <Button asChild variant="brand" size="xl" className="mt-4 w-full justify-between rounded-2xl">
-          <Link to="/ai">
-            <span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span>
-            <span className="text-xs opacity-80">Ask for help</span>
-          </Link>
-        </Button>
+        <div className="relative mx-auto mt-4 w-full py-4">
+          <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
+            <Link to="/ai">
+              <span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span>
+              <span className="text-xs opacity-80">Ask for help</span>
+            </Link>
+          </Button>
+          <FlyingSkylineAiMascot />
+        </div>
 
         <section className="mt-5 grid grid-cols-2 gap-3 animate-rise-in sm:grid-cols-3">
           <div className="glass-panel metal-edge rounded-2xl p-4">

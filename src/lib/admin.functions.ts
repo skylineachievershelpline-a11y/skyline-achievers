@@ -270,6 +270,8 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
       id: string;
       feeTotal?: number;
       paid?: number;
+      mentorshipDueAt?: string | null;
+      ccDueAt?: string | null;
       grantDay?: boolean;
       grantCcDay?: boolean;
       trainingLocked?: boolean;
@@ -280,6 +282,8 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
           id: uuid,
           feeTotal: z.number().min(0).max(10_000_000).optional(),
           paid: z.number().min(0).max(10_000_000).optional(),
+          mentorshipDueAt: z.string().datetime().nullable().optional(),
+          ccDueAt: z.string().datetime().nullable().optional(),
           grantDay: z.boolean().optional(),
           grantCcDay: z.boolean().optional(),
           trainingLocked: z.boolean().optional(),
@@ -308,6 +312,8 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
     const paid = data.paid ?? Number(row.mentorship_paid_pkr ?? 0);
     if (data.feeTotal !== undefined) patch["mentorship_fee_pkr"] = data.feeTotal;
     if (data.paid !== undefined) patch["mentorship_paid_pkr"] = data.paid;
+    if (data.mentorshipDueAt !== undefined) patch["mentorship_due_at"] = data.mentorshipDueAt;
+    if (data.ccDueAt !== undefined) patch["cc_due_at"] = data.ccDueAt;
 
     if (data.grantDay) {
       const used = Number(row.mentorship_extensions ?? 0);

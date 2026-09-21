@@ -26,6 +26,14 @@ import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Level = { id: string; name: string; rank_order: number };
+type Upline = {
+  id: string;
+  memberId: string;
+  fullName: string;
+  isOfficial: boolean;
+  levelName: string | null;
+};
+
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
 

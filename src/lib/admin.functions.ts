@@ -1400,6 +1400,7 @@ export const adminSaveSection = createServerFn({ method: "POST" })
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload: Record<string, unknown> = {
+      ...(data.id ? { id: data.id } : {}),
       scope: data.scope,
       session_id: data.scope === "session" ? (data.sessionId ?? null) : null,
       name: data.name,
@@ -1408,12 +1409,11 @@ export const adminSaveSection = createServerFn({ method: "POST" })
     };
     if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
 
-    const query = data.id
-      ? (supabaseAdmin as any).from("content_sections").update(payload).eq("id", data.id)
-      : (supabaseAdmin as any).from("content_sections").insert(payload).select("id").single();
-    const { data: saved, error } = await query;
+    const { error } = await (supabaseAdmin as any)
+      .from("content_sections")
+      .upsert(payload, { onConflict: "id" });
     if (error) throw new Error(error.message);
-    return { ok: true as const, id: (saved?.id as string | undefined) ?? data.id ?? null };
+    return { ok: true as const, id: data.id ?? null };
   });
 
 export const adminDeleteSection = createServerFn({ method: "POST" })

@@ -204,4 +204,4 @@
 ## Direct training sections
 - [x] Show Training videos directly under each section instead of opening category tiles first
 - [x] Keep the existing admin video access controls unchanged
-- [ ] Verify the signed-in member Training page on phone width
+- [ ] Verify the signed-in member Training page on phone width (blocked until a member account is signed into the preview)

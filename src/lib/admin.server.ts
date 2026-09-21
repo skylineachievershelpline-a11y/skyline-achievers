@@ -124,7 +124,10 @@ export async function adminCreateMember(input: {
     throw new Error(authError?.message ?? "Could not create the member account.");
   }
 
-  const { error: profileError } = await supabaseAdmin.from("member_profiles").insert({
+  // Personal Mentorship accounts get the fee clock: 3 days from creation.
+  const isMentorship = (level as any).slug === "personal-mentorship";
+  const now = Date.now();
+  const { error: profileError } = await (supabaseAdmin as any).from("member_profiles").insert({
     id: created.user.id,
     member_id: memberId,
     full_name: input.fullName,
@@ -135,6 +138,19 @@ export async function adminCreateMember(input: {
     level_id: input.levelId,
     status: input.status,
     working_enabled: input.workingEnabled,
+    mentorship_fee_pkr: input.feePkr ?? 50000,
+    mentorship_paid_pkr: input.paidPkr ?? 0,
+    mentorship_due_at: new Date(now + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    mentorship_extensions: 0,
+    mentorship_completed_at: isMentorship
+      ? (input.paidPkr ?? 0) >= (input.feePkr ?? 50000)
+        ? new Date(now).toISOString()
+        : null
+      : new Date(now).toISOString(),
+    cc_due_at: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    cc_extensions: 0,
+    training_locked: false,
+    level_since: new Date(now).toISOString(),
   });
   if (profileError) {
     await supabaseAdmin.auth.admin.deleteUser(created.user.id);

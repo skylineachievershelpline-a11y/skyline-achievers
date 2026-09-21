@@ -706,24 +706,6 @@ export function LibraryTab() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Category</Label>
-                <select
-                  value={categoryDialog.groupId}
-                  onChange={(e) => setCategoryDialog({ ...categoryDialog, groupId: e.target.value })}
-                  className={fieldClass}
-                >
-                  <option value="">No category</option>
-                  {categoryGroups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-muted-foreground">
-                  Categories group sections together, for example Sales or Mindset.
-                </p>
-              </div>
-              <div className="space-y-1.5">
                 <Label>Who can open this section</Label>
                 <div className="space-y-2 rounded-2xl border border-border p-3">
                   {levels.map((level) => (

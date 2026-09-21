@@ -74,6 +74,7 @@ export function DailyReportPanel() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [seededFor, setSeededFor] = useState<string | null>(null);
 
   // A report already sent today can still be corrected until midnight, so the
@@ -334,9 +335,22 @@ export function DailyReportPanel() {
         ) : null}
       </section>
 
-      <TrendChart days={chartDays} />
+      <Button
+        type="button"
+        variant="outline"
+        size="xl"
+        className="w-full rounded-2xl"
+        onClick={() => setReportOpen((open) => !open)}
+      >
+        {reportOpen ? <X className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+        {reportOpen ? "Hide report" : "Show report"}
+      </Button>
 
-      <section className="raised-panel metal-edge rounded-3xl p-5">
+      {reportOpen ? (
+        <div className="space-y-4 animate-rise-in">
+          <TrendChart days={chartDays} />
+
+          <section className="raised-panel metal-edge rounded-3xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Report download
         </p>
@@ -440,7 +454,9 @@ export function DailyReportPanel() {
             </table>
           </div>
         ) : null}
-      </section>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -101,6 +101,31 @@ export const setTraineeStatus = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+/** A direct upline can reset only a trainee they personally registered. */
+export const resetTraineePassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string }) =>
+    z.object({ traineeId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: trainee } = await supabaseAdmin
+      .from("trainees")
+      .select("id, upline_id")
+      .eq("id", data.traineeId)
+      .maybeSingle();
+    if (!trainee || trainee.upline_id !== member.id) {
+      throw new Error("You can only manage the people you registered.");
+    }
+    const { DEFAULT_TRAINEE_PASSWORD } = await import("./team.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.traineeId, {
+      password: DEFAULT_TRAINEE_PASSWORD,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 /** Remove means remove: the login, the record and the chats all disappear. */
 export const deleteTrainee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

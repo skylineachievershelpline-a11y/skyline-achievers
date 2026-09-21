@@ -343,7 +343,8 @@ export function SessionExtrasDialog({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{row.title}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {KIND_LABEL[row.kind ?? "video"] ?? "Video"} · order {row.sort_order ?? 0} ·{" "}
+                    {KIND_LABEL[row.kind ?? "video"] ?? "Video"} · {sectionName_(row.section_id)} ·
+                    order {row.sort_order ?? 0} ·{" "}
                     {row.is_published ? "Published" : "Hidden"}
                   </p>
                 </div>
@@ -370,6 +371,21 @@ export function SessionExtrasDialog({
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             {editing ? "Edit item" : "Add video, picture, PDF or link"}
           </p>
+          <div className="space-y-1.5">
+            <Label>Category</Label>
+            <select
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">No category</option>
+              {sections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-1.5">
             <Label>Type</Label>
             <select

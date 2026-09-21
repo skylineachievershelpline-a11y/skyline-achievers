@@ -89,25 +89,45 @@ function TrainingPage() {
     [all, tokens, visibleSections],
   );
 
+  const [openSection, setOpenSection] = useState<string | null>(null);
+  const active = visibleSections.find((section) => section.id === openSection) ?? null;
+  const activeEntry = videosBySection.find((entry) => entry.section.id === openSection) ?? null;
+
   return (
     <MemberShell title="Training" subtitle="Your training library" executive>
       <div className="raised-panel metal-edge rounded-3xl p-5 animate-rise-in">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Skyline training library
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold">Training Videos</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold">
+          {active ? active.name : "Training Videos"}
+        </h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Every unlocked section is open below — Prospecting, Sales and every other training area show directly here.
+          {active
+            ? active.description || "Every video unlocked for your rank in this section."
+            : "Choose a section — Prospecting, Follow-up, Objection Handling, Closing and more."}
         </p>
         <div className="relative mt-4">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search all training videos"
+            placeholder={active ? `Search in ${active.name}` : "Search all training videos"}
             className="h-11 rounded-2xl pl-9"
           />
         </div>
+        {active ? (
+          <Button
+            variant="outline"
+            className="mt-4 h-10 rounded-2xl"
+            onClick={() => {
+              setOpenSection(null);
+              setQuery("");
+            }}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" /> All sections
+          </Button>
+        ) : null}
       </div>
 
       {!ready || isPending ? (
@@ -122,57 +142,64 @@ function TrainingPage() {
             hint="Training sections appear here as soon as they are published."
           />
         </section>
-      ) : videosBySection.every((entry) => entry.videos.length === 0) ? (
+      ) : active ? (
         <section className="mt-6">
-          <SectionTitle>No matching videos</SectionTitle>
-          <EmptyState title="No video matched your search" hint="Try a different word." />
+          <SectionTitle>{active.name}</SectionTitle>
+          {!activeEntry || activeEntry.videos.length === 0 ? (
+            <EmptyState title="No video matched your search" hint="Try a different word." />
+          ) : (
+            <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {activeEntry.videos.map((video: any, index: number) => (
+                <div
+                  key={video.id}
+                  className="animate-rise-in"
+                  style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
+                >
+                  <TrainingVideoCard
+                    video={video}
+                    onLocked={() =>
+                      toast.info(
+                        video.levels?.name
+                          ? `This video opens at ${video.levels.name}. Keep going — you are close!`
+                          : "This video is locked for your rank right now.",
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       ) : (
-        <div className="mt-6 space-y-8">
-          {videosBySection.map(({ section, videos, total }, sectionIndex) => (
-            <section
-              key={section.id}
-              className="animate-rise-in"
-              style={{ animationDelay: `${Math.min(sectionIndex, 8) * 40}ms` }}
-            >
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div className="min-w-0">
-                  <SectionTitle>{section.name}</SectionTitle>
-                  {section.description ? (
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{section.description}</p>
-                  ) : null}
+        <section className="mt-6">
+          <SectionTitle>Training Sections</SectionTitle>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {videosBySection.map(({ section, total }, sectionIndex) => (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => setOpenSection(section.id)}
+                className="raised-panel metal-edge animate-rise-in group rounded-3xl p-5 text-left transition-transform hover:-translate-y-0.5"
+                style={{ animationDelay: `${Math.min(sectionIndex, 8) * 40}ms` }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="min-w-0 font-display text-lg font-bold leading-tight">{section.name}</h2>
+                  <span className="shrink-0 rounded-full border border-metal/30 bg-surface px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    {total} video{total === 1 ? "" : "s"}
+                  </span>
                 </div>
-                <span className="shrink-0 rounded-full border border-metal/30 bg-surface px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  {total} video{total === 1 ? "" : "s"}
+                {section.description ? (
+                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                    {section.description}
+                  </p>
+                ) : null}
+                <span className="mt-4 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  Open section <ChevronRight className="h-3.5 w-3.5" />
                 </span>
-              </div>
-              {videos.length === 0 ? (
-                <EmptyState title="No matching videos here" />
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {videos.map((video: any, index: number) => (
-                    <div
-                      key={video.id}
-                      className="animate-rise-in"
-                      style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-                    >
-                      <TrainingVideoCard
-                        video={video}
-                        onLocked={() =>
-                          toast.info(
-                            video.levels?.name
-                              ? `This video opens at ${video.levels.name}. Keep going — you are close!`
-                              : "This video is locked for your rank right now.",
-                          )
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        </section>
       )}
     </MemberShell>
   );

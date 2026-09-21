@@ -336,6 +336,13 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       </Dialog>
 
 
+      <MentorshipDialog
+        member={moneyTarget}
+        onClose={() => setMoneyTarget(null)}
+        onSave={(input) => mentorship.mutate(input)}
+        pending={mentorship.isPending}
+      />
+
       <Dialog open={credentials !== null} onOpenChange={() => setCredentials(null)}>
         <DialogContent className="rounded-3xl">
           <DialogHeader>

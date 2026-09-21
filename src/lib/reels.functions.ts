@@ -4,7 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** A member may watch this many reels per day — the feed is about value, not scrolling. */
-export const DAILY_REEL_LIMIT = 15;
 
 /** Start of the current day in Pakistan time (UTC+5), as an ISO timestamp. */
 function startOfLocalDay(): string {

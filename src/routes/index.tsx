@@ -299,7 +299,7 @@ function LandingPage() {
       </Dialog>
 
       <Dialog open={publicAiOpen} onOpenChange={setPublicAiOpen}>
-        <DialogContent className="metal-edge w-[calc(100%-1rem)] max-w-2xl overflow-hidden rounded-2xl p-4 sm:p-6">
+        <DialogContent className="metal-edge max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-2xl overflow-hidden rounded-2xl p-4 sm:p-6">
           <DialogHeader className="pr-8 text-left">
             <DialogTitle className="font-display text-xl">Skyline Achievers AI</DialogTitle>
           </DialogHeader>

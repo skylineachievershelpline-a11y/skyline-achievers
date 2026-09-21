@@ -13,7 +13,7 @@ import { SKYLINE_KNOWLEDGE } from "@/lib/skyline-knowledge";
 
 const bodySchema = z.object({ messages: z.array(z.unknown()).min(1).max(40) });
 
-export const Route = createFileRoute("/api/public-ai")({
+export const Route = createFileRoute("/api/public/ai")({
   server: {
     handlers: {
       POST: async ({ request }) => {

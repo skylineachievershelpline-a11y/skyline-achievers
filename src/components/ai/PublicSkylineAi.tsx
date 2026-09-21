@@ -20,8 +20,8 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { SkylineAiMascot, type SkylineAiMascotState } from "@/components/ai/SkylineAiMascot";
 
 export function PublicSkylineAi() {
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public-ai" }), []);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public/ai" }), []);
+  const chatRef = useRef<HTMLDivElement | null>(null);
   const { messages, sendMessage, status, stop, error } = useChat({
     id: "public-skyline-introduction",
     transport,
@@ -30,11 +30,11 @@ export function PublicSkylineAi() {
   const mascotState: SkylineAiMascotState = status === "submitted" ? "thinking" : status === "streaming" ? "answer" : "idle";
 
   useEffect(() => {
-    if (!busy) textareaRef.current?.focus();
+    if (!busy) chatRef.current?.querySelector("textarea")?.focus();
   }, [busy]);
 
   return (
-    <div className="flex h-[min(76dvh,42rem)] min-h-[30rem] flex-col overflow-hidden">
+    <div ref={chatRef} className="flex h-[min(76dvh,42rem)] min-h-[30rem] flex-col overflow-hidden">
       <Conversation className="min-h-0 flex-1">
         <ConversationContent className="gap-5 px-1 py-3 sm:px-2">
           {messages.length === 0 ? (
@@ -82,7 +82,7 @@ export function PublicSkylineAi() {
           }}
           className="bg-surface"
         >
-          <PromptInputTextarea ref={textareaRef} autoFocus placeholder="Ask about Skyline Achievers..." disabled={busy} />
+          <PromptInputTextarea autoFocus placeholder="Ask about Skyline Achievers..." disabled={busy} />
           <PromptInputFooter className="justify-end">
             <PromptInputSubmit status={status} onStop={() => void stop()} />
           </PromptInputFooter>

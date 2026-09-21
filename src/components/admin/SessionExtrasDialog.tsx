@@ -121,9 +121,60 @@ export function SessionExtrasDialog({
     setRatio("16:9");
     setSortOrder("0");
     setPublished(true);
+    setSectionId("");
   }
 
+  async function addSection(event: React.FormEvent) {
+    event.preventDefault();
+    if (!sectionName.trim()) {
+      toast.error("Give this category a name.");
+      return;
+    }
+    setSectionBusy(true);
+    uploadProgress.clear();
+    try {
+      let thumbnailPath: string | null = null;
+      if (sectionCover) {
+        thumbnailPath = await uploadToBucket(
+          createUploadUrl,
+          "training-thumbnails" as never,
+          sectionCover,
+          uploadProgress.handler("Uploading category cover"),
+        );
+      }
+      await saveSection({
+        data: {
+          scope: "session",
+          sessionId,
+          name: sectionName.trim(),
+          thumbnailPath,
+          sortOrder: 0,
+          isPublished: true,
+        },
+      } as never);
+      toast.success("Category created");
+      setSectionName("");
+      setSectionCover(null);
+      refresh();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setSectionBusy(false);
+      uploadProgress.clear();
+    }
+  }
+
+  const delSection = useMutation({
+    mutationFn: (id: string) => removeSection({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Category deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   function startEdit(row: ExtraRow) {
+    setSectionId(row.section_id ?? "");
     setEditing(row);
     setKind((row.kind ?? "video") as Kind);
     setTitle(row.title);

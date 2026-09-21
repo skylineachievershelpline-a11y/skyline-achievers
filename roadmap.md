@@ -151,3 +151,9 @@
 - [x] Member catalog (/courses) and detail page with payment proof upload
 - [x] Admin Paid Courses tab: courses, lessons, accounts, instructions, request approval, direct unlock
 - [x] Premium Courses link in member and Beginners sidebars
+
+## Resource type and category browsing
+- [x] Keep Video, Pictures, PDF, and other type choices visible above categories
+- [x] Filter categories by the selected resource type
+- [x] Show multiple matching items inside each category
+- [x] Open pictures in a full-width in-page preview

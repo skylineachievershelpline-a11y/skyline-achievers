@@ -42,6 +42,7 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
   const resolve = useServerFn(getResourceLink);
   const [busy, setBusy] = useState<string | null>(null);
   const [openNote, setOpenNote] = useState<string | null>(null);
+  const [openImage, setOpenImage] = useState<{ id: string; url: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
   async function open(resource: MemberResource) {
@@ -49,10 +50,21 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
       setOpenNote((prev) => (prev === resource.id ? null : resource.id));
       return;
     }
+    if (resource.resource_type === "image" && openImage?.id === resource.id) {
+      setOpenImage(null);
+      return;
+    }
     setBusy(resource.id);
-    const { url } = await resolve({ data: { resourceId: resource.id } });
-    setBusy(null);
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    try {
+      const { url } = await resolve({ data: { resourceId: resource.id } });
+      if (url && resource.resource_type === "image") {
+        setOpenImage({ id: resource.id, url });
+      } else if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function share(resource: MemberResource) {
@@ -97,9 +109,24 @@ export function ResourceList({ resources }: { resources: MemberResource[] }) {
                 </span>
               </span>
               <span className="shrink-0 text-[11px] text-muted-foreground">
-                {busy === resource.id ? "Opening…" : resource.resource_type === "note" ? "Read" : "Open"}
+                {busy === resource.id
+                  ? "Opening…"
+                  : resource.resource_type === "note"
+                    ? "Read"
+                    : resource.resource_type === "image" && openImage?.id === resource.id
+                      ? "Close"
+                      : "Open"}
               </span>
             </button>
+            {openImage?.id === resource.id ? (
+              <div className="border-t border-hairline p-3">
+                <img
+                  src={openImage.url}
+                  alt={resource.title}
+                  className="max-h-[70dvh] w-full rounded-xl border border-hairline object-contain"
+                />
+              </div>
+            ) : null}
             <div className="flex items-center justify-end border-t border-hairline px-3 py-2">
               <button
                 type="button"

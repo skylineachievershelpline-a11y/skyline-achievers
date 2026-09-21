@@ -171,4 +171,5 @@
 - [x] Use the supplied Skyline robot as the AI identity
 - [x] Add an articulated flying robot shortcut on the member dashboard
 - [x] Add thinking and answer-ready robot reactions inside AI chat
-- [ ] Verify mobile layout, motion fallback, and build health
+- [x] Verify motion fallback and build health
+- [ ] Verify the signed-in mobile dashboard animation (blocked until a member signs into the preview)

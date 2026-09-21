@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 
-type Ripple = { x: number; y: number; born: number; strength: number };
-
 export function LiquidAtmosphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -12,7 +10,6 @@ export function LiquidAtmosphere() {
     if (!context) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ripples: Ripple[] = [];
     let width = 0;
     let height = 0;
     let ratio = 1;
@@ -28,12 +25,6 @@ export function LiquidAtmosphere() {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    };
-
-    const addRipple = (x: number, y: number, strength = 1) => {
-      if (reduceMotion || document.hidden) return;
-      ripples.push({ x, y, born: performance.now(), strength });
-      if (ripples.length > 7) ripples.shift();
     };
 
     const drawRibbon = (
@@ -99,44 +90,9 @@ export function LiquidAtmosphere() {
       drawSilk(time, height * 0.74, Math.min(108, height * 0.13), 2.4, 0.44);
       drawRibbon(time, height * 0.74, Math.min(108, height * 0.13), -0.32, 2.4, 0.36);
 
-      const now = performance.now();
-      for (let index = ripples.length - 1; index >= 0; index -= 1) {
-        const ripple = ripples[index];
-        if (!ripple) continue;
-        const age = now - ripple.born;
-        if (age > 1500) {
-          ripples.splice(index, 1);
-          continue;
-        }
-        const life = Math.max(0, 1 - age / 1500);
-        const radius = age * 0.14;
-        const rippleGlow = context.createRadialGradient(
-          ripple.x,
-          ripple.y,
-          Math.max(0, radius - 18),
-          ripple.x,
-          ripple.y,
-          radius + 24,
-        );
-        rippleGlow.addColorStop(0, "rgba(94, 218, 255, 0)");
-        rippleGlow.addColorStop(0.66, `rgba(94, 218, 255, ${0.09 * life * ripple.strength})`);
-        rippleGlow.addColorStop(1, "rgba(94, 218, 255, 0)");
-        context.fillStyle = rippleGlow;
-        context.fillRect(ripple.x - radius - 24, ripple.y - radius - 24, (radius + 24) * 2, (radius + 24) * 2);
-
-        for (let ring = 0; ring < 3; ring += 1) {
-          const ringRadius = Math.max(2, radius - ring * 18);
-          context.beginPath();
-          context.arc(ripple.x, ripple.y, ringRadius, 0, Math.PI * 2);
-          context.strokeStyle = `rgba(94, 218, 255, ${life * ripple.strength * (0.28 - ring * 0.065)})`;
-          context.lineWidth = ring === 0 ? 1.6 : 0.9;
-          context.stroke();
-        }
-      }
       if (!reduceMotion) frame = window.requestAnimationFrame(draw);
     };
 
-    const onPointer = (event: PointerEvent) => addRipple(event.clientX, event.clientY, event.pointerType === "touch" ? 1.15 : 0.8);
     const onVisibility = () => {
       running = !document.hidden;
       if (running && !reduceMotion) frame = window.requestAnimationFrame(draw);
@@ -145,13 +101,11 @@ export function LiquidAtmosphere() {
     resize();
     draw(0);
     window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("pointerdown", onPointer, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       running = false;
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

@@ -180,3 +180,10 @@
 - [x] Add a one-conversation, no-history public landing AI
 - [x] Add verified Skyline Achievers information and CEO A.Q Malik photo responses
 - [x] Verify public chat, mascot motion, phone layout, and app health
+
+## Dashboard profile cleanup
+- [x] Remove touch and click water ripples while keeping the animated atmosphere
+- [x] Match the dashboard rank font to the member name
+- [x] Keep Member ID copying only in My Profile
+- [x] Move profile-picture editing from the dashboard to My Profile
+- [ ] Verify the signed-in phone layout and photo save flow

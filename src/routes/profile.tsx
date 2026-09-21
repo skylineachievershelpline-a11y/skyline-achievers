@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { InstallApp } from "@/components/member/InstallApp";
+import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { formatRankName } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,20 @@ function ProfilePage() {
         <div className="grid gap-4 lg:grid-cols-2">
           <section className="glass-panel-strong rounded-3xl p-5">
             <SectionTitle className="mb-4">Membership</SectionTitle>
+            {member ? (
+              <div className="mb-5 border-b border-hairline/60 pb-5">
+                <AvatarPicker
+                  name={member.fullName}
+                  url={member.avatarUrl}
+                  label="Change profile picture"
+                  hint="Choose a photo, then crop and save it"
+                  onSaved={() => {
+                    void queryClient.invalidateQueries({ queryKey: ["member-session"] });
+                    void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+                  }}
+                />
+              </div>
+            ) : null}
             <dl className="space-y-2.5 text-sm">
               {member ? <NameEditor initialName={member.fullName} onSaved={() => {
                 void queryClient.invalidateQueries({ queryKey: ["member-session"] });

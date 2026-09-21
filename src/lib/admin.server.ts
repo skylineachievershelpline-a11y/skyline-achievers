@@ -50,6 +50,80 @@ export async function adminDashboardStats() {
   };
 }
 
+/**
+ * Skyline Achievers owns one official member account. It is the default upline
+ * for anyone who joined directly through the company, and it is created once.
+ */
+export async function ensureOfficialMember() {
+  const { data: existing } = await (supabaseAdmin as any)
+    .from("member_profiles")
+    .select("id, member_id, full_name")
+    .eq("is_official", true)
+    .maybeSingle();
+  if (existing) return existing as { id: string; member_id: string; full_name: string };
+
+  const { data: level } = await supabaseAdmin
+    .from("levels")
+    .select("id")
+    .order("rank_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: generatedId } = await supabaseAdmin.rpc("generate_member_id");
+  if (!generatedId) return null;
+  const memberId = generatedId as string;
+
+  const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email: memberIdToAuthEmail(memberId),
+    password: "00000000",
+    email_confirm: true,
+    user_metadata: { member_id: memberId, full_name: "Skyline Achievers" },
+  });
+  if (authError || !created?.user) return null;
+
+  const now = new Date().toISOString();
+  const { error } = await (supabaseAdmin as any).from("member_profiles").insert({
+    id: created.user.id,
+    member_id: memberId,
+    full_name: "Skyline Achievers",
+    level_id: level?.id ?? null,
+    status: "active",
+    working_enabled: true,
+    is_official: true,
+    mentorship_fee_pkr: 0,
+    mentorship_paid_pkr: 0,
+    mentorship_completed_at: now,
+    mentorship_extensions: 0,
+    cc_extensions: 0,
+    training_locked: false,
+    level_since: now,
+  });
+  if (error) {
+    await supabaseAdmin.auth.admin.deleteUser(created.user.id);
+    return null;
+  }
+  return { id: created.user.id, member_id: memberId, full_name: "Skyline Achievers" };
+}
+
+/** Every account that can be picked as somebody's upline. */
+export async function adminUplineOptions() {
+  await ensureOfficialMember();
+  const { data } = await (supabaseAdmin as any)
+    .from("member_profiles")
+    .select("id, member_id, full_name, is_official, levels:level_id (name)")
+    .neq("status", "removed")
+    .order("is_official", { ascending: false })
+    .order("full_name")
+    .limit(2000);
+  return (data ?? []).map((row: any) => ({
+    id: row.id as string,
+    memberId: row.member_id as string,
+    fullName: row.full_name as string,
+    isOfficial: Boolean(row.is_official),
+    levelName: (row.levels?.name ?? null) as string | null,
+  }));
+}
+
 export async function adminMembers(input: {
   search?: string | undefined;
   status?: string | undefined;
@@ -58,10 +132,11 @@ export async function adminMembers(input: {
   let query = supabaseAdmin
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, age, email, phone, status, working_enabled, created_at, last_login_at, level_id, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_extensions, mentorship_completed_at, cc_due_at, cc_extensions, training_locked, levels:level_id (id, name, slug, rank_order)",
+      "id, member_id, full_name, age, email, phone, status, working_enabled, created_at, last_login_at, level_id, upline_id, is_official, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_extensions, mentorship_completed_at, cc_due_at, cc_extensions, training_locked, levels:level_id (id, name, slug, rank_order), upline:upline_id (id, member_id, full_name)",
     )
     .order("created_at", { ascending: false })
     .limit(500);
+
 
   if (input.status && input.status !== "all") query = query.eq("status", input.status);
   if (input.levelId && input.levelId !== "all") query = query.eq("level_id", input.levelId);
@@ -99,6 +174,8 @@ export async function adminCreateMember(input: {
   email: string | null;
   phone: string | null;
   levelId: string;
+  /** Every new member must sit under an upline account. */
+  uplineId: string;
   status: string;
   workingEnabled: boolean;
   /** Personal Mentorship total and any amount already received. */
@@ -111,6 +188,16 @@ export async function adminCreateMember(input: {
     .eq("id", input.levelId)
     .maybeSingle();
   if (!level) throw new Error("Selected training level no longer exists.");
+
+  const { data: upline } = await supabaseAdmin
+    .from("member_profiles")
+    .select("id, status")
+    .eq("id", input.uplineId)
+    .maybeSingle();
+  if (!upline || upline.status === "removed") {
+    throw new Error("Select a valid upline account.");
+  }
+
 
   const { data: generatedId, error: idError } = await supabaseAdmin.rpc("generate_member_id");
   if (idError || !generatedId) throw new Error("Could not generate a Member ID. Please try again.");
@@ -139,6 +226,8 @@ export async function adminCreateMember(input: {
     email: input.email,
     phone: input.phone,
     level_id: input.levelId,
+    upline_id: input.uplineId,
+
     status: input.status,
     working_enabled: input.workingEnabled,
     mentorship_fee_pkr: input.feePkr ?? 50000,

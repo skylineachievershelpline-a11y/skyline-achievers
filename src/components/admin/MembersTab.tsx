@@ -16,14 +16,24 @@ import {
   adminEditMember,
   adminDeleteMember,
   adminGetMembers,
+  adminGetUplines,
   adminResetPassword,
   adminSetMentorship,
 } from "@/lib/admin.functions";
+
 import { ACCOUNT_STATUS_LABEL } from "@/lib/brand";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Level = { id: string; name: string; rank_order: number };
+type Upline = {
+  id: string;
+  memberId: string;
+  fullName: string;
+  isOfficial: boolean;
+  levelName: string | null;
+};
+
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
 
@@ -67,6 +77,14 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     queryFn: () => listMembers({ data: { search: term, status } }),
   });
 
+  const loadUplines = useServerFn(adminGetUplines);
+  const { data: uplineData } = useQuery({
+    queryKey: ["admin-uplines"],
+    queryFn: () => loadUplines(),
+  });
+  const uplines = (uplineData?.uplines ?? []) as Upline[];
+
+
   const create = useMutation({
     mutationFn: (input: Parameters<typeof adminAddMember>[0]) => addMember(input),
     onSuccess: (result) => {
@@ -74,6 +92,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       setCredentials(result);
       void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-uplines"] });
+
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -246,7 +266,33 @@ export function MembersTab({ levels }: { levels: Level[] }) {
             <article key={member.id} className={`border-b border-border px-4 py-3 transition-colors last:border-b-0 sm:px-5 ${selectedIds.includes(member.id) ? "bg-primary/15" : "hover:bg-primary/5"}`}>
               <div className="grid gap-3 lg:grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_290px] lg:items-center">
                 <input type="checkbox" aria-label={`Select ${member.full_name}`} checked={selectedIds.includes(member.id)} onChange={() => toggleSelected(member.id)} className="absolute h-4 w-4 accent-primary lg:static" />
-                <div className="ml-7 flex min-w-0 items-center gap-3 lg:ml-0"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">{member.full_name.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{member.full_name}</p><p className="truncate text-[10px] text-muted-foreground">{member.member_id} · {member.phone ?? "No phone"}</p><p className="text-[10px] text-muted-foreground">Joined {formatDate(member.created_at)} · {formatDateTime(member.last_login_at)}</p></div></div>
+                <div className="ml-7 min-w-0 lg:ml-0">
+                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">{member.full_name.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{member.full_name}{member.is_official ? <span className="ml-1 rounded-full border border-cyan/30 bg-cyan/10 px-1.5 py-0.5 text-[9px] font-semibold text-cyan">Official</span> : null}</p><p className="truncate text-[10px] text-muted-foreground">{member.member_id} · {member.phone ?? "No phone"}</p><p className="text-[10px] text-muted-foreground">Joined {formatDate(member.created_at)} · {formatDateTime(member.last_login_at)}</p></div></div>
+                  {member.is_official ? null : (
+                    <select
+                      aria-label={`Upline for ${member.full_name}`}
+                      title="Upline ID"
+                      value={member.upline_id ?? ""}
+                      onChange={(e) =>
+                        update.mutate({ data: { id: member.id, uplineId: e.target.value } } as never)
+                      }
+                      className="mt-2 h-8 w-full min-w-0 rounded-lg border border-hairline bg-surface-2 px-2 text-[11px]"
+                    >
+                      <option value="" disabled>
+                        No upline — select one
+                      </option>
+                      {uplines
+                        .filter((upline) => upline.id !== member.id)
+                        .map((upline) => (
+                          <option key={upline.id} value={upline.id}>
+                            {upline.isOfficial ? "★ " : ""}
+                            {upline.fullName} · {upline.memberId}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
+
                   <select
                     value={member.level_id ?? ""}
                     onChange={(e) =>
@@ -339,6 +385,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         open={showAdd}
         onOpenChange={setShowAdd}
         levels={levels}
+        uplines={uplines}
+
         pending={create.isPending}
         onSubmit={(values) => create.mutate({ data: values } as never)}
       />
@@ -444,12 +492,14 @@ function AddMemberDialog({
   open,
   onOpenChange,
   levels,
+  uplines,
   pending,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (value: boolean) => void;
   levels: Level[];
+  uplines: Upline[];
   pending: boolean;
   onSubmit: (values: {
     fullName: string;
@@ -457,6 +507,7 @@ function AddMemberDialog({
     email: string | null;
     phone: string | null;
     levelId: string;
+    uplineId: string;
     status: string;
     workingEnabled: boolean;
     feePkr: number;
@@ -470,6 +521,7 @@ function AddMemberDialog({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
+  const [uplineId, setUplineId] = useState("");
   const [workingEnabled, setWorkingEnabled] = useState(true);
 
   useEffect(() => {
@@ -483,6 +535,15 @@ function AddMemberDialog({
     }
   }, [levelId, levels, open]);
 
+  // Every new account must sit under an upline; default to the official one.
+  useEffect(() => {
+    if (!open || uplines.length === 0) return;
+    if (!uplines.some((upline) => upline.id === uplineId)) {
+      setUplineId((uplines.find((upline) => upline.isOfficial) ?? uplines[0]!).id);
+    }
+  }, [open, uplineId, uplines]);
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-3xl">
@@ -492,13 +553,15 @@ function AddMemberDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!fullName.trim() || !levelId) return;
+            if (!fullName.trim() || !levelId || !uplineId) return;
             onSubmit({
               fullName: fullName.trim(),
               age: age ? Number(age) : null,
               email: email.trim() || null,
               phone: phone.trim() || null,
               levelId,
+              uplineId,
+
               status: "active",
               workingEnabled,
               feePkr: Number(feePkr || 0),
@@ -552,6 +615,28 @@ function AddMemberDialog({
             </select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="upline">Upline ID (required)</Label>
+            <select
+              id="upline"
+              value={uplineId}
+              onChange={(e) => setUplineId(e.target.value)}
+              className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
+            >
+              {uplines.length === 0 ? <option value="">Loading upline accounts…</option> : null}
+              {uplines.map((upline) => (
+                <option key={upline.id} value={upline.id}>
+                  {upline.isOfficial ? "★ " : ""}
+                  {upline.fullName} · {upline.memberId}
+                  {upline.levelName ? ` · ${upline.levelName}` : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              If the new member has no personal upline, keep the official Skyline Achievers account.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="access">Access</Label>
             <select
               id="access"
@@ -563,7 +648,7 @@ function AddMemberDialog({
               <option value="training">Training only (working sections locked)</option>
             </select>
           </div>
-          <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId}>
+          <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId || !uplineId}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Create member
           </Button>

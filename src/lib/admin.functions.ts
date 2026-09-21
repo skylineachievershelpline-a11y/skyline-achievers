@@ -145,6 +145,14 @@ export const adminGetMemberDashboard = createServerFn({ method: "POST" })
     };
   });
 
+/** Accounts an administrator can pick as an upline (includes the official one). */
+export const adminGetUplines = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireAdmin } = await import("./admin-session.server");
+  await requireAdmin();
+  const { adminUplineOptions } = await import("./admin.server");
+  return { uplines: await adminUplineOptions() };
+});
+
 export const adminAddMember = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
@@ -153,6 +161,7 @@ export const adminAddMember = createServerFn({ method: "POST" })
       email?: string | null;
       phone?: string | null;
       levelId: string;
+      uplineId: string;
       status: string;
       workingEnabled?: boolean;
       feePkr?: number;
@@ -176,6 +185,7 @@ export const adminAddMember = createServerFn({ method: "POST" })
             }),
           phone: optionalText(25),
           levelId: uuid,
+          uplineId: uuid,
           status: z.enum(["active", "blocked", "removed"]),
           workingEnabled: z.boolean().optional(),
         })
@@ -192,12 +202,14 @@ export const adminAddMember = createServerFn({ method: "POST" })
       email: data.email ?? null,
       phone: data.phone ?? null,
       levelId: data.levelId,
+      uplineId: data.uplineId,
       status: data.status,
       workingEnabled: data.workingEnabled ?? true,
       feePkr: data.feePkr ?? 50000,
       paidPkr: data.paidPkr ?? 0,
     });
   });
+
 
 export const adminEditMember = createServerFn({ method: "POST" })
   .inputValidator(
@@ -208,6 +220,8 @@ export const adminEditMember = createServerFn({ method: "POST" })
       email?: string | null;
       phone?: string | null;
       levelId?: string;
+      uplineId?: string;
+
       status?: string;
       notes?: string | null;
       workingEnabled?: boolean;
@@ -220,6 +234,8 @@ export const adminEditMember = createServerFn({ method: "POST" })
           email: optionalText(255),
           phone: optionalText(25),
           levelId: uuid.optional(),
+          uplineId: uuid.optional(),
+
           status: z.enum(["active", "blocked", "removed"]).optional(),
           notes: optionalText(2000),
           workingEnabled: z.boolean().optional(),
@@ -245,8 +261,13 @@ export const adminEditMember = createServerFn({ method: "POST" })
     }
     if (data.status !== undefined) patch["status"] = data.status;
     if (data.notes !== undefined) patch["notes"] = data.notes;
+    if (data.uplineId !== undefined) {
+      if (data.uplineId === data.id) throw new Error("A member cannot be their own upline.");
+      patch["upline_id"] = data.uplineId;
+    }
     return adminUpdateMember(data.id, patch);
   });
+
 
 export const adminResetPassword = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; newPassword?: string | null }) =>

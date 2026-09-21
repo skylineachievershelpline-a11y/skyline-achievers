@@ -9,6 +9,7 @@ import {
   NotebookPen,
   Presentation,
   Share2,
+  Video,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +17,7 @@ import { getResourceLink } from "@/lib/member.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 
 const ICONS: Record<string, typeof FileText> = {
+  video: Video,
   pdf: FileText,
   audio: Headphones,
   presentation: Presentation,

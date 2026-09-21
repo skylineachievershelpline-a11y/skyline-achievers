@@ -647,7 +647,7 @@ export function LibraryTab() {
       </section>
 
       <Dialog open={videoDialog !== null} onOpenChange={(open) => !open && setVideoDialog(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
+        <DialogContent className="max-h-[86dvh] w-[calc(100vw-1rem)] min-w-0 overflow-x-hidden overflow-y-auto rounded-3xl p-4 sm:w-[calc(100vw-2rem)] sm:p-6">
           <DialogHeader>
             <DialogTitle>{videoDialog?.id ? "Edit training video" : "New training video"}</DialogTitle>
           </DialogHeader>
@@ -954,8 +954,9 @@ export function LibraryTab() {
                 }
                 await saveResource({
                   data: {
-                    sectionId: values.sessionId ? values.sessionSectionId || null : sectionId,
+                    sectionId,
                     sessionId: values.sessionId || null,
+                    sessionSectionId: values.sessionId ? values.sessionSectionId || null : null,
                     lectureId: values.lectureId || null,
                     resourceType: values.resourceType,
                     title: values.title,
@@ -1150,6 +1151,7 @@ function VideoForm({
 }
 
 const RESOURCE_TYPES = [
+  "video",
   "pdf",
   "audio",
   "presentation",
@@ -1249,14 +1251,14 @@ function ResourceForm({
           ))}
         </select>
       </div>
-      <div className="space-y-1.5">
-        <Label>Category</Label>
+      <div className="space-y-1.5 rounded-2xl border border-hairline p-3">
+        <Label>Resources page category</Label>
         <select
           value={sectionId}
           onChange={(e) => setSectionId(e.target.value)}
           className={fieldClass}
         >
-          <option value="">No category</option>
+          <option value="">No Resources category</option>
           {sections.map((section) => (
             <option key={section.id} value={section.id}>
               {section.name}
@@ -1266,7 +1268,7 @@ function ResourceForm({
         <Input
           value={newSectionName}
           onChange={(e) => setNewSectionName(e.target.value)}
-          placeholder="Or type a new category name"
+          placeholder="Or create a new Resources category"
           className="h-11 rounded-2xl"
         />
         {newSectionName.trim() ? (
@@ -1278,7 +1280,7 @@ function ResourceForm({
           />
         ) : null}
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 rounded-2xl border border-hairline p-3">
         <Label>Attach to a Beginners Training session (optional)</Label>
         <select
           value={sessionId}
@@ -1297,7 +1299,7 @@ function ResourceForm({
         </select>
         {sessionId ? (
           <>
-            <Label className="mt-2 block">Session category</Label>
+            <Label className="mt-2 block">Beginners session category</Label>
             <select
               value={sessionSectionId}
               onChange={(e) => setSessionSectionId(e.target.value)}
@@ -1359,7 +1361,7 @@ function ResourceForm({
           {resourceType === "audio" ? (
             <VoiceRecorder value={file} onChange={setFile} label="Record a voice note" />
           ) : null}
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <Label>
               {resourceType === "audio"
                 ? "Or upload an audio file"
@@ -1369,9 +1371,15 @@ function ResourceForm({
             </Label>
             <input
               type="file"
-              accept={resourceType === "image" ? "image/*" : undefined}
+              accept={
+                resourceType === "image"
+                  ? "image/*"
+                  : resourceType === "video"
+                    ? "video/*"
+                    : undefined
+              }
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="text-xs text-muted-foreground"
+              className="block w-full min-w-0 text-xs text-muted-foreground file:max-w-[11rem]"
             />
           </div>
         </div>

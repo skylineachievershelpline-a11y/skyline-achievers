@@ -148,6 +148,13 @@
       "when": 1789970755049,
       "tag": "0020_resources_session_link",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789971560202,
+      "tag": "0021_separate_resource_session_category",
+      "breakpoints": true
     }
   ]
 }

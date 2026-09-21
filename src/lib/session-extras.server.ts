@@ -64,6 +64,7 @@ export async function loadSessionExtras(db: any, sessionId: string): Promise<Ses
 }
 
 const RESOURCE_KIND: Record<string, SessionExtra["kind"]> = {
+  video: "video",
   pdf: "pdf",
   image: "image",
   link: "link",
@@ -81,7 +82,7 @@ export async function loadSessionResources(db: any, sessionId: string): Promise<
   const { data } = await db
     .from("resources")
     .select(
-      "id, title, description, section_id, resource_type, storage_path, external_url, thumbnail_path, sort_order",
+      "id, title, description, session_section_id, resource_type, storage_path, external_url, thumbnail_path, sort_order",
     )
     .eq("session_id", sessionId)
     .eq("is_published", true)
@@ -102,7 +103,7 @@ export async function loadSessionResources(db: any, sessionId: string): Promise<
         id: `resource-${row.id}`,
         title: row.title as string,
         description: (row.description ?? null) as string | null,
-        sectionId: (row.section_id ?? null) as string | null,
+        sectionId: (row.session_section_id ?? null) as string | null,
         kind,
         aspectRatio: "16:9",
         isExternal: external,

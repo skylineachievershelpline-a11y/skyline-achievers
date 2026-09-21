@@ -276,9 +276,9 @@ export function SessionExtrasDialog({
 
   return (
     <Dialog open onOpenChange={(next) => (!next ? onClose() : undefined)}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg overflow-x-hidden overflow-y-auto rounded-3xl max-h-[86vh]">
+      <DialogContent className="max-h-[86dvh] w-[calc(100vw-1rem)] min-w-0 max-w-lg overflow-x-hidden overflow-y-auto rounded-3xl p-4 sm:w-[calc(100vw-2rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle className="break-words pr-6 text-base leading-snug">
+          <DialogTitle className="min-w-0 break-words pr-8 text-left text-base leading-snug">
             Extra material · {sessionTitle}
           </DialogTitle>
         </DialogHeader>
@@ -297,26 +297,34 @@ export function SessionExtrasDialog({
               {sections.map((section) => (
                 <li
                   key={section.id}
-                  className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 px-3 py-2"
+                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-hairline bg-surface-2 px-3 py-2"
                 >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{section.name}</span>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">
-                    {extras.filter((e) => e.section_id === section.id).length} items
+                  <span className="min-w-0 break-words text-sm font-medium">{section.name}</span>
+                  <span className="flex shrink-0 items-center gap-1">
+                    <span className="mr-1 text-[11px] text-muted-foreground">
+                      {extras.filter((e) => e.section_id === section.id).length} items
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => startEditSection(section)}
+                      className="h-9 w-9 text-muted-foreground hover:text-brand"
+                      aria-label={`Edit ${section.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => delSection.mutate(section.id)}
+                      className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                      aria-label={`Delete ${section.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </span>
-                  <button
-                    onClick={() => startEditSection(section)}
-                    className="text-muted-foreground transition-colors hover:text-brand"
-                    aria-label="Edit category"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => delSection.mutate(section.id)}
-                    className="text-muted-foreground transition-colors hover:text-destructive"
-                    aria-label="Delete category"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </li>
               ))}
             </ul>
@@ -340,7 +348,7 @@ export function SessionExtrasDialog({
               />
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" variant="secondary" size="xl" disabled={sectionBusy}>
+              <Button type="submit" variant="secondary" size="xl" className="min-w-0" disabled={sectionBusy}>
                 {sectionBusy ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

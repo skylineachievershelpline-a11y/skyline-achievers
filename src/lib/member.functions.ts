@@ -154,11 +154,29 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     // Training page; section/video access below remains the source of truth.
     const visibleGroups = (groups ?? []) as any[];
 
+    // A rank that sits above an unlocked rank keeps the section: whatever a
+    // junior rank can open, a senior rank can open too.
+    const { data: levelRows } = await (supabaseAdmin as any)
+      .from("levels")
+      .select("id, rank_order");
+    const rankOf = new Map<string, number>(
+      ((levelRows ?? []) as { id: string; rank_order: number }[]).map((row) => [
+        row.id,
+        row.rank_order,
+      ]),
+    );
+    const myRank = member.level ? (rankOf.get(member.level.id) ?? null) : null;
+
     const visibleCategories = ((categories ?? []) as any[]).filter((category) => {
       const list = sectionLevels.get(category.id);
       if (!list || list.length === 0) return true;
-      return member.level ? list.includes(member.level.id) : false;
+      if (!member.level) return false;
+      if (list.includes(member.level.id)) return true;
+      if (myRank === null) return false;
+      const ranks = list.map((id) => rankOf.get(id)).filter((r): r is number => r != null);
+      return ranks.length > 0 && myRank >= Math.min(...ranks);
     });
+
     const visibleIds = new Set(visibleCategories.map((c) => c.id));
 
     return {

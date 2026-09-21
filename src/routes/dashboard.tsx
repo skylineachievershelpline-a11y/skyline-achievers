@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
+import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/dashboard")({

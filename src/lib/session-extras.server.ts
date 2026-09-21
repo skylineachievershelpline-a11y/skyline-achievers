@@ -33,7 +33,7 @@ export async function loadSessionExtras(db: any, sessionId: string): Promise<Ses
   const { data } = await db
     .from("beginner_session_extras")
     .select(
-      "id, title, description, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order",
+      "id, title, description, section_id, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order",
     )
     .eq("session_id", sessionId)
     .eq("is_published", true)
@@ -51,6 +51,7 @@ export async function loadSessionExtras(db: any, sessionId: string): Promise<Ses
         id: row.id as string,
         title: row.title as string,
         description: (row.description ?? null) as string | null,
+        sectionId: (row.section_id ?? null) as string | null,
         kind,
         aspectRatio: (row.aspect_ratio ?? "16:9") as string,
         isExternal: external,
@@ -59,5 +60,24 @@ export async function loadSessionExtras(db: any, sessionId: string): Promise<Ses
         thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
       };
     }),
+  );
+}
+
+/** Categories (Products, Reviews, PDFs …) used to group one session's extras. */
+export async function loadSessionSections(db: any, sessionId: string): Promise<SessionSection[]> {
+  const { data } = await db
+    .from("content_sections")
+    .select("id, name, thumbnail_path, sort_order")
+    .eq("scope", "session")
+    .eq("session_id", sessionId)
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true });
+
+  return Promise.all(
+    (data ?? []).map(async (row: any) => ({
+      id: row.id as string,
+      name: row.name as string,
+      thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
+    })),
   );
 }

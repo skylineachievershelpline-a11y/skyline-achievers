@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
+import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
 
 export const Route = createFileRoute("/dashboard")({
@@ -178,7 +179,8 @@ function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
   useEffect(() => {
     if (hasProfile) return;
     let active = true;
-    void resolveRole()
+    void getAccessToken()
+      .then((token) => (token ? resolveRole().catch(() => null) : null))
       .catch(() => null)
       .then(async (role) => {
         if (!active) return;

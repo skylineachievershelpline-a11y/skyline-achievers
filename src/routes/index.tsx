@@ -29,6 +29,7 @@ import { WhatsappJoinCard } from "@/components/whatsapp/WhatsappJoinCard";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getSessionRole } from "@/lib/member.functions";
+import { getAccessToken } from "@/lib/session-token";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -97,8 +98,9 @@ function LandingPage() {
 
   useEffect(() => {
     let active = true;
-    void supabase.auth.getSession().then(async ({ data }) => {
-      if (!active || !data.session) return;
+    void getAccessToken().then(async (token) => {
+      // No live token means the stored session is dead: never ask the server.
+      if (!active || !token) return;
       // Only send people to a screen their account actually belongs to.
       const role = await resolveRole().catch(() => null);
       if (!active || !role) return;

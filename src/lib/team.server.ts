@@ -47,25 +47,14 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
   if (traineeCode.length < 7 || traineeCode.length > 15) {
     throw new Error("Enter a valid mobile number.");
   }
-  let password = traineePassword(input.fullName, input.phone);
+  const password = traineePassword(input.fullName, input.phone);
 
-  let attempt = await supabaseAdmin.auth.admin.createUser({
+  const attempt = await supabaseAdmin.auth.admin.createUser({
     email: memberIdToAuthEmail(traineeCode),
     password,
     email_confirm: true,
     user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
   });
-  // Some name/number combinations land in the leaked-password list; add a small
-  // random tail so the person still gets a working, simple password.
-  if (attempt.error && /weak|easy to guess|pwned/i.test(attempt.error.message)) {
-    password = `${password}${Math.floor(Math.random() * 90 + 10)}`;
-    attempt = await supabaseAdmin.auth.admin.createUser({
-      email: memberIdToAuthEmail(traineeCode),
-      password,
-      email_confirm: true,
-      user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
-    });
-  }
   const { data: created, error: authError } = attempt;
   if (authError || !created?.user) {
     throw new Error(

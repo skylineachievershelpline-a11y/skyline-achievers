@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail, normalizeMemberId } from "@/lib/brand";
 import { recordLogin } from "@/lib/member.functions";
-import { recordTraineeLogin, whoAmI } from "@/lib/trainee.functions";
+import { recordTraineeLogin, resolveLoginIdentifier, whoAmI } from "@/lib/trainee.functions";
 
 /**
  * Existing member sign in — unchanged behaviour, extracted so the landing page
@@ -19,6 +19,7 @@ export function MemberLoginCard() {
   const navigate = useNavigate();
   const finishLogin = useServerFn(recordLogin);
   const identify = useServerFn(whoAmI);
+  const resolveIdentifier = useServerFn(resolveLoginIdentifier);
   const finishTraineeLogin = useServerFn(recordTraineeLogin);
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
@@ -40,8 +41,11 @@ export function MemberLoginCard() {
     }
 
     setPending(true);
+    const resolved = /^\d{7,15}$/.test(id)
+      ? await resolveIdentifier({ data: { identifier: id } })
+      : { email: memberIdToAuthEmail(id) };
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: memberIdToAuthEmail(id),
+      email: resolved.email,
       password,
     });
     if (signInError) {

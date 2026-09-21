@@ -1,5 +1,3 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-
 const RUN_ID_HEADER = "X-Lovable-AIG-Run-ID";
 
 export function createLovableAiGatewayRunIdFetch(initialRunId?: string) {
@@ -67,13 +65,4 @@ export async function withLovableAiGatewayRunIdHeader(
     cancel(reason) { return reader.cancel(reason); },
   });
   return new Response(body, { status: response.status, statusText: response.statusText, headers });
-}
-
-// Retained for non-OpenAI chat models if Skyline ever needs one later.
-export function createLovableAiGatewayProvider(key: string) {
-  return createOpenAICompatible({
-    name: "lovable",
-    baseURL: "https://ai.gateway.lovable.dev/v1",
-    headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-  });
 }

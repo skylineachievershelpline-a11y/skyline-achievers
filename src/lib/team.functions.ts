@@ -48,6 +48,102 @@ export const getMyTeam = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * FBO Team Tree: the 12-digit Skyline members sitting directly under this
+ * account. Read-only by design — nobody can edit or remove an FBO from here.
+ * Each row carries the member's own daily working report summary.
+ */
+export const getMyFboTeam = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { AVATAR_BUCKET, signPath } = await import("./storage.server");
+
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("member_profiles")
+      .select(
+        "id, member_id, full_name, phone, status, working_enabled, avatar_path, created_at, last_login_at, levels:level_id (name, rank_order)",
+      )
+      .eq("upline_id", member.id)
+      .neq("status", "removed")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    const members = (rows ?? []) as any[];
+    const ids = members.map((row) => row.id as string);
+    const from = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+    const reportMap = new Map<string, any[]>();
+    if (ids.length > 0) {
+      const { data: reports } = await (supabaseAdmin as any)
+        .from("member_daily_reports")
+        .select(
+          "member_id, report_date, leads_count, responses, enrollments, pending_count, two_cc, mentorship_paid, is_absent",
+        )
+        .in("member_id", ids)
+        .gte("report_date", from)
+        .order("report_date", { ascending: false });
+      for (const row of reports ?? []) {
+        const list = reportMap.get(row.member_id) ?? [];
+        list.push(row);
+        reportMap.set(row.member_id, list);
+      }
+    }
+
+    const team = await Promise.all(
+      members.map(async (row) => {
+        const reports = reportMap.get(row.id) ?? [];
+        const sum = (key: string) =>
+          reports.reduce((total, entry) => total + Number(entry[key] ?? 0), 0);
+        return {
+          id: row.id as string,
+          memberId: row.member_id as string,
+          fullName: row.full_name as string,
+          phone: (row.phone ?? null) as string | null,
+          status: row.status as string,
+          workingEnabled: row.working_enabled !== false,
+          rank: (row.levels?.name ?? null) as string | null,
+          avatarUrl: await signPath(AVATAR_BUCKET, row.avatar_path, 60 * 60),
+          createdAt: row.created_at as string,
+          lastLoginAt: (row.last_login_at ?? null) as string | null,
+          report: {
+            days: reports.filter((entry) => !entry.is_absent).length,
+            absentDays: reports.filter((entry) => entry.is_absent).length,
+            leads: sum("leads_count"),
+            responses: sum("responses"),
+            enrollments: sum("enrollments"),
+            pending: sum("pending_count"),
+            twoCc: sum("two_cc"),
+            mentorshipPaid: sum("mentorship_paid"),
+            lastDate: (reports[0]?.report_date ?? null) as string | null,
+            recent: reports.slice(0, 7).map((entry) => ({
+              date: entry.report_date as string,
+              leads: Number(entry.leads_count ?? 0),
+              responses: Number(entry.responses ?? 0),
+              enrollments: Number(entry.enrollments ?? 0),
+              pending: Number(entry.pending_count ?? 0),
+              twoCc: Number(entry.two_cc ?? 0),
+              absent: Boolean(entry.is_absent),
+            })),
+          },
+        };
+      }),
+    );
+
+    return {
+      upline: { memberId: member.member_id, fullName: member.full_name },
+      team,
+      stats: {
+        total: team.length,
+        active: team.filter((row) => row.status === "active").length,
+        reporting: team.filter((row) => row.report.lastDate).length,
+        leads: team.reduce((total, row) => total + row.report.leads, 0),
+        enrollments: team.reduce((total, row) => total + row.report.enrollments, 0),
+      },
+    };
+  });
+
+
 /** Reserve a seat: the upline fills the form and gets the ID + password card. */
 export const reserveSeat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

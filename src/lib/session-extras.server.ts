@@ -63,6 +63,57 @@ export async function loadSessionExtras(db: any, sessionId: string): Promise<Ses
   );
 }
 
+const RESOURCE_KIND: Record<string, SessionExtra["kind"]> = {
+  pdf: "pdf",
+  image: "image",
+  link: "link",
+  audio: "link",
+  presentation: "pdf",
+  book: "pdf",
+  note: "link",
+};
+
+/**
+ * Resources an admin attached to this beginners session. They appear inside the
+ * same categories as the session's own extra material.
+ */
+export async function loadSessionResources(db: any, sessionId: string): Promise<SessionExtra[]> {
+  const { data } = await db
+    .from("resources")
+    .select(
+      "id, title, description, section_id, resource_type, storage_path, external_url, thumbnail_path, sort_order",
+    )
+    .eq("session_id", sessionId)
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true });
+
+  return Promise.all(
+    (data ?? []).map(async (row: any) => {
+      const kind = RESOURCE_KIND[row.resource_type as string] ?? "link";
+      const external = Boolean(row.external_url) && !row.storage_path;
+      const url = external
+        ? (row.external_url as string)
+        : await signPath(
+            kind === "image" ? THUMBNAIL_BUCKET : RESOURCE_BUCKET,
+            row.storage_path,
+            60 * 60 * 4,
+          );
+      return {
+        id: `resource-${row.id}`,
+        title: row.title as string,
+        description: (row.description ?? null) as string | null,
+        sectionId: (row.section_id ?? null) as string | null,
+        kind,
+        aspectRatio: "16:9",
+        isExternal: external,
+        url,
+        videoUrl: url,
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
+      };
+    }),
+  );
+}
+
 /** Categories (Products, Reviews, PDFs …) used to group one session's extras. */
 export async function loadSessionSections(db: any, sessionId: string): Promise<SessionSection[]> {
   const { data } = await db

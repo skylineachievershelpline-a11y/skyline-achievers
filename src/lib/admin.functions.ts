@@ -177,12 +177,14 @@ export const adminAddMember = createServerFn({ method: "POST" })
     return adminCreateMember({
       fullName: data.fullName,
       age: data.age ?? null,
-      cnic: data.cnic ?? null,
+      cnic: null,
       email: data.email ?? null,
       phone: data.phone ?? null,
       levelId: data.levelId,
       status: data.status,
       workingEnabled: data.workingEnabled ?? true,
+      feePkr: data.feePkr ?? 50000,
+      paidPkr: data.paidPkr ?? 0,
     });
   });
 

@@ -139,18 +139,20 @@ export const adminAddMember = createServerFn({ method: "POST" })
     (data: {
       fullName: string;
       age?: number | null;
-      cnic?: string | null;
       email?: string | null;
       phone?: string | null;
       levelId: string;
       status: string;
       workingEnabled?: boolean;
+      feePkr?: number;
+      paidPkr?: number;
     }) =>
       z
         .object({
           fullName: text(120),
           age: z.number().int().min(10).max(100).nullable().optional(),
-          cnic: optionalText(25),
+          feePkr: z.number().min(0).max(10_000_000).optional(),
+          paidPkr: z.number().min(0).max(10_000_000).optional(),
           email: z
             .string()
             .trim()

@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { toast } from "sonner";

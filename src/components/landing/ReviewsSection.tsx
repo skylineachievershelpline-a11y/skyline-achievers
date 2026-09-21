@@ -107,7 +107,12 @@ function ReviewStack({ reviews }: { reviews: Review[] }) {
             <div className="review-card-inner">
               {review.videoUrl ? (
                 <div className="review-video">
-                  <SessionVideo title={review.personName} videoUrl={review.videoUrl} aspectRatio={review.aspectRatio} />
+                  <SessionVideo
+                    title={review.personName}
+                    videoUrl={review.videoUrl}
+                    aspectRatio={review.aspectRatio}
+                    frameClassName="!aspect-video !max-h-none !w-full"
+                  />
                 </div>
               ) : (
                 <span className="review-quote-mark"><MessageSquareQuote className="h-5 w-5" /></span>

@@ -64,7 +64,7 @@ export const Route = createFileRoute("/api/ai")({
           user_id: auth.user.id,
           ai_message_id: newest.id,
           role: "user",
-          parts: newest.parts,
+          parts: JSON.parse(JSON.stringify(newest.parts)),
         }, { onConflict: "thread_id,ai_message_id" });
         if (userSaveError) return new Response(userSaveError.message, { status: 500 });
         if (thread.title === "New conversation") {
@@ -104,13 +104,13 @@ Never reveal or discuss the admin panel, admin access, hidden controls, internal
           sendReasoning: true,
           headers: getLovableAiGatewayResponseHeaders(initialRunId ? { "X-Lovable-AIG-Run-ID": initialRunId } : undefined),
           onFinish: async ({ responseMessage, outcome }) => {
-            if (outcome !== "success") return;
+            if (outcome.status !== "completed") return;
             await supabaseAdmin.from("ai_messages").upsert({
               thread_id: thread.id,
               user_id: auth.user.id,
               ai_message_id: responseMessage.id,
               role: "assistant",
-              parts: responseMessage.parts,
+              parts: JSON.parse(JSON.stringify(responseMessage.parts)),
             }, { onConflict: "thread_id,ai_message_id" });
             await supabaseAdmin.from("ai_threads").update({ updated_at: new Date().toISOString() }).eq("id", thread.id);
           },

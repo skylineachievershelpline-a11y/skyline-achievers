@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
   Bookmark,
+  Bot,
   CheckCircle2,
   ChevronRight,
   Clapperboard,
@@ -549,6 +550,12 @@ function BeginnersPage() {
               <Link to="/chat">
                 <MessageCircle className="h-4 w-4 text-brand-glow" />
                 Chat with Upline
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/ai">
+                <Bot className="h-4 w-4 text-brand-glow" />
+                Skyline Achievers AI
               </Link>
             </Button>
           </nav>

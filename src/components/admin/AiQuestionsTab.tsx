@@ -21,7 +21,10 @@ export function AiQuestionsTab() {
 
   const { data, isPending } = useQuery({
     queryKey: ["admin-ai-questions", days, search],
-    queryFn: () => loadQuestions({ data: { days, search: search.trim() || undefined } }),
+    queryFn: () =>
+      loadQuestions({
+        data: search.trim() ? { days, search: search.trim() } : { days },
+      }),
   });
 
   return (

@@ -263,13 +263,11 @@ export function MemberShell({
 
                 <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
                   {NAV.map((item) =>
-                    trainingOnly && WORKING_ROUTES.includes(item.to) ? (
+                    lockReason(item.to) ? (
                       <button
                         key={item.to}
                         type="button"
-                        onClick={() =>
-                          toast.info("This part is locked. Your account is set to training only.")
-                        }
+                        onClick={() => toast.info(lockReason(item.to) as string)}
                         className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
                       >
                         <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />

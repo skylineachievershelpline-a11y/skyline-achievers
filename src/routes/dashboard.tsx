@@ -121,7 +121,7 @@ function DashboardPage() {
         </div>
 
         <div className="space-y-1">
-          <p className="text-sm font-bold text-cyan">Skyline Achiever</p>
+          <p className="text-sm font-bold text-cyan">Skyline Achievers</p>
           <p className="max-w-2xl whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
             {member?.bio || "Learning today. Earning with purpose. Leading by example."}
           </p>

@@ -234,6 +234,8 @@ export const adminEditMember = createServerFn({ method: "POST" })
           email: optionalText(255),
           phone: optionalText(25),
           levelId: uuid.optional(),
+          uplineId: uuid.optional(),
+
           status: z.enum(["active", "blocked", "removed"]).optional(),
           notes: optionalText(2000),
           workingEnabled: z.boolean().optional(),

@@ -6,6 +6,7 @@ import { Bot, Check, Copy, Eye, EyeOff, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
+import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
 import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
@@ -74,6 +75,7 @@ function DashboardPage() {
       subtitle={member?.level?.name ?? "Level not assigned"}
       executive
     >
+      <FlyingSkylineAiMascot />
       <AnnouncementBanner />
 
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">

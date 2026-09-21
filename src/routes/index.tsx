@@ -29,6 +29,7 @@ import { WhatsappJoinCard } from "@/components/whatsapp/WhatsappJoinCard";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getSessionRole } from "@/lib/member.functions";
+import { getAccessToken } from "@/lib/session-token";
 
 export const Route = createFileRoute("/")({
   head: () => ({

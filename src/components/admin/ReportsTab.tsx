@@ -35,6 +35,15 @@ export function ReportsTab() {
   const [openMember, setOpenMember] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [reportSlip, setReportSlip] = useState<PaymentSlipData | null>(null);
+  const [editDay, setEditDay] = useState<{
+    date: string;
+    leads: number;
+    responses: number;
+    enrollments: number;
+    pending: number;
+    twoCc: number;
+    mentorshipPaid: number;
+  } | null>(null);
 
   const loadAll = useServerFn(adminGetReports);
   const loadOne = useServerFn(adminGetMemberReport);

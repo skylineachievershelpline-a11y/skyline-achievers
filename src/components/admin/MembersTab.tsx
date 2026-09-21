@@ -16,6 +16,7 @@ import {
   adminDeleteMember,
   adminGetMembers,
   adminResetPassword,
+  adminSetMentorship,
 } from "@/lib/admin.functions";
 import { ACCOUNT_STATUS_LABEL } from "@/lib/brand";
 import { formatDate, formatDateTime } from "@/lib/format";

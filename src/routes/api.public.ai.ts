@@ -17,6 +17,11 @@ export const Route = createFileRoute("/api/public/ai")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const origin = request.headers.get("origin");
+        if (!origin || new URL(origin).host !== new URL(request.url).host) {
+          return new Response("This chat is available only on the Skyline Achievers website.", { status: 403 });
+        }
+
         let parsed: z.infer<typeof bodySchema>;
         try {
           parsed = bodySchema.parse(await request.json());

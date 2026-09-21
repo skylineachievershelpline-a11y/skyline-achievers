@@ -30,13 +30,13 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AiIndexRouteImport } from './routes/ai.index'
 import { Route as AiThreadIdRouteImport } from './routes/ai.$threadId'
 import { Route as ApiAiRouteImport } from './routes/api.ai'
-import { Route as ApiPublicAiRouteImport } from './routes/api.public-ai'
 import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
+import { Route as ApiPublicAiRouteImport } from './routes/api.public.ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -143,11 +143,6 @@ const ApiAiRoute = ApiAiRouteImport.update({
   path: '/api/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicAiRoute = ApiPublicAiRouteImport.update({
-  id: '/api/public-ai',
-  path: '/api/public-ai',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CourseCourseIdRoute = CourseCourseIdRouteImport.update({
   id: '/course/$courseId',
   path: '/course/$courseId',
@@ -178,6 +173,11 @@ const AdminMemberMemberIdRoute = AdminMemberMemberIdRouteImport.update({
   path: '/admin/member/$memberId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAiRoute = ApiPublicAiRouteImport.update({
+  id: '/api/public/ai',
+  path: '/api/public/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -199,7 +199,6 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
-  '/api/public-ai': typeof ApiPublicAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -208,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
+  '/api/public/ai': typeof ApiPublicAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -229,7 +229,6 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
-  '/api/public-ai': typeof ApiPublicAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -238,6 +237,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
+  '/api/public/ai': typeof ApiPublicAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -260,7 +260,6 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
-  '/api/public-ai': typeof ApiPublicAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -269,6 +268,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
+  '/api/public/ai': typeof ApiPublicAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -292,7 +292,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
-    | '/api/public-ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -301,6 +300,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
+    | '/api/public/ai'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -322,7 +322,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
-    | '/api/public-ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -331,6 +330,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/ai'
     | '/admin/member/$memberId'
+    | '/api/public/ai'
   id:
     | '__root__'
     | '/'
@@ -352,7 +352,6 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
-    | '/api/public-ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -361,6 +360,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
+    | '/api/public/ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -383,7 +383,6 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AiThreadIdRoute: typeof AiThreadIdRoute
   ApiAiRoute: typeof ApiAiRoute
-  ApiPublicAiRoute: typeof ApiPublicAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
@@ -392,6 +391,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
+  ApiPublicAiRoute: typeof ApiPublicAiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -543,13 +543,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public-ai': {
-      id: '/api/public-ai'
-      path: '/api/public-ai'
-      fullPath: '/api/public-ai'
-      preLoaderRoute: typeof ApiPublicAiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/course/$courseId': {
       id: '/course/$courseId'
       path: '/course/$courseId'
@@ -592,6 +585,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMemberMemberIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ai': {
+      id: '/api/public/ai'
+      path: '/api/public/ai'
+      fullPath: '/api/public/ai'
+      preLoaderRoute: typeof ApiPublicAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -615,7 +615,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AiThreadIdRoute: AiThreadIdRoute,
   ApiAiRoute: ApiAiRoute,
-  ApiPublicAiRoute: ApiPublicAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
@@ -624,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
+  ApiPublicAiRoute: ApiPublicAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

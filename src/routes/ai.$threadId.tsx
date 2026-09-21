@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
 
 import { SkylineAiChat } from "@/components/ai/SkylineAiChat";
+import { AiPageShell } from "@/components/ai/AiPageShell";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { useMemberGuard } from "@/components/member/MemberShell";
 import { getAiThread } from "@/lib/ai-chat.functions";
 
 export const Route = createFileRoute("/ai/$threadId")({
@@ -27,6 +28,6 @@ function AiThreadPage() {
   const load = useServerFn(getAiThread);
   const { data, isPending, error } = useQuery({ queryKey: ["ai-thread", threadId], queryFn: () => load({ data: { threadId } }), enabled: ready, retry: false });
   if (!ready || isPending) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
-  if (error || !data) return <MemberShell title="Skyline Achievers AI"><p className="raised-panel rounded-2xl p-6 text-sm text-destructive">{error?.message ?? "Chat not found."}</p></MemberShell>;
-  return <MemberShell title={data.thread.title} subtitle="Skyline Achievers AI"><SkylineAiChat threadId={threadId} initialMessages={data.messages as UIMessage[]} /></MemberShell>;
+  if (error || !data) return <AiPageShell title="Skyline Achievers AI"><p className="raised-panel rounded-2xl p-6 text-sm text-destructive">{error?.message ?? "Chat not found."}</p></AiPageShell>;
+  return <AiPageShell title={data.thread.title} showThreads><SkylineAiChat threadId={threadId} initialMessages={data.messages as UIMessage[]} /></AiPageShell>;
 }

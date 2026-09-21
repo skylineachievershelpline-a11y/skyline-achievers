@@ -5,7 +5,8 @@ import { Bot, MessageSquarePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { AiPageShell } from "@/components/ai/AiPageShell";
+import { useMemberGuard } from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
 import { createAiThread, deleteAiThread, listAiThreads } from "@/lib/ai-chat.functions";
 
@@ -38,7 +39,7 @@ function AiThreadsPage() {
   });
   if (!ready || isPending) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
   return (
-    <MemberShell title="Skyline Achievers AI" subtitle="Your private dashboard guide">
+    <AiPageShell title="Skyline Achievers AI">
       <div className="mx-auto max-w-3xl">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div><h1 className="font-display text-xl font-semibold">Your conversations</h1><p className="text-sm text-muted-foreground">Saved securely to your account.</p></div>
@@ -56,6 +57,6 @@ function AiThreadsPage() {
           {data?.threads.length === 0 ? <div className="raised-panel rounded-2xl p-8 text-center text-sm text-muted-foreground">Start your first private Skyline AI conversation.</div> : null}
         </div>
       </div>
-    </MemberShell>
+    </AiPageShell>
   );
 }

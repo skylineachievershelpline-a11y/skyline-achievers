@@ -207,34 +207,8 @@ function ReelsPage() {
     );
   }
 
-  const watched = data?.watchedToday ?? 0;
-  const limit = data?.dailyLimit ?? 15;
-
   return (
     <MemberShell title="Reels" subtitle="Short clips from the Skyline team">
-      <div className="glass-panel metal-edge mb-4 rounded-2xl p-3.5">
-        <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
-            <Clock className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold">
-              Our motive is to inform you — not to waste your time.
-            </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              That is why reels are limited to {limit} per day, and you get a different set every
-              time you come back. Watched today: {Math.min(watched, limit)} / {limit}.
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-cyan transition-all duration-500"
-            style={{ width: `${Math.min(100, (watched / limit) * 100)}%` }}
-          />
-        </div>
-      </div>
-
       {data?.canPost ? (
         <div className="mb-4 flex items-center justify-end">
           <Button variant="brand" className="rounded-2xl" onClick={() => setComposer(true)}>

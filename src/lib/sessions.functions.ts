@@ -66,12 +66,16 @@ export const openBeginnerSession = createServerFn({ method: "POST" })
         ? row.video_url
         : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
 
-    const { loadSessionExtras } = await import("./session-extras.server");
-    const extras = await loadSessionExtras(supabaseAdmin, row.id);
+    const { loadSessionExtras, loadSessionSections } = await import("./session-extras.server");
+    const [extras, sections] = await Promise.all([
+      loadSessionExtras(supabaseAdmin, row.id),
+      loadSessionSections(supabaseAdmin, row.id),
+    ]);
 
     return {
       status: "ok" as const,
       extras,
+      sections,
       session: {
         id: row.id as string,
         code: String(row.session_code).toUpperCase(),

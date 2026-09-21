@@ -657,6 +657,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       id?: string;
       lectureId?: string | null;
       sectionId?: string | null;
+      sessionId?: string | null;
       resourceType: string;
       title: string;
       description?: string | null;
@@ -672,6 +673,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
           id: uuid.optional(),
           lectureId: uuid.nullish(),
           sectionId: uuid.nullish(),
+          sessionId: uuid.nullish(),
           resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note", "image"]),
           title: text(160),
           description: optionalText(1000),
@@ -691,6 +693,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
     const payload = {
       lecture_id: data.lectureId ?? null,
       section_id: data.sectionId ?? null,
+      session_id: data.sessionId ?? null,
 
 
       series_id: null,

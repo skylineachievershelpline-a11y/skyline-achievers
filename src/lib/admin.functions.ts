@@ -658,6 +658,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       lectureId?: string | null;
       sectionId?: string | null;
       sessionId?: string | null;
+      sessionSectionId?: string | null;
       resourceType: string;
       title: string;
       description?: string | null;
@@ -674,7 +675,8 @@ export const adminSaveResource = createServerFn({ method: "POST" })
           lectureId: uuid.nullish(),
           sectionId: uuid.nullish(),
           sessionId: uuid.nullish(),
-          resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note", "image"]),
+          sessionSectionId: uuid.nullish(),
+          resourceType: z.enum(["video", "pdf", "audio", "presentation", "book", "link", "note", "image"]),
           title: text(160),
           description: optionalText(1000),
           storagePath: optionalText(400),
@@ -694,8 +696,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
       lecture_id: data.lectureId ?? null,
       section_id: data.sectionId ?? null,
       session_id: data.sessionId ?? null,
-
-
+      session_section_id: data.sessionSectionId ?? null,
       series_id: null,
       resource_type: data.resourceType,
       title: data.title,

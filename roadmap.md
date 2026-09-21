@@ -213,3 +213,9 @@
 - [x] "Your Target" card: next rank, required CC, CC done/remaining and the one-week countdown
 - [x] Training locks again when the CC time runs out; admin can unlock
 - [x] Admin: ID card number removed, amount fields on create, Payment dialog with extra days and locks
+
+
+## Personal Mentorship receipt slip
+- [x] Match the uploaded ATM-style receipt printer animation with Skyline Achievers branding
+- [x] Add Personal Mentorship receipt details: name, rank, paid amount, total, remaining, date and time
+- [x] Add save/download and share actions for the receipt image

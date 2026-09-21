@@ -90,7 +90,7 @@ function DashboardPage() {
             <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:max-w-md sm:gap-6">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
+                  <h1 className="min-w-0 whitespace-nowrap font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
                     {member?.fullName ?? "Member"}
                   </h1>
                   <RankPin rank={member?.level?.name} className="h-11 w-11 shrink-0" />

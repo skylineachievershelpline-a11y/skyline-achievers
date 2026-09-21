@@ -731,7 +731,7 @@ function BeginnersPage() {
               </div>
             </div>
 
-            <SessionGate key={focused.id} extras={focused.extras}>
+            <SessionGate key={focused.id} extras={focused.extras} sections={focused.sections}>
               <SessionVideo
                 title={focused.title}
                 videoUrl={focused.videoUrl}

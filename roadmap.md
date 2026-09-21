@@ -200,3 +200,8 @@
 - [x] Center the member name vertically beside the profile picture
 - [x] Preserve spaces and new lines in the dashboard bio
 - [ ] Verify the dashboard corrections on phone width (blocked until a member account is signed into the preview)
+
+## Direct training sections
+- [x] Show Training videos directly under each section instead of opening category tiles first
+- [x] Keep the existing admin video access controls unchanged
+- [ ] Verify the signed-in member Training page on phone width (blocked until a member account is signed into the preview)

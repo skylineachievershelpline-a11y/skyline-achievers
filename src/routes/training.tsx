@@ -2,19 +2,16 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, ChevronRight, Loader2, PlayCircle } from "lucide-react";
-import { useState } from "react";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
 import { EmptyState, TrainingVideoCard } from "@/components/member/cards";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTrainingLibrary } from "@/lib/member.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
-
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/training")({
   head: () => ({
@@ -43,10 +40,10 @@ type Section = {
   description: string | null;
   group_id?: string | null;
 };
+
 function TrainingPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getTrainingLibrary);
-  const [openSection, setOpenSection] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const { data, isPending } = useQuery({
@@ -58,42 +55,39 @@ function TrainingPage() {
   const all = (data?.videos ?? []) as any[];
   const sections = ((data?.categories ?? []) as Section[]).slice();
   const hasLoose = all.some((video) => !video.category_id);
-  const menu: Section[] = hasLoose
+  const visibleSections: Section[] = hasLoose
     ? [...sections, { id: "__none", name: "Other videos", description: null, group_id: null }]
     : sections;
-
-  const active = menu.find((section) => section.id === openSection) ?? null;
-
-  const inSection = active
-    ? all.filter((video) =>
-        active.id === "__none" ? !video.category_id : video.category_id === active.id,
-      )
-    : [];
-  // Related topics count as a match too, not only the exact words in the title.
   const tokens = tokenize(query);
-  const videos =
-    tokens.length === 0
-      ? inSection
-      : inSection
-          .map((video) => ({
-            video,
-            score: relevance(tokens, {
-              fields: [
-                { text: video.title, weight: 1 },
-                { text: video.description, weight: 0.8 },
-              ],
-            }),
-          }))
-          .filter((item) => item.score >= RELATED_THRESHOLD)
-          .sort((a, b) => b.score - a.score)
-          .map((item) => item.video);
-
-
-  function countFor(section: Section) {
-    return all.filter((video) =>
-      section.id === "__none" ? !video.category_id : video.category_id === section.id,
-    ).length;
-  }
+  const videosBySection = useMemo(
+    () =>
+      visibleSections
+        .map((section) => {
+          const inSection = all.filter((video) =>
+            section.id === "__none" ? !video.category_id : video.category_id === section.id,
+          );
+          const videos =
+            tokens.length === 0
+              ? inSection
+              : inSection
+                  .map((video) => ({
+                    video,
+                    score: relevance(tokens, {
+                      fields: [
+                        { text: video.title, weight: 1 },
+                        { text: video.description, weight: 0.8 },
+                        { text: section.name, weight: 0.4 },
+                      ],
+                    }),
+                  }))
+                  .filter((item) => item.score >= RELATED_THRESHOLD)
+                  .sort((a, b) => b.score - a.score)
+                  .map((item) => item.video);
+          return { section, videos, total: inSection.length };
+        })
+        .filter((entry) => entry.total > 0 || tokens.length === 0),
+    [all, tokens, visibleSections],
+  );
 
   return (
     <MemberShell title="Training" subtitle="Your training library" executive>
@@ -101,122 +95,84 @@ function TrainingPage() {
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Skyline training library
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold">
-          {active ? active.name : "Training categories"}
-        </h1>
+        <h1 className="mt-1 font-display text-2xl font-bold">Training Videos</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {active
-            ? (active.description ??
-              `${inSection.filter((v) => !v.locked).length} of ${inSection.length} videos unlocked for your rank.`)
-            : "Choose a category to open its videos."}
+          Every unlocked section is open below — Prospecting, Sales and every other training area show directly here.
         </p>
-        {active ? (
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            {active ? (
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={`Search in ${active.name}`}
-                className="h-11 rounded-2xl"
-              />
-            ) : null}
-            <Button
-              variant="secondary"
-              size="xl"
-              className="min-w-fit"
-              onClick={() => {
-                setQuery("");
-                setOpenSection(null);
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              All categories
-            </Button>
-          </div>
-        ) : null}
+        <div className="relative mt-4">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search all training videos"
+            className="h-11 rounded-2xl pl-9"
+          />
+        </div>
       </div>
 
       {!ready || isPending ? (
         <div className="flex justify-center py-14">
           <SkylineLoader />
         </div>
-      ) : !active ? (
+      ) : visibleSections.length === 0 ? (
         <section className="mt-6">
-          <SectionTitle>Categories</SectionTitle>
-          {menu.length === 0 ? (
-            <EmptyState
-              title="No training categories yet"
-              hint="Categories appear here as soon as they are published."
-            />
-          ) : (
-            <ul className="space-y-2">
-              {menu.map((section, index) => {
-                const videoCount = countFor(section);
-                return (
-                  <li
-                    key={section.id}
-                    className="animate-rise-in"
-                    style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpenSection(section.id);
-                        setQuery("");
-                      }}
-                      className="glass-panel metal-edge depth-hover flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 text-left"
-                    >
-                      <span className="brand-gradient flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-brand-foreground shadow-brand">
-                        <PlayCircle className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-display text-sm font-semibold">
-                          {section.name}
-                        </span>
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {videoCount} video
-                          {videoCount === 1 ? "" : "s"}
-                        </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <SectionTitle>Training Sections</SectionTitle>
+          <EmptyState
+            title="No training sections yet"
+            hint="Training sections appear here as soon as they are published."
+          />
+        </section>
+      ) : videosBySection.every((entry) => entry.videos.length === 0) ? (
+        <section className="mt-6">
+          <SectionTitle>No matching videos</SectionTitle>
+          <EmptyState title="No video matched your search" hint="Try a different word." />
         </section>
       ) : (
-        <section className="mt-6">
-          <SectionTitle>{active?.name ?? "Videos"}</SectionTitle>
-          {videos.length === 0 ? (
-            <EmptyState
-              title="No videos here yet"
-              hint="Nothing has been published in this section — check back soon."
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {videos.map((video: any, index: number) => (
-                <div
-                  key={video.id}
-                  className="animate-rise-in"
-                  style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
-                >
-                  <TrainingVideoCard
-                    video={video}
-                    onLocked={() =>
-                      toast.info(
-                        video.levels?.name
-                          ? `This video opens at ${video.levels.name}. Keep going — you are close!`
-                          : "This video is locked for your rank right now.",
-                      )
-                    }
-                  />
+        <div className="mt-6 space-y-8">
+          {videosBySection.map(({ section, videos, total }, sectionIndex) => (
+            <section
+              key={section.id}
+              className="animate-rise-in"
+              style={{ animationDelay: `${Math.min(sectionIndex, 8) * 40}ms` }}
+            >
+              <div className="mb-3 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <SectionTitle>{section.name}</SectionTitle>
+                  {section.description ? (
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{section.description}</p>
+                  ) : null}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+                <span className="shrink-0 rounded-full border border-metal/30 bg-surface px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {total} video{total === 1 ? "" : "s"}
+                </span>
+              </div>
+              {videos.length === 0 ? (
+                <EmptyState title="No matching videos here" />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {videos.map((video: any, index: number) => (
+                    <div
+                      key={video.id}
+                      className="animate-rise-in"
+                      style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}
+                    >
+                      <TrainingVideoCard
+                        video={video}
+                        onLocked={() =>
+                          toast.info(
+                            video.levels?.name
+                              ? `This video opens at ${video.levels.name}. Keep going — you are close!`
+                              : "This video is locked for your rank right now.",
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          ))}
+        </div>
       )}
     </MemberShell>
   );

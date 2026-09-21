@@ -106,7 +106,6 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       { data: categories },
       { data: groups },
       { data: sectionAccess },
-      { data: groupAccess },
     ] = await Promise.all([
         supabaseAdmin
           .from("lectures")
@@ -136,7 +135,6 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
           .eq("is_published", true)
           .order("sort_order"),
       (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
-      (supabaseAdmin as any).from("training_group_access").select("group_id, level_id"),
     ]);
 
     const allowed = new Set((access ?? []).map((row) => row.content_id));
@@ -151,20 +149,12 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
         row.level_id,
       ]);
     }
-    // Same rule for the categories that hold the sections.
-    const groupLevels = new Map<string, string[]>();
-    for (const row of (groupAccess ?? []) as { group_id: string; level_id: string }[]) {
-      groupLevels.set(row.group_id, [...(groupLevels.get(row.group_id) ?? []), row.level_id]);
-    }
-    const visibleGroups = ((groups ?? []) as any[]).filter((group) => {
-      const list = groupLevels.get(group.id);
-      if (!list || list.length === 0) return true;
-      return member.level ? list.includes(member.level.id) : false;
-    });
-    const visibleGroupIds = new Set(visibleGroups.map((g) => g.id));
+    // Categories are only an admin-side organizer now. Members see training
+    // sections directly, so category access must not hide a section from the
+    // Training page; section/video access below remains the source of truth.
+    const visibleGroups = (groups ?? []) as any[];
 
     const visibleCategories = ((categories ?? []) as any[]).filter((category) => {
-      if (category.group_id && !visibleGroupIds.has(category.group_id)) return false;
       const list = sectionLevels.get(category.id);
       if (!list || list.length === 0) return true;
       return member.level ? list.includes(member.level.id) : false;

@@ -33,7 +33,7 @@ export function AiPictureButton({ disabled = false }: { disabled?: boolean }) {
   return (
     <PromptInputButton
       type="button"
-      tooltip="Add picture"
+      title="Add picture"
       aria-label="Add picture"
       disabled={disabled || attachments.files.length > 0}
       onClick={() => attachments.openFileDialog()}

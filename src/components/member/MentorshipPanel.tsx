@@ -102,7 +102,7 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
 }
 
 /** "Your Target" card: next rank plus Case Credit progress. */
-export function TargetCard({ progress, onPrintReceipt }: { progress: MemberProgress; onPrintReceipt?: () => void }) {
+export function TargetCard({ progress }: { progress: MemberProgress }) {
   return (
     <section className="raised-panel metal-edge space-y-3 rounded-3xl p-5">
       <div className="flex items-center gap-2">

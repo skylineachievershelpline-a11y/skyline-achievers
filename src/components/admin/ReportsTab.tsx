@@ -50,6 +50,20 @@ export function ReportsTab() {
     enabled: Boolean(openMember),
   });
 
+  const saveDay = useServerFn(adminUpdateMemberReport);
+  const queryClient = useQueryClient();
+  const saveReport = useMutation({
+    mutationFn: () =>
+      saveDay({ data: { memberId: openMember, ...editDay } } as never),
+    onSuccess: () => {
+      toast.success("Report updated");
+      setEditDay(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-report-member"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const rangeLabel = `${dayLabel(from)} — ${dayLabel(to)}`;
 
   async function downloadMemberPdf(memberId: string) {

@@ -133,10 +133,10 @@ export const getReels = createServerFn({ method: "GET" })
       reels,
       isManager: manager?.data === true,
       canPost: canPost?.data === true,
-      dailyLimit: DAILY_REEL_LIMIT,
+      dailyLimit: null,
       watchedToday: seenToday,
-      remaining,
-      limitReached: remaining === 0,
+      remaining: picked.length,
+      limitReached: false,
     };
   });
 

@@ -1,6 +1,7 @@
-import { AlertTriangle, Clock, Lock, Target, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, Lock, ReceiptText, Target, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { formatCountdown, formatPkr, type MemberProgress } from "@/lib/mentorship";
 
 /** Re-renders once a second so the countdown keeps moving. */
@@ -37,7 +38,7 @@ function Bar({ percent }: { percent: number }) {
 }
 
 /** Money card shown until the Personal Mentorship amount is complete. */
-export function MentorshipFeeCard({ progress }: { progress: MemberProgress }) {
+export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: MemberProgress; onPrintReceipt?: () => void }) {
   return (
     <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
       {progress.warning ? (
@@ -77,6 +78,13 @@ export function MentorshipFeeCard({ progress }: { progress: MemberProgress }) {
 
       <Bar percent={progress.feePercent} />
 
+      {progress.feePaid > 0 && onPrintReceipt ? (
+        <Button type="button" variant="outline" className="w-full rounded-2xl font-display" onClick={onPrintReceipt}>
+          <ReceiptText className="h-4 w-4" />
+          Print Personal Mentorship receipt
+        </Button>
+      ) : null}
+
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
         <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <Clock className="h-4 w-4" /> Time left
@@ -94,7 +102,7 @@ export function MentorshipFeeCard({ progress }: { progress: MemberProgress }) {
 }
 
 /** "Your Target" card: next rank plus Case Credit progress. */
-export function TargetCard({ progress }: { progress: MemberProgress }) {
+export function TargetCard({ progress, onPrintReceipt }: { progress: MemberProgress; onPrintReceipt?: () => void }) {
   return (
     <section className="raised-panel metal-edge space-y-3 rounded-3xl p-5">
       <div className="flex items-center gap-2">
@@ -126,6 +134,13 @@ export function TargetCard({ progress }: { progress: MemberProgress }) {
       ) : (
         <p className="text-xs text-muted-foreground">{progress.requirementNote}</p>
       )}
+
+      {progress.feePaid > 0 && onPrintReceipt ? (
+        <Button type="button" variant="outline" className="w-full rounded-2xl font-display" onClick={onPrintReceipt}>
+          <ReceiptText className="h-4 w-4" />
+          Print Personal Mentorship receipt
+        </Button>
+      ) : null}
 
       {progress.ccDueAt && (progress.ccRemaining ?? 0) > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">

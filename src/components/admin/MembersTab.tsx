@@ -385,6 +385,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         open={showAdd}
         onOpenChange={setShowAdd}
         levels={levels}
+        uplines={uplines}
+
         pending={create.isPending}
         onSubmit={(values) => create.mutate({ data: values } as never)}
       />

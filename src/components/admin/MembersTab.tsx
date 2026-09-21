@@ -93,9 +93,9 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const mentorship = useMutation({
     mutationFn: (input: Record<string, unknown>) => setMentorship({ data: input } as never),
     onSuccess: (_result, input) => {
-      if (input.printSlip && moneyTarget) {
-        const total = Number(input.feeTotal ?? moneyTarget.mentorship_fee_pkr ?? 50000);
-        const received = Number(input.paid ?? moneyTarget.mentorship_paid_pkr ?? 0);
+      if (input["printSlip"] && moneyTarget) {
+        const total = Number(input["feeTotal"] ?? moneyTarget.mentorship_fee_pkr ?? 50000);
+        const received = Number(input["paid"] ?? moneyTarget.mentorship_paid_pkr ?? 0);
         const remaining = Math.max(total - received, 0);
         setMentorshipSlip({
           kind: "mentorship",

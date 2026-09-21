@@ -44,7 +44,7 @@ function receiptNumber(data: PaymentSlipData) {
   return `${prefix}-${time}`;
 }
 
-function details(data: PaymentSlipData) {
+function details(data: PaymentSlipData): Array<[string, string]> {
   if (data.kind === "mentorship") {
     return [
       ["Member", data.buyerName],

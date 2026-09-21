@@ -134,6 +134,13 @@
       "when": 1789924117683,
       "tag": "0018_daily_report_fields_and_leave_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789969867707,
+      "tag": "0019_content_sections",
+      "breakpoints": true
     }
   ]
 }

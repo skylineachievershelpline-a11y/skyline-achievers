@@ -14,8 +14,8 @@ export const getLandingIntroduction = createServerFn({ method: "GET" }).handler(
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
-  if (!data) return { introduction: null };
+  // Public page: a failed read must not blank the landing screen.
+  if (error || !data) return { introduction: null };
 
   return {
     introduction: {
@@ -46,7 +46,8 @@ export const getLandingReviews = createServerFn({ method: "GET" }).handler(async
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(24);
-  if (error) throw new Error(error.message);
+  // Public page: never blank the landing screen if this read fails.
+  if (error || !data) return { reviews: [] };
 
   const reviews = await Promise.all(
     (data ?? []).map(async (row) => ({

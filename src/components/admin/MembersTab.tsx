@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 

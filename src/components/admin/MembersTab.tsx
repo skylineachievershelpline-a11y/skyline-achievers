@@ -241,6 +241,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     </Link>
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg px-2 text-[11px]"
+                    onClick={() => setMoneyTarget(member)}
+                  >
+                    <CircleDollarSign className="h-3.5 w-3.5" />
+                    Payment
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="sm"
                     className="h-8 rounded-lg px-2 text-[11px]"

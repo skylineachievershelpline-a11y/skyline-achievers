@@ -638,17 +638,35 @@
   background-color: color-mix(in oklab, var(--surface) 82%, transparent);
 }
 
+.slip-machine .slip-printer {
+  animation: slip-printer-hum 2.8s ease-in-out both;
+}
+
+.slip-machine .slip-paper {
+  animation-duration: 3.15s;
+  animation-timing-function: cubic-bezier(.15, .72, .19, 1);
+}
+
 @keyframes slip-print {
   0% {
     transform: translate3d(0, -93%, 0) scaleY(.18);
     opacity: .72;
   }
-  58% {
-    transform: translate3d(0, -8%, 0) scaleY(.98);
+  18% { transform: translate3d(0, -78%, 0) scaleY(.34); }
+  36% { transform: translate3d(0, -55%, 0) scaleY(.58); }
+  56% { transform: translate3d(0, -30%, 0) scaleY(.82); }
+  76% {
+    transform: translate3d(0, -7%, 0) scaleY(.98);
     opacity: 1;
   }
-  76% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
+  90% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
   100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+@keyframes slip-printer-hum {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  12%, 28%, 44%, 60%, 76% { transform: translateX(-50%) translateY(.08rem); }
+  20%, 36%, 52%, 68%, 84% { transform: translateX(-50%) translateY(-.05rem); }
 }
 
 @keyframes slip-led {

@@ -76,7 +76,7 @@ function DashboardPage() {
       <AnnouncementBanner />
 
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
-        <div className="flex items-start gap-5 sm:gap-7">
+        <div className="flex items-center gap-5 sm:gap-7">
           <div className="shrink-0">
             <AvatarPicker
               name={member?.fullName ?? "Member"}
@@ -86,7 +86,7 @@ function DashboardPage() {
               editable={false}
             />
           </div>
-          <div className="min-w-0 flex-1 pt-1">
+          <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
                  {member?.fullName ?? "Member"}
@@ -122,7 +122,7 @@ function DashboardPage() {
 
         <div className="space-y-1">
           <p className="text-sm font-bold text-cyan">Skyline Achiever</p>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+          <p className="max-w-2xl whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
             {member?.bio || "Learning today. Earning with purpose. Leading by example."}
           </p>
           <p className="pt-1 text-xs font-semibold text-cyan">{BRAND.name} • {BRAND.tagline}</p>

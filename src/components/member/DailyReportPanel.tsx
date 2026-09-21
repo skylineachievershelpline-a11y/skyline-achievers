@@ -335,22 +335,10 @@ export function DailyReportPanel() {
         ) : null}
       </section>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="xl"
-        className="w-full rounded-2xl"
-        onClick={() => setReportOpen((open) => !open)}
-      >
-        {reportOpen ? <X className="h-4 w-4" /> : <Download className="h-4 w-4" />}
-        {reportOpen ? "Hide report" : "Show report"}
-      </Button>
+      <div className="space-y-4 animate-rise-in">
+        <TrendChart days={chartDays} />
 
-      {reportOpen ? (
-        <div className="space-y-4 animate-rise-in">
-          <TrendChart days={chartDays} />
-
-          <section className="raised-panel metal-edge rounded-3xl p-5">
+        <section className="raised-panel metal-edge rounded-3xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Report download
         </p>
@@ -422,7 +410,17 @@ export function DailyReportPanel() {
           {rangeRows.length} day{rangeRows.length === 1 ? "" : "s"} in the selected period.
         </p>
 
-        {rangeRows.length > 0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-4 w-full rounded-2xl"
+          onClick={() => setReportOpen((open) => !open)}
+        >
+          {reportOpen ? <X className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+          {reportOpen ? "Hide report" : "Show report"}
+        </Button>
+
+        {reportOpen && rangeRows.length > 0 ? (
           <div className="inset-panel mt-4 overflow-x-auto rounded-2xl">
             <table className="w-full min-w-[520px] text-left text-xs">
               <thead className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -454,9 +452,8 @@ export function DailyReportPanel() {
             </table>
           </div>
         ) : null}
-          </section>
-        </div>
-      ) : null}
+        </section>
+      </div>
     </div>
   );
 }

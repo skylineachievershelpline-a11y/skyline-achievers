@@ -43,7 +43,7 @@ export function AiPictureButton({ disabled = false }: { disabled?: boolean }) {
   );
 }
 
-export function AiMessagePicture({ url, filename }: { url: string; filename?: string }) {
+export function AiMessagePicture({ url, filename }: { url: string; filename: string | undefined }) {
   return (
     <img
       src={url}

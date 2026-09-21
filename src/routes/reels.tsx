@@ -328,8 +328,8 @@ function ReelCard({
 
   return (
     <article
-      className={`metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
-        visible ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
+      className={`metal-edge relative mx-auto flex h-[calc(100dvh-11rem)] min-h-[31rem] w-full snap-start snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
+        visible ? "scale-100 opacity-100" : "scale-[0.98] opacity-80"
       }`}
     >
       {reel.url ? (

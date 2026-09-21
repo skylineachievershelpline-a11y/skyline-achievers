@@ -104,6 +104,7 @@ export function SessionExtrasDialog({
   const [sectionCover, setSectionCover] = useState<File | null>(null);
   const [sectionBusy, setSectionBusy] = useState(false);
   const [editingSection, setEditingSection] = useState<SectionRow | null>(null);
+  const [newSectionId, setNewSectionId] = useState(() => crypto.randomUUID());
 
   const kindConfig = KINDS.find((entry) => entry.value === kind) ?? KINDS[0]!;
 
@@ -129,6 +130,7 @@ export function SessionExtrasDialog({
     setEditingSection(null);
     setSectionName("");
     setSectionCover(null);
+    setNewSectionId(crypto.randomUUID());
   }
 
   function startEditSection(row: SectionRow) {
@@ -155,17 +157,21 @@ export function SessionExtrasDialog({
           uploadProgress.handler("Uploading category cover"),
         );
       }
-      await saveSection({
-        data: {
-          id: editingSection?.id,
-          scope: "session",
-          sessionId,
-          name: sectionName.trim(),
-          thumbnailPath,
-          sortOrder: 0,
-          isPublished: true,
-        },
-      } as never);
+      const sectionPayload = {
+        id: editingSection?.id ?? newSectionId,
+        scope: "session" as const,
+        sessionId,
+        name: sectionName.trim(),
+        thumbnailPath,
+        sortOrder: 0,
+        isPublished: true,
+      };
+      try {
+        await saveSection({ data: sectionPayload } as never);
+      } catch {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        await saveSection({ data: sectionPayload } as never);
+      }
       toast.success(editingSection ? "Category updated" : "Category created");
       resetSectionForm();
       refresh();
@@ -276,7 +282,7 @@ export function SessionExtrasDialog({
 
   return (
     <Dialog open onOpenChange={(next) => (!next ? onClose() : undefined)}>
-      <DialogContent className="max-h-[86dvh] w-[calc(100vw-1rem)] min-w-0 max-w-lg overflow-x-hidden overflow-y-auto rounded-3xl p-4 sm:w-[calc(100vw-2rem)] sm:p-6">
+      <DialogContent className="!bottom-1.5 !left-1.5 !right-1.5 !top-1.5 !max-h-none !w-auto !max-w-none !translate-x-0 !translate-y-0 min-w-0 overflow-x-hidden overflow-y-auto rounded-2xl p-3 sm:!bottom-auto sm:!left-1/2 sm:!right-auto sm:!top-1/2 sm:!max-h-[90dvh] sm:!w-[calc(100vw-2rem)] sm:!max-w-lg sm:!-translate-x-1/2 sm:!-translate-y-1/2 sm:rounded-3xl sm:p-6">
         <DialogHeader>
           <DialogTitle className="min-w-0 break-words pr-8 text-left text-base leading-snug">
             Extra material · {sessionTitle}
@@ -297,11 +303,11 @@ export function SessionExtrasDialog({
               {sections.map((section) => (
                 <li
                   key={section.id}
-                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-hairline bg-surface-2 px-3 py-2"
+                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-1.5 rounded-xl border border-hairline bg-surface-2 px-2.5 py-2"
                 >
-                  <span className="min-w-0 break-words text-sm font-medium">{section.name}</span>
-                  <span className="flex shrink-0 items-center gap-1">
-                    <span className="mr-1 text-[11px] text-muted-foreground">
+                  <span className="min-w-0 break-all pr-1 text-xs font-medium leading-5 sm:break-words sm:text-sm">{section.name}</span>
+                  <span className="flex shrink-0 items-center gap-0.5">
+                    <span className="hidden text-[10px] text-muted-foreground min-[370px]:inline">
                       {extras.filter((e) => e.section_id === section.id).length} items
                     </span>
                     <Button
@@ -309,7 +315,7 @@ export function SessionExtrasDialog({
                       variant="ghost"
                       size="icon"
                       onClick={() => startEditSection(section)}
-                      className="h-9 w-9 text-muted-foreground hover:text-brand"
+                      className="h-8 w-8 text-muted-foreground hover:text-brand"
                       aria-label={`Edit ${section.name}`}
                     >
                       <Pencil className="h-4 w-4" />
@@ -319,7 +325,7 @@ export function SessionExtrasDialog({
                       variant="ghost"
                       size="icon"
                       onClick={() => delSection.mutate(section.id)}
-                      className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
                       aria-label={`Delete ${section.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -344,7 +350,7 @@ export function SessionExtrasDialog({
                 type="file"
                 accept="image/*"
                 onChange={(e) => setSectionCover(e.target.files?.[0] ?? null)}
-                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+                className={`${fieldClass} min-w-0 max-w-full overflow-hidden py-2.5 text-xs text-muted-foreground file:max-w-[9rem]`}
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -474,7 +480,7 @@ export function SessionExtrasDialog({
                 type="file"
                 accept={kindConfig.accept}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+                className={`${fieldClass} min-w-0 max-w-full overflow-hidden py-2.5 text-xs text-muted-foreground file:max-w-[9rem]`}
               />
             </div>
           )}
@@ -484,7 +490,7 @@ export function SessionExtrasDialog({
               type="file"
               accept="image/*"
               onChange={(e) => setCover(e.target.files?.[0] ?? null)}
-              className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+              className={`${fieldClass} min-w-0 max-w-full overflow-hidden py-2.5 text-xs text-muted-foreground file:max-w-[9rem]`}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">

@@ -103,6 +103,7 @@ export function SessionExtrasDialog({
   const [sectionName, setSectionName] = useState("");
   const [sectionCover, setSectionCover] = useState<File | null>(null);
   const [sectionBusy, setSectionBusy] = useState(false);
+  const [editingSection, setEditingSection] = useState<SectionRow | null>(null);
 
   const kindConfig = KINDS.find((entry) => entry.value === kind) ?? KINDS[0]!;
 
@@ -122,6 +123,18 @@ export function SessionExtrasDialog({
     setSortOrder("0");
     setPublished(true);
     setSectionId("");
+  }
+
+  function resetSectionForm() {
+    setEditingSection(null);
+    setSectionName("");
+    setSectionCover(null);
+  }
+
+  function startEditSection(row: SectionRow) {
+    setEditingSection(row);
+    setSectionName(row.name);
+    setSectionCover(null);
   }
 
   async function addSection(event: React.FormEvent) {
@@ -144,6 +157,7 @@ export function SessionExtrasDialog({
       }
       await saveSection({
         data: {
+          id: editingSection?.id,
           scope: "session",
           sessionId,
           name: sectionName.trim(),
@@ -152,9 +166,8 @@ export function SessionExtrasDialog({
           isPublished: true,
         },
       } as never);
-      toast.success("Category created");
-      setSectionName("");
-      setSectionCover(null);
+      toast.success(editingSection ? "Category updated" : "Category created");
+      resetSectionForm();
       refresh();
     } catch (error) {
       toast.error((error as Error).message);
@@ -263,9 +276,11 @@ export function SessionExtrasDialog({
 
   return (
     <Dialog open onOpenChange={(next) => (!next ? onClose() : undefined)}>
-      <DialogContent className="max-h-[86vh] overflow-y-auto rounded-3xl">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg overflow-x-hidden overflow-y-auto rounded-3xl max-h-[86vh]">
         <DialogHeader>
-          <DialogTitle>Extra material · {sessionTitle}</DialogTitle>
+          <DialogTitle className="break-words pr-6 text-base leading-snug">
+            Extra material · {sessionTitle}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="inset-panel space-y-3 rounded-2xl p-3">
@@ -285,9 +300,16 @@ export function SessionExtrasDialog({
                   className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 px-3 py-2"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{section.name}</span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="shrink-0 text-[11px] text-muted-foreground">
                     {extras.filter((e) => e.section_id === section.id).length} items
                   </span>
+                  <button
+                    onClick={() => startEditSection(section)}
+                    className="text-muted-foreground transition-colors hover:text-brand"
+                    aria-label="Edit category"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => delSection.mutate(section.id)}
                     className="text-muted-foreground transition-colors hover:text-destructive"
@@ -299,29 +321,38 @@ export function SessionExtrasDialog({
               ))}
             </ul>
           )}
-          <form onSubmit={addSection} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+          <form onSubmit={addSection} className="space-y-2">
             <Input
               value={sectionName}
               onChange={(e) => setSectionName(e.target.value)}
-              placeholder="New category name"
-              className="h-11 rounded-2xl"
+              placeholder={editingSection ? "Category name" : "New category name"}
+              className="h-11 w-full rounded-2xl"
             />
-            <Button type="submit" variant="secondary" size="xl" disabled={sectionBusy}>
-              {sectionBusy ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              Add category
-            </Button>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Category cover picture</Label>
+            <div className="space-y-1.5">
+              <Label>
+                {editingSection ? "Replace cover picture (optional)" : "Category cover picture"}
+              </Label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setSectionCover(e.target.files?.[0] ?? null)}
                 className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
               />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" variant="secondary" size="xl" disabled={sectionBusy}>
+                {sectionBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                {editingSection ? "Save category" : "Add category"}
+              </Button>
+              {editingSection ? (
+                <Button type="button" variant="outline" size="xl" onClick={resetSectionForm}>
+                  Cancel
+                </Button>
+              ) : null}
             </div>
           </form>
         </div>

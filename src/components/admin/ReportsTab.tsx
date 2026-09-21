@@ -329,7 +329,7 @@ export function ReportsTab() {
             </p>
           ) : (
             <div className="inset-panel mt-4 overflow-x-auto rounded-2xl">
-              <table className="w-full min-w-[520px] text-left text-xs">
+              <table className="w-full min-w-[620px] text-left text-xs">
                 <thead className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border">
                     <th className="p-3">Date</th>
@@ -339,22 +339,97 @@ export function ReportsTab() {
                     <th className="p-3 text-right">Pending</th>
                     <th className="p-3 text-right">2CC</th>
                     <th className="p-3 text-right">PM fee</th>
+                    <th className="p-3 text-right">Fix</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(detail.data?.days ?? []).map((day) => (
-                    <tr key={day.date} className="border-b border-border/60 last:border-0">
-                      <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
-                      <td className="p-3 text-right tabular-nums">{day.leads}</td>
-                      <td className="p-3 text-right tabular-nums">{day.responses}</td>
-                      <td className="p-3 text-right tabular-nums">{day.enrollments}</td>
-                      <td className="p-3 text-right tabular-nums">{day.pending}</td>
-                      <td className="p-3 text-right tabular-nums">{day.twoCc}</td>
-                      <td className="p-3 text-right font-semibold tabular-nums text-cyan">
-                        {day.mentorshipPaid}
-                      </td>
-                    </tr>
-                  ))}
+                  {(detail.data?.days ?? []).map((day) =>
+                    editDay?.date === day.date ? (
+                      <tr key={day.date} className="border-b border-border/60 last:border-0">
+                        <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
+                        {(
+                          [
+                            "leads",
+                            "responses",
+                            "enrollments",
+                            "pending",
+                            "twoCc",
+                            "mentorshipPaid",
+                          ] as const
+                        ).map((field) => (
+                          <td key={field} className="p-2">
+                            <Input
+                              type="number"
+                              min={0}
+                              inputMode="numeric"
+                              className="h-9 w-20 text-right"
+                              value={String(editDay[field])}
+                              onChange={(event) =>
+                                setEditDay({ ...editDay, [field]: Number(event.target.value || 0) })
+                              }
+                            />
+                          </td>
+                        ))}
+                        <td className="p-2 text-right">
+                          <Button
+                            variant="brand"
+                            size="sm"
+                            className="rounded-xl"
+                            disabled={saveReport.isPending}
+                            onClick={() => saveReport.mutate()}
+                          >
+                            {saveReport.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Save className="h-4 w-4" />
+                            )}
+                            Save
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2 rounded-xl"
+                            onClick={() => setEditDay(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={day.date} className="border-b border-border/60 last:border-0">
+                        <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
+                        <td className="p-3 text-right tabular-nums">{day.leads}</td>
+                        <td className="p-3 text-right tabular-nums">{day.responses}</td>
+                        <td className="p-3 text-right tabular-nums">{day.enrollments}</td>
+                        <td className="p-3 text-right tabular-nums">{day.pending}</td>
+                        <td className="p-3 text-right tabular-nums">{day.twoCc}</td>
+                        <td className="p-3 text-right font-semibold tabular-nums text-cyan">
+                          {day.mentorshipPaid}
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl"
+                            onClick={() =>
+                              setEditDay({
+                                date: day.date,
+                                leads: day.leads,
+                                responses: day.responses,
+                                enrollments: day.enrollments,
+                                pending: day.pending,
+                                twoCc: day.twoCc,
+                                mentorshipPaid: day.mentorshipPaid,
+                              })
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ),
+                  )}
                 </tbody>
               </table>
             </div>

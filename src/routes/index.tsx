@@ -17,6 +17,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import skylineBackground from "@/assets/skyline-landing-bg-clean.jpg";
 import { MemberLoginCard } from "@/components/auth/MemberLoginCard";
+import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
+import { PublicSkylineAi } from "@/components/ai/PublicSkylineAi";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { IntroductionSection } from "@/components/landing/IntroductionSection";
 import { LandingInstallSection } from "@/components/landing/LandingInstallSection";
@@ -88,6 +90,7 @@ const HOW_IT_WORKS = [
 function LandingPage() {
   const navigate = useNavigate();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [publicAiOpen, setPublicAiOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const resolveRole = useServerFn(getSessionRole);
@@ -190,6 +193,19 @@ function LandingPage() {
                 </a>
               </Button>
             </div>
+            <div className="hero-sequence hero-sequence-6 relative mt-6 h-20 w-full max-w-xl">
+              <Button
+                type="button"
+                variant="brand"
+                size="xl"
+                className="h-16 w-full justify-between rounded-2xl pl-20"
+                onClick={() => setPublicAiOpen(true)}
+              >
+                <span>Skyline Achievers AI</span>
+                <span className="text-xs opacity-80">Ask about us</span>
+              </Button>
+              <FlyingSkylineAiMascot onActivate={() => setPublicAiOpen(true)} />
+            </div>
           </div>
         </div>
 
@@ -279,6 +295,15 @@ function LandingPage() {
           <div className="px-2 pb-2">
             <MemberLoginCard />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={publicAiOpen} onOpenChange={setPublicAiOpen}>
+        <DialogContent className="metal-edge w-[calc(100%-1rem)] max-w-2xl overflow-hidden rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="pr-8 text-left">
+            <DialogTitle className="font-display text-xl">Skyline Achievers AI</DialogTitle>
+          </DialogHeader>
+          <PublicSkylineAi />
         </DialogContent>
       </Dialog>
     </main>

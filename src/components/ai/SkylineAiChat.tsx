@@ -17,7 +17,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { BrandLogo } from "@/components/brand/BrandLogo";
+import { SkylineAiMascot, type SkylineAiMascotState } from "@/components/ai/SkylineAiMascot";
 import { supabase } from "@/integrations/supabase/client";
 
 export function SkylineAiChat({ threadId, initialMessages }: { threadId: string; initialMessages: UIMessage[] }) {
@@ -35,6 +35,7 @@ export function SkylineAiChat({ threadId, initialMessages }: { threadId: string;
     transport,
   });
   const busy = status === "submitted" || status === "streaming";
+  const mascotState: SkylineAiMascotState = status === "submitted" ? "thinking" : status === "streaming" ? "answer" : "idle";
 
   return (
     <div className="glass-panel-strong metal-edge flex h-[calc(100dvh-8.5rem)] min-h-[32rem] flex-col overflow-hidden rounded-2xl">
@@ -42,7 +43,7 @@ export function SkylineAiChat({ threadId, initialMessages }: { threadId: string;
         <ConversationContent className="gap-5 p-4 sm:p-6">
           {messages.length === 0 ? (
             <ConversationEmptyState
-              icon={<BrandLogo size="md" withWordmark={false} />}
+              icon={<SkylineAiMascot state="idle" className="w-28" />}
               title="Skyline Achievers AI"
               description="Ask how to use the features available on your own dashboard."
             />
@@ -65,7 +66,14 @@ export function SkylineAiChat({ threadId, initialMessages }: { threadId: string;
               </MessageContent>
             </Message>
           ))}
-          {status === "submitted" ? <Shimmer>Thinking...</Shimmer> : null}
+          {busy ? (
+            <div className="flex items-end gap-3" role="status" aria-live="polite">
+              <SkylineAiMascot state={mascotState} className="w-20 shrink-0" />
+              <div className="mb-2 rounded-lg border border-hairline bg-surface px-3 py-2 shadow-glass">
+                {status === "submitted" ? <Shimmer>Thinking...</Shimmer> : <p className="text-xs font-semibold text-cyan">Your answer is ready</p>}
+              </div>
+            </div>
+          ) : null}
           {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
         </ConversationContent>
         <ConversationScrollButton />

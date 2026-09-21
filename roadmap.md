@@ -187,3 +187,10 @@
 - [x] Keep Member ID copying only in My Profile
 - [x] Move profile-picture editing from the dashboard to My Profile
 - [ ] Verify the signed-in phone layout and photo save flow
+
+## AI picture sharing and trust answers
+- [x] Add one-picture attachment, preview, removal and picture-only sending to both AI chats
+- [x] Render pictures in chat and retain them in signed-in conversation history
+- [x] Validate picture type, size and conversation limits in the browser and server
+- [x] Add factual, respectful scam/fraud verification guidance without pressure or guarantees
+- [ ] Verify public and signed-in picture understanding plus trust answers on phone and desktop

@@ -12,13 +12,17 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import {
   PromptInput,
   PromptInputFooter,
+  PromptInputHeader,
   PromptInputSubmit,
   PromptInputTextarea,
+  PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { SkylineAiMascot, type SkylineAiMascotState } from "@/components/ai/SkylineAiMascot";
 import { supabase } from "@/integrations/supabase/client";
+import { AiMessagePicture, AiPictureButton, AiPicturePreview } from "@/components/ai/AiPictureAttachment";
+import { toast } from "sonner";
 
 export function SkylineAiChat({ threadId, initialMessages }: { threadId: string; initialMessages: UIMessage[] }) {
   const transport = useMemo(() => new DefaultChatTransport({
@@ -53,6 +57,9 @@ export function SkylineAiChat({ threadId, initialMessages }: { threadId: string;
               <MessageContent className="group-[.is-user]:bg-primary group-[.is-user]:text-primary-foreground">
                 {message.parts.map((part, index) => {
                   if (part.type === "text") return <MessageResponse key={index}>{part.text}</MessageResponse>;
+                  if (part.type === "file" && part.mediaType.startsWith("image/")) {
+                    return <AiMessagePicture key={index} url={part.url} filename={part.filename} />;
+                  }
                   if (part.type === "reasoning") {
                     return (
                       <Reasoning key={index} isStreaming={busy && message === messages[messages.length - 1]} defaultOpen={false}>
@@ -80,14 +87,21 @@ export function SkylineAiChat({ threadId, initialMessages }: { threadId: string;
       </Conversation>
       <div className="border-t border-hairline bg-background/80 p-3 backdrop-blur-md sm:p-4">
         <PromptInput
-          onSubmit={({ text }) => {
-            if (!text.trim() || busy) return;
-            void sendMessage({ text: text.trim() });
+          accept="image/jpeg,image/png,image/webp"
+          maxFiles={1}
+          maxFileSize={3 * 1024 * 1024}
+          onError={({ message }) => toast.error(message)}
+          onSubmit={({ text, files }) => {
+            if ((!text.trim() && files.length === 0) || busy) return;
+            if (text.trim()) void sendMessage({ text: text.trim(), files });
+            else void sendMessage({ files });
           }}
           className="bg-surface"
         >
+          <PromptInputHeader><AiPicturePreview /></PromptInputHeader>
           <PromptInputTextarea placeholder="Ask Skyline Achievers AI..." disabled={busy} />
-          <PromptInputFooter className="justify-end">
+          <PromptInputFooter>
+            <PromptInputTools><AiPictureButton disabled={busy} /></PromptInputTools>
             <PromptInputSubmit status={status} onStop={() => void stop()} disabled={!busy && status !== "ready"} />
           </PromptInputFooter>
         </PromptInput>

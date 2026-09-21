@@ -1345,3 +1345,83 @@ export const adminDeleteSessionExtra = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/* ------------------------------------------------------------------ */
+/* Categories (sections) for session extras and resources              */
+/* ------------------------------------------------------------------ */
+
+export const adminGetSections = createServerFn({ method: "POST" })
+  .inputValidator((data: { scope: string; sessionId?: string | null }) =>
+    z.object({ scope: z.enum(["session", "resource"]), sessionId: uuid.nullish() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let query = (supabaseAdmin as any)
+      .from("content_sections")
+      .select("id, name, thumbnail_path, sort_order, is_published")
+      .eq("scope", data.scope)
+      .order("sort_order");
+    if (data.scope === "session") query = query.eq("session_id", data.sessionId ?? "");
+    const { data: rows } = await query;
+    return { sections: rows ?? [] };
+  });
+
+export const adminSaveSection = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id?: string;
+      scope: string;
+      sessionId?: string | null;
+      name: string;
+      thumbnailPath?: string | null;
+      sortOrder?: number;
+      isPublished?: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid.optional(),
+          scope: z.enum(["session", "resource"]),
+          sessionId: uuid.nullish(),
+          name: text(120),
+          thumbnailPath: optionalText(400),
+          sortOrder: z.number().int().min(0).max(999).optional(),
+          isPublished: z.boolean().optional(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload: Record<string, unknown> = {
+      scope: data.scope,
+      session_id: data.scope === "session" ? (data.sessionId ?? null) : null,
+      name: data.name,
+      sort_order: data.sortOrder ?? 0,
+      is_published: data.isPublished ?? true,
+    };
+    if (data.thumbnailPath) payload["thumbnail_path"] = data.thumbnailPath;
+
+    const query = data.id
+      ? (supabaseAdmin as any).from("content_sections").update(payload).eq("id", data.id)
+      : (supabaseAdmin as any).from("content_sections").insert(payload).select("id").single();
+    const { data: saved, error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true as const, id: (saved?.id as string | undefined) ?? data.id ?? null };
+  });
+
+export const adminDeleteSection = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => z.object({ id: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("content_sections")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });

@@ -266,7 +266,33 @@ export function MembersTab({ levels }: { levels: Level[] }) {
             <article key={member.id} className={`border-b border-border px-4 py-3 transition-colors last:border-b-0 sm:px-5 ${selectedIds.includes(member.id) ? "bg-primary/15" : "hover:bg-primary/5"}`}>
               <div className="grid gap-3 lg:grid-cols-[34px_minmax(210px,1.35fr)_minmax(150px,1fr)_130px_150px_290px] lg:items-center">
                 <input type="checkbox" aria-label={`Select ${member.full_name}`} checked={selectedIds.includes(member.id)} onChange={() => toggleSelected(member.id)} className="absolute h-4 w-4 accent-primary lg:static" />
-                <div className="ml-7 flex min-w-0 items-center gap-3 lg:ml-0"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">{member.full_name.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{member.full_name}</p><p className="truncate text-[10px] text-muted-foreground">{member.member_id} · {member.phone ?? "No phone"}</p><p className="text-[10px] text-muted-foreground">Joined {formatDate(member.created_at)} · {formatDateTime(member.last_login_at)}</p></div></div>
+                <div className="ml-7 min-w-0 lg:ml-0">
+                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">{member.full_name.slice(0, 1).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{member.full_name}{member.is_official ? <span className="ml-1 rounded-full border border-cyan/30 bg-cyan/10 px-1.5 py-0.5 text-[9px] font-semibold text-cyan">Official</span> : null}</p><p className="truncate text-[10px] text-muted-foreground">{member.member_id} · {member.phone ?? "No phone"}</p><p className="text-[10px] text-muted-foreground">Joined {formatDate(member.created_at)} · {formatDateTime(member.last_login_at)}</p></div></div>
+                  {member.is_official ? null : (
+                    <select
+                      aria-label={`Upline for ${member.full_name}`}
+                      title="Upline ID"
+                      value={member.upline_id ?? ""}
+                      onChange={(e) =>
+                        update.mutate({ data: { id: member.id, uplineId: e.target.value } } as never)
+                      }
+                      className="mt-2 h-8 w-full min-w-0 rounded-lg border border-hairline bg-surface-2 px-2 text-[11px]"
+                    >
+                      <option value="" disabled>
+                        No upline — select one
+                      </option>
+                      {uplines
+                        .filter((upline) => upline.id !== member.id)
+                        .map((upline) => (
+                          <option key={upline.id} value={upline.id}>
+                            {upline.isOfficial ? "★ " : ""}
+                            {upline.fullName} · {upline.memberId}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
+
                   <select
                     value={member.level_id ?? ""}
                     onChange={(e) =>

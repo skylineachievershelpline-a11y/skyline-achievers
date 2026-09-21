@@ -187,14 +187,6 @@ function ReelsPage() {
     }
   }
 
-  if (trainingOnly) {
-    return (
-      <MemberShell title="Reels">
-        <TrainingOnlyLock area="Reels" />
-      </MemberShell>
-    );
-  }
-
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">

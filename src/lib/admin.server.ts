@@ -101,6 +101,9 @@ export async function adminCreateMember(input: {
   levelId: string;
   status: string;
   workingEnabled: boolean;
+  /** Personal Mentorship total and any amount already received. */
+  feePkr?: number | null;
+  paidPkr?: number | null;
 }) {
   const { data: level } = await supabaseAdmin
     .from("levels")

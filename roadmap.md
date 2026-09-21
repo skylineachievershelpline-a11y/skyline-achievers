@@ -205,3 +205,11 @@
 - [x] Show Training videos directly under each section instead of opening category tiles first
 - [x] Keep the existing admin video access controls unchanged
 - [ ] Verify the signed-in member Training page on phone width (blocked until a member account is signed into the preview)
+
+## Personal Mentorship amount + rank targets
+- [x] Member columns for amount, deadline, extra days, CC deadline and training lock
+- [x] 3-day payment countdown with warning stages and 3 extra days max
+- [x] Everything locked until the amount is complete (only Home and My Profile open)
+- [x] "Your Target" card: next rank, required CC, CC done/remaining and the one-week countdown
+- [x] Training locks again when the CC time runs out; admin can unlock
+- [x] Admin: ID card number removed, amount fields on create, Payment dialog with extra days and locks

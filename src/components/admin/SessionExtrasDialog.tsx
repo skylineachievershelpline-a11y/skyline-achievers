@@ -15,8 +15,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   adminCreateUploadUrl,
+  adminDeleteSection,
   adminDeleteSessionExtra,
   adminGetSessionExtras,
+  adminSaveSection,
   adminSaveSessionExtra,
 } from "@/lib/admin.functions";
 

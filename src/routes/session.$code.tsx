@@ -100,7 +100,11 @@ function SessionPage() {
           </div>
         ) : (
           <div className="animate-rise-in space-y-5">
-            <SessionGate key={session.id} extras={extras}>
+            <SessionGate
+              key={session.id}
+              extras={extras}
+              sections={data?.status === "ok" ? (data.sections ?? []) : []}
+            >
               <SessionVideo
                 title={session.title}
                 videoUrl={session.videoUrl}

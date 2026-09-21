@@ -323,8 +323,11 @@ export const playTraineeSession = createServerFn({ method: "POST" })
         ? row.video_url
         : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
 
-    const { loadSessionExtras } = await import("./session-extras.server");
-    const extras = await loadSessionExtras(supabaseAdmin, data.sessionId);
+    const { loadSessionExtras, loadSessionSections } = await import("./session-extras.server");
+    const [extras, sections] = await Promise.all([
+      loadSessionExtras(supabaseAdmin, data.sessionId),
+      loadSessionSections(supabaseAdmin, data.sessionId),
+    ]);
 
     return {
       status: "ok" as const,
@@ -338,6 +341,7 @@ export const playTraineeSession = createServerFn({ method: "POST" })
         thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
       },
       extras,
+      sections,
     };
   });
 

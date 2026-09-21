@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { AiQuestionsTab } from "@/components/admin/AiQuestionsTab";
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
 import { InspirationTab } from "@/components/admin/InspirationTab";
@@ -174,6 +175,9 @@ function AdminPage() {
             <TabsTrigger value="courses" className="rounded-xl">
               Paid Courses
             </TabsTrigger>
+            <TabsTrigger value="ai-questions" className="rounded-xl">
+              AI Questions
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">
@@ -208,6 +212,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="courses" className="mt-5">
             <CoursesTab />
+          </TabsContent>
+          <TabsContent value="ai-questions" className="mt-5">
+            <AiQuestionsTab />
           </TabsContent>
         </Tabs>
       </div>

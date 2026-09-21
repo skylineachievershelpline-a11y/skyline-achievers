@@ -48,7 +48,20 @@ export function PublicSkylineAi() {
             <Message key={message.id} from={message.role}>
               <MessageContent className="group-[.is-user]:bg-primary group-[.is-user]:text-primary-foreground">
                 {message.parts.map((part, index) => {
-                  if (part.type === "text") return <MessageResponse key={index}>{part.text}</MessageResponse>;
+                  if (part.type === "text") {
+                    return (
+                      <MessageResponse
+                        key={index}
+                        components={{
+                          img: ({ node: _node, ...props }) => (
+                            <img {...props} className="mt-3 max-h-72 w-auto rounded-lg border border-hairline object-contain shadow-lift" />
+                          ),
+                        }}
+                      >
+                        {part.text}
+                      </MessageResponse>
+                    );
+                  }
                   if (part.type === "reasoning") {
                     return (
                       <Reasoning key={index} isStreaming={busy && message === messages.at(-1)} defaultOpen={false}>

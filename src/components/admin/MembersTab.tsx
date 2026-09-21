@@ -382,7 +382,6 @@ function AddMemberDialog({
   onSubmit: (values: {
     fullName: string;
     age: number | null;
-    cnic: string | null;
     email: string | null;
     phone: string | null;
     levelId: string;

@@ -84,6 +84,18 @@ export function MembersTab({ levels }: { levels: Level[] }) {
 
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
+  const [moneyTarget, setMoneyTarget] = useState<any | null>(null);
+
+  const setMentorship = useServerFn(adminSetMentorship);
+  const mentorship = useMutation({
+    mutationFn: (input: Record<string, unknown>) => setMentorship({ data: input } as never),
+    onSuccess: () => {
+      toast.success("Personal Mentorship updated");
+      setMoneyTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const reset = useMutation({
     mutationFn: (input: { id: string; newPassword: string | null }) =>

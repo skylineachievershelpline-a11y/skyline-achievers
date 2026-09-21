@@ -1,9 +1,16 @@
 import { signPath, RESOURCE_BUCKET, THUMBNAIL_BUCKET, VIDEO_BUCKET } from "./storage.server";
 
+export type SessionSection = {
+  id: string;
+  name: string;
+  thumbnailUrl: string | null;
+};
+
 export type SessionExtra = {
   id: string;
   title: string;
   description: string | null;
+  sectionId: string | null;
   /** video = player, image = picture, pdf = document, link = open in a new tab */
   kind: "video" | "image" | "pdf" | "link";
   aspectRatio: string;

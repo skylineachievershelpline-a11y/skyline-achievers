@@ -217,27 +217,14 @@ function ReelsPage() {
         </div>
       ) : null}
 
-      {data?.limitReached ? (
-        <div className="glass-panel-strong metal-edge mx-auto max-w-md rounded-3xl p-6 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
-            <Clock className="h-6 w-6" />
-          </span>
-          <h3 className="mt-3 font-display text-lg font-semibold">
-            That&apos;s your {limit} reels for today
-          </h3>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Aaj ke liye bas. Hamara maqsad aapko information dena hai, aapka waqt zaya karna nahi.
-            Kal phir naye reels aapka intezaar kar rahe honge.
-          </p>
-        </div>
-      ) : reels.length === 0 ? (
+      {reels.length === 0 ? (
         <EmptyState
           title="No reels yet"
           hint="Short clips will appear here as soon as they are posted."
         />
       ) : (
-        <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
-          <div className="space-y-6 pb-4">
+        <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
+          <div>
             {reels.map((reel) => (
               <ReelCard
                 key={reel.id}

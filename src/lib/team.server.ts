@@ -28,6 +28,10 @@ export type TraineeCredentials = {
   uplineAvatarUrl: string | null;
 };
 
+export function normalizeTraineePhone(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
 /** Creates the login account plus the trainee record, then returns the card data. */
 export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCredentials> {
   const { data: upline } = await supabaseAdmin
@@ -39,38 +43,32 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
     throw new Error("The upline account is not active.");
   }
 
-  const { data: generated, error: idError } = await supabaseAdmin.rpc("generate_trainee_id");
-  if (idError || !generated) throw new Error("Could not generate a Skyline ID. Please try again.");
-  const traineeCode = generated as string;
-  let password = traineePassword(input.fullName, input.phone);
+  const traineeCode = normalizeTraineePhone(input.phone ?? "");
+  if (traineeCode.length < 7 || traineeCode.length > 15) {
+    throw new Error("Enter a valid mobile number.");
+  }
+  const password = traineePassword(input.fullName, input.phone);
 
-  let attempt = await supabaseAdmin.auth.admin.createUser({
+  const attempt = await supabaseAdmin.auth.admin.createUser({
     email: memberIdToAuthEmail(traineeCode),
     password,
     email_confirm: true,
     user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
   });
-  // Some name/number combinations land in the leaked-password list; add a small
-  // random tail so the person still gets a working, simple password.
-  if (attempt.error && /weak|easy to guess|pwned/i.test(attempt.error.message)) {
-    password = `${password}${Math.floor(Math.random() * 90 + 10)}`;
-    attempt = await supabaseAdmin.auth.admin.createUser({
-      email: memberIdToAuthEmail(traineeCode),
-      password,
-      email_confirm: true,
-      user_metadata: { trainee_code: traineeCode, full_name: input.fullName },
-    });
-  }
   const { data: created, error: authError } = attempt;
   if (authError || !created?.user) {
-    throw new Error(authError?.message ?? "Could not create the account.");
+    throw new Error(
+      authError?.message.toLowerCase().includes("already")
+        ? "An account already exists with this mobile number."
+        : authError?.message ?? "Could not create the account.",
+    );
   }
 
   const { error: rowError } = await supabaseAdmin.from("trainees").insert({
     id: created.user.id,
     trainee_code: traineeCode,
     full_name: input.fullName,
-    phone: input.phone,
+    phone: traineeCode,
     age: input.age,
     upline_id: input.uplineId,
     source: input.source,

@@ -93,10 +93,10 @@ function DashboardPage() {
                </h1>
                  <RankPin rank={member?.level?.name} className="h-12 w-12" />
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-5 sm:max-w-sm">
+            <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:max-w-md sm:gap-6">
               <div className="min-w-0">
                 <div className="flex items-center gap-1">
-                  <p className="truncate font-achiever-display text-sm font-bold text-cyan sm:text-base">
+                  <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold text-cyan sm:text-base">
                   {showId ? member?.memberId ?? "—" : "••••••••••••"}
                   </p>
                 <Button
@@ -130,8 +130,8 @@ function DashboardPage() {
                 </div>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
               </div>
-              <div className="min-w-0">
-                <p className="break-words font-achiever-display text-sm font-bold leading-snug sm:text-base">{formatRankName(member?.level?.name)}</p>
+              <div className="min-w-0 text-right">
+                <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
               </div>
             </div>

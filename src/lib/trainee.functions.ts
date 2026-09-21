@@ -3,6 +3,30 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+/**
+ * Public login helper. It never confirms whether a number exists: missing or
+ * duplicated numbers resolve to the same harmless deterministic address.
+ */
+export const resolveLoginIdentifier = createServerFn({ method: "POST" })
+  .inputValidator((data: { identifier: string }) =>
+    z.object({ identifier: z.string().trim().min(4).max(24) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { memberIdToAuthEmail, normalizeMemberId } = await import("./brand");
+    const normalized = normalizeMemberId(data.identifier);
+    const digits = normalized.replace(/\D/g, "");
+    if (!/^\d{7,15}$/.test(digits)) return { email: memberIdToAuthEmail(normalized) };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await supabaseAdmin
+      .from("trainees")
+      .select("trainee_code")
+      .eq("phone", digits)
+      .limit(2);
+    const code = rows?.length === 1 ? rows[0]?.trainee_code : digits;
+    return { email: memberIdToAuthEmail(code ?? digits) };
+  });
+
 /** Public: who invited me? Shown on the self-registration page. */
 export const getInvite = createServerFn({ method: "POST" })
   .inputValidator((data: { token: string }) =>

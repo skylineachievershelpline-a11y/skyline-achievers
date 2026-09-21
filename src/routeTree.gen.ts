@@ -27,6 +27,9 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AiIndexRouteImport } from './routes/ai.index'
+import { Route as AiThreadIdRouteImport } from './routes/ai.$threadId'
+import { Route as ApiAiRouteImport } from './routes/api.ai'
 import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
@@ -124,6 +127,21 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiIndexRoute = AiIndexRouteImport.update({
+  id: '/ai/',
+  path: '/ai/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiThreadIdRoute = AiThreadIdRouteImport.update({
+  id: '/ai/$threadId',
+  path: '/ai/$threadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiRoute = ApiAiRouteImport.update({
+  id: '/api/ai',
+  path: '/api/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CourseCourseIdRoute = CourseCourseIdRouteImport.update({
   id: '/course/$courseId',
   path: '/course/$courseId',
@@ -173,12 +191,15 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/ai/$threadId': typeof AiThreadIdRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRoutesByTo {
@@ -199,12 +220,15 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/ai/$threadId': typeof AiThreadIdRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin': typeof AdminIndexRoute
+  '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRoutesById {
@@ -226,12 +250,15 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/ai/$threadId': typeof AiThreadIdRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
 }
 export interface FileRouteTypes {
@@ -254,12 +281,15 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/ai/$threadId'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
+    | '/ai/'
     | '/admin/member/$memberId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -280,12 +310,15 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/ai/$threadId'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin'
+    | '/ai'
     | '/admin/member/$memberId'
   id:
     | '__root__'
@@ -306,12 +339,15 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/ai/$threadId'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
+    | '/ai/'
     | '/admin/member/$memberId'
   fileRoutesById: FileRoutesById
 }
@@ -333,12 +369,15 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AiThreadIdRoute: typeof AiThreadIdRoute
+  ApiAiRoute: typeof ApiAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
 }
 
@@ -470,6 +509,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai/': {
+      id: '/ai/'
+      path: '/ai'
+      fullPath: '/ai/'
+      preLoaderRoute: typeof AiIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai/$threadId': {
+      id: '/ai/$threadId'
+      path: '/ai/$threadId'
+      fullPath: '/ai/$threadId'
+      preLoaderRoute: typeof AiThreadIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai': {
+      id: '/api/ai'
+      path: '/api/ai'
+      fullPath: '/api/ai'
+      preLoaderRoute: typeof ApiAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/course/$courseId': {
       id: '/course/$courseId'
       path: '/course/$courseId'
@@ -533,12 +593,15 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AiThreadIdRoute: AiThreadIdRoute,
+  ApiAiRoute: ApiAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
 }
 export const routeTree = rootRouteImport

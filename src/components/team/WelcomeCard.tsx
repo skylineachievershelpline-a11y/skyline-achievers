@@ -26,7 +26,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
     `🎉 Congratulations ${credentials.fullName}!`,
     `Welcome to ${BRAND.name} — ${BRAND.tagline}`,
     "",
-    `Skyline ID: ${credentials.traineeCode}`,
+    `Mobile number: ${credentials.traineeCode}`,
     `Password: ${credentials.password}`,
     `Registered by: ${credentials.uplineName} (${credentials.uplineCode})`,
   ].join("\n");
@@ -149,7 +149,7 @@ export function WelcomeCard({ credentials }: { credentials: Credentials }) {
       ctx.fillText(value, center, top + 78, 730);
     };
 
-    field("SKYLINE ID", credentials.traineeCode, 635);
+    field("MOBILE NUMBER", credentials.traineeCode, 635);
     field("PASSWORD", credentials.password, 760);
 
     ctx.textAlign = "center";

@@ -27,6 +27,21 @@ type Level = { id: string; name: string; rank_order: number };
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
 
+function toDateTimeInput(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function fromDateTimeInput(value: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
 export function MembersTab({ levels }: { levels: Level[] }) {
   const queryClient = useQueryClient();
   const listMembers = useServerFn(adminGetMembers);
@@ -572,11 +587,15 @@ function MentorshipDialog({
 }) {
   const [feeTotal, setFeeTotal] = useState("");
   const [paid, setPaid] = useState("");
+  const [paymentDeadline, setPaymentDeadline] = useState("");
+  const [ccDeadline, setCcDeadline] = useState("");
 
   useEffect(() => {
     if (!member) return;
     setFeeTotal(String(Number(member.mentorship_fee_pkr ?? 50000)));
     setPaid(String(Number(member.mentorship_paid_pkr ?? 0)));
+    setPaymentDeadline(toDateTimeInput(member.mentorship_due_at));
+    setCcDeadline(toDateTimeInput(member.cc_due_at));
   }, [member]);
 
   if (!member) return null;
@@ -608,15 +627,63 @@ function MentorshipDialog({
             {" · "}Extra days used: {used}/3
           </p>
 
+          <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Edit duration</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-deadline">Payment deadline</Label>
+                <Input
+                  id="payment-deadline"
+                  type="datetime-local"
+                  value={paymentDeadline}
+                  onChange={(e) => setPaymentDeadline(e.target.value)}
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cc-deadline">2CC target deadline</Label>
+                <Input
+                  id="cc-deadline"
+                  type="datetime-local"
+                  value={ccDeadline}
+                  onChange={(e) => setCcDeadline(e.target.value)}
+                  className="h-11 rounded-2xl"
+                />
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 h-10 rounded-xl"
+              disabled={pending}
+              onClick={() => onSave({
+                id: member.id,
+                feeTotal: total,
+                paid: received,
+                mentorshipDueAt: fromDateTimeInput(paymentDeadline),
+                ccDueAt: fromDateTimeInput(ccDeadline),
+              })}
+            >
+              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Save duration
+            </Button>
+          </div>
+
           <Button
             variant="brand"
             size="xl"
             className="w-full"
             disabled={pending}
-            onClick={() => onSave({ id: member.id, feeTotal: total, paid: received })}
+            onClick={() => onSave({
+              id: member.id,
+              feeTotal: total,
+              paid: received,
+              mentorshipDueAt: fromDateTimeInput(paymentDeadline),
+              ccDueAt: fromDateTimeInput(ccDeadline),
+            })}
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Save amount
+            Save amount & duration
           </Button>
 
           <Button
@@ -624,7 +691,14 @@ function MentorshipDialog({
             size="xl"
             className="w-full"
             disabled={pending}
-            onClick={() => onSave({ id: member.id, feeTotal: total, paid: received, printSlip: true })}
+            onClick={() => onSave({
+              id: member.id,
+              feeTotal: total,
+              paid: received,
+              mentorshipDueAt: fromDateTimeInput(paymentDeadline),
+              ccDueAt: fromDateTimeInput(ccDeadline),
+              printSlip: true,
+            })}
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ReceiptText className="h-4 w-4" />}
             Save amount & print receipt

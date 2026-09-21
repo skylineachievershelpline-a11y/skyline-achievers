@@ -661,6 +661,13 @@ function BeginnersPage() {
           </div>
         </section>
 
+        <Button asChild variant="brand" size="xl" className="mt-4 w-full justify-between rounded-2xl">
+          <Link to="/ai">
+            <span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span>
+            <span className="text-xs opacity-80">Ask for help</span>
+          </Link>
+        </Button>
+
         <section className="mt-5 grid grid-cols-2 gap-3 animate-rise-in sm:grid-cols-3">
           <div className="glass-panel metal-edge rounded-2xl p-4">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">

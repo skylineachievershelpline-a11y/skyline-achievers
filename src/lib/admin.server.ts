@@ -58,7 +58,7 @@ export async function adminMembers(input: {
   let query = supabaseAdmin
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, age, email, phone, status, working_enabled, created_at, last_login_at, level_id, levels:level_id (id, name, rank_order)",
+      "id, member_id, full_name, age, email, phone, status, working_enabled, created_at, last_login_at, level_id, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_extensions, mentorship_completed_at, cc_due_at, cc_extensions, training_locked, levels:level_id (id, name, slug, rank_order)",
     )
     .order("created_at", { ascending: false })
     .limit(500);

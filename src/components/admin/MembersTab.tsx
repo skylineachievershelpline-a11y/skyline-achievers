@@ -424,12 +424,13 @@ function AddMemberDialog({
             onSubmit({
               fullName: fullName.trim(),
               age: age ? Number(age) : null,
-              cnic: cnic.trim() || null,
               email: email.trim() || null,
               phone: phone.trim() || null,
               levelId,
               status: "active",
               workingEnabled,
+              feePkr: Number(feePkr || 0),
+              paidPkr: Number(paidPkr || 0),
             });
           }}
           className="space-y-3"

@@ -30,8 +30,8 @@ export function MemberLoginCard() {
     event.preventDefault();
     setError(null);
     const id = normalizeMemberId(memberId);
-    if (!/^(76\d{10}|SK[AB]-[A-Z0-9]{4,10})$/.test(id)) {
-      setError("Enter your Skyline ID, e.g. 760000123456.");
+    if (!/^(\d{7,15}|SK[AB]-[A-Z0-9]{4,10})$/.test(id)) {
+      setError("Enter your mobile number or Member ID.");
       return;
     }
     if (password.length < 6) {
@@ -46,7 +46,7 @@ export function MemberLoginCard() {
     });
     if (signInError) {
       setPending(false);
-      setError("That Member ID and password combination is not recognised.");
+      setError("That mobile number or Member ID and password are not recognised.");
       return;
     }
 
@@ -93,12 +93,12 @@ export function MemberLoginCard() {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="memberId">Member ID</Label>
+          <Label htmlFor="memberId">Mobile number or Member ID</Label>
           <Input
             id="memberId"
             autoCapitalize="characters"
             autoComplete="username"
-            placeholder="760000123456"
+            placeholder="03XXXXXXXXX or 760000123456"
             value={memberId}
             onChange={(e) => setMemberId(e.target.value.toUpperCase())}
             className="h-13 rounded-lg text-base tracking-wider"

@@ -161,7 +161,7 @@ function DashboardPage() {
 
       {progress && !progress.feeLocked ? (
         <div className="mx-auto mt-6 w-full max-w-3xl">
-          <TargetCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
+          <TargetCard progress={progress} />
         </div>
       ) : null}
 

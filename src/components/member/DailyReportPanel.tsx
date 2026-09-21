@@ -9,6 +9,7 @@ import {
   Loader2,
   Lock,
   PenLine,
+  ReceiptText,
   Send,
   Share2,
   X,
@@ -16,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
+import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,6 +77,7 @@ export function DailyReportPanel() {
   const [shareBusy, setShareBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reportSlip, setReportSlip] = useState<PaymentSlipData | null>(null);
   const [seededFor, setSeededFor] = useState<string | null>(null);
 
   // A report already sent today can still be corrected until midnight, so the
@@ -207,6 +210,23 @@ export function DailyReportPanel() {
     } finally {
       setShareBusy(false);
     }
+  }
+
+  function printReportSlip() {
+    if (!data) return;
+    setReportSlip({
+      kind: "daily-report",
+      title: "Daily Working Report",
+      buyerName: data.member.fullName,
+      buyerId: data.member.memberId,
+      amount: 0,
+      rangeLabel: `${dayShort(rangeStart)} — ${dayShort(rangeEnd)}`,
+      reportRows: rangeRows,
+      status: "Printed report",
+      note: `${rangeRows.length} day${rangeRows.length === 1 ? "" : "s"} selected from your daily working report.`,
+      receiptId: `DR-${data.member.memberId}-${Date.now().toString().slice(-6)}`,
+      submittedAt: new Date(),
+    });
   }
 
   if (isPending) {
@@ -405,6 +425,15 @@ export function DailyReportPanel() {
             {shareBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
             Share
           </Button>
+          <Button
+            variant="outline"
+            className="rounded-2xl"
+            disabled={rangeRows.length === 0}
+            onClick={printReportSlip}
+          >
+            <ReceiptText className="h-4 w-4" />
+            Slip
+          </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           {rangeRows.length} day{rangeRows.length === 1 ? "" : "s"} in the selected period.
@@ -454,6 +483,7 @@ export function DailyReportPanel() {
         ) : null}
         </section>
       </div>
+      <PaymentSlip open={reportSlip !== null} data={reportSlip} onClose={() => setReportSlip(null)} />
     </div>
   );
 }

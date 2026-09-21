@@ -22,12 +22,14 @@ export function AvatarPicker({
   url,
   label = "Profile picture",
   hint = "Tap the camera to choose a photo",
+  editable = true,
   onSaved,
 }: {
   name: string;
   url: string | null;
   label?: string;
   hint?: string;
+  editable?: boolean;
   onSaved?: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -149,16 +151,18 @@ export function AvatarPicker({
             </span>
           )}
         </div>
-        <Button
-          type="button"
-          variant="brand"
-          size="icon"
-          className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full shadow-brand"
-          aria-label="Change profile picture"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Camera className="h-4 w-4" />
-        </Button>
+        {editable ? (
+          <Button
+            type="button"
+            variant="brand"
+            size="icon"
+            className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full shadow-brand"
+            aria-label="Change profile picture"
+            onClick={() => inputRef.current?.click()}
+          >
+            <Camera className="h-4 w-4" />
+          </Button>
+        ) : null}
         {uploadProgress.state ? (
           <span className="absolute inset-0 flex items-center justify-center rounded-full bg-background/75 text-sm font-semibold tabular-nums">
             {uploadProgress.state.percent}%
@@ -166,26 +170,34 @@ export function AvatarPicker({
         ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="mt-3 text-xs font-semibold text-primary underline-offset-4 hover:underline"
-      >
-        {label}
-      </button>
-      <p className="mt-0.5 text-[10px] text-muted-foreground">{hint}</p>
+      {editable ? (
+        <>
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            className="mt-2 h-auto px-1 text-xs"
+          >
+            {label}
+          </Button>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">{hint}</p>
+        </>
+      ) : null}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) pick(file);
-          event.target.value = "";
-        }}
-      />
+      {editable ? (
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) pick(file);
+            event.target.value = "";
+          }}
+        />
+      ) : null}
 
       <Dialog open={Boolean(image)} onOpenChange={(open) => { if (!open && !busy) reset(); }}>
         <DialogContent className="max-w-md">

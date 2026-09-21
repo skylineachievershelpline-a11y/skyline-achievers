@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Check, Copy, Eye, EyeOff, Lock } from "lucide-react";
+import { Bot, Eye, EyeOff, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -23,7 +23,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
 import { fastSignOut } from "@/lib/sign-out";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -47,7 +46,6 @@ function DashboardPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
   const [showId, setShowId] = useState(false);
-  const [idCopied, setIdCopied] = useState(false);
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],
@@ -85,6 +83,7 @@ function DashboardPage() {
               url={member?.avatarUrl ?? null}
               label=""
               hint=""
+              editable={false}
             />
           </div>
           <div className="min-w-0 flex-1 pt-1">
@@ -110,29 +109,11 @@ function DashboardPage() {
                 >
                   {showId ? <EyeOff /> : <Eye />}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0 rounded-full"
-                    aria-label="Copy member ID"
-                    onClick={() => {
-                      const memberId = member?.memberId;
-                      if (!memberId) return;
-                      void navigator.clipboard.writeText(memberId).then(() => {
-                        setIdCopied(true);
-                        toast.success("Member ID copied");
-                        window.setTimeout(() => setIdCopied(false), 1800);
-                      }).catch(() => toast.error("Could not copy the Member ID"));
-                    }}
-                  >
-                    {idCopied ? <Check /> : <Copy />}
-                  </Button>
                 </div>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
               </div>
               <div className="min-w-0 text-right">
-                <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
+                <p className="whitespace-nowrap font-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
               </div>
             </div>

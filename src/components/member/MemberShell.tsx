@@ -78,7 +78,7 @@ const NAV = [
 ] as const;
 
 /** Areas that belong to working, not training. Locked for training-only accounts. */
-const WORKING_ROUTES: string[] = ["/reels", "/team", "/seats", "/chat"];
+const WORKING_ROUTES: string[] = ["/team", "/seats", "/chat", "/leave"];
 
 /**
  * true when the admin gave this account training access only, so every

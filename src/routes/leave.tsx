@@ -6,7 +6,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import {
+  MemberShell,
+  TrainingOnlyLock,
+  useMemberGuard,
+  useTrainingOnly,
+} from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +44,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 function LeavePage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getDailyReport);
   const send = useServerFn(submitLeaveApplication);
@@ -63,6 +69,14 @@ function LeavePage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  if (trainingOnly) {
+    return (
+      <MemberShell title="Leave Application">
+        <TrainingOnlyLock area="Leave Application" />
+      </MemberShell>
+    );
+  }
 
   return (
     <MemberShell title="Leave Application" subtitle="Ask your admin for approved leave days">

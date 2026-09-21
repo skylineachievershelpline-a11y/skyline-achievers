@@ -19,7 +19,9 @@ import {
   adminDeleteTrainingCategory,
   adminDeleteTrainingGroup,
   adminGetLibrary,
+  adminGetSections,
   adminSaveLecture,
+  adminSaveSection,
   adminSaveResource,
   adminSaveTrainingCategory,
   adminSaveTrainingGroup,
@@ -93,12 +95,21 @@ export function LibraryTab() {
   const removeCategory = useServerFn(adminDeleteTrainingCategory);
   const saveGroup = useServerFn(adminSaveTrainingGroup);
   const removeGroup = useServerFn(adminDeleteTrainingGroup);
+  const loadSections = useServerFn(adminGetSections);
+  const saveSection = useServerFn(adminSaveSection);
 
   const { data, isPending } = useQuery<Library>({
     queryKey: ["admin-library"],
     queryFn: () => loadLibrary(),
     staleTime: 30_000,
   });
+
+  const { data: sectionData } = useQuery({
+    queryKey: ["admin-sections", "resource"],
+    queryFn: () => loadSections({ data: { scope: "resource" } } as never),
+    staleTime: 30_000,
+  });
+  const resourceSections = ((sectionData as any)?.sections ?? []) as { id: string; name: string }[];
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
   const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
@@ -874,6 +885,7 @@ export function LibraryTab() {
           </DialogHeader>
           <ResourceForm
             videos={(data.lectures as any[]).map((l) => ({ id: l.id, title: l.title }))}
+            sections={resourceSections}
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
@@ -902,8 +914,35 @@ export function LibraryTab() {
                       } as never) as Promise<{ path: string; signedUrl: string }>,
                   });
                 }
+                let sectionId = values.sectionId || null;
+                if (values.newSectionName.trim()) {
+                  let sectionThumb: string | null = null;
+                  if (values.newSectionCover) {
+                    const sc = values.newSectionCover;
+                    sectionThumb = await startUpload({
+                      label: "Uploading category cover",
+                      file: sc,
+                      createSlot: () =>
+                        createUploadUrl({
+                          data: { bucket: "training-thumbnails", fileName: sc.name },
+                        } as never) as Promise<{ path: string; signedUrl: string }>,
+                    });
+                  }
+                  const created = (await saveSection({
+                    data: {
+                      scope: "resource",
+                      name: values.newSectionName.trim(),
+                      thumbnailPath: sectionThumb,
+                      sortOrder: 0,
+                      isPublished: true,
+                    },
+                  } as never)) as { id: string };
+                  sectionId = created.id;
+                  void queryClient.invalidateQueries({ queryKey: ["admin-sections", "resource"] });
+                }
                 await saveResource({
                   data: {
+                    sectionId,
                     lectureId: values.lectureId || null,
                     resourceType: values.resourceType,
                     title: values.title,
@@ -1111,12 +1150,17 @@ type ResourceType = (typeof RESOURCE_TYPES)[number];
 
 function ResourceForm({
   videos,
+  sections,
   busy,
   onSubmit,
 }: {
   videos: { id: string; title: string }[];
+  sections: { id: string; name: string }[];
   busy: boolean;
   onSubmit: (values: {
+    sectionId: string;
+    newSectionName: string;
+    newSectionCover: File | null;
     lectureId: string;
     resourceType: ResourceType;
     title: string;
@@ -1135,6 +1179,9 @@ function ResourceForm({
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [sectionId, setSectionId] = useState("");
+  const [newSectionName, setNewSectionName] = useState("");
+  const [newSectionCover, setNewSectionCover] = useState<File | null>(null);
 
   return (
     <form
@@ -1142,6 +1189,9 @@ function ResourceForm({
         e.preventDefault();
         if (!title.trim()) return;
         onSubmit({
+          sectionId,
+          newSectionName,
+          newSectionCover,
           lectureId,
           resourceType,
           title: title.trim(),
@@ -1167,6 +1217,35 @@ function ResourceForm({
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Category</Label>
+        <select
+          value={sectionId}
+          onChange={(e) => setSectionId(e.target.value)}
+          className={fieldClass}
+        >
+          <option value="">No category</option>
+          {sections.map((section) => (
+            <option key={section.id} value={section.id}>
+              {section.name}
+            </option>
+          ))}
+        </select>
+        <Input
+          value={newSectionName}
+          onChange={(e) => setNewSectionName(e.target.value)}
+          placeholder="Or type a new category name"
+          className="h-11 rounded-2xl"
+        />
+        {newSectionName.trim() ? (
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewSectionCover(e.target.files?.[0] ?? null)}
+            className="text-xs text-muted-foreground"
+          />
+        ) : null}
       </div>
       <div className="space-y-1.5">
         <Label>Attach to training video (optional)</Label>

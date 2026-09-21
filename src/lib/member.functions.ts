@@ -292,14 +292,30 @@ export const getMemberResources = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const db = context.supabase as any;
     const { signThumbnails } = await import("./storage.server");
-    const { data } = await db
-      .from("resources")
-      .select(
-        "id, title, description, resource_type, thumbnail_path, created_at, lectures:lecture_id (id, title)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(200);
-    return { resources: await signThumbnails(data ?? []) };
+    const { signPath, THUMBNAIL_BUCKET } = await import("./storage.server");
+    const [{ data }, { data: sectionRows }] = await Promise.all([
+      db
+        .from("resources")
+        .select(
+          "id, title, description, resource_type, section_id, thumbnail_path, created_at, lectures:lecture_id (id, title)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(200),
+      db
+        .from("content_sections")
+        .select("id, name, thumbnail_path, sort_order")
+        .eq("scope", "resource")
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true }),
+    ]);
+    const sections = await Promise.all(
+      (sectionRows ?? []).map(async (row: any) => ({
+        id: row.id as string,
+        name: row.name as string,
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
+      })),
+    );
+    return { resources: await signThumbnails(data ?? []), sections };
   });
 
 /**

@@ -4,7 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** A member may watch this many reels per day — the feed is about value, not scrolling. */
-export const DAILY_REEL_LIMIT = 15;
 
 /** Start of the current day in Pakistan time (UTC+5), as an ISO timestamp. */
 function startOfLocalDay(): string {
@@ -69,7 +68,6 @@ export const getReels = createServerFn({ method: "GET" })
 
     const dayStart = startOfLocalDay();
     const seenToday = (views ?? []).filter((v: any) => v.seen_at >= dayStart).length;
-    const remaining = Math.max(0, DAILY_REEL_LIMIT - seenToday);
 
     const seenAt = new Map<string, string>((views ?? []).map((v: any) => [v.reel_id, v.seen_at]));
     const published = (rows ?? []) as any[];
@@ -77,7 +75,8 @@ export const getReels = createServerFn({ method: "GET" })
     const repeats = published
       .filter((r) => seenAt.has(r.id))
       .sort((a, b) => String(seenAt.get(a.id)).localeCompare(String(seenAt.get(b.id))));
-    const picked = [...fresh, ...repeats].slice(0, remaining);
+    // No daily cap: members may watch as many reels as they like.
+    const picked = [...fresh, ...repeats];
 
     const likedSet = new Set((likes ?? []).map((l: any) => l.reel_id));
     const savedSet = new Set((saves ?? []).map((s: any) => s.reel_id));
@@ -133,10 +132,10 @@ export const getReels = createServerFn({ method: "GET" })
       reels,
       isManager: manager?.data === true,
       canPost: canPost?.data === true,
-      dailyLimit: DAILY_REEL_LIMIT,
+      dailyLimit: null,
       watchedToday: seenToday,
-      remaining,
-      limitReached: remaining === 0,
+      remaining: picked.length,
+      limitReached: false,
     };
   });
 

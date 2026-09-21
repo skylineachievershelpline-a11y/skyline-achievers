@@ -96,12 +96,14 @@ type FocusedSession = {
     id: string;
     title: string;
     description: string | null;
+    sectionId?: string | null;
     kind?: string | null;
     aspectRatio: string;
     url?: string | null;
     videoUrl: string | null;
     thumbnailUrl: string | null;
   }[];
+  sections: { id: string; name: string; thumbnailUrl: string | null }[];
 };
 
 type BeginnerView = "home" | "training" | "reels" | "search" | "password";
@@ -281,7 +283,11 @@ function BeginnersPage() {
         toast.error("Enter the session code to open this session first.");
         return;
       }
-      setFocused({ ...result.session, extras: result.extras ?? [] });
+      setFocused({
+        ...result.session,
+        extras: result.extras ?? [],
+        sections: result.sections ?? [],
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -725,7 +731,7 @@ function BeginnersPage() {
               </div>
             </div>
 
-            <SessionGate key={focused.id} extras={focused.extras}>
+            <SessionGate key={focused.id} extras={focused.extras} sections={focused.sections}>
               <SessionVideo
                 title={focused.title}
                 videoUrl={focused.videoUrl}

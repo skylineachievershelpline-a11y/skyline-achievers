@@ -15,8 +15,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   adminCreateUploadUrl,
+  adminDeleteSection,
   adminDeleteSessionExtra,
   adminGetSessionExtras,
+  adminSaveSection,
   adminSaveSessionExtra,
 } from "@/lib/admin.functions";
 
@@ -44,10 +46,17 @@ const KIND_LABEL: Record<string, string> = {
   link: "Link",
 };
 
+type SectionRow = {
+  id: string;
+  name: string;
+  sort_order: number | null;
+};
+
 type ExtraRow = {
   id: string;
   title: string;
   description: string | null;
+  section_id: string | null;
   kind: string | null;
   video_url: string | null;
   aspect_ratio: string | null;
@@ -69,6 +78,8 @@ export function SessionExtrasDialog({
   const loadExtras = useServerFn(adminGetSessionExtras);
   const saveExtra = useServerFn(adminSaveSessionExtra);
   const removeExtra = useServerFn(adminDeleteSessionExtra);
+  const saveSection = useServerFn(adminSaveSection);
+  const removeSection = useServerFn(adminDeleteSection);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const uploadProgress = useUploadProgress();
 
@@ -88,6 +99,10 @@ export function SessionExtrasDialog({
   const [ratio, setRatio] = useState<string>("16:9");
   const [sortOrder, setSortOrder] = useState("0");
   const [published, setPublished] = useState(true);
+  const [sectionId, setSectionId] = useState("");
+  const [sectionName, setSectionName] = useState("");
+  const [sectionCover, setSectionCover] = useState<File | null>(null);
+  const [sectionBusy, setSectionBusy] = useState(false);
 
   const kindConfig = KINDS.find((entry) => entry.value === kind) ?? KINDS[0]!;
 
@@ -106,9 +121,60 @@ export function SessionExtrasDialog({
     setRatio("16:9");
     setSortOrder("0");
     setPublished(true);
+    setSectionId("");
   }
 
+  async function addSection(event: React.FormEvent) {
+    event.preventDefault();
+    if (!sectionName.trim()) {
+      toast.error("Give this category a name.");
+      return;
+    }
+    setSectionBusy(true);
+    uploadProgress.clear();
+    try {
+      let thumbnailPath: string | null = null;
+      if (sectionCover) {
+        thumbnailPath = await uploadToBucket(
+          createUploadUrl,
+          "training-thumbnails" as never,
+          sectionCover,
+          uploadProgress.handler("Uploading category cover"),
+        );
+      }
+      await saveSection({
+        data: {
+          scope: "session",
+          sessionId,
+          name: sectionName.trim(),
+          thumbnailPath,
+          sortOrder: 0,
+          isPublished: true,
+        },
+      } as never);
+      toast.success("Category created");
+      setSectionName("");
+      setSectionCover(null);
+      refresh();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setSectionBusy(false);
+      uploadProgress.clear();
+    }
+  }
+
+  const delSection = useMutation({
+    mutationFn: (id: string) => removeSection({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Category deleted");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   function startEdit(row: ExtraRow) {
+    setSectionId(row.section_id ?? "");
     setEditing(row);
     setKind((row.kind ?? "video") as Kind);
     setTitle(row.title);
@@ -166,6 +232,7 @@ export function SessionExtrasDialog({
         data: {
           id: editing?.id,
           sessionId,
+          sectionId: sectionId || null,
           title: title.trim(),
           description: description.trim() || null,
           kind,
@@ -190,6 +257,9 @@ export function SessionExtrasDialog({
   }
 
   const extras = ((data as any)?.extras ?? []) as ExtraRow[];
+  const sections = ((data as any)?.sections ?? []) as SectionRow[];
+  const sectionName_ = (id: string | null) =>
+    sections.find((s) => s.id === id)?.name ?? "No category";
 
   return (
     <Dialog open onOpenChange={(next) => (!next ? onClose() : undefined)}>
@@ -197,6 +267,65 @@ export function SessionExtrasDialog({
         <DialogHeader>
           <DialogTitle>Extra material · {sessionTitle}</DialogTitle>
         </DialogHeader>
+
+        <div className="inset-panel space-y-3 rounded-2xl p-3">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            Categories
+          </p>
+          {sections.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No categories yet. Create ones like Products, Benefits or Reviews, give each a cover
+              picture, then file every item under its category.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {sections.map((section) => (
+                <li
+                  key={section.id}
+                  className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-2 px-3 py-2"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{section.name}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {extras.filter((e) => e.section_id === section.id).length} items
+                  </span>
+                  <button
+                    onClick={() => delSection.mutate(section.id)}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label="Delete category"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form onSubmit={addSection} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <Input
+              value={sectionName}
+              onChange={(e) => setSectionName(e.target.value)}
+              placeholder="New category name"
+              className="h-11 rounded-2xl"
+            />
+            <Button type="submit" variant="secondary" size="xl" disabled={sectionBusy}>
+              {sectionBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              Add category
+            </Button>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Category cover picture</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSectionCover(e.target.files?.[0] ?? null)}
+                className={`${fieldClass} py-2.5 text-xs text-muted-foreground`}
+              />
+            </div>
+          </form>
+        </div>
+
 
         {isPending ? (
           <div className="flex justify-center py-8">
@@ -214,7 +343,8 @@ export function SessionExtrasDialog({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{row.title}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {KIND_LABEL[row.kind ?? "video"] ?? "Video"} · order {row.sort_order ?? 0} ·{" "}
+                    {KIND_LABEL[row.kind ?? "video"] ?? "Video"} · {sectionName_(row.section_id)} ·
+                    order {row.sort_order ?? 0} ·{" "}
                     {row.is_published ? "Published" : "Hidden"}
                   </p>
                 </div>
@@ -241,6 +371,21 @@ export function SessionExtrasDialog({
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
             {editing ? "Edit item" : "Add video, picture, PDF or link"}
           </p>
+          <div className="space-y-1.5">
+            <Label>Category</Label>
+            <select
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">No category</option>
+              {sections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-1.5">
             <Label>Type</Label>
             <select

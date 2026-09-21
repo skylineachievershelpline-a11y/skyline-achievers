@@ -1,22 +1,57 @@
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
+import { SectionTiles, type SectionTile } from "@/components/media/SectionTiles";
 import { SessionExtraCard, type SessionExtraItem } from "@/components/media/SessionExtraCard";
 import { Button } from "@/components/ui/button";
 
+export type SessionSectionItem = {
+  id: string;
+  name: string;
+  thumbnailUrl: string | null;
+};
+
+const OTHER = "__other__";
+
 /**
  * Extra material with a session stays hidden until the viewer confirms they
- * watched the full webinar. Confirming swaps the session out for the extras;
- * going back returns to the session only.
+ * watched the full webinar. Confirming shows the categories (products,
+ * reviews, files …); picking one shows just that category's items.
  */
 export function SessionGate({
   extras,
+  sections = [],
   children,
 }: {
   extras: SessionExtraItem[];
+  sections?: SessionSectionItem[];
   children: ReactNode;
 }) {
   const [watched, setWatched] = useState(false);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const tiles = useMemo<SectionTile[]>(() => {
+    const list: SectionTile[] = sections
+      .map((section) => ({
+        id: section.id,
+        name: section.name,
+        thumbnailUrl: section.thumbnailUrl,
+        count: extras.filter((extra) => extra.sectionId === section.id).length,
+      }))
+      .filter((tile) => tile.count > 0);
+    const loose = extras.filter(
+      (extra) => !extra.sectionId || !sections.some((s) => s.id === extra.sectionId),
+    );
+    if (loose.length > 0 && list.length > 0) {
+      list.push({
+        id: OTHER,
+        name: "More material",
+        thumbnailUrl: loose[0]?.thumbnailUrl ?? null,
+        count: loose.length,
+      });
+    }
+    return list;
+  }, [extras, sections]);
 
   if (extras.length === 0) return <>{children}</>;
 
@@ -36,24 +71,57 @@ export function SessionGate({
     );
   }
 
+  const useTiles = tiles.length > 0;
+  const activeTile = useTiles ? tiles.find((tile) => tile.id === openSection) : undefined;
+  const shown =
+    !useTiles || !activeTile
+      ? extras
+      : activeTile.id === OTHER
+        ? extras.filter(
+            (extra) => !extra.sectionId || !sections.some((s) => s.id === extra.sectionId),
+          )
+        : extras.filter((extra) => extra.sectionId === activeTile.id);
+
+  if (useTiles && !activeTile) {
+    return (
+      <div className="animate-rise-in space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-display text-base font-semibold tracking-tight">
+            Choose what you want to see
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-2xl"
+            onClick={() => setWatched(false)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        <SectionTiles sections={tiles} onOpen={setOpenSection} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 animate-rise-in">
+    <div className="animate-rise-in space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-display text-base font-semibold tracking-tight">
-          More with this session
+          {activeTile ? activeTile.name : "More with this session"}
         </h3>
         <Button
           variant="outline"
           size="sm"
           className="rounded-2xl"
-          onClick={() => setWatched(false)}
+          onClick={() => (activeTile ? setOpenSection(null) : setWatched(false))}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
       </div>
 
-      {extras.map((extra) => (
+      {shown.map((extra) => (
         <div key={extra.id} className="animate-rise-in">
           <SessionExtraCard extra={extra} />
         </div>
@@ -63,10 +131,10 @@ export function SessionGate({
         variant="outline"
         size="xl"
         className="w-full rounded-2xl"
-        onClick={() => setWatched(false)}
+        onClick={() => (activeTile ? setOpenSection(null) : setWatched(false))}
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to the session
+        {activeTile ? "Back to categories" : "Back to the session"}
       </Button>
     </div>
   );

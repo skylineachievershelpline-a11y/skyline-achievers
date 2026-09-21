@@ -2,12 +2,14 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
+import { SectionTiles } from "@/components/media/SectionTiles";
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
 import { ResourceList } from "@/components/member/ResourceList";
+import { Button } from "@/components/ui/button";
 import { getMemberResources } from "@/lib/member.functions";
 import { RESOURCE_TYPE_LABEL } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -28,23 +30,76 @@ export const Route = createFileRoute("/resources")({
 });
 
 const FILTERS = ["all", "pdf", "image", "audio", "presentation", "book", "link", "note"] as const;
+const OTHER = "__other__";
 
 function ResourcesPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getMemberResources);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
+  const [openSection, setOpenSection] = useState<string | null>(null);
   const { data, isPending } = useQuery({
     queryKey: ["member-resources"],
     queryFn: () => load(),
     enabled: ready,
   });
 
-  const resources = (data?.resources ?? []).filter(
-    (r: any) => filter === "all" || r.resource_type === filter,
-  );
+  const allResources = (data?.resources ?? []) as any[];
+  const sections = ((data as any)?.sections ?? []) as {
+    id: string;
+    name: string;
+    thumbnailUrl: string | null;
+  }[];
+  const loose = allResources.filter((r) => !r.section_id);
+  const tiles = [
+    ...sections.map((section) => ({
+      id: section.id,
+      name: section.name,
+      thumbnailUrl: section.thumbnailUrl,
+      count: allResources.filter((r) => r.section_id === section.id).length,
+    })),
+    ...(loose.length > 0
+      ? [
+          {
+            id: OTHER,
+            name: "Other material",
+            thumbnailUrl: (loose[0]?.thumbnail_url ?? null) as string | null,
+            count: loose.length,
+          },
+        ]
+      : []),
+  ].filter((tile) => tile.count > 0);
+
+  const scoped =
+    openSection === null
+      ? allResources
+      : openSection === OTHER
+        ? loose
+        : allResources.filter((r) => r.section_id === openSection);
+
+  const resources = scoped.filter((r: any) => filter === "all" || r.resource_type === filter);
+  const activeTile = tiles.find((tile) => tile.id === openSection);
+
+  if (ready && !isPending && tiles.length > 1 && openSection === null) {
+    return (
+      <MemberShell title="Resources" subtitle="Pick a category to open">
+        <SectionTiles sections={tiles} onOpen={(id) => setOpenSection(id)} />
+      </MemberShell>
+    );
+  }
 
   return (
-    <MemberShell title="Resources" subtitle="Everything unlocked for your rank">
+    <MemberShell title="Resources" subtitle={activeTile?.name ?? "Everything unlocked for your rank"}>
+      {activeTile ? (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mb-3 rounded-2xl"
+          onClick={() => setOpenSection(null)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          All categories
+        </Button>
+      ) : null}
       <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4">
         {FILTERS.map((option) => (
           <button

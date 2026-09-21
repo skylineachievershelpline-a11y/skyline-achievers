@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Bookmark,
-  Clock,
   Download,
   Heart,
   Loader2,
@@ -207,34 +206,8 @@ function ReelsPage() {
     );
   }
 
-  const watched = data?.watchedToday ?? 0;
-  const limit = data?.dailyLimit ?? 15;
-
   return (
     <MemberShell title="Reels" subtitle="Short clips from the Skyline team">
-      <div className="glass-panel metal-edge mb-4 rounded-2xl p-3.5">
-        <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
-            <Clock className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold">
-              Our motive is to inform you — not to waste your time.
-            </p>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              That is why reels are limited to {limit} per day, and you get a different set every
-              time you come back. Watched today: {Math.min(watched, limit)} / {limit}.
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-primary to-cyan transition-all duration-500"
-            style={{ width: `${Math.min(100, (watched / limit) * 100)}%` }}
-          />
-        </div>
-      </div>
-
       {data?.canPost ? (
         <div className="mb-4 flex items-center justify-end">
           <Button variant="brand" className="rounded-2xl" onClick={() => setComposer(true)}>
@@ -243,27 +216,14 @@ function ReelsPage() {
         </div>
       ) : null}
 
-      {data?.limitReached ? (
-        <div className="glass-panel-strong metal-edge mx-auto max-w-md rounded-3xl p-6 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-cyan/40 bg-primary/15 text-brand-glow">
-            <Clock className="h-6 w-6" />
-          </span>
-          <h3 className="mt-3 font-display text-lg font-semibold">
-            That&apos;s your {limit} reels for today
-          </h3>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Aaj ke liye bas. Hamara maqsad aapko information dena hai, aapka waqt zaya karna nahi.
-            Kal phir naye reels aapka intezaar kar rahe honge.
-          </p>
-        </div>
-      ) : reels.length === 0 ? (
+      {reels.length === 0 ? (
         <EmptyState
           title="No reels yet"
           hint="Short clips will appear here as soon as they are posted."
         />
       ) : (
-        <div className="no-scrollbar mx-auto h-[calc(100dvh-13rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl py-3 [-webkit-overflow-scrolling:touch]">
-          <div className="space-y-6 pb-4">
+        <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
+          <div>
             {reels.map((reel) => (
               <ReelCard
                 key={reel.id}
@@ -367,8 +327,8 @@ function ReelCard({
 
   return (
     <article
-      className={`metal-edge relative mx-auto flex h-[min(68dvh,36rem)] min-h-[30rem] w-full snap-center snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
-        visible ? "scale-100 opacity-100" : "scale-[0.965] opacity-70"
+      className={`metal-edge relative mx-auto flex h-[calc(100dvh-11rem)] min-h-[31rem] w-full snap-start snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
+        visible ? "scale-100 opacity-100" : "scale-[0.98] opacity-80"
       }`}
     >
       {reel.url ? (

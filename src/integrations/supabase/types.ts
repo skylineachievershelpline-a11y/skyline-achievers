@@ -44,6 +44,7 @@ export type Database = {
           id: string
           is_published: boolean
           kind: string
+          section_id: string | null
           session_id: string
           sort_order: number
           thumbnail_path: string | null
@@ -61,6 +62,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kind?: string
+          section_id?: string | null
           session_id: string
           sort_order?: number
           thumbnail_path?: string | null
@@ -78,6 +80,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kind?: string
+          section_id?: string | null
           session_id?: string
           sort_order?: number
           thumbnail_path?: string | null
@@ -88,6 +91,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "beginner_session_extras_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "content_sections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "beginner_session_extras_session_id_fkey"
             columns: ["session_id"]
@@ -236,6 +246,50 @@ export type Database = {
             columns: ["level_id"]
             isOneToOne: false
             referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_sections: {
+        Row: {
+          created_at: string
+          id: string
+          is_published: boolean
+          name: string
+          scope: string
+          session_id: string | null
+          sort_order: number
+          thumbnail_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          name: string
+          scope?: string
+          session_id?: string | null
+          sort_order?: number
+          thumbnail_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          name?: string
+          scope?: string
+          session_id?: string | null
+          sort_order?: number
+          thumbnail_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_sections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "beginner_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -1553,6 +1607,7 @@ export type Database = {
           is_published: boolean
           lecture_id: string | null
           resource_type: string
+          section_id: string | null
           series_id: string | null
           sort_order: number
           storage_path: string | null
@@ -1569,6 +1624,7 @@ export type Database = {
           is_published?: boolean
           lecture_id?: string | null
           resource_type: string
+          section_id?: string | null
           series_id?: string | null
           sort_order?: number
           storage_path?: string | null
@@ -1585,6 +1641,7 @@ export type Database = {
           is_published?: boolean
           lecture_id?: string | null
           resource_type?: string
+          section_id?: string | null
           series_id?: string | null
           sort_order?: number
           storage_path?: string | null
@@ -1598,6 +1655,13 @@ export type Database = {
             columns: ["lecture_id"]
             isOneToOne: false
             referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resources_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "content_sections"
             referencedColumns: ["id"]
           },
           {

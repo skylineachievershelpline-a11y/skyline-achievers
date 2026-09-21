@@ -7,6 +7,7 @@ export type SessionExtraItem = {
   id: string;
   title: string;
   description: string | null;
+  sectionId?: string | null;
   kind?: string | null;
   aspectRatio: string;
   url?: string | null;

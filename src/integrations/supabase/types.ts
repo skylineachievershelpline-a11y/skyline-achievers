@@ -1183,6 +1183,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          is_official: boolean
           last_login_at: string | null
           level_id: string | null
           level_since: string
@@ -1197,6 +1198,7 @@ export type Database = {
           status: string
           training_locked: boolean
           updated_at: string
+          upline_id: string | null
           working_enabled: boolean
         }
         Insert: {
@@ -1211,6 +1213,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id: string
+          is_official?: boolean
           last_login_at?: string | null
           level_id?: string | null
           level_since?: string
@@ -1225,6 +1228,7 @@ export type Database = {
           status?: string
           training_locked?: boolean
           updated_at?: string
+          upline_id?: string | null
           working_enabled?: boolean
         }
         Update: {
@@ -1239,6 +1243,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          is_official?: boolean
           last_login_at?: string | null
           level_id?: string | null
           level_since?: string
@@ -1253,6 +1258,7 @@ export type Database = {
           status?: string
           training_locked?: boolean
           updated_at?: string
+          upline_id?: string | null
           working_enabled?: boolean
         }
         Relationships: [
@@ -1261,6 +1267,13 @@ export type Database = {
             columns: ["level_id"]
             isOneToOne: false
             referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_profiles_upline_id_fkey"
+            columns: ["upline_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
             referencedColumns: ["id"]
           },
         ]

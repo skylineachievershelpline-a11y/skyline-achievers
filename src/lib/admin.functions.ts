@@ -1240,12 +1240,18 @@ export const adminGetSessionExtras = createServerFn({ method: "POST" })
     const { data: rows } = await (supabaseAdmin as any)
       .from("beginner_session_extras")
       .select(
-        "id, session_id, title, description, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+        "id, session_id, section_id, title, description, kind, file_bucket, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
       )
       .eq("session_id", data.sessionId)
       .order("sort_order")
       .order("created_at", { ascending: true });
-    return { extras: rows ?? [] };
+    const { data: sections } = await (supabaseAdmin as any)
+      .from("content_sections")
+      .select("id, name, thumbnail_path, sort_order, is_published")
+      .eq("scope", "session")
+      .eq("session_id", data.sessionId)
+      .order("sort_order");
+    return { extras: rows ?? [], sections: sections ?? [] };
   });
 
 export const adminSaveSessionExtra = createServerFn({ method: "POST" })
@@ -1253,6 +1259,7 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
     (data: {
       id?: string;
       sessionId: string;
+      sectionId?: string | null;
       title: string;
       description?: string | null;
       kind?: string;

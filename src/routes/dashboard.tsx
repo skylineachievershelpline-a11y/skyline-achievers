@@ -75,7 +75,6 @@ function DashboardPage() {
       subtitle={member?.level?.name ?? "Level not assigned"}
       executive
     >
-      <FlyingSkylineAiMascot />
       <AnnouncementBanner />
 
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
@@ -152,10 +151,11 @@ function DashboardPage() {
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 
-      <div className="mx-auto mt-4 w-full max-w-3xl">
+      <div className="relative mx-auto mt-4 w-full max-w-3xl py-4">
         <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
           <Link to="/ai"><span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span><span className="text-xs opacity-80">Ask for help</span></Link>
         </Button>
+        <FlyingSkylineAiMascot />
       </div>
 
       <div className="mt-6">

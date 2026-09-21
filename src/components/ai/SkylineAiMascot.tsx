@@ -10,12 +10,7 @@ function RobotArtwork({ state, className }: { state: SkylineAiMascotState; class
   return (
     <span className={cn("skyline-ai-robot", `is-${state}`, className)} aria-hidden>
       <span className="skyline-ai-robot-glow" />
-      <img className="skyline-ai-part skyline-ai-torso" src={robotAsset.url} alt="" draggable={false} />
-      <img className="skyline-ai-part skyline-ai-head" src={robotAsset.url} alt="" draggable={false} />
-      <img className="skyline-ai-part skyline-ai-arm-left" src={robotAsset.url} alt="" draggable={false} />
-      <img className="skyline-ai-part skyline-ai-arm-right" src={robotAsset.url} alt="" draggable={false} />
-      <img className="skyline-ai-part skyline-ai-leg-left" src={robotAsset.url} alt="" draggable={false} />
-      <img className="skyline-ai-part skyline-ai-leg-right" src={robotAsset.url} alt="" draggable={false} />
+      <img className="skyline-ai-robot-image" src={robotAsset.url} alt="" draggable={false} />
       {state === "thinking" ? (
         <span className="skyline-ai-thought" aria-hidden><i /><i /><strong>?</strong></span>
       ) : null}
@@ -43,7 +38,7 @@ export function SkylineAiMascot({
 
 export function FlyingSkylineAiMascot() {
   return (
-    <div className="skyline-ai-flight pointer-events-none fixed inset-0 z-20" aria-label="Skyline Achievers AI shortcut">
+    <div className="skyline-ai-flight pointer-events-none absolute inset-0 z-20" aria-label="Skyline Achievers AI shortcut">
       <Button
         asChild
         variant="ghost"

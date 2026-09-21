@@ -44,6 +44,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 function LeavePage() {
   const ready = useMemberGuard();
+  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getDailyReport);
   const send = useServerFn(submitLeaveApplication);

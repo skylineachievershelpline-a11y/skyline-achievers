@@ -206,7 +206,6 @@ export const adminEditMember = createServerFn({ method: "POST" })
           id: uuid,
           fullName: text(120).optional(),
           age: z.number().int().min(10).max(100).nullable().optional(),
-          cnic: optionalText(25),
           email: optionalText(255),
           phone: optionalText(25),
           levelId: uuid.optional(),

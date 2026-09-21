@@ -553,13 +553,15 @@ function AddMemberDialog({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!fullName.trim() || !levelId) return;
+            if (!fullName.trim() || !levelId || !uplineId) return;
             onSubmit({
               fullName: fullName.trim(),
               age: age ? Number(age) : null,
               email: email.trim() || null,
               phone: phone.trim() || null,
               levelId,
+              uplineId,
+
               status: "active",
               workingEnabled,
               feePkr: Number(feePkr || 0),

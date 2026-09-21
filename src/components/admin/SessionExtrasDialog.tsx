@@ -46,10 +46,17 @@ const KIND_LABEL: Record<string, string> = {
   link: "Link",
 };
 
+type SectionRow = {
+  id: string;
+  name: string;
+  sort_order: number | null;
+};
+
 type ExtraRow = {
   id: string;
   title: string;
   description: string | null;
+  section_id: string | null;
   kind: string | null;
   video_url: string | null;
   aspect_ratio: string | null;
@@ -71,6 +78,8 @@ export function SessionExtrasDialog({
   const loadExtras = useServerFn(adminGetSessionExtras);
   const saveExtra = useServerFn(adminSaveSessionExtra);
   const removeExtra = useServerFn(adminDeleteSessionExtra);
+  const saveSection = useServerFn(adminSaveSection);
+  const removeSection = useServerFn(adminDeleteSection);
   const createUploadUrl = useServerFn(adminCreateUploadUrl);
   const uploadProgress = useUploadProgress();
 
@@ -90,6 +99,10 @@ export function SessionExtrasDialog({
   const [ratio, setRatio] = useState<string>("16:9");
   const [sortOrder, setSortOrder] = useState("0");
   const [published, setPublished] = useState(true);
+  const [sectionId, setSectionId] = useState("");
+  const [sectionName, setSectionName] = useState("");
+  const [sectionCover, setSectionCover] = useState<File | null>(null);
+  const [sectionBusy, setSectionBusy] = useState(false);
 
   const kindConfig = KINDS.find((entry) => entry.value === kind) ?? KINDS[0]!;
 

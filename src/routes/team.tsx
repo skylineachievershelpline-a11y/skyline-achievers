@@ -251,11 +251,157 @@ function TeamPage() {
           </div>
         )}
       </section>
-
-
+      </div>
     </MemberShell>
   );
 }
+
+/**
+ * FBO tree: the Skyline members (12-digit IDs) directly under this account.
+ * Read-only — an upline can watch the daily working report but never edit or
+ * delete an FBO record.
+ */
+function FboTree({ ready }: { ready: boolean }) {
+  const load = useServerFn(getMyFboTeam);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const { data, isPending } = useQuery({
+    queryKey: ["my-fbo-team"],
+    queryFn: () => load(),
+    enabled: ready,
+    retry: false,
+  });
+
+  if (isPending) {
+    return (
+      <div className="mt-6 flex justify-center py-10">
+        <SkylineLoader />
+      </div>
+    );
+  }
+
+  const team = (data?.team ?? []) as any[];
+  const stats = data?.stats;
+
+  return (
+    <>
+      <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-primary">FBO network</p>
+            <h1 className="mt-1 font-display text-2xl font-bold">Your FBO team tree</h1>
+          </div>
+          <p className="text-xs text-muted-foreground">Read-only · last 30 days of reports</p>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat icon={<Users className="h-4 w-4" />} label="Direct FBOs" value={stats?.total ?? 0} />
+          <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
+          <Stat icon={<CalendarDays className="h-4 w-4" />} label="Reporting" value={stats?.reporting ?? 0} />
+          <Stat icon={<CheckCircle2 className="h-4 w-4" />} label="Enrollments" value={stats?.enrollments ?? 0} />
+        </div>
+      </section>
+
+      <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">
+        <div className="border-b border-border p-4 sm:p-5">
+          <SectionTitle className="mb-0">FBO hierarchy</SectionTitle>
+          <p className="text-xs text-muted-foreground">
+            {team.length} direct FBOs under {data?.upline.fullName ?? "you"} · records are read-only
+          </p>
+        </div>
+        <div className="border-b border-border bg-primary/10 px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground">
+              <Crown className="h-3.5 w-3.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-display text-sm font-semibold">{data?.upline.fullName ?? "You"}</p>
+              <p className="truncate text-[10px] text-primary">{data?.upline.memberId} · Upline</p>
+            </div>
+            <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan">Root</span>
+          </div>
+        </div>
+        {team.length === 0 ? (
+          <div className="p-5">
+            <EmptyState title="No FBOs under your ID yet" hint="Administrators attach new Skyline IDs to your account." />
+          </div>
+        ) : (
+          team.map((person) => (
+            <article key={person.id} className="border-b border-border px-4 py-3 last:border-b-0 sm:px-5">
+              <div className="flex items-center gap-3">
+                <span className="relative ml-3 flex h-9 w-9 shrink-0 overflow-hidden items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary before:absolute before:right-full before:top-1/2 before:h-px before:w-3 before:bg-primary/40">
+                  {person.avatarUrl ? (
+                    <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    person.fullName.slice(0, 1).toUpperCase()
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-display text-sm font-semibold">{person.fullName}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {person.memberId} · {person.rank ?? "No rank"}
+                  </p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {person.report.leads} leads · {person.report.enrollments} enrollments ·{" "}
+                    {person.report.days} report days
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${person.status === "active" ? "border-cyan/30 bg-cyan/10 text-cyan" : "border-silver/20 bg-silver/10 text-silver"}`}>
+                    {person.status === "active" ? "Active" : "Blocked"}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 rounded-lg px-2 text-[11px]"
+                    onClick={() => setOpenId(openId === person.id ? null : person.id)}
+                  >
+                    {openId === person.id ? "Hide report" : "Show report"}
+                  </Button>
+                </div>
+              </div>
+              {openId === person.id ? (
+                <div className="mt-3 overflow-x-auto rounded-xl border border-hairline">
+                  <table className="w-full text-[11px]">
+                    <thead className="bg-surface/70 text-[10px] uppercase text-muted-foreground">
+                      <tr>
+                        <th className="px-2 py-1.5 text-left">Date</th>
+                        <th className="px-2 py-1.5 text-right">Leads</th>
+                        <th className="px-2 py-1.5 text-right">Response</th>
+                        <th className="px-2 py-1.5 text-right">Enroll</th>
+                        <th className="px-2 py-1.5 text-right">Pending</th>
+                        <th className="px-2 py-1.5 text-right">2CC</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {person.report.recent.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-2 py-3 text-center text-muted-foreground">
+                            No reports in the last 30 days.
+                          </td>
+                        </tr>
+                      ) : (
+                        person.report.recent.map((row: any) => (
+                          <tr key={row.date} className="border-t border-border">
+                            <td className="px-2 py-1.5">{formatDate(row.date)}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{row.absent ? "Leave" : row.leads}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{row.responses}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{row.enrollments}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{row.pending}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums">{row.twoCc}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+            </article>
+          ))
+        )}
+      </section>
+    </>
+  );
+}
+
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (

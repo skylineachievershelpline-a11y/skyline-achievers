@@ -116,7 +116,9 @@ function slipFooter(data: PaymentSlipData) {
 }
 
 function playPrinterSound() {
-  const AudioContextCtor = window.AudioContext ?? window.webkitAudioContext;
+  const AudioContextCtor =
+    window.AudioContext ??
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioContextCtor) return () => undefined;
   const context = new AudioContextCtor();
   const gain = context.createGain();

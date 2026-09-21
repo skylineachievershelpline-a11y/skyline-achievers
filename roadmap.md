@@ -218,4 +218,5 @@
 ## Personal Mentorship receipt slip
 - [x] Match the uploaded ATM-style receipt printer animation with Skyline Achievers branding
 - [x] Add Personal Mentorship receipt details: name, rank, paid amount, total, remaining, date and time
+- [x] Add the same slow branded slip printer with machine sound to member and admin daily reports
 - [x] Add save/download and share actions for the receipt image

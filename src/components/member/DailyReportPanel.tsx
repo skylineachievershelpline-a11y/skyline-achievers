@@ -386,7 +386,7 @@ export function DailyReportPanel() {
             </Button>
           ))}
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto_auto] sm:items-end">
           <div className="space-y-2">
             <Label htmlFor="report-from">From</Label>
             <Input

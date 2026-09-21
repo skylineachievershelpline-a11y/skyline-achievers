@@ -9,7 +9,9 @@ import { toast } from "sonner";
 
 import { EmptyState, TrainingVideoCard } from "@/components/member/cards";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import { getTrainingLibrary } from "@/lib/member.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 

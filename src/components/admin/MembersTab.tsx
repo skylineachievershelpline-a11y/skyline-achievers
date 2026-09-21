@@ -449,9 +449,15 @@ function AddMemberDialog({
               <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 rounded-2xl" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="cnic">CNIC</Label>
-            <Input id="cnic" value={cnic} onChange={(e) => setCnic(e.target.value)} className="h-11 rounded-2xl" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="feePkr">Personal Mentorship amount (Rs.)</Label>
+              <Input id="feePkr" inputMode="numeric" value={feePkr} onChange={(e) => setFeePkr(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="paidPkr">Amount received (Rs.)</Label>
+              <Input id="paidPkr" inputMode="numeric" value={paidPkr} onChange={(e) => setPaidPkr(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email (optional)</Label>

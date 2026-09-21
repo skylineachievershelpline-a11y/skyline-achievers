@@ -106,7 +106,6 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       { data: categories },
       { data: groups },
       { data: sectionAccess },
-      { data: groupAccess },
     ] = await Promise.all([
         supabaseAdmin
           .from("lectures")
@@ -136,7 +135,6 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
           .eq("is_published", true)
           .order("sort_order"),
       (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
-      (supabaseAdmin as any).from("training_group_access").select("group_id, level_id"),
     ]);
 
     const allowed = new Set((access ?? []).map((row) => row.content_id));
@@ -154,10 +152,6 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     // Categories are only an admin-side organizer now. Members see training
     // sections directly, so category access must not hide a section from the
     // Training page; section/video access below remains the source of truth.
-    const groupLevels = new Map<string, string[]>();
-    for (const row of (groupAccess ?? []) as { group_id: string; level_id: string }[]) {
-      groupLevels.set(row.group_id, [...(groupLevels.get(row.group_id) ?? []), row.level_id]);
-    }
     const visibleGroups = (groups ?? []) as any[];
 
     const visibleCategories = ((categories ?? []) as any[]).filter((category) => {

@@ -529,3 +529,90 @@ function AddMemberDialog({
     </Dialog>
   );
 }
+
+/** Personal Mentorship money, extra days, training lock and account unblock. */
+function MentorshipDialog({
+  member,
+  onClose,
+  onSave,
+  pending,
+}: {
+  member: any | null;
+  onClose: () => void;
+  onSave: (input: Record<string, unknown>) => void;
+  pending: boolean;
+}) {
+  const [feeTotal, setFeeTotal] = useState("");
+  const [paid, setPaid] = useState("");
+
+  useEffect(() => {
+    if (!member) return;
+    setFeeTotal(String(Number(member.mentorship_fee_pkr ?? 50000)));
+    setPaid(String(Number(member.mentorship_paid_pkr ?? 0)));
+  }, [member]);
+
+  if (!member) return null;
+  const total = Number(feeTotal || 0);
+  const received = Number(paid || 0);
+  const remaining = Math.max(total - received, 0);
+  const used = Number(member.mentorship_extensions ?? 0);
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
+        <DialogHeader>
+          <DialogTitle>Personal Mentorship — {member.full_name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="fee-total">Total amount (Rs.)</Label>
+              <Input id="fee-total" inputMode="numeric" value={feeTotal} onChange={(e) => setFeeTotal(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="fee-paid">Amount received (Rs.)</Label>
+              <Input id="fee-paid" inputMode="numeric" value={paid} onChange={(e) => setPaid(e.target.value)} className="h-11 rounded-2xl" />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Remaining: <span className="font-semibold text-foreground">Rs. {remaining.toLocaleString("en-PK")}</span>
+            {" · "}Deadline: {member.mentorship_due_at ? formatDateTime(member.mentorship_due_at) : "not set"}
+            {" · "}Extra days used: {used}/3
+          </p>
+
+          <Button
+            variant="brand"
+            size="xl"
+            className="w-full"
+            disabled={pending}
+            onClick={() => onSave({ id: member.id, feeTotal: total, paid: received })}
+          >
+            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save amount
+          </Button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, grantDay: true })}>
+              +1 day for payment
+            </Button>
+            <Button variant="secondary" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, grantCcDay: true })}>
+              +1 day for CC target
+            </Button>
+            <Button variant="outline" size="sm" className="h-10 rounded-xl" disabled={pending} onClick={() => onSave({ id: member.id, resetCcTimer: true })}>
+              Restart CC week
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 rounded-xl"
+              disabled={pending}
+              onClick={() => onSave({ id: member.id, trainingLocked: !member.training_locked })}
+            >
+              {member.training_locked ? "Unlock training" : "Lock training"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

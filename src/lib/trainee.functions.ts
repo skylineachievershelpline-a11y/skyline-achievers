@@ -323,11 +323,15 @@ export const playTraineeSession = createServerFn({ method: "POST" })
         ? row.video_url
         : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
 
-    const { loadSessionExtras, loadSessionSections } = await import("./session-extras.server");
-    const [extras, sections] = await Promise.all([
+    const { loadSessionExtras, loadSessionResources, loadSessionSections } = await import(
+      "./session-extras.server"
+    );
+    const [ownExtras, linkedResources, sections] = await Promise.all([
       loadSessionExtras(supabaseAdmin, data.sessionId),
+      loadSessionResources(supabaseAdmin, data.sessionId),
       loadSessionSections(supabaseAdmin, data.sessionId),
     ]);
+    const extras = [...ownExtras, ...linkedResources];
 
     return {
       status: "ok" as const,

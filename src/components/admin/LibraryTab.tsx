@@ -20,6 +20,7 @@ import {
   adminDeleteTrainingGroup,
   adminGetLibrary,
   adminGetSections,
+  adminGetSessions,
   adminSaveLecture,
   adminSaveSection,
   adminSaveResource,
@@ -96,6 +97,7 @@ export function LibraryTab() {
   const saveGroup = useServerFn(adminSaveTrainingGroup);
   const removeGroup = useServerFn(adminDeleteTrainingGroup);
   const loadSections = useServerFn(adminGetSections);
+  const loadSessions = useServerFn(adminGetSessions);
   const saveSection = useServerFn(adminSaveSection);
 
   const { data, isPending } = useQuery<Library>({
@@ -110,6 +112,15 @@ export function LibraryTab() {
     staleTime: 30_000,
   });
   const resourceSections = ((sectionData as any)?.sections ?? []) as { id: string; name: string }[];
+  const { data: sessionData } = useQuery({
+    queryKey: ["admin-sessions-lite"],
+    queryFn: () => loadSessions(),
+    staleTime: 60_000,
+  });
+  const beginnerSessions = ((sessionData as any)?.sessions ?? []) as {
+    id: string;
+    title: string;
+  }[];
 
   const [videoDialog, setVideoDialog] = useState<VideoValues | null>(null);
   const [categoryDialog, setCategoryDialog] = useState<CategoryValues | null>(null);
@@ -886,6 +897,7 @@ export function LibraryTab() {
           <ResourceForm
             videos={(data.lectures as any[]).map((l) => ({ id: l.id, title: l.title }))}
             sections={resourceSections}
+            sessions={beginnerSessions}
             busy={busy}
             onSubmit={async (values) => {
               setBusy(true);
@@ -942,7 +954,8 @@ export function LibraryTab() {
                 }
                 await saveResource({
                   data: {
-                    sectionId,
+                    sectionId: values.sessionId ? values.sessionSectionId || null : sectionId,
+                    sessionId: values.sessionId || null,
                     lectureId: values.lectureId || null,
                     resourceType: values.resourceType,
                     title: values.title,
@@ -1151,14 +1164,18 @@ type ResourceType = (typeof RESOURCE_TYPES)[number];
 function ResourceForm({
   videos,
   sections,
+  sessions,
   busy,
   onSubmit,
 }: {
   videos: { id: string; title: string }[];
   sections: { id: string; name: string }[];
+  sessions: { id: string; title: string }[];
   busy: boolean;
   onSubmit: (values: {
     sectionId: string;
+    sessionId: string;
+    sessionSectionId: string;
     newSectionName: string;
     newSectionCover: File | null;
     lectureId: string;
@@ -1182,6 +1199,18 @@ function ResourceForm({
   const [sectionId, setSectionId] = useState("");
   const [newSectionName, setNewSectionName] = useState("");
   const [newSectionCover, setNewSectionCover] = useState<File | null>(null);
+  const [sessionId, setSessionId] = useState("");
+  const [sessionSectionId, setSessionSectionId] = useState("");
+  const loadSessionSections = useServerFn(adminGetSections);
+  const { data: sessionSectionData } = useQuery({
+    queryKey: ["admin-sections", "session", sessionId],
+    queryFn: () => loadSessionSections({ data: { scope: "session", sessionId } } as never),
+    enabled: Boolean(sessionId),
+  });
+  const sessionSections = ((sessionSectionData as any)?.sections ?? []) as {
+    id: string;
+    name: string;
+  }[];
 
   return (
     <form
@@ -1190,6 +1219,8 @@ function ResourceForm({
         if (!title.trim()) return;
         onSubmit({
           sectionId,
+          sessionId,
+          sessionSectionId,
           newSectionName,
           newSectionCover,
           lectureId,
@@ -1245,6 +1276,44 @@ function ResourceForm({
             onChange={(e) => setNewSectionCover(e.target.files?.[0] ?? null)}
             className="text-xs text-muted-foreground"
           />
+        ) : null}
+      </div>
+      <div className="space-y-1.5">
+        <Label>Attach to a Beginners Training session (optional)</Label>
+        <select
+          value={sessionId}
+          onChange={(e) => {
+            setSessionId(e.target.value);
+            setSessionSectionId("");
+          }}
+          className={fieldClass}
+        >
+          <option value="">Not attached to a session</option>
+          {sessions.map((session) => (
+            <option key={session.id} value={session.id}>
+              {session.title}
+            </option>
+          ))}
+        </select>
+        {sessionId ? (
+          <>
+            <Label className="mt-2 block">Session category</Label>
+            <select
+              value={sessionSectionId}
+              onChange={(e) => setSessionSectionId(e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">No category</option>
+              {sessionSections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              This item will also open inside that session, under the chosen category.
+            </p>
+          </>
         ) : null}
       </div>
       <div className="space-y-1.5">

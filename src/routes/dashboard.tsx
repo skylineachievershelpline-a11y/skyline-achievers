@@ -87,32 +87,30 @@ function DashboardPage() {
             />
           </div>
           <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
-                 {member?.fullName ?? "Member"}
-               </h1>
-                 <RankPin rank={member?.level?.name} className="h-12 w-12" />
-            </div>
-            <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:max-w-md sm:gap-6">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:max-w-md sm:gap-6">
               <div className="min-w-0">
+                <h1 className="mb-3 min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">
+                  {member?.fullName ?? "Member"}
+                </h1>
                 <div className="flex items-center gap-1">
                   <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold text-cyan sm:text-base">
-                  {showId ? member?.memberId ?? "—" : "••••••••••••"}
+                    {showId ? member?.memberId ?? "—" : "••••••••••••"}
                   </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     className="h-7 w-7 shrink-0 rounded-full"
-                  aria-label={showId ? "Hide member ID" : "Show member ID"}
-                  onClick={() => setShowId((value) => !value)}
-                >
-                  {showId ? <EyeOff /> : <Eye />}
+                    aria-label={showId ? "Hide member ID" : "Show member ID"}
+                    onClick={() => setShowId((value) => !value)}
+                  >
+                    {showId ? <EyeOff /> : <Eye />}
                   </Button>
                 </div>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
               </div>
-              <div className="min-w-0 text-right">
+              <div className="flex min-w-0 flex-col items-end text-right">
+                <RankPin rank={member?.level?.name} className="mb-3 h-12 w-12" />
                 <p className="whitespace-nowrap font-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
               </div>

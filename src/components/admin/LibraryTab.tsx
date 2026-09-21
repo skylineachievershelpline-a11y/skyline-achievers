@@ -343,21 +343,6 @@ export function LibraryTab() {
         <Button variant="brand" size="xl" onClick={() => setVideoDialog(blankVideo())}>
           <Plus className="h-4 w-4" /> New training video
         </Button>
-        <Button
-          variant="secondary"
-          size="xl"
-          onClick={() =>
-            setGroupDialog({
-              name: "",
-              description: "",
-              sortOrder: categoryGroups.length + 1,
-              isPublished: true,
-              levelIds: levels.map((l) => l.id),
-            })
-          }
-        >
-          <Plus className="h-4 w-4" /> New category
-        </Button>
         <Button variant="secondary" size="xl" onClick={() => setCategoryDialog(blankCategory())}>
           <Plus className="h-4 w-4" /> New training section
         </Button>
@@ -366,71 +351,7 @@ export function LibraryTab() {
         </Button>
       </div>
 
-      <section className="raised-panel metal-edge rounded-3xl p-4">
-        <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">
-          Categories
-        </h3>
-        <p className="mb-3 text-[11px] text-muted-foreground">
-          Big buckets for your sections — for example Sales, Mindset, Personal Mentorship.
-        </p>
-        {categoryGroups.length === 0 ? (
-          <p className="glass-panel rounded-2xl p-4 text-xs text-muted-foreground">
-            No category yet — create one, then place sections inside it.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {categoryGroups.map((group) => {
-              const count = categories.filter((c) => c.group_id === group.id).length;
-              return (
-                <li
-                  key={group.id}
-                  className="glass-panel flex items-center gap-3 rounded-2xl px-3 py-2.5"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{group.name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {count} section{count === 1 ? "" : "s"} ·{" "}
-                      {group.is_published ? "Visible" : "Hidden"} · Unlocked for:{" "}
-                      {(groupAccess[group.id] ?? []).length === 0
-                        ? "everyone"
-                        : levels
-                            .filter((l) => (groupAccess[group.id] ?? []).includes(l.id))
-                            .map((l) => l.name)
-                            .join(", ")}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setGroupDialog({
-                        id: group.id,
-                        name: group.name,
-                        description: group.description ?? "",
-                        sortOrder: group.sort_order,
-                        isPublished: group.is_published,
-                        levelIds: groupAccess[group.id] ?? levels.map((l) => l.id),
-                      })
-                    }
-                    className="text-muted-foreground transition-colors hover:text-brand-glow"
-                    aria-label="Edit category"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (!window.confirm(`Delete category “${group.name}”?`)) return;
-                      delGroup.mutate(group.id);
-                    }}
-                    className="text-muted-foreground transition-colors hover:text-destructive"
-                    aria-label="Delete category"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+
 
       <section className="raised-panel metal-edge rounded-3xl p-4">
         <h3 className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.16em] text-brand-glow">

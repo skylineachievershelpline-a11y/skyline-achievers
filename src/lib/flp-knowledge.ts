@@ -5,7 +5,20 @@
 
 export const FLP_KNOWLEDGE = `FOREVER LIVING PRODUCTS (FLP) — MARKETING PLAN & COMPANY POLICIES (effective 20 February 2026)
 
+COMPANY BACKGROUND & GLOBAL FACTS
+- Forever Living Products was founded on 13 May 1978 in Arizona, USA (Tempe/Scottsdale). By 2026 the company has completed about 48 years of business.
+- Founder: Rex Maughan (late). Company leadership continues under the Maughan family (Gregg Maughan as CEO/President).
+- Global headquarters: Scottsdale, Arizona, USA.
+- FLP operates in more than 160 countries worldwide.
+- The world's largest grower, manufacturer and distributor of Aloe Vera products, plus bee-derived products (honey, bee pollen, royal jelly, propolis).
+- Vertically integrated: FLP owns its own aloe plantations (USA/Texas, Dominican Republic, Mexico), manufacturing (Aloe Vera of America) and global distribution centre — so quality is controlled from field to customer.
+- Privately owned, financially strong and debt-free.
+- Quality approvals: IASC (International Aloe Science Council) seal, Halal certification, Kosher rating, and cruelty-free status.
+- Pakistan: FLP has 2 official offices — one in Lahore and one in Karachi.
+- If someone asks about fees, investment, product prices or joining cost, do NOT state any amount — tell them to talk to their senior/upline.
+
 BASICS
+
 - FLP markets health and beauty products through independent Forever Business Owners (FBOs).
 - Income comes only from selling products and building a sales organisation. Success depends on personal effort; FLP never promises income.
 - No minimum capital investment is required. A monthly FBO Support Fee (max AED 11) is deducted from earned bonuses of qualifying FBOs — no out-of-pocket payment.

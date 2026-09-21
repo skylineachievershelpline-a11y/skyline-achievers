@@ -1275,6 +1275,7 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
         .object({
           id: uuid.optional(),
           sessionId: uuid,
+          sectionId: uuid.nullish(),
           title: text(160),
           description: optionalText(2000),
           kind: z.enum(["video", "image", "pdf", "link"]).optional(),
@@ -1298,6 +1299,7 @@ export const adminSaveSessionExtra = createServerFn({ method: "POST" })
 
     const payload: Record<string, unknown> = {
       session_id: data.sessionId,
+      section_id: data.sectionId ?? null,
       title: data.title,
       description: data.description,
       aspect_ratio: data.aspectRatio ?? "16:9",

@@ -615,6 +615,28 @@ function AddMemberDialog({
             </select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="upline">Upline ID (required)</Label>
+            <select
+              id="upline"
+              value={uplineId}
+              onChange={(e) => setUplineId(e.target.value)}
+              className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
+            >
+              {uplines.length === 0 ? <option value="">Loading upline accounts…</option> : null}
+              {uplines.map((upline) => (
+                <option key={upline.id} value={upline.id}>
+                  {upline.isOfficial ? "★ " : ""}
+                  {upline.fullName} · {upline.memberId}
+                  {upline.levelName ? ` · ${upline.levelName}` : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              If the new member has no personal upline, keep the official Skyline Achievers account.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="access">Access</Label>
             <select
               id="access"

@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Headphones, ImageIcon, Link2, NotebookPen, Presentation, Video } from "lucide-react";
 import { useState } from "react";
 
 import { SectionTiles } from "@/components/media/SectionTiles";
@@ -29,8 +29,30 @@ export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
 });
 
-const FILTERS = ["all", "pdf", "image", "audio", "presentation", "book", "link", "note"] as const;
+const FILTERS = ["all", "video", "image", "pdf", "audio", "presentation", "book", "link", "note"] as const;
 const OTHER = "__other__";
+
+const FILTER_ICONS = {
+  video: Video,
+  image: ImageIcon,
+  pdf: FileText,
+  audio: Headphones,
+  presentation: Presentation,
+  book: BookOpen,
+  link: Link2,
+  note: NotebookPen,
+} as const;
+
+type ResourceRow = {
+  id: string;
+  title: string;
+  description?: string | null;
+  resource_type: string;
+  body?: string | null;
+  thumbnail_url?: string | null;
+  section_id?: string | null;
+  lectures?: { id: string; title: string } | null;
+};
 
 function ResourcesPage() {
   const ready = useMemberGuard();
@@ -43,19 +65,22 @@ function ResourcesPage() {
     enabled: ready,
   });
 
-  const allResources = (data?.resources ?? []) as any[];
+  const allResources = (data?.resources ?? []) as ResourceRow[];
   const sections = ((data as any)?.sections ?? []) as {
     id: string;
     name: string;
     thumbnailUrl: string | null;
   }[];
-  const loose = allResources.filter((r) => !r.section_id);
+  const matchingResources = allResources.filter(
+    (resource) => filter === "all" || resource.resource_type === filter,
+  );
+  const loose = matchingResources.filter((resource) => !resource.section_id);
   const tiles = [
     ...sections.map((section) => ({
       id: section.id,
       name: section.name,
       thumbnailUrl: section.thumbnailUrl,
-      count: allResources.filter((r) => r.section_id === section.id).length,
+      count: matchingResources.filter((resource) => resource.section_id === section.id).length,
     })),
     ...(loose.length > 0
       ? [
@@ -71,24 +96,24 @@ function ResourcesPage() {
 
   const scoped =
     openSection === null
-      ? allResources
+      ? matchingResources
       : openSection === OTHER
         ? loose
-        : allResources.filter((r) => r.section_id === openSection);
+        : matchingResources.filter((resource) => resource.section_id === openSection);
 
-  const resources = scoped.filter((r: any) => filter === "all" || r.resource_type === filter);
   const activeTile = tiles.find((tile) => tile.id === openSection);
+  const showingCategories = ready && !isPending && openSection === null && tiles.length > 0;
 
-  if (ready && !isPending && tiles.length > 1 && openSection === null) {
-    return (
-      <MemberShell title="Resources" subtitle="Pick a category to open">
-        <SectionTiles sections={tiles} onOpen={(id) => setOpenSection(id)} />
-      </MemberShell>
-    );
+  function chooseFilter(option: (typeof FILTERS)[number]) {
+    setFilter(option);
+    setOpenSection(null);
   }
 
   return (
-    <MemberShell title="Resources" subtitle={activeTile?.name ?? "Everything unlocked for your rank"}>
+    <MemberShell
+      title="Resources"
+      subtitle={activeTile?.name ?? (showingCategories ? "Choose a category" : "Everything unlocked for your rank")}
+    >
       {activeTile ? (
         <Button
           variant="outline"
@@ -101,30 +126,34 @@ function ResourcesPage() {
         </Button>
       ) : null}
       <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4">
-        {FILTERS.map((option) => (
-          <button
-            key={option}
-            onClick={() => setFilter(option)}
-            className={cn(
-              "shrink-0 rounded-full border border-hairline px-3.5 py-1.5 text-xs transition-colors",
-              filter === option
-                ? "brand-gradient text-brand-foreground"
-                : "bg-glass text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {option === "all" ? "All" : (RESOURCE_TYPE_LABEL[option] ?? option)}
-          </button>
-        ))}
+        {FILTERS.map((option) => {
+          const Icon = option === "all" ? null : FILTER_ICONS[option];
+          return (
+            <Button
+              key={option}
+              type="button"
+              variant={filter === option ? "brand" : "outline"}
+              size="sm"
+              onClick={() => chooseFilter(option)}
+              className={cn("shrink-0 rounded-full px-3.5 text-xs", filter !== option && "bg-glass text-muted-foreground")}
+            >
+              {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
+              {option === "all" ? "All" : option === "image" ? "Pictures" : (RESOURCE_TYPE_LABEL[option] ?? option)}
+            </Button>
+          );
+        })}
       </div>
 
       {!ready || isPending ? (
         <div className="flex justify-center py-16">
           <SkylineLoader />
         </div>
-      ) : resources.length === 0 ? (
+      ) : matchingResources.length === 0 ? (
         <EmptyState title="No resources here yet" hint="New material appears as soon as it is published." />
+      ) : showingCategories ? (
+        <SectionTiles sections={tiles} onOpen={setOpenSection} />
       ) : (
-        <ResourceList resources={resources as any} />
+        <ResourceList resources={scoped} />
       )}
     </MemberShell>
   );

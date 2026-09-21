@@ -648,7 +648,7 @@ function AddMemberDialog({
               <option value="training">Training only (working sections locked)</option>
             </select>
           </div>
-          <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId}>
+          <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId || !uplineId}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Create member
           </Button>

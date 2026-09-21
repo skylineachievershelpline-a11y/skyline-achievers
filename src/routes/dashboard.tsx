@@ -13,6 +13,7 @@ import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { MentorshipFeeCard, TargetCard } from "@/components/member/MentorshipPanel";
+import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
   MemberShell,
   SectionTitle,
@@ -48,6 +49,7 @@ function DashboardPage() {
   const ready = useMemberGuard();
   const trainingOnly = useTrainingOnly();
   const [showId, setShowId] = useState(false);
+  const [mentorshipSlip, setMentorshipSlip] = useState<PaymentSlipData | null>(null);
   const load = useServerFn(getDashboard);
   const { data, isPending } = useQuery({
     queryKey: ["dashboard"],
@@ -69,6 +71,24 @@ function DashboardPage() {
 
   const member = data.member;
   const progress = data.progress ?? null;
+  const openMentorshipReceipt = () => {
+    if (!member || !progress || progress.feePaid <= 0) return;
+    setMentorshipSlip({
+      kind: "mentorship",
+      title: "Personal Mentorship Amount",
+      buyerName: member.fullName,
+      buyerId: member.memberId,
+      rank: member.level?.name ?? null,
+      amount: progress.feePaid,
+      totalAmount: progress.feeTotal,
+      remainingAmount: progress.feeRemaining,
+      status: progress.feeComplete ? "Amount complete" : "Part payment received",
+      note: progress.feeComplete
+        ? "Training unlocks after admin verification. Keep this receipt for your record."
+        : "Remaining amount must be completed before the deadline.",
+      submittedAt: new Date(),
+    });
+  };
 
   return (
     <MemberShell
@@ -135,13 +155,13 @@ function DashboardPage() {
 
       {progress && progress.feeLocked ? (
         <div className="mx-auto mt-2 w-full max-w-3xl">
-          <MentorshipFeeCard progress={progress} />
+          <MentorshipFeeCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
         </div>
       ) : null}
 
       {progress && !progress.feeLocked ? (
         <div className="mx-auto mt-6 w-full max-w-3xl">
-          <TargetCard progress={progress} />
+          <TargetCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
         </div>
       ) : null}
 
@@ -177,6 +197,11 @@ function DashboardPage() {
       ) : null}
 
 
+      <PaymentSlip
+        open={mentorshipSlip !== null}
+        data={mentorshipSlip}
+        onClose={() => setMentorshipSlip(null)}
+      />
     </MemberShell>
   );
 }

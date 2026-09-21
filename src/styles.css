@@ -127,6 +127,15 @@
   --media: oklch(0.075 0.02 258);
   --silver: oklch(0.86 0.008 250);
 
+  --receipt-scene: oklch(0.92 0.025 88);
+  --receipt-paper: oklch(0.985 0.012 92);
+  --receipt-ink: oklch(0.22 0.025 258);
+  --receipt-muted: oklch(0.47 0.018 258);
+  --receipt-line: oklch(0.78 0.025 88);
+  --receipt-machine: oklch(0.99 0.018 91);
+  --receipt-machine-edge: oklch(0.84 0.09 78);
+  --receipt-shadow: oklch(0.42 0.08 78 / 38%);
+
   --primary: oklch(0.58 0.223 262);
   --primary-foreground: oklch(0.99 0.003 250);
   --secondary: oklch(0.25 0.024 262);
@@ -381,6 +390,281 @@
   color: color-mix(in oklab, var(--foreground) 55%, transparent);
 }
 
+
+/* ---------- Skyline receipt printer ---------- */
+.slip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--receipt-machine-edge) 22%, transparent), transparent 64%),
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-scene) 94%, white 6%), var(--receipt-scene));
+  color: var(--receipt-ink);
+}
+
+.slip-close {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  top: max(1rem, env(safe-area-inset-top));
+  z-index: 3;
+  border-color: color-mix(in oklab, var(--receipt-machine-edge) 38%, transparent);
+  background: color-mix(in oklab, var(--receipt-paper) 86%, transparent);
+  color: var(--receipt-ink);
+  box-shadow: 0 1rem 2rem color-mix(in oklab, var(--receipt-shadow) 70%, transparent);
+}
+
+.slip-machine {
+  position: relative;
+  width: min(25.5rem, calc(100vw - 2rem));
+  min-height: 35rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 5.1rem;
+  perspective: 900px;
+}
+
+.slip-printer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  width: min(22rem, 86vw);
+  height: 5.35rem;
+  transform: translateX(-50%);
+  border-radius: 1.25rem 1.25rem .85rem .85rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 96%, white 4%), color-mix(in oklab, var(--receipt-machine-edge) 34%, var(--receipt-paper))),
+    var(--receipt-machine);
+  box-shadow:
+    0 .32rem .2rem color-mix(in oklab, white 72%, transparent) inset,
+    0 -.65rem 1rem color-mix(in oklab, var(--receipt-machine-edge) 40%, transparent) inset,
+    0 1.8rem 2.8rem color-mix(in oklab, var(--receipt-shadow) 72%, transparent);
+}
+
+.slip-printer::before,
+.slip-printer::after {
+  content: "";
+  position: absolute;
+  bottom: -.65rem;
+  width: 2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--receipt-paper), color-mix(in oklab, var(--receipt-machine-edge) 48%, var(--receipt-paper)));
+  box-shadow: 0 1.2rem 1.5rem color-mix(in oklab, var(--receipt-shadow) 55%, transparent);
+}
+
+.slip-printer::before { left: -.72rem; }
+.slip-printer::after { right: -.72rem; }
+
+.slip-printer-cap {
+  position: absolute;
+  inset: .55rem .85rem auto;
+  height: .48rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, white 68%, transparent);
+  filter: blur(.5px);
+}
+
+.slip-printer-slot {
+  position: absolute;
+  left: 1.55rem;
+  right: 1.55rem;
+  bottom: 1.15rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-machine-edge) 72%, black 10%), color-mix(in oklab, var(--receipt-ink) 58%, var(--receipt-machine-edge)));
+  box-shadow:
+    0 .28rem .58rem color-mix(in oklab, black 35%, transparent) inset,
+    0 -.15rem .2rem color-mix(in oklab, white 35%, transparent) inset;
+}
+
+.slip-printer-led {
+  position: absolute;
+  right: 2.15rem;
+  bottom: 2.72rem;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 1rem color-mix(in oklab, var(--cyan) 70%, transparent);
+  animation: slip-led 1.35s ease-in-out infinite;
+}
+
+.slip-window {
+  position: relative;
+  z-index: 2;
+  width: min(20.7rem, 78vw);
+  overflow: hidden;
+  padding-top: .05rem;
+}
+
+.slip-paper {
+  position: relative;
+  width: 100%;
+  transform-origin: center top;
+  animation: slip-print 1.55s cubic-bezier(.17, .84, .32, 1.04) both;
+  filter: drop-shadow(0 1.6rem 1.55rem color-mix(in oklab, var(--receipt-shadow) 60%, transparent));
+}
+
+.slip-paper-inner {
+  min-height: 29.5rem;
+  padding: 1.25rem 1.18rem 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 99%, white 1%), color-mix(in oklab, var(--receipt-scene) 13%, var(--receipt-paper))),
+    var(--receipt-paper);
+  border-left: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+}
+
+.slip-brand {
+  display: grid;
+  justify-items: center;
+  gap: .18rem;
+  text-align: center;
+}
+
+.slip-brand img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.slip-brand-name {
+  margin-top: .15rem;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-brand-tag,
+.slip-datetime {
+  font-size: .54rem;
+  font-weight: 800;
+  color: var(--receipt-muted);
+}
+
+.slip-status {
+  margin-top: 1rem;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  color: var(--receipt-ink);
+}
+
+.slip-amount {
+  margin-top: .22rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 7vw, 2.35rem);
+  font-weight: 950;
+  color: var(--brand);
+}
+
+.slip-divider {
+  height: 1px;
+  margin: .85rem 0;
+  background: repeating-linear-gradient(90deg, var(--receipt-line) 0 9px, transparent 9px 16px);
+}
+
+.slip-line {
+  display: grid;
+  grid-template-columns: minmax(5.2rem, .8fr) minmax(0, 1.35fr);
+  gap: .75rem;
+  align-items: start;
+  padding: .24rem 0;
+  font-size: .68rem;
+  line-height: 1.25;
+}
+
+.slip-line span {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--receipt-muted);
+}
+
+.slip-line strong {
+  min-width: 0;
+  text-align: right;
+  font-weight: 900;
+  color: var(--receipt-ink);
+  overflow-wrap: anywhere;
+}
+
+.slip-note {
+  text-align: center;
+  font-size: .66rem;
+  line-height: 1.45;
+  color: var(--receipt-muted);
+}
+
+.slip-footer {
+  margin-top: .85rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-zigzag {
+  height: .65rem;
+  background:
+    linear-gradient(135deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem,
+    linear-gradient(225deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem;
+}
+
+.slip-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .6rem;
+  width: min(25.5rem, calc(100vw - 2rem));
+}
+
+.slip-actions > * {
+  min-width: 6.8rem;
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+@keyframes slip-print {
+  0% {
+    transform: translate3d(0, -93%, 0) scaleY(.18);
+    opacity: .72;
+  }
+  58% {
+    transform: translate3d(0, -8%, 0) scaleY(.98);
+    opacity: 1;
+  }
+  76% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
+  100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+@keyframes slip-led {
+  0%, 100% { opacity: .45; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@media (max-width: 420px) {
+  .slip-overlay { justify-content: flex-start; }
+  .slip-machine { min-height: 33.5rem; padding-top: 4.65rem; }
+  .slip-printer { height: 4.8rem; }
+  .slip-window { width: min(19.2rem, 81vw); }
+  .slip-paper-inner { padding-inline: .92rem; }
+  .slip-line { grid-template-columns: minmax(4.65rem, .72fr) minmax(0, 1.2fr); font-size: .61rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skyline-loader-ring,
   .skyline-loader-ring-arc,
@@ -481,6 +765,281 @@
 @media (min-width: 768px) {
   .skyline-ai-flight-button { width: 4.8rem; }
   .skyline-ai-flight-button .skyline-ai-robot { width: 4.2rem; }
+}
+
+
+/* ---------- Skyline receipt printer ---------- */
+.slip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--receipt-machine-edge) 22%, transparent), transparent 64%),
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-scene) 94%, white 6%), var(--receipt-scene));
+  color: var(--receipt-ink);
+}
+
+.slip-close {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  top: max(1rem, env(safe-area-inset-top));
+  z-index: 3;
+  border-color: color-mix(in oklab, var(--receipt-machine-edge) 38%, transparent);
+  background: color-mix(in oklab, var(--receipt-paper) 86%, transparent);
+  color: var(--receipt-ink);
+  box-shadow: 0 1rem 2rem color-mix(in oklab, var(--receipt-shadow) 70%, transparent);
+}
+
+.slip-machine {
+  position: relative;
+  width: min(25.5rem, calc(100vw - 2rem));
+  min-height: 35rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 5.1rem;
+  perspective: 900px;
+}
+
+.slip-printer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  width: min(22rem, 86vw);
+  height: 5.35rem;
+  transform: translateX(-50%);
+  border-radius: 1.25rem 1.25rem .85rem .85rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 96%, white 4%), color-mix(in oklab, var(--receipt-machine-edge) 34%, var(--receipt-paper))),
+    var(--receipt-machine);
+  box-shadow:
+    0 .32rem .2rem color-mix(in oklab, white 72%, transparent) inset,
+    0 -.65rem 1rem color-mix(in oklab, var(--receipt-machine-edge) 40%, transparent) inset,
+    0 1.8rem 2.8rem color-mix(in oklab, var(--receipt-shadow) 72%, transparent);
+}
+
+.slip-printer::before,
+.slip-printer::after {
+  content: "";
+  position: absolute;
+  bottom: -.65rem;
+  width: 2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--receipt-paper), color-mix(in oklab, var(--receipt-machine-edge) 48%, var(--receipt-paper)));
+  box-shadow: 0 1.2rem 1.5rem color-mix(in oklab, var(--receipt-shadow) 55%, transparent);
+}
+
+.slip-printer::before { left: -.72rem; }
+.slip-printer::after { right: -.72rem; }
+
+.slip-printer-cap {
+  position: absolute;
+  inset: .55rem .85rem auto;
+  height: .48rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, white 68%, transparent);
+  filter: blur(.5px);
+}
+
+.slip-printer-slot {
+  position: absolute;
+  left: 1.55rem;
+  right: 1.55rem;
+  bottom: 1.15rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-machine-edge) 72%, black 10%), color-mix(in oklab, var(--receipt-ink) 58%, var(--receipt-machine-edge)));
+  box-shadow:
+    0 .28rem .58rem color-mix(in oklab, black 35%, transparent) inset,
+    0 -.15rem .2rem color-mix(in oklab, white 35%, transparent) inset;
+}
+
+.slip-printer-led {
+  position: absolute;
+  right: 2.15rem;
+  bottom: 2.72rem;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 1rem color-mix(in oklab, var(--cyan) 70%, transparent);
+  animation: slip-led 1.35s ease-in-out infinite;
+}
+
+.slip-window {
+  position: relative;
+  z-index: 2;
+  width: min(20.7rem, 78vw);
+  overflow: hidden;
+  padding-top: .05rem;
+}
+
+.slip-paper {
+  position: relative;
+  width: 100%;
+  transform-origin: center top;
+  animation: slip-print 1.55s cubic-bezier(.17, .84, .32, 1.04) both;
+  filter: drop-shadow(0 1.6rem 1.55rem color-mix(in oklab, var(--receipt-shadow) 60%, transparent));
+}
+
+.slip-paper-inner {
+  min-height: 29.5rem;
+  padding: 1.25rem 1.18rem 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 99%, white 1%), color-mix(in oklab, var(--receipt-scene) 13%, var(--receipt-paper))),
+    var(--receipt-paper);
+  border-left: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+}
+
+.slip-brand {
+  display: grid;
+  justify-items: center;
+  gap: .18rem;
+  text-align: center;
+}
+
+.slip-brand img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.slip-brand-name {
+  margin-top: .15rem;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-brand-tag,
+.slip-datetime {
+  font-size: .54rem;
+  font-weight: 800;
+  color: var(--receipt-muted);
+}
+
+.slip-status {
+  margin-top: 1rem;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  color: var(--receipt-ink);
+}
+
+.slip-amount {
+  margin-top: .22rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 7vw, 2.35rem);
+  font-weight: 950;
+  color: var(--brand);
+}
+
+.slip-divider {
+  height: 1px;
+  margin: .85rem 0;
+  background: repeating-linear-gradient(90deg, var(--receipt-line) 0 9px, transparent 9px 16px);
+}
+
+.slip-line {
+  display: grid;
+  grid-template-columns: minmax(5.2rem, .8fr) minmax(0, 1.35fr);
+  gap: .75rem;
+  align-items: start;
+  padding: .24rem 0;
+  font-size: .68rem;
+  line-height: 1.25;
+}
+
+.slip-line span {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--receipt-muted);
+}
+
+.slip-line strong {
+  min-width: 0;
+  text-align: right;
+  font-weight: 900;
+  color: var(--receipt-ink);
+  overflow-wrap: anywhere;
+}
+
+.slip-note {
+  text-align: center;
+  font-size: .66rem;
+  line-height: 1.45;
+  color: var(--receipt-muted);
+}
+
+.slip-footer {
+  margin-top: .85rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-zigzag {
+  height: .65rem;
+  background:
+    linear-gradient(135deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem,
+    linear-gradient(225deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem;
+}
+
+.slip-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .6rem;
+  width: min(25.5rem, calc(100vw - 2rem));
+}
+
+.slip-actions > * {
+  min-width: 6.8rem;
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+@keyframes slip-print {
+  0% {
+    transform: translate3d(0, -93%, 0) scaleY(.18);
+    opacity: .72;
+  }
+  58% {
+    transform: translate3d(0, -8%, 0) scaleY(.98);
+    opacity: 1;
+  }
+  76% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
+  100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+@keyframes slip-led {
+  0%, 100% { opacity: .45; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@media (max-width: 420px) {
+  .slip-overlay { justify-content: flex-start; }
+  .slip-machine { min-height: 33.5rem; padding-top: 4.65rem; }
+  .slip-printer { height: 4.8rem; }
+  .slip-window { width: min(19.2rem, 81vw); }
+  .slip-paper-inner { padding-inline: .92rem; }
+  .slip-line { grid-template-columns: minmax(4.65rem, .72fr) minmax(0, 1.2fr); font-size: .61rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1046,6 +1605,281 @@ body > div > :not(.liquid-atmosphere) {
   }
 }
 
+
+/* ---------- Skyline receipt printer ---------- */
+.slip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--receipt-machine-edge) 22%, transparent), transparent 64%),
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-scene) 94%, white 6%), var(--receipt-scene));
+  color: var(--receipt-ink);
+}
+
+.slip-close {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  top: max(1rem, env(safe-area-inset-top));
+  z-index: 3;
+  border-color: color-mix(in oklab, var(--receipt-machine-edge) 38%, transparent);
+  background: color-mix(in oklab, var(--receipt-paper) 86%, transparent);
+  color: var(--receipt-ink);
+  box-shadow: 0 1rem 2rem color-mix(in oklab, var(--receipt-shadow) 70%, transparent);
+}
+
+.slip-machine {
+  position: relative;
+  width: min(25.5rem, calc(100vw - 2rem));
+  min-height: 35rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 5.1rem;
+  perspective: 900px;
+}
+
+.slip-printer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  width: min(22rem, 86vw);
+  height: 5.35rem;
+  transform: translateX(-50%);
+  border-radius: 1.25rem 1.25rem .85rem .85rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 96%, white 4%), color-mix(in oklab, var(--receipt-machine-edge) 34%, var(--receipt-paper))),
+    var(--receipt-machine);
+  box-shadow:
+    0 .32rem .2rem color-mix(in oklab, white 72%, transparent) inset,
+    0 -.65rem 1rem color-mix(in oklab, var(--receipt-machine-edge) 40%, transparent) inset,
+    0 1.8rem 2.8rem color-mix(in oklab, var(--receipt-shadow) 72%, transparent);
+}
+
+.slip-printer::before,
+.slip-printer::after {
+  content: "";
+  position: absolute;
+  bottom: -.65rem;
+  width: 2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--receipt-paper), color-mix(in oklab, var(--receipt-machine-edge) 48%, var(--receipt-paper)));
+  box-shadow: 0 1.2rem 1.5rem color-mix(in oklab, var(--receipt-shadow) 55%, transparent);
+}
+
+.slip-printer::before { left: -.72rem; }
+.slip-printer::after { right: -.72rem; }
+
+.slip-printer-cap {
+  position: absolute;
+  inset: .55rem .85rem auto;
+  height: .48rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, white 68%, transparent);
+  filter: blur(.5px);
+}
+
+.slip-printer-slot {
+  position: absolute;
+  left: 1.55rem;
+  right: 1.55rem;
+  bottom: 1.15rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-machine-edge) 72%, black 10%), color-mix(in oklab, var(--receipt-ink) 58%, var(--receipt-machine-edge)));
+  box-shadow:
+    0 .28rem .58rem color-mix(in oklab, black 35%, transparent) inset,
+    0 -.15rem .2rem color-mix(in oklab, white 35%, transparent) inset;
+}
+
+.slip-printer-led {
+  position: absolute;
+  right: 2.15rem;
+  bottom: 2.72rem;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 1rem color-mix(in oklab, var(--cyan) 70%, transparent);
+  animation: slip-led 1.35s ease-in-out infinite;
+}
+
+.slip-window {
+  position: relative;
+  z-index: 2;
+  width: min(20.7rem, 78vw);
+  overflow: hidden;
+  padding-top: .05rem;
+}
+
+.slip-paper {
+  position: relative;
+  width: 100%;
+  transform-origin: center top;
+  animation: slip-print 1.55s cubic-bezier(.17, .84, .32, 1.04) both;
+  filter: drop-shadow(0 1.6rem 1.55rem color-mix(in oklab, var(--receipt-shadow) 60%, transparent));
+}
+
+.slip-paper-inner {
+  min-height: 29.5rem;
+  padding: 1.25rem 1.18rem 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 99%, white 1%), color-mix(in oklab, var(--receipt-scene) 13%, var(--receipt-paper))),
+    var(--receipt-paper);
+  border-left: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+}
+
+.slip-brand {
+  display: grid;
+  justify-items: center;
+  gap: .18rem;
+  text-align: center;
+}
+
+.slip-brand img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.slip-brand-name {
+  margin-top: .15rem;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-brand-tag,
+.slip-datetime {
+  font-size: .54rem;
+  font-weight: 800;
+  color: var(--receipt-muted);
+}
+
+.slip-status {
+  margin-top: 1rem;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  color: var(--receipt-ink);
+}
+
+.slip-amount {
+  margin-top: .22rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 7vw, 2.35rem);
+  font-weight: 950;
+  color: var(--brand);
+}
+
+.slip-divider {
+  height: 1px;
+  margin: .85rem 0;
+  background: repeating-linear-gradient(90deg, var(--receipt-line) 0 9px, transparent 9px 16px);
+}
+
+.slip-line {
+  display: grid;
+  grid-template-columns: minmax(5.2rem, .8fr) minmax(0, 1.35fr);
+  gap: .75rem;
+  align-items: start;
+  padding: .24rem 0;
+  font-size: .68rem;
+  line-height: 1.25;
+}
+
+.slip-line span {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--receipt-muted);
+}
+
+.slip-line strong {
+  min-width: 0;
+  text-align: right;
+  font-weight: 900;
+  color: var(--receipt-ink);
+  overflow-wrap: anywhere;
+}
+
+.slip-note {
+  text-align: center;
+  font-size: .66rem;
+  line-height: 1.45;
+  color: var(--receipt-muted);
+}
+
+.slip-footer {
+  margin-top: .85rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-zigzag {
+  height: .65rem;
+  background:
+    linear-gradient(135deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem,
+    linear-gradient(225deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem;
+}
+
+.slip-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .6rem;
+  width: min(25.5rem, calc(100vw - 2rem));
+}
+
+.slip-actions > * {
+  min-width: 6.8rem;
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+@keyframes slip-print {
+  0% {
+    transform: translate3d(0, -93%, 0) scaleY(.18);
+    opacity: .72;
+  }
+  58% {
+    transform: translate3d(0, -8%, 0) scaleY(.98);
+    opacity: 1;
+  }
+  76% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
+  100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+@keyframes slip-led {
+  0%, 100% { opacity: .45; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@media (max-width: 420px) {
+  .slip-overlay { justify-content: flex-start; }
+  .slip-machine { min-height: 33.5rem; padding-top: 4.65rem; }
+  .slip-printer { height: 4.8rem; }
+  .slip-window { width: min(19.2rem, 81vw); }
+  .slip-paper-inner { padding-inline: .92rem; }
+  .slip-line { grid-template-columns: minmax(4.65rem, .72fr) minmax(0, 1.2fr); font-size: .61rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1056,6 +1890,7 @@ body > div > :not(.liquid-atmosphere) {
   }
   .motion-ready { opacity: 1 !important; transform: none !important; filter: none !important; }
   .cinematic-ambient { transform: none; }
+  .slip-paper, .slip-printer-led { animation: none !important; }
 }
 
 @media (max-width: 640px) {
@@ -1142,6 +1977,281 @@ body > div > :not(.liquid-atmosphere) {
   to {
     transform: rotate(360deg);
   }
+}
+
+
+/* ---------- Skyline receipt printer ---------- */
+.slip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow-y: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    radial-gradient(70% 55% at 50% 18%, color-mix(in oklab, var(--receipt-machine-edge) 22%, transparent), transparent 64%),
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-scene) 94%, white 6%), var(--receipt-scene));
+  color: var(--receipt-ink);
+}
+
+.slip-close {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  top: max(1rem, env(safe-area-inset-top));
+  z-index: 3;
+  border-color: color-mix(in oklab, var(--receipt-machine-edge) 38%, transparent);
+  background: color-mix(in oklab, var(--receipt-paper) 86%, transparent);
+  color: var(--receipt-ink);
+  box-shadow: 0 1rem 2rem color-mix(in oklab, var(--receipt-shadow) 70%, transparent);
+}
+
+.slip-machine {
+  position: relative;
+  width: min(25.5rem, calc(100vw - 2rem));
+  min-height: 35rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 5.1rem;
+  perspective: 900px;
+}
+
+.slip-printer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  width: min(22rem, 86vw);
+  height: 5.35rem;
+  transform: translateX(-50%);
+  border-radius: 1.25rem 1.25rem .85rem .85rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 96%, white 4%), color-mix(in oklab, var(--receipt-machine-edge) 34%, var(--receipt-paper))),
+    var(--receipt-machine);
+  box-shadow:
+    0 .32rem .2rem color-mix(in oklab, white 72%, transparent) inset,
+    0 -.65rem 1rem color-mix(in oklab, var(--receipt-machine-edge) 40%, transparent) inset,
+    0 1.8rem 2.8rem color-mix(in oklab, var(--receipt-shadow) 72%, transparent);
+}
+
+.slip-printer::before,
+.slip-printer::after {
+  content: "";
+  position: absolute;
+  bottom: -.65rem;
+  width: 2rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--receipt-paper), color-mix(in oklab, var(--receipt-machine-edge) 48%, var(--receipt-paper)));
+  box-shadow: 0 1.2rem 1.5rem color-mix(in oklab, var(--receipt-shadow) 55%, transparent);
+}
+
+.slip-printer::before { left: -.72rem; }
+.slip-printer::after { right: -.72rem; }
+
+.slip-printer-cap {
+  position: absolute;
+  inset: .55rem .85rem auto;
+  height: .48rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, white 68%, transparent);
+  filter: blur(.5px);
+}
+
+.slip-printer-slot {
+  position: absolute;
+  left: 1.55rem;
+  right: 1.55rem;
+  bottom: 1.15rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-machine-edge) 72%, black 10%), color-mix(in oklab, var(--receipt-ink) 58%, var(--receipt-machine-edge)));
+  box-shadow:
+    0 .28rem .58rem color-mix(in oklab, black 35%, transparent) inset,
+    0 -.15rem .2rem color-mix(in oklab, white 35%, transparent) inset;
+}
+
+.slip-printer-led {
+  position: absolute;
+  right: 2.15rem;
+  bottom: 2.72rem;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 1rem color-mix(in oklab, var(--cyan) 70%, transparent);
+  animation: slip-led 1.35s ease-in-out infinite;
+}
+
+.slip-window {
+  position: relative;
+  z-index: 2;
+  width: min(20.7rem, 78vw);
+  overflow: hidden;
+  padding-top: .05rem;
+}
+
+.slip-paper {
+  position: relative;
+  width: 100%;
+  transform-origin: center top;
+  animation: slip-print 1.55s cubic-bezier(.17, .84, .32, 1.04) both;
+  filter: drop-shadow(0 1.6rem 1.55rem color-mix(in oklab, var(--receipt-shadow) 60%, transparent));
+}
+
+.slip-paper-inner {
+  min-height: 29.5rem;
+  padding: 1.25rem 1.18rem 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--receipt-paper) 99%, white 1%), color-mix(in oklab, var(--receipt-scene) 13%, var(--receipt-paper))),
+    var(--receipt-paper);
+  border-left: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--receipt-line) 60%, transparent);
+}
+
+.slip-brand {
+  display: grid;
+  justify-items: center;
+  gap: .18rem;
+  text-align: center;
+}
+
+.slip-brand img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.slip-brand-name {
+  margin-top: .15rem;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-brand-tag,
+.slip-datetime {
+  font-size: .54rem;
+  font-weight: 800;
+  color: var(--receipt-muted);
+}
+
+.slip-status {
+  margin-top: 1rem;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  color: var(--receipt-ink);
+}
+
+.slip-amount {
+  margin-top: .22rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 7vw, 2.35rem);
+  font-weight: 950;
+  color: var(--brand);
+}
+
+.slip-divider {
+  height: 1px;
+  margin: .85rem 0;
+  background: repeating-linear-gradient(90deg, var(--receipt-line) 0 9px, transparent 9px 16px);
+}
+
+.slip-line {
+  display: grid;
+  grid-template-columns: minmax(5.2rem, .8fr) minmax(0, 1.35fr);
+  gap: .75rem;
+  align-items: start;
+  padding: .24rem 0;
+  font-size: .68rem;
+  line-height: 1.25;
+}
+
+.slip-line span {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--receipt-muted);
+}
+
+.slip-line strong {
+  min-width: 0;
+  text-align: right;
+  font-weight: 900;
+  color: var(--receipt-ink);
+  overflow-wrap: anywhere;
+}
+
+.slip-note {
+  text-align: center;
+  font-size: .66rem;
+  line-height: 1.45;
+  color: var(--receipt-muted);
+}
+
+.slip-footer {
+  margin-top: .85rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--brand);
+}
+
+.slip-zigzag {
+  height: .65rem;
+  background:
+    linear-gradient(135deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem,
+    linear-gradient(225deg, var(--receipt-paper) 35%, transparent 35%) 0 0 / .8rem .8rem;
+}
+
+.slip-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .6rem;
+  width: min(25.5rem, calc(100vw - 2rem));
+}
+
+.slip-actions > * {
+  min-width: 6.8rem;
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+}
+
+@keyframes slip-print {
+  0% {
+    transform: translate3d(0, -93%, 0) scaleY(.18);
+    opacity: .72;
+  }
+  58% {
+    transform: translate3d(0, -8%, 0) scaleY(.98);
+    opacity: 1;
+  }
+  76% { transform: translate3d(0, 1.1rem, 0) scaleY(1); }
+  100% { transform: translate3d(0, 0, 0) scaleY(1); }
+}
+
+@keyframes slip-led {
+  0%, 100% { opacity: .45; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@media (max-width: 420px) {
+  .slip-overlay { justify-content: flex-start; }
+  .slip-machine { min-height: 33.5rem; padding-top: 4.65rem; }
+  .slip-printer { height: 4.8rem; }
+  .slip-window { width: min(19.2rem, 81vw); }
+  .slip-paper-inner { padding-inline: .92rem; }
+  .slip-line { grid-template-columns: minmax(4.65rem, .72fr) minmax(0, 1.2fr); font-size: .61rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

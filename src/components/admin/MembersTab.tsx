@@ -2,10 +2,11 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, Loader2, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, Loader2, ReceiptText, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,11 +87,32 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
   const [moneyTarget, setMoneyTarget] = useState<any | null>(null);
+  const [mentorshipSlip, setMentorshipSlip] = useState<PaymentSlipData | null>(null);
 
   const setMentorship = useServerFn(adminSetMentorship);
   const mentorship = useMutation({
     mutationFn: (input: Record<string, unknown>) => setMentorship({ data: input } as never),
-    onSuccess: () => {
+    onSuccess: (_result, input) => {
+      if (input["printSlip"] && moneyTarget) {
+        const total = Number(input["feeTotal"] ?? moneyTarget.mentorship_fee_pkr ?? 50000);
+        const received = Number(input["paid"] ?? moneyTarget.mentorship_paid_pkr ?? 0);
+        const remaining = Math.max(total - received, 0);
+        setMentorshipSlip({
+          kind: "mentorship",
+          title: "Personal Mentorship Amount",
+          buyerName: moneyTarget.full_name,
+          buyerId: moneyTarget.member_id,
+          rank: moneyTarget.levels?.name ?? null,
+          amount: received,
+          totalAmount: total,
+          remainingAmount: remaining,
+          status: remaining <= 0 ? "Amount complete" : "Part payment received",
+          note: remaining <= 0
+            ? "Training unlocks after admin verification. Keep this receipt for your record."
+            : "Remaining amount must be completed before the deadline.",
+          submittedAt: new Date(),
+        });
+      }
       toast.success("Personal Mentorship updated");
       setMoneyTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
@@ -356,6 +378,12 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         pending={mentorship.isPending}
       />
 
+      <PaymentSlip
+        open={mentorshipSlip !== null}
+        data={mentorshipSlip}
+        onClose={() => setMentorshipSlip(null)}
+      />
+
       <Dialog open={credentials !== null} onOpenChange={() => setCredentials(null)}>
         <DialogContent className="rounded-3xl">
           <DialogHeader>
@@ -589,6 +617,17 @@ function MentorshipDialog({
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Save amount
+          </Button>
+
+          <Button
+            variant="outline"
+            size="xl"
+            className="w-full"
+            disabled={pending}
+            onClick={() => onSave({ id: member.id, feeTotal: total, paid: received, printSlip: true })}
+          >
+            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ReceiptText className="h-4 w-4" />}
+            Save amount & print receipt
           </Button>
 
           <div className="grid grid-cols-2 gap-2">

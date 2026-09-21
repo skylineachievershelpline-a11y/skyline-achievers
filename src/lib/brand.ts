@@ -34,6 +34,7 @@ export const ACCOUNT_STATUS_LABEL: Record<string, string> = {
 };
 
 export const RESOURCE_TYPE_LABEL: Record<string, string> = {
+  video: "Video",
   pdf: "PDF",
   audio: "Audio",
   presentation: "Presentation",

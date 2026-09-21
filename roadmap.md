@@ -166,3 +166,9 @@
 - [x] Use mobile number + 00000000 for new Beginners accounts and add secure upline reset
 - [x] Add account-persisted threaded Skyline Achievers AI with strict access/privacy rules
 - [ ] Verify phone, desktop, authentication, reset, and two separate AI threads
+
+## Animated Skyline AI mascot
+- [ ] Use the supplied Skyline robot as the AI identity
+- [ ] Add an articulated flying robot shortcut on the member dashboard
+- [ ] Add thinking and answer-ready robot reactions inside AI chat
+- [ ] Verify mobile layout, motion fallback, and build health

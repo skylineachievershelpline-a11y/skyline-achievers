@@ -261,8 +261,13 @@ export const adminEditMember = createServerFn({ method: "POST" })
     }
     if (data.status !== undefined) patch["status"] = data.status;
     if (data.notes !== undefined) patch["notes"] = data.notes;
+    if (data.uplineId !== undefined) {
+      if (data.uplineId === data.id) throw new Error("A member cannot be their own upline.");
+      patch["upline_id"] = data.uplineId;
+    }
     return adminUpdateMember(data.id, patch);
   });
+
 
 export const adminResetPassword = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; newPassword?: string | null }) =>

@@ -30,6 +30,7 @@ import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getMemberSession, getNotifications } from "@/lib/member.functions";
+import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -89,8 +90,8 @@ export function useTrainingOnly() {
   const [hasSession, setHasSession] = useState(false);
   useEffect(() => {
     let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active) setHasSession(Boolean(data.session));
+    void getAccessToken().then((token) => {
+      if (active) setHasSession(Boolean(token));
     });
     return () => {
       active = false;
@@ -137,11 +138,11 @@ export function MemberShell({
   const [hasSession, setHasSession] = useState(false);
   useEffect(() => {
     let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active) setHasSession(Boolean(data.session));
+    void getAccessToken().then((token) => {
+      if (active) setHasSession(Boolean(token));
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setHasSession(Boolean(session));
+      setHasSession(Boolean(session?.access_token));
     });
     return () => {
       active = false;

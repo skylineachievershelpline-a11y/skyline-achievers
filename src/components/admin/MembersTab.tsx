@@ -92,6 +92,8 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       setCredentials(result);
       void queryClient.invalidateQueries({ queryKey: ["admin-members"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-uplines"] });
+
     },
     onError: (error: Error) => toast.error(error.message),
   });

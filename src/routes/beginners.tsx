@@ -283,7 +283,11 @@ function BeginnersPage() {
         toast.error("Enter the session code to open this session first.");
         return;
       }
-      setFocused({ ...result.session, extras: result.extras ?? [] });
+      setFocused({
+        ...result.session,
+        extras: result.extras ?? [],
+        sections: result.sections ?? [],
+      });
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error: Error) => toast.error(error.message),

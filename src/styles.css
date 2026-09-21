@@ -647,6 +647,53 @@
   animation-timing-function: cubic-bezier(.15, .72, .19, 1);
 }
 
+.slip-member-profile {
+  margin: .9rem 0 .75rem;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  border: 1px solid hsl(var(--receipt-line));
+  border-radius: .9rem;
+  padding: .65rem;
+  text-align: left;
+}
+
+.slip-member-profile img,
+.slip-member-profile span {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid hsl(var(--brand));
+}
+
+.slip-member-profile span {
+  display: grid;
+  place-items: center;
+  background: hsl(var(--brand) / .12);
+  color: hsl(var(--brand));
+  font-weight: 900;
+}
+
+.slip-member-profile strong,
+.slip-member-profile small {
+  display: block;
+  line-height: 1.25;
+}
+
+.slip-member-profile strong {
+  color: hsl(var(--receipt-ink));
+  font-size: .78rem;
+}
+
+.slip-member-profile small {
+  margin-top: .18rem;
+  color: hsl(var(--receipt-muted));
+  font-size: .62rem;
+  font-weight: 800;
+}
+
 @keyframes slip-print {
   0% {
     transform: translate3d(0, -93%, 0) scaleY(.18);

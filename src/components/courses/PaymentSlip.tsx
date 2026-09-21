@@ -13,6 +13,7 @@ export type PaymentSlipData = {
   buyerName: string;
   buyerId?: string | null;
   rank?: string | null;
+  avatarUrl?: string | null;
   method?: string | null;
   amount: number;
   totalAmount?: number | null;
@@ -63,6 +64,7 @@ function details(data: PaymentSlipData): Array<[string, string]> {
     return [
       ["Member", data.buyerName],
       ["Skyline ID", data.buyerId ?? "—"],
+      ["Rank", data.rank ?? "—"],
       ["Report Period", data.rangeLabel ?? "—"],
       ["Total Days", String(rows.length)],
       ["Leads", String(total("leads"))],
@@ -347,6 +349,7 @@ export function PaymentSlip({
   const time = stamp.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const title = slipTitle(data);
   const number = receiptNumber(data);
+  const showReportProfile = data.kind === "daily-report" && (data.avatarUrl || data.rank);
 
   async function saveSlip() {
     if (!data) return;
@@ -412,6 +415,20 @@ export function PaymentSlip({
               <p className="slip-datetime">
                 {date} • {time} • {number}
               </p>
+
+              {showReportProfile ? (
+                <div className="slip-member-profile">
+                  {data.avatarUrl ? (
+                    <img src={data.avatarUrl} alt={`${data.buyerName} profile`} />
+                  ) : (
+                    <span>{data.buyerName.trim().slice(0, 1).toUpperCase() || "S"}</span>
+                  )}
+                  <div>
+                    <strong>{data.buyerName}</strong>
+                    <small>{data.buyerId ?? "—"} • {data.rank ?? "Rank not set"}</small>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="slip-divider" />
 

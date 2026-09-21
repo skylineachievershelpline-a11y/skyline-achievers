@@ -90,9 +90,10 @@ export const adminGetMemberDashboard = createServerFn({ method: "POST" })
     const [{ data: reports }, { data: trainees }, { data: watch }] = await Promise.all([
       supabaseAdmin
         .from("member_daily_reports")
-        .select("report_date, leads_count, rate_per_lead, is_absent")
+        .select("report_date, leads_count, rate_per_lead, is_absent, responses, enrollments, pending_count, two_cc, mentorship_paid")
         .eq("member_id", member.id)
-        .gte("report_date", from),
+        .gte("report_date", from)
+        .order("report_date", { ascending: false }),
       supabaseAdmin.from("trainees").select("id, status").eq("upline_id", member.id),
       supabaseAdmin
         .from("watch_positions")
@@ -130,6 +131,16 @@ export const adminGetMemberDashboard = createServerFn({ method: "POST" })
         team: teamRows.length,
         activeTeam: teamRows.filter((row) => row.status === "active").length,
       },
+      dailyReport: dailyRows.map((row) => ({
+        date: row.report_date as string,
+        leads: Number(row.leads_count ?? 0),
+        responses: Number((row as any).responses ?? 0),
+        enrollments: Number((row as any).enrollments ?? 0),
+        pending: Number((row as any).pending_count ?? 0),
+        twoCc: Number((row as any).two_cc ?? 0),
+        mentorshipPaid: Number((row as any).mentorship_paid ?? 0),
+        absent: Boolean(row.is_absent),
+      })),
       recentActivity: (watch ?? []).filter((row) => (row as any).lectures),
     };
   });

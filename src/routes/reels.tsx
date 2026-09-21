@@ -20,7 +20,6 @@ import { EmptyState } from "@/components/member/cards";
 import {
   MemberShell,
   useMemberGuard,
-  useTrainingOnly,
 } from "@/components/member/MemberShell";
 import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,6 @@ function reelFileName(title: string): string {
 
 function ReelsPage() {
   const ready = useMemberGuard();
-  const trainingOnly = useTrainingOnly();
   const queryClient = useQueryClient();
   const load = useServerFn(getReels);
   const remove = useServerFn(deleteReel);

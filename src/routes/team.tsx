@@ -29,7 +29,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
-import { deleteTrainee, getMyTeam, resetTraineePassword, setTraineeStatus } from "@/lib/team.functions";
+import {
+  deleteTrainee,
+  getMyFboTeam,
+  getMyTeam,
+  resetTraineePassword,
+  setTraineeStatus,
+} from "@/lib/team.functions";
+
 
 export const Route = createFileRoute("/team")({
   head: () => ({

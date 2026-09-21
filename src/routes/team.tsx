@@ -70,6 +70,8 @@ function TeamPage() {
   const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [tab, setTab] = useState<"fbo" | "customers">("fbo");
+
 
   const { data, isPending } = useQuery({
     queryKey: ["my-team"],

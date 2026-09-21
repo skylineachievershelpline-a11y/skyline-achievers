@@ -157,3 +157,12 @@
 - [x] Filter categories by the selected resource type
 - [x] Show multiple matching items inside each category
 - [x] Open pictures in a full-width in-page preview
+
+
+## Complete dashboard, training, account, and Skyline AI update
+- [ ] Restore Resources to a direct list and fix empty admin-created Training categories
+- [ ] Collapse dashboard report details and fit full Member ID/rank on one line
+- [ ] Correct desktop testimony video framing
+- [ ] Use mobile number + 00000000 for new Beginners accounts and add secure upline reset
+- [ ] Add account-persisted threaded Skyline Achievers AI with strict access/privacy rules
+- [ ] Verify phone, desktop, authentication, reset, and two separate AI threads

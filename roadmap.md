@@ -194,3 +194,9 @@
 - [x] Validate picture type, size and conversation limits in the browser and server
 - [x] Add factual, respectful scam/fraud verification guidance without pressure or guarantees
 - [ ] Verify public and signed-in picture understanding plus trust answers on phone and desktop
+
+## Dashboard report and profile corrections
+- [ ] Hide only the daily report table while keeping dashboard tracking visible
+- [ ] Center the member name vertically beside the profile picture
+- [ ] Preserve spaces and new lines in the dashboard bio
+- [ ] Verify the dashboard corrections on phone width

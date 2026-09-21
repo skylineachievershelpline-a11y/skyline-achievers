@@ -656,6 +656,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
     (data: {
       id?: string;
       lectureId?: string | null;
+      sectionId?: string | null;
       resourceType: string;
       title: string;
       description?: string | null;
@@ -670,6 +671,7 @@ export const adminSaveResource = createServerFn({ method: "POST" })
         .object({
           id: uuid.optional(),
           lectureId: uuid.nullish(),
+          sectionId: uuid.nullish(),
           resourceType: z.enum(["pdf", "audio", "presentation", "book", "link", "note", "image"]),
           title: text(160),
           description: optionalText(1000),
@@ -688,6 +690,8 @@ export const adminSaveResource = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload = {
       lecture_id: data.lectureId ?? null,
+      section_id: data.sectionId ?? null,
+
 
       series_id: null,
       resource_type: data.resourceType,

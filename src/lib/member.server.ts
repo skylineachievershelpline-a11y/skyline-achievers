@@ -26,17 +26,30 @@ export type MemberContext = {
   avatarUrl: string | null;
   dashboardCoverUrl: string | null;
   bio: string | null;
+  /** Personal Mentorship money and deadline columns, straight from the row. */
+  mentorship: {
+    feeTotal: number;
+    feePaid: number;
+    dueAt: string | null;
+    extensions: number;
+    completedAt: string | null;
+    ccDueAt: string | null;
+    ccExtensions: number;
+    trainingLocked: boolean;
+    levelSince: string | null;
+  };
 };
 
 export async function loadMemberContext(db: Db, userId: string): Promise<MemberContext | null> {
   const { data, error } = await db
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, status, working_enabled, email, phone, avatar_path, dashboard_cover_path, bio, created_at, last_login_at, levels:level_id (id, name, slug, rank_order)",
+      "id, member_id, full_name, status, working_enabled, email, phone, avatar_path, dashboard_cover_path, bio, created_at, last_login_at, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_extensions, mentorship_completed_at, cc_due_at, cc_extensions, training_locked, level_since, levels:level_id (id, name, slug, rank_order)",
     )
     .eq("id", userId)
     .maybeSingle();
   if (error || !data) return null;
+  const row = data as any;
   return {
     accountId: data.id,
     memberId: data.member_id,
@@ -55,7 +68,26 @@ export async function loadMemberContext(db: Db, userId: string): Promise<MemberC
     ),
     bio: data.bio ?? null,
     level: (data as any).levels ?? null,
+    mentorship: {
+      feeTotal: Number(row.mentorship_fee_pkr ?? 0),
+      feePaid: Number(row.mentorship_paid_pkr ?? 0),
+      dueAt: row.mentorship_due_at ?? null,
+      extensions: Number(row.mentorship_extensions ?? 0),
+      completedAt: row.mentorship_completed_at ?? null,
+      ccDueAt: row.cc_due_at ?? null,
+      ccExtensions: Number(row.cc_extensions ?? 0),
+      trainingLocked: row.training_locked === true,
+      levelSince: row.level_since ?? null,
+    },
   };
+}
+
+/** Case Credits this member has reported since reaching the current level. */
+export async function loadCaseCredits(db: Db, userId: string, since: string | null) {
+  let query = db.from("member_daily_reports").select("two_cc, report_date").eq("member_id", userId);
+  if (since) query = query.gte("report_date", since.slice(0, 10));
+  const { data } = await query;
+  return (data ?? []).reduce((sum: number, row: any) => sum + Number(row.two_cc ?? 0), 0);
 }
 
 /**

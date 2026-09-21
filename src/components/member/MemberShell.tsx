@@ -85,7 +85,7 @@ const WORKING_ROUTES: string[] = ["/team", "/seats", "/chat", "/leave"];
  * true when the admin gave this account training access only, so every
  * working area (earnings, team, reels, messages) must stay locked.
  */
-export function useTrainingOnly() {
+function useMemberAccess() {
   const loadSession = useServerFn(getMemberSession);
   const [hasSession, setHasSession] = useState(false);
   useEffect(() => {
@@ -103,7 +103,17 @@ export function useTrainingOnly() {
     enabled: hasSession,
     retry: false,
   });
+  return data ?? null;
+}
+
+export function useTrainingOnly() {
+  const data = useMemberAccess();
   return data?.member ? data.member.workingEnabled === false : false;
+}
+
+/** Personal Mentorship money + target state for the signed-in member. */
+export function useMemberProgress() {
+  return useMemberAccess()?.progress ?? null;
 }
 
 export function MemberShell({

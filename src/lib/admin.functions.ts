@@ -252,6 +252,96 @@ export const adminResetPassword = createServerFn({ method: "POST" })
     return adminResetMemberPassword(data.id, data.newPassword ?? null);
   });
 
+/**
+ * Personal Mentorship money, deadline extensions and the training lock.
+ * A short payment can be recorded any number of times; each extra day granted
+ * counts as one warning step and only three are allowed.
+ */
+export const adminSetMentorship = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id: string;
+      feeTotal?: number;
+      paid?: number;
+      grantDay?: boolean;
+      grantCcDay?: boolean;
+      trainingLocked?: boolean;
+      resetCcTimer?: boolean;
+    }) =>
+      z
+        .object({
+          id: uuid,
+          feeTotal: z.number().min(0).max(10_000_000).optional(),
+          paid: z.number().min(0).max(10_000_000).optional(),
+          grantDay: z.boolean().optional(),
+          grantCcDay: z.boolean().optional(),
+          trainingLocked: z.boolean().optional(),
+          resetCcTimer: z.boolean().optional(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { MAX_MENTORSHIP_EXTENSIONS, MAX_CC_EXTENSIONS, CC_DAYS } = await import("./mentorship");
+
+    const { data: row, error: readError } = await (supabaseAdmin as any)
+      .from("member_profiles")
+      .select(
+        "mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_extensions, mentorship_completed_at, cc_due_at, cc_extensions",
+      )
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readError || !row) throw new Error("Member not found.");
+
+    const now = Date.now();
+    const patch: Record<string, string | number | boolean | null> = {};
+    const feeTotal = data.feeTotal ?? Number(row.mentorship_fee_pkr ?? 0);
+    const paid = data.paid ?? Number(row.mentorship_paid_pkr ?? 0);
+    if (data.feeTotal !== undefined) patch["mentorship_fee_pkr"] = data.feeTotal;
+    if (data.paid !== undefined) patch["mentorship_paid_pkr"] = data.paid;
+
+    if (data.grantDay) {
+      const used = Number(row.mentorship_extensions ?? 0);
+      if (used >= MAX_MENTORSHIP_EXTENSIONS) {
+        throw new Error("All 3 extra days are used. Clear the amount or block the account.");
+      }
+      patch["mentorship_extensions"] = used + 1;
+      const base = Math.max(now, new Date(row.mentorship_due_at ?? now).getTime());
+      patch["mentorship_due_at"] = new Date(base + 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    if (data.grantCcDay) {
+      const used = Number(row.cc_extensions ?? 0);
+      if (used >= MAX_CC_EXTENSIONS) throw new Error("All extra days for this target are used.");
+      patch["cc_extensions"] = used + 1;
+      const base = Math.max(now, new Date(row.cc_due_at ?? now).getTime());
+      patch["cc_due_at"] = new Date(base + 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    if (data.resetCcTimer) {
+      patch["cc_due_at"] = new Date(now + CC_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      patch["cc_extensions"] = 0;
+    }
+
+    if (data.trainingLocked !== undefined) patch["training_locked"] = data.trainingLocked;
+
+    // Amount complete: unlock training and start the CC week.
+    if (paid >= feeTotal && !row.mentorship_completed_at) {
+      patch["mentorship_completed_at"] = new Date(now).toISOString();
+      patch["training_locked"] = false;
+      patch["cc_due_at"] = new Date(now + CC_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      patch["cc_extensions"] = 0;
+    }
+    if (paid < feeTotal && row.mentorship_completed_at && data.paid !== undefined) {
+      patch["mentorship_completed_at"] = null;
+    }
+
+    const { adminUpdateMember } = await import("./admin.server");
+    return adminUpdateMember(data.id, patch);
+  });
+
 export const adminUpdateNotification = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; title: string; body?: string | null; audienceLevelId?: string | null }) =>
     z

@@ -174,6 +174,8 @@ export async function adminCreateMember(input: {
   email: string | null;
   phone: string | null;
   levelId: string;
+  /** Every new member must sit under an upline account. */
+  uplineId: string;
   status: string;
   workingEnabled: boolean;
   /** Personal Mentorship total and any amount already received. */
@@ -186,6 +188,16 @@ export async function adminCreateMember(input: {
     .eq("id", input.levelId)
     .maybeSingle();
   if (!level) throw new Error("Selected training level no longer exists.");
+
+  const { data: upline } = await supabaseAdmin
+    .from("member_profiles")
+    .select("id, status")
+    .eq("id", input.uplineId)
+    .maybeSingle();
+  if (!upline || upline.status === "removed") {
+    throw new Error("Select a valid upline account.");
+  }
+
 
   const { data: generatedId, error: idError } = await supabaseAdmin.rpc("generate_member_id");
   if (idError || !generatedId) throw new Error("Could not generate a Member ID. Please try again.");

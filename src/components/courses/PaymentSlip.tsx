@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 
 export type PaymentSlipData = {
-  kind?: "course" | "mentorship";
+  kind?: "course" | "mentorship" | "daily-report";
   title?: string;
   courseTitle?: string;
   buyerName: string;
@@ -22,6 +22,16 @@ export type PaymentSlipData = {
   status?: string | null;
   note?: string | null;
   receiptId?: string | null;
+  rangeLabel?: string | null;
+  reportRows?: Array<{
+    date: string;
+    leads: number;
+    responses: number;
+    enrollments: number;
+    pending: number;
+    twoCc: number;
+    mentorshipPaid: number;
+  }> | null;
   submittedAt: Date;
 };
 
@@ -34,6 +44,7 @@ function cleanFileName(value: string) {
 }
 
 function slipTitle(data: PaymentSlipData) {
+  if (data.kind === "daily-report") return data.title ?? "Daily Working Report";
   return data.title ?? data.courseTitle ?? "Personal Mentorship Amount";
 }
 
@@ -45,6 +56,23 @@ function receiptNumber(data: PaymentSlipData) {
 }
 
 function details(data: PaymentSlipData): Array<[string, string]> {
+  if (data.kind === "daily-report") {
+    const rows = data.reportRows ?? [];
+    const total = (key: keyof NonNullable<PaymentSlipData["reportRows"]>[number]) =>
+      rows.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+    return [
+      ["Member", data.buyerName],
+      ["Skyline ID", data.buyerId ?? "—"],
+      ["Report Period", data.rangeLabel ?? "—"],
+      ["Total Days", String(rows.length)],
+      ["Leads", String(total("leads"))],
+      ["Response", String(total("responses"))],
+      ["Enrollments", String(total("enrollments"))],
+      ["Pending", String(total("pending"))],
+      ["2CC", String(total("twoCc"))],
+      ["PM Fee", String(total("mentorshipPaid"))],
+    ];
+  }
   if (data.kind === "mentorship") {
     return [
       ["Member", data.buyerName],
@@ -66,6 +94,81 @@ function details(data: PaymentSlipData): Array<[string, string]> {
     ["Skyline ID", data.buyerId ?? "—"],
     ["Status", data.status ?? "Under verification"],
   ];
+}
+
+function slipPrimaryValue(data: PaymentSlipData) {
+  if (data.kind === "daily-report") {
+    const rows = data.reportRows ?? [];
+    const totalLeads = rows.reduce((sum, row) => sum + row.leads, 0);
+    return `${rows.length} DAY${rows.length === 1 ? "" : "S"} • ${totalLeads} LEADS`;
+  }
+  return money(data.amount);
+}
+
+function slipStatus(data: PaymentSlipData) {
+  if (data.kind === "daily-report") return "DAILY WORKING REPORT";
+  if (data.kind === "mentorship") return "PERSONAL MENTORSHIP RECEIPT";
+  return "PAYMENT SUBMITTED";
+}
+
+function slipFooter(data: PaymentSlipData) {
+  return data.kind === "daily-report" ? "REPORT PRINTED BY SKYLINE ACHIEVERS" : "THANK YOU FOR YOUR PAYMENT";
+}
+
+function playPrinterSound() {
+  const AudioContextCtor = window.AudioContext ?? window.webkitAudioContext;
+  if (!AudioContextCtor) return () => undefined;
+  const context = new AudioContextCtor();
+  const gain = context.createGain();
+  const filter = context.createBiquadFilter();
+  const oscillator = context.createOscillator();
+  const bufferSize = context.sampleRate * 2.4;
+  const noiseBuffer = context.createBuffer(1, bufferSize, context.sampleRate);
+  const channel = noiseBuffer.getChannelData(0);
+
+  for (let index = 0; index < channel.length; index += 1) {
+    const pulse = index % 900 < 160 ? 0.8 : 0.24;
+    channel[index] = (Math.random() * 2 - 1) * pulse;
+  }
+
+  const noise = context.createBufferSource();
+  noise.buffer = noiseBuffer;
+  filter.type = "bandpass";
+  filter.frequency.setValueAtTime(760, context.currentTime);
+  filter.frequency.linearRampToValueAtTime(1180, context.currentTime + 1.7);
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(92, context.currentTime);
+  oscillator.frequency.linearRampToValueAtTime(66, context.currentTime + 2.2);
+  gain.gain.setValueAtTime(0.0001, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.08);
+  gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 1.9);
+  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 2.45);
+  noise.connect(filter);
+  oscillator.connect(filter);
+  filter.connect(gain);
+  gain.connect(context.destination);
+
+  void context.resume().catch(() => undefined);
+  noise.start();
+  oscillator.start();
+  noise.stop(context.currentTime + 2.5);
+  oscillator.stop(context.currentTime + 2.5);
+
+  const timer = window.setTimeout(() => void context.close().catch(() => undefined), 2700);
+  return () => {
+    window.clearTimeout(timer);
+    try {
+      noise.stop();
+    } catch {
+      /* already stopped */
+    }
+    try {
+      oscillator.stop();
+    } catch {
+      /* already stopped */
+    }
+    void context.close().catch(() => undefined);
+  };
 }
 
 async function blobFromCanvas(canvas: HTMLCanvasElement) {
@@ -135,10 +238,10 @@ async function createReceiptImage(data: PaymentSlipData) {
 
   ctx.fillStyle = ink;
   ctx.font = "800 30px Outfit, sans-serif";
-  ctx.fillText(data.kind === "mentorship" ? "PERSONAL MENTORSHIP RECEIPT" : "PAYMENT RECEIPT", 210, 380);
+  ctx.fillText(slipStatus(data), 210, 380);
   ctx.fillStyle = blue;
   ctx.font = "800 66px Outfit, sans-serif";
-  ctx.fillText(money(data.amount), 210, 465);
+  ctx.fillText(slipPrimaryValue(data), 210, 465);
 
   const stamp = data.submittedAt;
   const date = stamp.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -178,7 +281,7 @@ async function createReceiptImage(data: PaymentSlipData) {
   ctx.fillText(data.note ?? "Keep this receipt for your record.", 540, y + 50);
   ctx.fillStyle = blue;
   ctx.font = "800 24px Outfit, sans-serif";
-  ctx.fillText("THANK YOU FOR YOUR PAYMENT", 540, y + 105);
+  ctx.fillText(slipFooter(data), 540, y + 105);
 
   return blobFromCanvas(canvas);
 }
@@ -229,6 +332,11 @@ export function PaymentSlip({
       document.body.style.overflow = previous;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    return playPrinterSound();
+  }, [open, data?.receiptId, data?.submittedAt]);
 
   if (!mounted || !open || !data) return null;
 
@@ -296,9 +404,9 @@ export function PaymentSlip({
               </div>
 
               <p className="slip-status">
-                {data.kind === "mentorship" ? "PERSONAL MENTORSHIP RECEIPT" : "PAYMENT SUBMITTED"}
+                {slipStatus(data)}
               </p>
-              <p className="slip-amount">{money(data.amount)}</p>
+              <p className="slip-amount">{slipPrimaryValue(data)}</p>
               <p className="slip-datetime">
                 {date} • {time} • {number}
               </p>
@@ -314,7 +422,7 @@ export function PaymentSlip({
               <p className="slip-note">
                 {data.note ?? "Keep this receipt for your record."}
               </p>
-              <p className="slip-footer">THANK YOU FOR YOUR PAYMENT</p>
+              <p className="slip-footer">{slipFooter(data)}</p>
             </div>
             <div className="slip-zigzag" aria-hidden />
           </div>

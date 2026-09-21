@@ -309,7 +309,17 @@ export function MemberShell({
           )
         : null}
 
-      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">{children}</main>
+      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">
+        {lockReason(pathname) && pathname !== "/notifications" ? (
+          <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
+            <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
+            <h1 className="mt-4 font-display text-lg font-semibold">This section is locked</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{lockReason(pathname)}</p>
+          </div>
+        ) : (
+          children
+        )}
+      </main>
     </div>
   );
 }

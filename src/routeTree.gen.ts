@@ -27,6 +27,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiAiRouteImport } from './routes/api.ai'
 import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
@@ -124,6 +125,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiRoute = ApiAiRouteImport.update({
+  id: '/api/ai',
+  path: '/api/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CourseCourseIdRoute = CourseCourseIdRouteImport.update({
   id: '/course/$courseId',
   path: '/course/$courseId',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
+  '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/training'
     | '/admin/login'
+    | '/api/ai'
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
@@ -333,6 +345,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  ApiAiRoute: typeof ApiAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
@@ -470,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai': {
+      id: '/api/ai'
+      path: '/api/ai'
+      fullPath: '/api/ai'
+      preLoaderRoute: typeof ApiAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/course/$courseId': {
       id: '/course/$courseId'
       path: '/course/$courseId'
@@ -533,6 +553,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,
+  ApiAiRoute: ApiAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,

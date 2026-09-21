@@ -187,3 +187,16 @@
 - [x] Keep Member ID copying only in My Profile
 - [x] Move profile-picture editing from the dashboard to My Profile
 - [ ] Verify the signed-in phone layout and photo save flow
+
+## AI picture sharing and trust answers
+- [x] Add one-picture attachment, preview, removal and picture-only sending to both AI chats
+- [x] Render pictures in chat and retain them in signed-in conversation history
+- [x] Validate picture type, size and conversation limits in the browser and server
+- [x] Add factual, respectful scam/fraud verification guidance without pressure or guarantees
+- [ ] Verify signed-in picture understanding and trust answers (public phone and desktop verified; preview has no signed-in member session)
+
+## Dashboard report and profile corrections
+- [x] Hide only the daily report table while keeping dashboard tracking visible
+- [x] Center the member name vertically beside the profile picture
+- [x] Preserve spaces and new lines in the dashboard bio
+- [ ] Verify the dashboard corrections on phone width (blocked until a member account is signed into the preview)

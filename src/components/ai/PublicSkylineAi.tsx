@@ -12,12 +12,16 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import {
   PromptInput,
   PromptInputFooter,
+  PromptInputHeader,
   PromptInputSubmit,
   PromptInputTextarea,
+  PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { SkylineAiMascot, type SkylineAiMascotState } from "@/components/ai/SkylineAiMascot";
+import { AiMessagePicture, AiPictureButton, AiPicturePreview } from "@/components/ai/AiPictureAttachment";
+import { toast } from "sonner";
 
 export function PublicSkylineAi() {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public/ai" }), []);
@@ -62,6 +66,9 @@ export function PublicSkylineAi() {
                       </MessageResponse>
                     );
                   }
+                  if (part.type === "file" && part.mediaType.startsWith("image/")) {
+                    return <AiMessagePicture key={index} url={part.url} filename={part.filename} />;
+                  }
                   if (part.type === "reasoning") {
                     return (
                       <Reasoning key={index} isStreaming={busy && message === messages.at(-1)} defaultOpen={false}>
@@ -89,14 +96,21 @@ export function PublicSkylineAi() {
       </Conversation>
       <div className="border-t border-hairline pt-3">
         <PromptInput
-          onSubmit={({ text }) => {
-            if (!text.trim() || busy) return;
-            void sendMessage({ text: text.trim() });
+          accept="image/jpeg,image/png,image/webp"
+          maxFiles={1}
+          maxFileSize={3 * 1024 * 1024}
+          onError={({ message }) => toast.error(message)}
+          onSubmit={({ text, files }) => {
+            if ((!text.trim() && files.length === 0) || busy) return;
+            if (text.trim()) void sendMessage({ text: text.trim(), files });
+            else void sendMessage({ files });
           }}
           className="bg-surface"
         >
+          <PromptInputHeader><AiPicturePreview /></PromptInputHeader>
           <PromptInputTextarea autoFocus placeholder="Ask about Skyline Achievers..." disabled={busy} />
-          <PromptInputFooter className="justify-end">
+          <PromptInputFooter>
+            <PromptInputTools><AiPictureButton disabled={busy} /></PromptInputTools>
             <PromptInputSubmit status={status} onStop={() => void stop()} />
           </PromptInputFooter>
         </PromptInput>

@@ -220,6 +220,8 @@ export const adminEditMember = createServerFn({ method: "POST" })
       email?: string | null;
       phone?: string | null;
       levelId?: string;
+      uplineId?: string;
+
       status?: string;
       notes?: string | null;
       workingEnabled?: boolean;

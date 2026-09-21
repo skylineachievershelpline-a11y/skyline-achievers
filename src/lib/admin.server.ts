@@ -104,7 +104,7 @@ export async function adminCreateMember(input: {
 }) {
   const { data: level } = await supabaseAdmin
     .from("levels")
-    .select("id, name")
+    .select("id, name, slug")
     .eq("id", input.levelId)
     .maybeSingle();
   if (!level) throw new Error("Selected training level no longer exists.");

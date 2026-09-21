@@ -173,3 +173,10 @@
 - [x] Add thinking and answer-ready robot reactions inside AI chat
 - [x] Verify motion fallback and build health
 - [ ] Verify the signed-in mobile dashboard animation (blocked until a member signs into the preview)
+
+## Public Skyline AI and mascot correction
+- [ ] Remove the baked picture shadow and keep one clean robot silhouette
+- [ ] Make the robot travel across the full Skyline Achievers AI button
+- [ ] Add a one-conversation, no-history public landing AI
+- [ ] Add verified Skyline Achievers information and CEO A.Q Malik photo responses
+- [ ] Verify public chat, mascot motion, phone layout, and app health

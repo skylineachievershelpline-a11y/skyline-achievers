@@ -194,7 +194,6 @@ export const adminEditMember = createServerFn({ method: "POST" })
       id: string;
       fullName?: string;
       age?: number | null;
-      cnic?: string | null;
       email?: string | null;
       phone?: string | null;
       levelId?: string;

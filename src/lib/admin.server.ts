@@ -226,6 +226,8 @@ export async function adminCreateMember(input: {
     email: input.email,
     phone: input.phone,
     level_id: input.levelId,
+    upline_id: input.uplineId,
+
     status: input.status,
     working_enabled: input.workingEnabled,
     mentorship_fee_pkr: input.feePkr ?? 50000,

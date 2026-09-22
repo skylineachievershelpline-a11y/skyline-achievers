@@ -99,6 +99,84 @@ export function defaultSchedule(startDate: Date): { session: number; day: number
   });
 }
 
+/** Pakistan is UTC+5 all year; every session time is a Pakistan time. */
+export const PKT_OFFSET_HOURS = 5;
+
+/** One row of an upline's master schedule: which day and what time. */
+export type MasterSlot = { session: number; day: number; time: string };
+
+export const DEFAULT_MASTER_SLOTS: MasterSlot[] = SESSION_PLAN.map((slot) => ({
+  session: slot.session,
+  day: slot.day,
+  time: slot.time,
+}));
+
+/** Keeps a saved master schedule to the known 7-session shape. */
+export function normalizeMasterSlots(value: unknown): MasterSlot[] {
+  const rows = Array.isArray(value) ? value : [];
+  return DEFAULT_MASTER_SLOTS.map((fallback) => {
+    const found = rows.find(
+      (entry) => Number((entry as any)?.session) === fallback.session,
+    ) as any;
+    const time = String(found?.time ?? "").match(/^\d{1,2}:\d{2}$/)
+      ? String(found.time).padStart(5, "0")
+      : fallback.time;
+    const day = Number(found?.day);
+    return {
+      session: fallback.session,
+      day: Number.isFinite(day) && day >= 1 && day <= 30 ? day : fallback.day,
+      time,
+    };
+  });
+}
+
+/** The Pakistan calendar day that the given moment falls on. */
+export function pktDayParts(ms: number): { y: number; m: number; d: number } {
+  const shifted = new Date(ms + PKT_OFFSET_HOURS * 3_600_000);
+  return { y: shifted.getUTCFullYear(), m: shifted.getUTCMonth(), d: shifted.getUTCDate() };
+}
+
+/** Turns "day 2 at 16:00 Pakistan time" into a real moment (ms since epoch). */
+export function pktSlotMs(
+  base: { y: number; m: number; d: number },
+  dayOffset: number,
+  time: string,
+): number {
+  const [hour, minute] = time.split(":").map(Number);
+  return Date.UTC(
+    base.y,
+    base.m,
+    base.d + dayOffset,
+    (hour ?? 20) - PKT_OFFSET_HOURS,
+    minute ?? 0,
+    0,
+    0,
+  );
+}
+
+/**
+ * Builds the real session date/times for one trainee from a master schedule.
+ * Day 1 is the trainee's joining day; if that day's first session time has
+ * already passed, the schedule starts the next day.
+ */
+export function scheduleFromMaster(
+  slots: MasterSlot[],
+  joinedAtMs: number,
+  nowMs = Date.now(),
+): { session: number; day: number; atIso: string }[] {
+  const rows = normalizeMasterSlots(slots);
+  const first = rows[0] ?? DEFAULT_MASTER_SLOTS[0]!;
+  let base = pktDayParts(Math.max(joinedAtMs, nowMs));
+  if (pktSlotMs(base, first.day - 1, first.time) <= nowMs) {
+    base = pktDayParts(Math.max(joinedAtMs, nowMs) + 86_400_000);
+  }
+  return rows.map((slot) => ({
+    session: slot.session,
+    day: slot.day,
+    atIso: new Date(pktSlotMs(base, slot.day - 1, slot.time)).toISOString(),
+  }));
+}
+
 /** Which session the trainee should be working on right now. */
 export function currentSessionNumber(sessions: JourneySession[]): number | null {
   for (const session of sessions) {

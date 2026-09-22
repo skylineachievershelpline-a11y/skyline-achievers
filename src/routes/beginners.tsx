@@ -54,6 +54,9 @@ import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
+import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
+import { sessionOpen, type JourneySession } from "@/lib/journey";
+import { getTraineeJourney } from "@/lib/journey.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
 import {
@@ -225,6 +228,7 @@ function BeginnersPage() {
   const play = useServerFn(playTraineeSession);
   const avatarSlot = useServerFn(getTraineeAvatarUploadUrl);
   const saveAvatarPath = useServerFn(saveTraineeAvatar);
+  const loadJourney = useServerFn(getTraineeJourney);
 
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState("");
@@ -277,6 +281,13 @@ function BeginnersPage() {
     queryFn: () => loadReels(),
     enabled: ready && view === "reels",
     staleTime: 0,
+  });
+
+  const { data: journeyData } = useQuery({
+    queryKey: ["trainee-journey"],
+    queryFn: () => loadJourney(),
+    enabled: ready,
+    retry: false,
   });
 
   const openSession = useMutation({
@@ -369,6 +380,11 @@ function BeginnersPage() {
 
   const trainee = data.trainee as any;
   const sessions = data.sessions;
+  const focusedJourneySession = focused
+    ? ((journeyData?.sessions ?? []) as JourneySession[]).find(
+        (session) => session.sessionId === focused.id,
+      ) ?? null
+    : null;
   const reels: FeedReel[] = (view === "reels" ? (reelFeed?.reels ?? []) : (data.reels ?? [])).map(
     (reel: FeedReel) => ({ ...reel, ...(reelLocal[reel.id] ?? {}) }),
   );
@@ -690,6 +706,25 @@ function BeginnersPage() {
                 </p>
               ) : null}
             </SessionGate>
+
+            {focusedJourneySession &&
+            journeyData?.stage === "sessions" &&
+            sessionOpen(focusedJourneySession) &&
+            focusedJourneySession.review !== "pending" &&
+            focusedJourneySession.review !== "approved" ? (
+              <SessionReviewForm
+                sessionNumber={focusedJourneySession.sessionNumber}
+                onSent={() => {
+                  void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
+                  setFocused(null);
+                  setView("home");
+                }}
+              />
+            ) : focusedJourneySession?.review === "pending" ? (
+              <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-300">
+                Review submitted — waiting for your upline
+              </div>
+            ) : null}
 
             <Button
               variant="outline"

@@ -8,12 +8,25 @@ import { playPrinterSound } from "@/components/courses/PaymentSlip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatTime12 } from "@/lib/format";
 import { DEFAULT_MASTER_SLOTS, type MasterSlot } from "@/lib/journey";
 import { getUplineSessionSchedule, saveUplineSessionSchedule } from "@/lib/journey.functions";
 import { createMasterSchedulePoster } from "@/lib/journey-poster";
 
 const pad = (value: number) => String(value).padStart(2, "0");
+
+const CLOCK_TIMES = Array.from({ length: 48 }, (_, index) => {
+  const hour = Math.floor(index / 2);
+  const minute = index % 2 === 0 ? "00" : "30";
+  return `${pad(hour)}:${minute}`;
+});
 
 /**
  * The upline's one master session schedule, shown as two top buttons: one opens
@@ -181,18 +194,28 @@ export function UplineMasterSchedule() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                          Time ({formatTime12(slot.time)})
-                        </Label>
-                        <Input
-                          type="time"
+                         <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                           Time
+                         </Label>
+                         <Select
                           value={slot.time}
-                          onChange={(event) => {
+                           onValueChange={(value) => {
                             const next = [...slots];
-                            next[index] = { ...slot, time: event.target.value || slot.time };
+                             next[index] = { ...slot, time: value };
                             setSlots(next);
                           }}
-                        />
+                         >
+                           <SelectTrigger aria-label={`Session ${slot.session} time`}>
+                             <SelectValue>{formatTime12(slot.time)}</SelectValue>
+                           </SelectTrigger>
+                           <SelectContent>
+                             {CLOCK_TIMES.map((time) => (
+                               <SelectItem key={time} value={time}>
+                                 {formatTime12(time)}
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
                       </div>
                     </div>
                   ))}
@@ -221,19 +244,21 @@ export function UplineMasterSchedule() {
       {view === "poster" && posterUrl ? (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/90 p-4 backdrop-blur-sm">
           <div className="my-6 w-full max-w-sm">
-            <div className="slip-printer" aria-hidden>
-              <span className="slip-printer-cap" />
-              <span className="slip-printer-slot" />
-              <span className="slip-printer-led" />
+            <div className="schedule-poster-machine">
+              <div className="slip-printer" aria-hidden>
+                <span className="slip-printer-cap" />
+                <span className="slip-printer-slot" />
+                <span className="slip-printer-led" />
+              </div>
+              <div className="schedule-poster-window">
+                <img
+                  src={posterUrl}
+                  alt="Skyline Achievers session schedule poster"
+                  className="schedule-poster-paper w-full"
+                />
+              </div>
             </div>
-            <div className="overflow-hidden rounded-b-2xl border border-hairline bg-black">
-              <img
-                src={posterUrl}
-                alt="Skyline Achievers session schedule poster"
-                className="w-full animate-rise-in"
-              />
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="schedule-poster-actions mt-3 grid grid-cols-3 gap-2">
               <Button variant="brand" className="rounded-2xl" onClick={savePoster}>
                 <Download className="h-4 w-4" />
                 Save

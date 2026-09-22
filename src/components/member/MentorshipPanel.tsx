@@ -125,3 +125,47 @@ export function MentorshipFeeCard({
     </section>
   );
 }
+
+/** Shown once the Personal Mentorship amount is complete: the 2CC money view. */
+export function CcAmountCard({
+  money,
+}: {
+  money: { total: number; received: number; remaining: number; discounted: boolean };
+}) {
+  const percent = money.total ? Math.min(100, Math.round((money.received / money.total) * 100)) : 0;
+  return (
+    <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
+      <div className="flex items-center gap-2">
+        <Wallet className="h-4 w-4 text-cyan" />
+        <h2 className="font-display text-base font-semibold">2CC amount</h2>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 text-center">
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold">{formatPkr(money.total)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Total</p>
+        </div>
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold text-cyan">{formatPkr(money.received)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Received</p>
+        </div>
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold text-destructive">
+            {formatPkr(money.remaining)}
+          </p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Remaining</p>
+        </div>
+      </div>
+
+      <Bar percent={percent} />
+
+      <p className="text-xs leading-5 text-muted-foreground">
+        Aap ki Personal Mentorship amount complete ho gayi hai — us ki wajah se aap ka 2CC target{" "}
+        <span className="font-bold text-cyan">{formatPkr(money.total)}</span> hai. Received mein aap
+        ki verified amount shamil hai, baqi{" "}
+        <span className="font-bold text-foreground">{formatPkr(money.remaining)}</span> complete
+        karni hai.
+      </p>
+    </section>
+  );
+}

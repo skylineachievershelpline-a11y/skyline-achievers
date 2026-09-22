@@ -149,16 +149,22 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
       }),
     );
 
+    const statsFor = (rows: typeof team) => ({
+      total: rows.length,
+      direct: rows.filter((row) => row.uplineId === member.id).length,
+      active: rows.filter((row) => row.status === "active").length,
+      reporting: rows.filter((row) => row.report.lastDate).length,
+      leads: rows.reduce((total, row) => total + row.report.leads, 0),
+      enrollments: rows.reduce((total, row) => total + row.report.enrollments, 0),
+    });
+
     return {
-      upline: { memberId: member.member_id, fullName: member.full_name },
+      upline: { id: member.id, memberId: member.member_id, fullName: member.full_name },
       team,
-      stats: {
-        total: team.length,
-        active: team.filter((row) => row.status === "active").length,
-        reporting: team.filter((row) => row.report.lastDate).length,
-        leads: team.reduce((total, row) => total + row.report.leads, 0),
-        enrollments: team.reduce((total, row) => total + row.report.enrollments, 0),
-      },
+      fbos: team.filter((row) => row.kind === "fbo"),
+      mentorship: team.filter((row) => row.kind === "mentorship"),
+      stats: statsFor(team.filter((row) => row.kind === "fbo")),
+      mentorshipStats: statsFor(team.filter((row) => row.kind === "mentorship")),
     };
   });
 

@@ -163,6 +163,10 @@ function DashboardPage() {
             ccTargets={data.ccTargets ?? null}
           />
         </div>
+      ) : progress && data.ccMoney ? (
+        <div className="mx-auto mt-2 w-full max-w-3xl">
+          <CcAmountCard money={data.ccMoney} />
+        </div>
       ) : null}
 
 

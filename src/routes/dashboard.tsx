@@ -12,7 +12,7 @@ import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
-import { MentorshipFeeCard, TargetCard } from "@/components/member/MentorshipPanel";
+import { MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
   MemberShell,
@@ -114,12 +114,11 @@ function DashboardPage() {
           <div className="min-w-0 flex-1">
             <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:max-w-md sm:gap-6">
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="min-w-0 whitespace-nowrap font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
-                    {member?.fullName ?? "Member"}
-                  </h1>
-                  <RankPin rank={member?.level?.name} className="h-11 w-11 shrink-0" />
-                </div>
+                <h1 className="flex min-w-0 items-center gap-1 font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
+                  <span className="truncate">{member?.fullName ?? "Member"}</span>
+                  <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />
+                </h1>
+
                 <div className="mt-4 flex items-center gap-1">
                   <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold text-cyan sm:text-base">
                     {showId ? member?.memberId ?? "—" : "••••••••••••"}
@@ -158,15 +157,14 @@ function DashboardPage() {
       {/* Payment status is information only — it never locks the dashboard. */}
       {progress && !progress.feeComplete ? (
         <div className="mx-auto mt-2 w-full max-w-3xl">
-          <MentorshipFeeCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
+          <MentorshipFeeCard
+            progress={progress}
+            onPrintReceipt={openMentorshipReceipt}
+            ccTargets={data.ccTargets ?? null}
+          />
         </div>
       ) : null}
 
-      {progress ? (
-        <div className="mx-auto mt-6 w-full max-w-3xl">
-          <TargetCard progress={progress} />
-        </div>
-      ) : null}
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 

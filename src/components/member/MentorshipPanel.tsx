@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, Lock, ReceiptText, Target, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, Lock, ReceiptText, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -39,7 +39,15 @@ function Bar({ percent }: { percent: number }) {
 }
 
 /** Money card shown until the Personal Mentorship amount is complete. */
-export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: MemberProgress; onPrintReceipt?: () => void }) {
+export function MentorshipFeeCard({
+  progress,
+  onPrintReceipt,
+  ccTargets,
+}: {
+  progress: MemberProgress;
+  onPrintReceipt?: () => void;
+  ccTargets?: { full: number; partial: number } | null;
+}) {
   return (
     <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
       {progress.warning ? (
@@ -54,6 +62,28 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
           <span>{progress.warning}</span>
         </div>
       ) : null}
+
+      {ccTargets ? (
+        <div className="space-y-2 rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5">
+          <p className="font-display text-sm font-bold text-cyan">
+            Special 2CC Offer — zaroor parhein
+          </p>
+          <p className="text-muted-foreground">
+            Agar aap neeche diye gaye time ke andar apni Personal Mentorship ki remaining amount
+            complete kar lete hain, to aapka 2CC{" "}
+            <span className="font-bold text-foreground">{formatPkr(ccTargets.partial)}</span> ka
+            nahi, balke Personal Mentorship ki wajah se discount ke sath sirf{" "}
+            <span className="font-bold text-cyan">{formatPkr(ccTargets.full)}</span> ka hoga.
+          </p>
+          <p className="text-muted-foreground">
+            Lekin agar aap is time ke andar amount complete nahi karte, to yeh offer aap ke liye
+            khatam ho jayegi aur aap ka 2CC {formatPkr(ccTargets.full)} ki jagah{" "}
+            <span className="font-bold text-foreground">{formatPkr(ccTargets.partial)}</span> ka ho
+            jayega. Aap ka dashboard aur training phir bhi khula rahega.
+          </p>
+        </div>
+      ) : null}
+
 
       <div className="flex items-center gap-2">
         <Wallet className="h-4 w-4 text-cyan" />
@@ -105,59 +135,6 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
         Your dashboard stays open. Complete the remaining amount before the deadline to keep the
         lower 2CC target — your verified amount updates as soon as the admin checks your payment.
       </p>
-    </section>
-  );
-}
-
-/** "Your Target" card: next rank plus Case Credit progress. */
-export function TargetCard({ progress }: { progress: MemberProgress }) {
-  return (
-    <section className="raised-panel metal-edge space-y-3 rounded-3xl p-5">
-      <div className="flex items-center gap-2">
-        <Target className="h-4 w-4 text-cyan" />
-        <h2 className="font-display text-base font-semibold">Your Target</h2>
-      </div>
-
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase text-muted-foreground">Next rank</p>
-          <p className="font-display text-lg font-bold">{progress.nextRank}</p>
-        </div>
-        {progress.ccTarget !== null ? (
-          <div className="text-right">
-            <p className="text-[10px] font-bold uppercase text-muted-foreground">Required</p>
-            <p className="font-display text-lg font-bold text-cyan">{progress.ccTarget} CC</p>
-          </div>
-        ) : null}
-      </div>
-
-      {progress.ccTarget !== null ? (
-        <>
-          <Bar percent={progress.ccPercent} />
-          <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-cyan">{progress.ccDone} CC done</span>
-            <span className="text-muted-foreground">{progress.ccRemaining} CC remaining</span>
-          </div>
-        </>
-      ) : (
-        <p className="text-xs text-muted-foreground">{progress.requirementNote}</p>
-      )}
-
-      {progress.ccDueAt && (progress.ccRemaining ?? 0) > 0 ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
-          <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <Clock className="h-4 w-4" /> Time for this target
-          </span>
-          <Countdown until={progress.ccDueAt} />
-        </div>
-      ) : null}
-
-      {progress.warning && progress.feeComplete ? (
-        <div className="flex items-start gap-2 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs font-semibold text-amber-300">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{progress.warning}</span>
-        </div>
-      ) : null}
     </section>
   );
 }

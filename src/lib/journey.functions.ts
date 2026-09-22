@@ -62,7 +62,7 @@ async function buildJourney(traineeId: string) {
     loadLedger(traineeId),
   ]);
 
-  const [{ data: schedule }, { data: reviews }] = await Promise.all([
+  const [{ data: schedule }, { data: reviews }, { data: unlocks }] = await Promise.all([
     admin
       .from("trainee_session_schedule")
       .select("session_number, day_number, scheduled_at, session_id")
@@ -70,15 +70,23 @@ async function buildJourney(traineeId: string) {
     admin
       .from("trainee_session_reviews")
       .select(
-        "id, session_number, body, image_path, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at",
+        "id, session_number, body, image_path, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at",
       )
       .eq("trainee_id", traineeId)
       .order("created_at", { ascending: false }),
+    admin
+      .from("trainee_session_unlocks")
+      .select("session_id, created_at")
+      .eq("trainee_id", traineeId),
   ]);
 
   const scheduleBy = new Map<number, any>(
     ((schedule ?? []) as any[]).map((row) => [Number(row.session_number), row]),
   );
+  const openedBy = new Map<string, string>();
+  for (const row of (unlocks ?? []) as any[]) {
+    if (row.session_id) openedBy.set(row.session_id as string, row.created_at as string);
+  }
   const reviewBy = new Map<number, any>();
   for (const row of (reviews ?? []) as any[]) {
     if (!reviewBy.has(Number(row.session_number))) reviewBy.set(Number(row.session_number), row);
@@ -105,8 +113,11 @@ async function buildJourney(traineeId: string) {
       reviewedAt: (review?.reviewed_at ?? null) as string | null,
       uplineNote: (review?.upline_note ?? null) as string | null,
       uplineVoiceUrl: await signProof(review?.upline_voice_path),
+      openedAt: openedBy.get(row.id as string) ?? null,
+      reviewSubmittedAt: (review?.submitted_at ?? review?.created_at ?? null) as string | null,
     });
   }
+
 
   const special = async (row: any) =>
     row

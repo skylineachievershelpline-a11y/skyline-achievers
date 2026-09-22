@@ -13,6 +13,7 @@ import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { MentorshipFeeCard, TargetCard } from "@/components/member/MentorshipPanel";
+import { MentorshipPaymentSection } from "@/components/member/MentorshipPaymentSection";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
   MemberShell,
@@ -159,6 +160,11 @@ function DashboardPage() {
           <MentorshipFeeCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
         </div>
       ) : null}
+
+      {/* Where to pay, how much is left, screenshot upload, pending claims, history. */}
+      <div className="mx-auto mt-6 w-full max-w-3xl">
+        <MentorshipPaymentSection />
+      </div>
 
       {progress ? (
         <div className="mx-auto mt-6 w-full max-w-3xl">

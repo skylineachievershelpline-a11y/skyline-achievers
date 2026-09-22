@@ -117,6 +117,11 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
           status: row.status as string,
           workingEnabled: row.working_enabled !== false,
           rank: (row.levels?.name ?? null) as string | null,
+          rankOrder: Number(row.levels?.rank_order ?? 0),
+          // Rank 1 is Personal Mentorship; rank 2 and above are working FBOs.
+          kind: Number(row.levels?.rank_order ?? 0) >= 2 ? ("fbo" as const) : ("mentorship" as const),
+          uplineId: (row.upline_id ?? null) as string | null,
+          depth: depthOf.get(row.id as string) ?? 1,
           avatarUrl: await signPath(AVATAR_BUCKET, row.avatar_path, 60 * 60),
           createdAt: row.created_at as string,
           lastLoginAt: (row.last_login_at ?? null) as string | null,

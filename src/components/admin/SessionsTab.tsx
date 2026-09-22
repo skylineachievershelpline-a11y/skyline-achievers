@@ -271,6 +271,44 @@ export function SessionsTab() {
           </DialogHeader>
           <form onSubmit={submit} className="space-y-3">
             <div className="space-y-1.5">
+              <Label>Session type</Label>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+                className={fieldClass}
+              >
+                {KINDS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {kind === "basic" || kind === "business_plan" ? (
+              <div className="grid grid-cols-2 gap-3">
+                {kind === "basic" ? (
+                  <div className="space-y-1.5">
+                    <Label>Day number</Label>
+                    <Input
+                      value={dayNumber}
+                      onChange={(e) => setDayNumber(e.target.value.replace(/\D/g, ""))}
+                      placeholder="1"
+                      className="h-11 rounded-2xl"
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-1.5">
+                  <Label>Session number</Label>
+                  <Input
+                    value={sessionNumber}
+                    onChange={(e) => setSessionNumber(e.target.value.replace(/\D/g, ""))}
+                    placeholder={kind === "business_plan" ? "8" : "1"}
+                    className="h-11 rounded-2xl"
+                  />
+                </div>
+              </div>
+            ) : null}
+            <div className="space-y-1.5">
               <Label>Session code</Label>
               <Input
                 value={sessionCode}

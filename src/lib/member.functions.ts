@@ -124,8 +124,19 @@ export const getDashboard = createServerFn({ method: "GET" })
     });
 
     // Office-configured 2CC targets, so the dashboard never hard-codes amounts.
-    const { loadPolicy } = await import("./journey.server");
-    const policy = await loadPolicy();
+    const { loadPolicy, loadLedger } = await import("./journey.server");
+    const [policy, ledger] = await Promise.all([loadPolicy(), loadLedger(context.userId)]);
+
+    // 2CC money view, shown once the Personal Mentorship amount is complete.
+    const mentorshipVerified = Math.max(ledger.mentorshipPaid, progress.feePaid);
+    const paidInTime =
+      !member.mentorship.dueAt ||
+      (member.mentorship.completedAt
+        ? new Date(member.mentorship.completedAt).getTime() <=
+          new Date(member.mentorship.dueAt).getTime()
+        : Date.now() <= new Date(member.mentorship.dueAt).getTime());
+    const ccTotal = paidInTime ? policy.ccTargetFullPayment : policy.ccTargetPartial;
+    const ccReceived = mentorshipVerified + ledger.ccPaid;
 
     return {
       member,
@@ -136,6 +147,12 @@ export const getDashboard = createServerFn({ method: "GET" })
       ccTargets: {
         full: policy.ccTargetFullPayment,
         partial: policy.ccTargetPartial,
+      },
+      ccMoney: {
+        total: ccTotal,
+        received: ccReceived,
+        remaining: Math.max(0, ccTotal - ccReceived),
+        discounted: paidInTime,
       },
     };
   });

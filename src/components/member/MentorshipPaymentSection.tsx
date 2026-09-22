@@ -15,6 +15,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { compressImageForUpload } from "@/components/admin/upload";
+import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,13 +46,7 @@ function StatusChip({ status }: { status: string }) {
   return <span className={`text-[11px] font-bold ${tone}`}>{label}</span>;
 }
 
-/**
- * The complete Personal Mentorship payment journey on the member dashboard:
- * where to pay, how much is left, the screenshot upload, the pending claims and
- * the full payment history. Verified totals only ever change after the office
- * checks a claim.
- */
-export function MentorshipPaymentSection() {
+export function MentorshipPaymentSection({ standalone = false }: { standalone?: boolean }) {
   const queryClient = useQueryClient();
   const load = useServerFn(getMyPaymentCentre);
   const createProofUrl = useServerFn(createMemberPaymentProofUploadUrl);
@@ -131,7 +126,15 @@ export function MentorshipPaymentSection() {
     },
   });
 
-  if (isPending || !data) return null;
+  if (isPending || !data) {
+    return standalone ? (
+      <section className="raised-panel metal-edge rounded-3xl p-5">
+        <div className="flex min-h-[12rem] items-center justify-center">
+          <SkylineLoader variant="page" />
+        </div>
+      </section>
+    ) : null;
+  }
 
   const { mentorship, cc, methods, policy, history } = data;
   const pending = history.filter((row) => row.status === "pending");

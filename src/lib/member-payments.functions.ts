@@ -31,7 +31,7 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const member = await activeMemberRow(context.userId);
-    const { loadLedger, loadPolicy, signProof } = await import("./journey.server");
+    const { loadLedger, loadPolicy, signMemberPaymentProof } = await import("./journey.server");
     const [policy, ledger] = await Promise.all([loadPolicy(), loadLedger(member.id)]);
 
     // The office recorded some older payments straight on the member record, so
@@ -67,7 +67,9 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
         createdAt: row.createdAt,
         verifiedAt: row.verifiedAt,
         proofUrl:
-          row.status === "pending" ? await signProof((row as any).proofPath ?? null) : null,
+          row.status === "pending"
+            ? await signMemberPaymentProof((row as any).proofPath ?? null)
+            : null,
       });
     }
 

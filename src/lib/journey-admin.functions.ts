@@ -8,7 +8,7 @@ export const adminGetPaymentSubmissions = createServerFn({ method: "GET" }).hand
   const { requireAdmin } = await import("./admin-session.server");
   await requireAdmin();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { signProof } = await import("./journey.server");
+  const { signMemberPaymentProof, signProof } = await import("./journey.server");
   const { data } = await (supabaseAdmin as any)
     .from("payment_submissions")
     .select(
@@ -29,7 +29,10 @@ export const adminGetPaymentSubmissions = createServerFn({ method: "GET" }).hand
       method: (row.method ?? null) as string | null,
       claimed: Number(row.claimed_amount_pkr ?? 0),
       verified: Number(row.verified_amount_pkr ?? 0),
-      proofUrl: await signProof(row.proof_path),
+      proofUrl:
+        row.payer_kind === "member"
+          ? await signMemberPaymentProof(row.proof_path)
+          : await signProof(row.proof_path),
       phone: (row.phone ?? null) as string | null,
       email: (row.email ?? null) as string | null,
       note: (row.note ?? null) as string | null,

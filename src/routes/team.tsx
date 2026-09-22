@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
+import { GenealogyTree, type TreePerson } from "@/components/team/GenealogyTree";
 import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
 import { UplineJourneyDialog } from "@/components/journey/UplineJourneyDialog";
 import {
@@ -73,7 +74,7 @@ function TeamPage() {
   const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [tab, setTab] = useState<"fbo" | "customers">("fbo");
+  const [tab, setTab] = useState<"fbo" | "mentorship" | "customers">("fbo");
   const [journeyTrainee, setJourneyTrainee] = useState<{ id: string; name: string; phone: string | null } | null>(null);
 
 
@@ -181,24 +182,28 @@ function TeamPage() {
 
   return (
     <MemberShell title="Team Tree" subtitle="Track everyone you registered" executive>
-      <div className="raised-panel metal-edge flex gap-2 rounded-2xl p-2 animate-rise-in">
-        <button
-          type="button"
-          onClick={() => setTab("fbo")}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "fbo" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          FBO team tree
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("customers")}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "customers" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          Preferred customer tree
-        </button>
+      <div className="raised-panel metal-edge flex flex-wrap gap-2 rounded-2xl p-2 animate-rise-in">
+        {(
+          [
+            { key: "fbo", label: "FBO team tree" },
+            { key: "mentorship", label: "Personal Mentorship" },
+            { key: "customers", label: "Preferred customers" },
+          ] as const
+        ).map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setTab(item.key)}
+            className={`min-w-[30%] flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === item.key ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      {tab === "fbo" ? <FboTree ready={ready} /> : null}
+      {tab === "fbo" || tab === "mentorship" ? (
+        <FboTree ready={ready} kind={tab === "fbo" ? "fbo" : "mentorship"} />
+      ) : null}
 
       {tab === "customers" ? (
         <UplineActionQueue ready={ready} uplineName={data?.upline.fullName ?? "your upline"} />
@@ -275,14 +280,13 @@ function TeamPage() {
 }
 
 /**
- * FBO tree: the Skyline members (12-digit IDs) directly under this account.
- * Read-only — an upline can watch the daily working report but never edit or
- * delete an FBO record.
+ * FBO / Personal Mentorship chart: every Skyline member (12-digit ID) below this
+ * account, drawn as a family tree. Read-only — an upline can watch the daily
+ * working report but never edit or delete a record.
  */
-function FboTree({ ready }: { ready: boolean }) {
+function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }) {
   const load = useServerFn(getMyFboTeam);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [fboSearch, setFboSearch] = useState("");
+  const [search, setSearch] = useState("");
   const { data, isPending } = useQuery({
     queryKey: ["my-fbo-team"],
     queryFn: () => load(),
@@ -298,141 +302,79 @@ function FboTree({ ready }: { ready: boolean }) {
     );
   }
 
-  const allFbos = (data?.team ?? []) as any[];
-  const fboNeedle = fboSearch.trim().toLowerCase();
-  const team = fboNeedle
-    ? allFbos.filter(
+  const everyone = (data?.team ?? []) as TreePerson[];
+  const group = everyone.filter((person) => person.kind === kind);
+  const needle = search.trim().toLowerCase();
+  const people = needle
+    ? group.filter(
         (person) =>
-          String(person.memberId ?? "").toLowerCase().includes(fboNeedle) ||
-          String(person.fullName ?? "").toLowerCase().includes(fboNeedle),
+          person.memberId.toLowerCase().includes(needle) ||
+          person.fullName.toLowerCase().includes(needle),
       )
-    : allFbos;
-  const stats = data?.stats;
+    : group;
+  const stats = (kind === "fbo" ? data?.stats : data?.mentorshipStats) as any;
+  const mentorship = kind === "mentorship";
 
   return (
     <>
       <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-[10px] font-bold uppercase text-primary">FBO network</p>
-            <h1 className="mt-1 font-display text-2xl font-bold">Your FBO team tree</h1>
+            <p className="text-[10px] font-bold uppercase text-primary">
+              {mentorship ? "Personal Mentorship network" : "FBO network"}
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-bold">
+              {mentorship ? "Personal Mentorship tree" : "Your FBO team tree"}
+            </h1>
           </div>
           <p className="text-xs text-muted-foreground">Read-only · last 30 days of reports</p>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat icon={<Users className="h-4 w-4" />} label="Direct FBOs" value={stats?.total ?? 0} />
+          <Stat icon={<Users className="h-4 w-4" />} label="Total" value={stats?.total ?? 0} />
+          <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={stats?.direct ?? 0} />
           <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
-          <Stat icon={<CalendarDays className="h-4 w-4" />} label="Reporting" value={stats?.reporting ?? 0} />
-          <Stat icon={<CheckCircle2 className="h-4 w-4" />} label="Enrollments" value={stats?.enrollments ?? 0} />
+          <Stat
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            label="Enrollments"
+            value={stats?.enrollments ?? 0}
+          />
         </div>
       </section>
 
       <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">
         <div className="border-b border-border p-4 sm:p-5">
-          <SectionTitle className="mb-0">FBO hierarchy</SectionTitle>
+          <SectionTitle className="mb-0">
+            {mentorship ? "Personal Mentorship hierarchy" : "FBO hierarchy"}
+          </SectionTitle>
           <p className="text-xs text-muted-foreground">
-            {team.length} direct FBOs under {data?.upline.fullName ?? "you"} · records are read-only
+            {people.length} {mentorship ? "mentorship members" : "FBOs"} under{" "}
+            {data?.upline.fullName ?? "you"} · tap any card to open the ID and report
           </p>
           <div className="relative mt-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={fboSearch}
-              onChange={(event) => setFboSearch(event.target.value)}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
               placeholder="Find by 12-digit Skyline ID or name"
               className="h-9 rounded-lg pl-9 text-xs"
             />
           </div>
         </div>
-        <div className="border-b border-border bg-primary/10 px-4 py-3 sm:px-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground">
-              <Crown className="h-3.5 w-3.5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-sm font-semibold">{data?.upline.fullName ?? "You"}</p>
-              <p className="truncate text-[10px] text-primary">{data?.upline.memberId} · Upline</p>
-            </div>
-            <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan">Root</span>
-          </div>
+        <div className="p-4 sm:p-5">
+          <GenealogyTree
+            root={{
+              id: (data?.upline as any)?.id ?? "root",
+              memberId: data?.upline.memberId ?? "",
+              fullName: data?.upline.fullName ?? "You",
+            }}
+            people={people}
+            emptyHint={
+              mentorship
+                ? "No Personal Mentorship members under your ID yet. They appear here as soon as their mentorship account is created."
+                : "No FBOs under your ID yet. A member moves here after Assistant Supervisor confirmation."
+            }
+          />
         </div>
-        {team.length === 0 ? (
-          <div className="p-5">
-            <EmptyState title="No FBOs under your ID yet" hint="Administrators attach new Skyline IDs to your account." />
-          </div>
-        ) : (
-          team.map((person) => (
-            <article key={person.id} className="border-b border-border px-4 py-3 last:border-b-0 sm:px-5">
-              <div className="flex items-center gap-3">
-                <span className="relative ml-3 flex h-9 w-9 shrink-0 overflow-hidden items-center justify-center rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary before:absolute before:right-full before:top-1/2 before:h-px before:w-3 before:bg-primary/40">
-                  {person.avatarUrl ? (
-                    <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    person.fullName.slice(0, 1).toUpperCase()
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-sm font-semibold">{person.fullName}</p>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {person.memberId} · {person.rank ?? "No rank"}
-                  </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {person.report.leads} leads · {person.report.enrollments} enrollments ·{" "}
-                    {person.report.days} report days
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${person.status === "active" ? "border-cyan/30 bg-cyan/10 text-cyan" : "border-silver/20 bg-silver/10 text-silver"}`}>
-                    {person.status === "active" ? "Active" : "Blocked"}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 rounded-lg px-2 text-[11px]"
-                    onClick={() => setOpenId(openId === person.id ? null : person.id)}
-                  >
-                    {openId === person.id ? "Hide report" : "Show report"}
-                  </Button>
-                </div>
-              </div>
-              {openId === person.id ? (
-                <div className="mt-3 overflow-x-auto rounded-xl border border-hairline">
-                  <table className="w-full text-[11px]">
-                    <thead className="bg-surface/70 text-[10px] uppercase text-muted-foreground">
-                      <tr>
-                        <th className="px-2 py-1.5 text-left">Date</th>
-                        <th className="px-2 py-1.5 text-right">Leads</th>
-                        <th className="px-2 py-1.5 text-right">Response</th>
-                        <th className="px-2 py-1.5 text-right">Enroll</th>
-                        <th className="px-2 py-1.5 text-right">Pending</th>
-                        <th className="px-2 py-1.5 text-right">2CC</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {person.report.recent.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="px-2 py-3 text-center text-muted-foreground">
-                            No reports in the last 30 days.
-                          </td>
-                        </tr>
-                      ) : (
-                        person.report.recent.map((row: any) => (
-                          <tr key={row.date} className="border-t border-border">
-                            <td className="px-2 py-1.5">{formatDate(row.date)}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{row.absent ? "Leave" : row.leads}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{row.responses}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{row.enrollments}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{row.pending}</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums">{row.twoCc}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              ) : null}
-            </article>
-          ))
-        )}
       </section>
     </>
   );

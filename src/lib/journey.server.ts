@@ -1,7 +1,7 @@
 /** Server-only helpers for the Basic Training journey. */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { DEFAULT_POLICY, type JourneyPolicy } from "./journey";
+import { DEFAULT_POLICY, normalizePaymentMethods, type JourneyPolicy } from "./journey";
 import { RESOURCE_BUCKET, THUMBNAIL_BUCKET, signPath } from "./storage.server";
 
 const admin = supabaseAdmin as any;
@@ -20,6 +20,7 @@ export async function loadPolicy(): Promise<JourneyPolicy> {
     ccTargetFullPayment: Number(value.ccTargetFullPayment ?? DEFAULT_POLICY.ccTargetFullPayment),
     ccTargetPartial: Number(value.ccTargetPartial ?? DEFAULT_POLICY.ccTargetPartial),
     mentorshipSeats: Number(value.mentorshipSeats ?? DEFAULT_POLICY.mentorshipSeats),
+    paymentMethods: normalizePaymentMethods(value.paymentMethods),
   };
 }
 

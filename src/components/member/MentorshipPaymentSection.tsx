@@ -149,9 +149,16 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       className="raised-panel metal-edge scroll-mt-24 space-y-5 rounded-3xl p-5"
     >
       {/* ---------- summary ---------- */}
-      <div className="flex items-center gap-2">
-        <Wallet className="h-4 w-4 text-cyan" />
-        <h2 className="font-display text-base font-semibold">Personal Mentorship payment</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-cyan" />
+          <h2 className="font-display text-base font-semibold">Personal Mentorship payment</h2>
+        </div>
+        <VoiceGuide
+          label="Listen"
+          ur="Yahan aap apni Personal Mentorship ki remaining amount jama kar sakte hain. Pehle payment method chunein, office ke diye gaye account par amount send karein, phir amount likh kar payment ka screenshot upload karein aur verification ke liye submit karein. Screenshot se amount khud add nahi hoti — office verify karega, uske baad aap ka received aur remaining update ho jayega."
+          en="Here you can clear your remaining Personal Mentorship amount. Choose a payment method, send the amount to the office account, then enter the amount, upload the payment screenshot and submit it for verification. A screenshot never adds money by itself — the office verifies it, and then your received and remaining amounts update."
+        />
       </div>
 
       <div className="grid grid-cols-3 gap-3 text-center">

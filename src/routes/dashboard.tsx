@@ -158,15 +158,14 @@ function DashboardPage() {
       {/* Payment status is information only — it never locks the dashboard. */}
       {progress && !progress.feeComplete ? (
         <div className="mx-auto mt-2 w-full max-w-3xl">
-          <MentorshipFeeCard progress={progress} onPrintReceipt={openMentorshipReceipt} />
+          <MentorshipFeeCard
+            progress={progress}
+            onPrintReceipt={openMentorshipReceipt}
+            ccTargets={data.ccTargets ?? null}
+          />
         </div>
       ) : null}
 
-      {progress ? (
-        <div className="mx-auto mt-6 w-full max-w-3xl">
-          <TargetCard progress={progress} />
-        </div>
-      ) : null}
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 

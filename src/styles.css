@@ -742,6 +742,63 @@
   .skyline-loader-img { clip-path: none; opacity: 1; filter: none; }
 }
 
+/* The schedule poster feeds out of the printer slowly, like a long printed sheet. */
+.schedule-poster-machine {
+  position: relative;
+  width: 100%;
+  min-height: min(72vh, 43rem);
+  padding-top: 4.75rem;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.schedule-poster-machine .slip-printer {
+  animation: slip-printer-hum 5.4s ease-in-out both;
+}
+
+.schedule-poster-window {
+  position: relative;
+  z-index: 2;
+  width: calc(100% - 1.5rem);
+  max-height: min(67vh, 39rem);
+  margin-inline: auto;
+  overflow: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 0 0 1rem 1rem;
+  background: var(--background);
+  overscroll-behavior: contain;
+}
+
+.schedule-poster-paper {
+  display: block;
+  transform-origin: center top;
+  animation: schedule-poster-print 5.2s steps(18, end) both;
+  filter: drop-shadow(0 1.5rem 1.4rem color-mix(in oklab, var(--background) 65%, transparent));
+}
+
+.schedule-poster-actions {
+  animation: schedule-poster-actions-in 450ms ease-out 5.15s both;
+}
+
+@keyframes schedule-poster-print {
+  0% { transform: translate3d(0, -96%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes schedule-poster-actions-in {
+  from { opacity: 0; transform: translateY(.75rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-poster-machine .slip-printer,
+  .schedule-poster-paper,
+  .schedule-poster-actions {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
 /* ---------- articulated Skyline AI mascot ---------- */
 
 .skyline-ai-robot {

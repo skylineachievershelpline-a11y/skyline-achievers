@@ -197,6 +197,13 @@
       "when": 1790080668422,
       "tag": "0027_training_journey_system",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790080986083,
+      "tag": "0028_journey_mentorship_deadline",
+      "breakpoints": true
     }
   ]
 }

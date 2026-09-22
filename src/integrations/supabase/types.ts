@@ -2097,6 +2097,9 @@ export type Database = {
           interview_note: string | null
           interview_result: string | null
           interview_reviewed_at: string | null
+          mentorship_account_code: string | null
+          mentorship_account_id: string | null
+          mentorship_due_at: string | null
           stage: string
           trainee_id: string
           updated_at: string
@@ -2108,6 +2111,9 @@ export type Database = {
           interview_note?: string | null
           interview_result?: string | null
           interview_reviewed_at?: string | null
+          mentorship_account_code?: string | null
+          mentorship_account_id?: string | null
+          mentorship_due_at?: string | null
           stage?: string
           trainee_id: string
           updated_at?: string
@@ -2119,6 +2125,9 @@ export type Database = {
           interview_note?: string | null
           interview_result?: string | null
           interview_reviewed_at?: string | null
+          mentorship_account_code?: string | null
+          mentorship_account_id?: string | null
+          mentorship_due_at?: string | null
           stage?: string
           trainee_id?: string
           updated_at?: string

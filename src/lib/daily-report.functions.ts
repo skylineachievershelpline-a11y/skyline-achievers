@@ -212,6 +212,12 @@ export const submitDailyReport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
     if (member.status !== "active") throw new Error("Your account is not active.");
+    if (rankOf(member) < 2) {
+      throw new Error(
+        "Personal Mentorship accounts complete their training first. The daily working report opens after the Assistant Supervisor upgrade.",
+      );
+    }
+
     if (pktHour() < REPORT_OPEN_HOUR) {
       throw new Error("The daily report opens at 8:00 PM and closes at 12:00 midnight.");
     }

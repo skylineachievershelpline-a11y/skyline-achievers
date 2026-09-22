@@ -71,6 +71,9 @@ export function SessionsTab() {
   const [ratio, setRatio] = useState<string>("16:9");
   const [sortOrder, setSortOrder] = useState("0");
   const [published, setPublished] = useState(true);
+  const [kind, setKind] = useState<string>("basic");
+  const [dayNumber, setDayNumber] = useState("");
+  const [sessionNumber, setSessionNumber] = useState("");
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-sessions"] });

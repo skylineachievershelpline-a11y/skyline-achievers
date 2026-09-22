@@ -54,8 +54,10 @@ import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
+import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
-import { sessionOpen, type JourneySession } from "@/lib/journey";
+import { type JourneySession } from "@/lib/journey";
+
 import { getTraineeJourney } from "@/lib/journey.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";

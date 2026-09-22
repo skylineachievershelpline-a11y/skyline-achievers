@@ -43,12 +43,16 @@ async function activeMember(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("member_profiles")
-    .select("id, member_id, full_name, status, created_at")
+    .select("id, member_id, full_name, status, created_at, levels:level_id (rank_order)")
     .eq("id", userId)
     .maybeSingle();
   if (!data) throw new Error("Your membership is not active.");
   return data;
 }
+
+/** Personal Mentorship (rank 1) accounts train only — no working report yet. */
+const rankOf = (member: any) => Number(member?.levels?.rank_order ?? 0);
+
 
 function mapRow(row: Record<string, unknown>): ReportDay {
   return {

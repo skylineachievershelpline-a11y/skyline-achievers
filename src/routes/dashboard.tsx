@@ -56,7 +56,9 @@ function DashboardPage() {
     queryKey: ["dashboard"],
     queryFn: () => load(),
     enabled: ready,
+    retry: false,
   });
+
 
   if (!ready || isPending) {
     return (

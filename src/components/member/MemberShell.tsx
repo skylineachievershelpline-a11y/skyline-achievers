@@ -42,14 +42,17 @@ export function useMemberGuard() {
 
   useEffect(() => {
     let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
+    // A stored session is not enough: only a live, refreshed access token gets
+    // attached to server calls, so wait for that before loading any page data.
+    void getAccessToken().then((token) => {
       if (!active) return;
-      if (!data.session) {
+      if (!token) {
         void navigate({ to: "/" });
         return;
       }
       setReady(true);
     });
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) void navigate({ to: "/" });
     });

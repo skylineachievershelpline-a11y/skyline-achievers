@@ -98,7 +98,9 @@ export const getDashboard = createServerFn({ method: "GET" })
         videos: [],
         continueWatching: [],
         progress: null,
+        ccTargets: null,
       };
+
     }
 
     const [videos, continueWatching, ccDone] = await Promise.all([

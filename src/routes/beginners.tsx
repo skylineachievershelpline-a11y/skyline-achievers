@@ -53,6 +53,7 @@ import {
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate } from "@/lib/format";
+import { TraineeJourney } from "@/components/journey/TraineeJourney";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
 import {

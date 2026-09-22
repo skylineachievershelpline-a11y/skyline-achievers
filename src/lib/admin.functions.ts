@@ -1618,3 +1618,37 @@ export const adminSetMemberTrainingAccess = createServerFn({ method: "POST" })
     }
     return { ok: true as const };
   });
+
+export const adminGetMemberMenuAccess = createServerFn({ method: "GET" })
+  .inputValidator((data: { memberId: string }) => z.object({ memberId: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("member_menu_hidden")
+      .select("menu_key")
+      .eq("member_id", data.memberId);
+    return { hidden: ((rows ?? []) as { menu_key: string }[]).map((row) => row.menu_key) };
+  });
+
+export const adminSetMemberMenuAccess = createServerFn({ method: "POST" })
+  .inputValidator((data: { memberId: string; hidden: string[] }) =>
+    z.object({ memberId: uuid, hidden: z.array(z.string().min(1).max(64)).max(60) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any)
+      .from("member_menu_hidden")
+      .delete()
+      .eq("member_id", data.memberId);
+    if (data.hidden.length > 0) {
+      const { error } = await (supabaseAdmin as any)
+        .from("member_menu_hidden")
+        .insert(data.hidden.map((key) => ({ member_id: data.memberId, menu_key: key })));
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true as const };
+  });

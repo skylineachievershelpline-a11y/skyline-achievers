@@ -19,6 +19,8 @@ import {
   adminGetMembers,
   adminGetUplines,
   adminSetMemberTrainingAccess,
+  adminGetMemberMenuAccess,
+  adminSetMemberMenuAccess,
   adminResetPassword,
   adminSetMentorship,
 } from "@/lib/admin.functions";
@@ -758,6 +760,8 @@ function MentorshipDialog({
 
           <TrainingSectionAccess memberId={member.id} />
 
+          <MenuAccessPicker memberId={member.id} />
+
 
           <Button
             variant="brand"
@@ -915,6 +919,102 @@ function TrainingSectionAccess({ memberId }: { memberId: string }) {
           onClick={() => setPicked(sections.map((section) => section.id))}
         >
           Select all
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Sidebar menu entries the admin can show or hide for one member. */
+const MENU_OPTIONS = [
+  { key: "/training", label: "Training" },
+  { key: "/courses", label: "Premium Courses" },
+  { key: "/sessions", label: "Beginners Sessions" },
+  { key: "/reels", label: "Reels" },
+  { key: "/chat", label: "Messages" },
+  { key: "/ai", label: "Skyline Achievers AI" },
+  { key: "/seats", label: "Seat Reservation" },
+  { key: "/leave", label: "Leave Application" },
+  { key: "/team", label: "Team Tree" },
+  { key: "/resources", label: "Files & Resources" },
+  { key: "/search", label: "Search" },
+  { key: "/profile", label: "My Profile" },
+];
+
+function MenuAccessPicker({ memberId }: { memberId: string }) {
+  const queryClient = useQueryClient();
+  const loadMenu = useServerFn(adminGetMemberMenuAccess);
+  const saveMenu = useServerFn(adminSetMemberMenuAccess);
+  const [hidden, setHidden] = useState<string[] | null>(null);
+  const { data, isPending } = useQuery({
+    queryKey: ["admin-member-menu-access", memberId],
+    queryFn: () => loadMenu({ data: { memberId } } as never),
+  });
+  useEffect(() => {
+    if (data) setHidden((data as any).hidden as string[]);
+  }, [data]);
+  const save = useMutation({
+    mutationFn: (list: string[]) => saveMenu({ data: { memberId, hidden: list } } as never),
+    onSuccess: () => {
+      toast.success("Menu access saved");
+      void queryClient.invalidateQueries({ queryKey: ["admin-member-menu-access", memberId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const off = hidden ?? [];
+  function toggle(key: string) {
+    setHidden((current) => {
+      const list = current ?? [];
+      return list.includes(key) ? list.filter((value) => value !== key) : [...list, key];
+    });
+  }
+  return (
+    <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        Sidebar menu access
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Ticked options are visible in this member's side menu. Untick to hide a section completely.
+        Home always stays visible.
+      </p>
+      {isPending ? (
+        <div className="py-4 text-xs text-muted-foreground">Loading menu…</div>
+      ) : (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {MENU_OPTIONS.map((item) => (
+            <label
+              key={item.key}
+              className="flex items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm"
+            >
+              <input
+                type="checkbox"
+                checked={!off.includes(item.key)}
+                onChange={() => toggle(item.key)}
+                className="h-4 w-4"
+              />
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10 rounded-xl"
+          disabled={save.isPending || isPending}
+          onClick={() => save.mutate(off)}
+        >
+          {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}Save menu access
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-10 rounded-xl"
+          disabled={save.isPending || isPending}
+          onClick={() => setHidden([])}
+        >
+          Show all
         </Button>
       </div>
     </div>

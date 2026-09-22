@@ -1170,6 +1170,35 @@ export type Database = {
         }
         Relationships: []
       }
+      member_menu_hidden: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          menu_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          menu_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          menu_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_menu_hidden_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_profiles: {
         Row: {
           age: number | null

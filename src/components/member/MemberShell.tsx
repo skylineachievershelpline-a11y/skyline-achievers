@@ -116,6 +116,12 @@ export function useMemberProgress() {
   return useMemberAccess()?.progress ?? null;
 }
 
+/** Menu entries the admin switched off for this account. */
+function useHiddenMenu(): string[] {
+  const data = useMemberAccess() as { hiddenMenu?: string[] } | null;
+  return data?.hiddenMenu ?? [];
+}
+
 export function MemberShell({
   children,
   title,
@@ -134,9 +140,16 @@ export function MemberShell({
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
   const progress = useMemberProgress();
+  const hiddenMenu = useHiddenMenu();
+  const visibleNav = NAV.filter(
+    (item) => item.to === "/dashboard" || !hiddenMenu.includes(item.to),
+  );
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {
+    if (to !== "/dashboard" && hiddenMenu.some((key) => to === key || to.startsWith(`${key}/`))) {
+      return "This section is not available for your account.";
+    }
     const partialOpen =
       progress?.partialTraining === true && (to === "/training" || to === "/sessions");
     if (progress?.feeLocked && !partialOpen && to !== "/dashboard" && to !== "/profile") {
@@ -264,7 +277,7 @@ export function MemberShell({
                 </div>
 
                 <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
-                  {NAV.map((item) =>
+                  {visibleNav.map((item) =>
                     lockReason(item.to) ? (
                       <button
                         key={item.to}

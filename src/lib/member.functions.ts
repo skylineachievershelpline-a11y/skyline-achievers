@@ -54,9 +54,15 @@ export const getMemberSession = createServerFn({ method: "GET" })
       trainingLocked: member.mentorship.trainingLocked,
       ccDone,
     });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: hiddenRows } = await (supabaseAdmin as any)
+      .from("member_menu_hidden")
+      .select("menu_key")
+      .eq("member_id", context.userId);
+    const hiddenMenu = ((hiddenRows ?? []) as { menu_key: string }[]).map((row) => row.menu_key);
     if (member.status !== "active")
-      return { member, reason: member.status as "blocked" | "removed", progress };
-    return { member, reason: "ok" as const, progress };
+      return { member, reason: member.status as "blocked" | "removed", progress, hiddenMenu };
+    return { member, reason: "ok" as const, progress, hiddenMenu };
   });
 
 export const recordLogin = createServerFn({ method: "POST" })

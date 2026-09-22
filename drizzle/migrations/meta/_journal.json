@@ -169,6 +169,20 @@
       "when": 1790008799861,
       "tag": "0023_mentorship_fee_and_targets",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790050142925,
+      "tag": "0024_member_training_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790050255560,
+      "tag": "0025_lecture_access_member_sections",
+      "breakpoints": true
     }
   ]
 }

@@ -94,6 +94,8 @@ export type MemberProgress = {
   warning: string | null;
   /** Fee not clear yet: every section stays locked. */
   feeLocked: boolean;
+  /** Part payment received: training stays open with admin-picked sections. */
+  partialTraining: boolean;
   /** Training stays locked (fee pending, or the CC deadline ran out). */
   trainingLocked: boolean;
   ccDueAt: string | null;
@@ -160,8 +162,11 @@ export function computeMemberProgress(
     }
   }
 
+  // Part payment received: training opens, admin decides which sections show.
+  const partialTraining = !feeComplete && feePaid > 0;
+
   const trainingLocked =
-    !feeComplete ||
+    (!feeComplete && !partialTraining) ||
     input.trainingLocked ||
     (ccExpired && input.ccExtensions >= MAX_CC_EXTENSIONS && (ccRemaining ?? 0) > 0);
 
@@ -177,6 +182,7 @@ export function computeMemberProgress(
     warningStage,
     warning,
     feeLocked: !feeComplete,
+    partialTraining,
     trainingLocked,
     ccDueAt: input.ccDueAt,
     ccMsLeft,

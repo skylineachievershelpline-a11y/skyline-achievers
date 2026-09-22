@@ -176,6 +176,20 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
     ]);
 
+    // Part payment: training opens, but only the sections the admin picked for
+    // this member personally.
+    const partialTraining =
+      !member.mentorship.completedAt &&
+      member.mentorship.feePaid > 0 &&
+      member.mentorship.feePaid < member.mentorship.feeTotal;
+    const { data: memberAccess } = await (supabaseAdmin as any)
+      .from("member_training_access")
+      .select("category_id")
+      .eq("member_id", context.userId);
+    const memberSections = new Set(
+      ((memberAccess ?? []) as { category_id: string }[]).map((row) => row.category_id),
+    );
+
     const allowed = new Set((access ?? []).map((row) => row.content_id));
     const signed = await signThumbnails(lectures ?? []);
 
@@ -206,7 +220,7 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     );
     const myRank = member.level ? (rankOf.get(member.level.id) ?? null) : null;
 
-    const visibleCategories = ((categories ?? []) as any[]).filter((category) => {
+    const rankCategories = ((categories ?? []) as any[]).filter((category) => {
       const list = sectionLevels.get(category.id);
       if (!list || list.length === 0) return true;
       if (!member.level) return false;
@@ -215,6 +229,11 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       const ranks = list.map((id) => rankOf.get(id)).filter((r): r is number => r != null);
       return ranks.length > 0 && myRank >= Math.min(...ranks);
     });
+
+    // Part payment members only see the sections granted to them by the admin.
+    const visibleCategories = partialTraining
+      ? ((categories ?? []) as any[]).filter((category) => memberSections.has(category.id))
+      : rankCategories;
 
     const visibleIds = new Set(visibleCategories.map((c) => c.id));
 
@@ -233,8 +252,15 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
         group_id: string | null;
       }[],
       videos: signed
-        .filter((video: any) => !video.category_id || visibleIds.has(video.category_id))
-        .map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
+        .filter((video: any) =>
+          partialTraining
+            ? video.category_id && visibleIds.has(video.category_id)
+            : !video.category_id || visibleIds.has(video.category_id),
+        )
+        .map((video: any) => ({
+          ...video,
+          locked: partialTraining ? false : !allowed.has(video.id),
+        })),
     };
   });
 

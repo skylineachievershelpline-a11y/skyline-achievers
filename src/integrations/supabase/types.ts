@@ -1278,6 +1278,42 @@ export type Database = {
           },
         ]
       }
+      member_training_access: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          member_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          member_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_training_access_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "training_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_training_access_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_dismissals: {
         Row: {
           created_at: string

@@ -1564,3 +1564,57 @@ export const adminDeleteSection = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * Training sections a single member may open while their Personal Mentorship
+ * amount is still part-paid. The admin picks these by hand.
+ */
+export const adminGetMemberTrainingAccess = createServerFn({ method: "GET" })
+  .inputValidator((data: { memberId: string }) => z.object({ memberId: uuid }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: sections }, { data: granted }] = await Promise.all([
+      (supabaseAdmin as any)
+        .from("training_categories")
+        .select("id, name, is_published, sort_order")
+        .order("sort_order"),
+      (supabaseAdmin as any)
+        .from("member_training_access")
+        .select("category_id")
+        .eq("member_id", data.memberId),
+    ]);
+    return {
+      sections: ((sections ?? []) as any[]).map((row) => ({
+        id: row.id as string,
+        name: row.name as string,
+        isPublished: row.is_published === true,
+      })),
+      granted: ((granted ?? []) as { category_id: string }[]).map((row) => row.category_id),
+    };
+  });
+
+export const adminSetMemberTrainingAccess = createServerFn({ method: "POST" })
+  .inputValidator((data: { memberId: string; categoryIds: string[] }) =>
+    z.object({ memberId: uuid, categoryIds: z.array(uuid).max(200) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any)
+      .from("member_training_access")
+      .delete()
+      .eq("member_id", data.memberId);
+    if (data.categoryIds.length > 0) {
+      const { error } = await (supabaseAdmin as any).from("member_training_access").insert(
+        data.categoryIds.map((categoryId) => ({
+          member_id: data.memberId,
+          category_id: categoryId,
+        })),
+      );
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true as const };
+  });

@@ -1579,6 +1579,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          method: string | null
           note: string | null
           payer_code: string | null
           payer_id: string
@@ -1600,6 +1601,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          method?: string | null
           note?: string | null
           payer_code?: string | null
           payer_id: string
@@ -1621,6 +1623,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          method?: string | null
           note?: string | null
           payer_code?: string | null
           payer_id?: string

@@ -135,17 +135,22 @@ export const getDailyReport = createServerFn({ method: "GET" })
     // Count missed days walking back from yesterday. An approved leave day is skipped.
     // Fifteen missed working days in a row without leave blocks the account.
     const joinedDay = new Date(member.created_at as string).toISOString().slice(0, 10);
+    // Personal Mentorship (rank 1) accounts only train: no working report, no
+    // missed-report warnings and never an automatic block.
+    const trainingOnly = rankOf(member) < 2;
     const missedDates: string[] = [];
-    for (let back = 1; back <= 60 && missedDates.length < MISSED_DAYS_BLOCK; back += 1) {
-      const date = shiftDay(today, -back);
-      if (date < joinedDay) break;
-      if (onApprovedLeave(date)) continue;
-      if (byDate.has(date)) break;
-      missedDates.push(date);
+    if (!trainingOnly) {
+      for (let back = 1; back <= 60 && missedDates.length < MISSED_DAYS_BLOCK; back += 1) {
+        const date = shiftDay(today, -back);
+        if (date < joinedDay) break;
+        if (onApprovedLeave(date)) continue;
+        if (byDate.has(date)) break;
+        missedDates.push(date);
+      }
     }
 
     let status = member.status as string;
-    if (missedDates.length >= MISSED_DAYS_BLOCK && status === "active") {
+    if (!trainingOnly && missedDates.length >= MISSED_DAYS_BLOCK && status === "active") {
       await supabaseAdmin
         .from("member_profiles")
         .update({ status: "blocked" })
@@ -153,9 +158,19 @@ export const getDailyReport = createServerFn({ method: "GET" })
       status = "blocked";
     }
 
+    const { buildReportCalendar } = await import("./report-days.server");
+    const calendar = buildReportCalendar({
+      reports: (reports ?? []) as Record<string, unknown>[],
+      leaves: (leaves ?? []) as { from_date: string; to_date: string; status?: string | null }[],
+      endDate: today,
+      days: 30,
+      joinedDate: joinedDay,
+    });
+
     const hour = pktHour();
     return {
       member: { memberId: member.member_id as string, fullName: member.full_name as string },
+      trainingOnly,
       today: byDate.get(today) ?? blankDay(today),
       todaySubmitted: byDate.has(today),
       windowOpen: hour >= REPORT_OPEN_HOUR,
@@ -163,9 +178,11 @@ export const getDailyReport = createServerFn({ method: "GET" })
       status,
       warning: { level: Math.min(missedDates.length, 3), missedDates },
       days,
+      calendar,
       leaves: leaveList,
     };
   });
+
 
 /** Save (or update) today's daily report. Only between 8 PM and midnight PKT. */
 export const submitDailyReport = createServerFn({ method: "POST" })

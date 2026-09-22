@@ -206,7 +206,7 @@ function TeamPage() {
       ) : null}
 
       {tab === "customers" ? (
-        <UplineActionQueue ready={ready} uplineName={data?.upline.fullName ?? "your upline"} />
+        <UplineActionQueue ready={ready} />
       ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>

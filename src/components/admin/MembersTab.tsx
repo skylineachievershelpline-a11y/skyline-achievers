@@ -163,7 +163,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     setSelectedIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   }
 
-  async function applyBulk(action: "active" | "blocked" | "working" | "training" | "delete") {
+  async function applyBulk(action: "active" | "blocked" | "delete") {
     if (selectedIds.length === 0) return;
     const label = action === "delete" ? "delete permanently" : `set to ${action}`;
     if (!window.confirm(`${label[0]?.toUpperCase()}${label.slice(1)} for ${selectedIds.length} selected members?`)) return;
@@ -172,7 +172,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       if (action === "delete") {
         await Promise.all(selectedIds.map((id) => deleteMember({ data: { id } } as never)));
       } else {
-        await Promise.all(selectedIds.map((id) => editMember({ data: action === "working" || action === "training" ? { id, workingEnabled: action === "working" } : { id, status: action } } as never)));
+        await Promise.all(selectedIds.map((id) => editMember({ data: { id, status: action } } as never)));
       }
       toast.success(`${selectedIds.length} members updated`);
       setSelectedIds([]);

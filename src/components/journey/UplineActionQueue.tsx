@@ -8,13 +8,7 @@ import { getUplineActionQueue } from "@/lib/journey.functions";
 import { TraineeProgressRecord } from "./TraineeProgressRecord";
 
 /** The upline's "action required" list across every trainee in the team. */
-export function UplineActionQueue({
-  ready,
-  uplineName,
-}: {
-  ready: boolean;
-  uplineName: string;
-}) {
+export function UplineActionQueue({ ready }: { ready: boolean }) {
   const load = useServerFn(getUplineActionQueue);
   const [openTrainee, setOpenTrainee] = useState<{
     id: string;

@@ -230,7 +230,7 @@ function TeamPage() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 sm:w-64">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} placeholder="Find member, ID or phone" className="h-9 rounded-lg pl-9 text-xs" />
+                <Input value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} placeholder="Find by name or phone number" className="h-9 rounded-lg pl-9 text-xs" />
               </div>
               <select aria-label="Filter team status" value={memberFilter} onChange={(event) => setMemberFilter(event.target.value as typeof memberFilter)} className="h-9 rounded-lg border border-hairline bg-surface-2 px-3 text-xs">
                 <option value="all">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option>
@@ -282,6 +282,7 @@ function TeamPage() {
 function FboTree({ ready }: { ready: boolean }) {
   const load = useServerFn(getMyFboTeam);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [fboSearch, setFboSearch] = useState("");
   const { data, isPending } = useQuery({
     queryKey: ["my-fbo-team"],
     queryFn: () => load(),
@@ -297,7 +298,15 @@ function FboTree({ ready }: { ready: boolean }) {
     );
   }
 
-  const team = (data?.team ?? []) as any[];
+  const allFbos = (data?.team ?? []) as any[];
+  const fboNeedle = fboSearch.trim().toLowerCase();
+  const team = fboNeedle
+    ? allFbos.filter(
+        (person) =>
+          String(person.memberId ?? "").toLowerCase().includes(fboNeedle) ||
+          String(person.fullName ?? "").toLowerCase().includes(fboNeedle),
+      )
+    : allFbos;
   const stats = data?.stats;
 
   return (
@@ -324,6 +333,15 @@ function FboTree({ ready }: { ready: boolean }) {
           <p className="text-xs text-muted-foreground">
             {team.length} direct FBOs under {data?.upline.fullName ?? "you"} · records are read-only
           </p>
+          <div className="relative mt-3">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={fboSearch}
+              onChange={(event) => setFboSearch(event.target.value)}
+              placeholder="Find by 12-digit Skyline ID or name"
+              className="h-9 rounded-lg pl-9 text-xs"
+            />
+          </div>
         </div>
         <div className="border-b border-border bg-primary/10 px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">

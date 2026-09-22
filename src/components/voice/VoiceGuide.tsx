@@ -25,6 +25,50 @@ type Props = {
  * A small "listen" control: plays the section's guidance in Urdu or English
  * with the device voice, and lets the member switch language or stop it.
  */
+/**
+ * Compact header control: one speaker button that reads the page guidance, and
+ * a small chip to switch between Urdu and English. Always visible on mobile.
+ */
+export function VoiceGuideButton({ ur, en }: { ur: string; en: string }) {
+  const [lang, setLang] = useState<VoiceLang>("ur");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(supportsVoice());
+    setLang(readVoiceLang());
+    return () => stopVoice();
+  }, []);
+
+  if (!ready) return null;
+
+  function play(next: VoiceLang) {
+    setLang(next);
+    writeVoiceLang(next);
+    speak(next === "ur" ? ur : en, next);
+  }
+
+  return (
+    <div className="flex shrink-0 items-center overflow-hidden rounded-xl border border-metal/30 bg-surface shadow-glass">
+      <button
+        type="button"
+        onClick={() => play(lang)}
+        aria-label="Listen to the guide for this screen"
+        className="flex h-9 w-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Volume2 className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => play(lang === "ur" ? "en" : "ur")}
+        aria-label="Switch voice language"
+        className="h-9 border-l border-metal/30 px-2 text-[10px] font-semibold uppercase tracking-wide text-brand-glow"
+      >
+        {lang === "ur" ? "UR" : "EN"}
+      </button>
+    </div>
+  );
+}
+
 export function VoiceGuide({ ur, en, label = "Listen", className = "" }: Props) {
   const [lang, setLang] = useState<VoiceLang>("ur");
   const [speaking, setSpeaking] = useState(false);

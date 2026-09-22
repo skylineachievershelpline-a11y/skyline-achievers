@@ -113,20 +113,24 @@ export async function traineeStatsFor(uplineId: string) {
     .limit(500);
   const trainees = rows ?? [];
 
-  const { count: publishedSessions } = await supabaseAdmin
-    .from("beginner_sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("is_published", true);
-  const totalSessions = publishedSessions ?? 0;
+  // One source of truth for training progress: approved session reviews in the
+  // guided journey (7 basic sessions), not the old code-unlock rows.
+  const { BASIC_SESSION_COUNT } = await import("./journey");
+  const totalSessions = BASIC_SESSION_COUNT;
 
   const ids = trainees.map((t) => t.id);
   const unlockMap = new Map<string, number>();
   if (ids.length > 0) {
-    const { data: unlocks } = await supabaseAdmin
-      .from("trainee_session_unlocks")
-      .select("trainee_id")
-      .in("trainee_id", ids);
-    for (const row of unlocks ?? []) {
+    const { data: approved } = await (supabaseAdmin as any)
+      .from("trainee_session_reviews")
+      .select("trainee_id, session_number, status")
+      .in("trainee_id", ids)
+      .eq("status", "approved");
+    const seen = new Set<string>();
+    for (const row of (approved ?? []) as { trainee_id: string; session_number: number }[]) {
+      const key = `${row.trainee_id}:${row.session_number}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       unlockMap.set(row.trainee_id, (unlockMap.get(row.trainee_id) ?? 0) + 1);
     }
   }

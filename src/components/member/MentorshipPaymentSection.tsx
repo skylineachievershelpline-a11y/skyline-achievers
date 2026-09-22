@@ -67,7 +67,7 @@ export function MentorshipPaymentSection() {
   const submit = useMutation({
     mutationFn: async () => {
       if (!data) throw new Error("Please wait — loading your payment details.");
-      if (!method) throw new Error("Choose the payment method you used.");
+      if (!method.trim()) throw new Error("Choose or write the payment method you used.");
       const value = Number(amount) || 0;
       if (value <= 0) throw new Error("Enter the amount you paid.");
       if (value > data.mentorship.remaining) {
@@ -81,7 +81,7 @@ export function MentorshipPaymentSection() {
         data: {
           purpose: "mentorship" as const,
           claimedAmount: value,
-          method,
+          method: method.trim(),
           proofPath,
           note: note.trim() || null,
         },
@@ -330,7 +330,7 @@ export function MentorshipPaymentSection() {
               variant="brand"
               size="xl"
               className="w-full rounded-2xl"
-              disabled={submit.isPending || !proof || !method}
+              disabled={submit.isPending || !proof || !method.trim()}
             >
               {submit.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

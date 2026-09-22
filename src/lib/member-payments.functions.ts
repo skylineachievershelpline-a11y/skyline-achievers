@@ -16,7 +16,7 @@ async function activeMemberRow(userId: string) {
   const { data } = await (supabaseAdmin as any)
     .from("member_profiles")
     .select(
-      "id, member_id, full_name, status, phone, email, age, upline_id, mentorship_due_at, mentorship_completed_at",
+      "id, member_id, full_name, status, phone, email, age, upline_id, mentorship_due_at, mentorship_completed_at, mentorship_fee_pkr, mentorship_paid_pkr",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -32,8 +32,11 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
     const { loadLedger, loadPolicy, signProof } = await import("./journey.server");
     const [policy, ledger] = await Promise.all([loadPolicy(), loadLedger(member.id)]);
 
-    const required = policy.mentorshipFeePkr;
-    const verified = ledger.mentorshipPaid;
+    // The office recorded some older payments straight on the member record, so
+    // the verified figure is the higher of the ledger and that recorded amount —
+    // the same number the dashboard summary shows.
+    const required = Number(member.mentorship_fee_pkr) || policy.mentorshipFeePkr;
+    const verified = Math.max(ledger.mentorshipPaid, Number(member.mentorship_paid_pkr) || 0);
     const remaining = Math.max(0, required - verified);
     const complete = remaining === 0 && required > 0;
     const ccTarget = complete ? policy.ccTargetFullPayment : policy.ccTargetPartial;
@@ -123,7 +126,9 @@ export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
     const [policy, ledger] = await Promise.all([loadPolicy(), loadLedger(member.id)]);
 
     if (data.purpose === "mentorship") {
-      const remaining = Math.max(0, policy.mentorshipFeePkr - ledger.mentorshipPaid);
+      const required = Number(member.mentorship_fee_pkr) || policy.mentorshipFeePkr;
+      const paid = Math.max(ledger.mentorshipPaid, Number(member.mentorship_paid_pkr) || 0);
+      const remaining = Math.max(0, required - paid);
       if (remaining === 0) throw new Error("Your Personal Mentorship amount is already complete.");
       if (data.claimedAmount > remaining) {
         throw new Error("That amount is more than your remaining Personal Mentorship balance.");

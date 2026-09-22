@@ -230,6 +230,19 @@ export const submitSessionReview = createServerFn({ method: "POST" })
     if (new Date(slot.scheduled_at).getTime() > Date.now()) {
       throw new Error("This session opens at its scheduled time.");
     }
+    const { sessionWindowEndMs, SESSION_WINDOW_HOURS } = await import("./journey");
+    const { data: existingReview } = await admin
+      .from("trainee_session_reviews")
+      .select("id")
+      .eq("trainee_id", trainee.id)
+      .eq("session_number", data.sessionNumber)
+      .limit(1)
+      .maybeSingle();
+    if (!existingReview && Date.now() > sessionWindowEndMs(slot.scheduled_at)) {
+      throw new Error(
+        `This session closed ${SESSION_WINDOW_HOURS} hours after its start time because no review was submitted. Ask your upline to schedule it again.`,
+      );
+    }
 
     const { error } = await admin.from("trainee_session_reviews").insert({
       trainee_id: trainee.id,

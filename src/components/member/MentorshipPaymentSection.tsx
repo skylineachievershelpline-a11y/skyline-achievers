@@ -67,7 +67,7 @@ export function MentorshipPaymentSection() {
   const submit = useMutation({
     mutationFn: async () => {
       if (!data) throw new Error("Please wait — loading your payment details.");
-      if (!method) throw new Error("Choose the payment method you used.");
+      if (!method.trim()) throw new Error("Choose or write the payment method you used.");
       const value = Number(amount) || 0;
       if (value <= 0) throw new Error("Enter the amount you paid.");
       if (value > data.mentorship.remaining) {
@@ -81,7 +81,7 @@ export function MentorshipPaymentSection() {
         data: {
           purpose: "mentorship" as const,
           claimedAmount: value,
-          method,
+          method: method.trim(),
           proofPath,
           note: note.trim() || null,
         },
@@ -173,11 +173,20 @@ export function MentorshipPaymentSection() {
           <div className="space-y-1.5">
             <Label>Select payment method</Label>
             {methods.length === 0 ? (
-              <p className="rounded-2xl border border-hairline bg-surface-2 p-3 text-[11px] text-muted-foreground">
-                The office has not added payment methods yet. Please ask your upline or the office
-                for the current payment details.
-              </p>
+              <>
+                <p className="rounded-2xl border border-hairline bg-surface-2 p-3 text-[11px] text-muted-foreground">
+                  The office has not added payment methods yet. Write the method you used and the
+                  office will check it with your screenshot.
+                </p>
+                <Input
+                  value={method}
+                  onChange={(event) => setMethod(event.target.value)}
+                  placeholder="Easypaisa / JazzCash / bank transfer"
+                  className="h-12 rounded-2xl"
+                />
+              </>
             ) : (
+
               <div className="grid gap-2 sm:grid-cols-2">
                 {methods.map((entry) => (
                   <button
@@ -321,7 +330,7 @@ export function MentorshipPaymentSection() {
               variant="brand"
               size="xl"
               className="w-full rounded-2xl"
-              disabled={submit.isPending || !proof || !method}
+              disabled={submit.isPending || !proof || !method.trim()}
             >
               {submit.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

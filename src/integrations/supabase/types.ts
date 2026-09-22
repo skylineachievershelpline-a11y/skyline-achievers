@@ -173,11 +173,14 @@ export type Database = {
         Row: {
           aspect_ratio: string
           created_at: string
+          day_number: number | null
           description: string | null
           duration_seconds: number | null
           id: string
           is_published: boolean
           session_code: string
+          session_kind: string
+          session_number: number | null
           sort_order: number
           thumbnail_path: string | null
           title: string
@@ -189,11 +192,14 @@ export type Database = {
         Insert: {
           aspect_ratio?: string
           created_at?: string
+          day_number?: number | null
           description?: string | null
           duration_seconds?: number | null
           id?: string
           is_published?: boolean
           session_code: string
+          session_kind?: string
+          session_number?: number | null
           sort_order?: number
           thumbnail_path?: string | null
           title: string
@@ -205,11 +211,14 @@ export type Database = {
         Update: {
           aspect_ratio?: string
           created_at?: string
+          day_number?: number | null
           description?: string | null
           duration_seconds?: number | null
           id?: string
           is_published?: boolean
           session_code?: string
+          session_kind?: string
+          session_number?: number | null
           sort_order?: number
           thumbnail_path?: string | null
           title?: string
@@ -1562,6 +1571,80 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_submissions: {
+        Row: {
+          admin_note: string | null
+          age: number | null
+          claimed_amount_pkr: number
+          created_at: string
+          email: string | null
+          id: string
+          note: string | null
+          payer_code: string | null
+          payer_id: string
+          payer_kind: string
+          payer_name: string
+          phone: string | null
+          proof_path: string | null
+          purpose: string
+          status: string
+          updated_at: string
+          upline_id: string | null
+          verified_amount_pkr: number
+          verified_at: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          age?: number | null
+          claimed_amount_pkr?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          note?: string | null
+          payer_code?: string | null
+          payer_id: string
+          payer_kind?: string
+          payer_name: string
+          phone?: string | null
+          proof_path?: string | null
+          purpose?: string
+          status?: string
+          updated_at?: string
+          upline_id?: string | null
+          verified_amount_pkr?: number
+          verified_at?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          age?: number | null
+          claimed_amount_pkr?: number
+          created_at?: string
+          email?: string | null
+          id?: string
+          note?: string | null
+          payer_code?: string | null
+          payer_id?: string
+          payer_kind?: string
+          payer_name?: string
+          phone?: string | null
+          proof_path?: string | null
+          purpose?: string
+          status?: string
+          updated_at?: string
+          upline_id?: string | null
+          verified_amount_pkr?: number
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_submissions_upline_id_fkey"
+            columns: ["upline_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           key: string
@@ -2003,6 +2086,181 @@ export type Database = {
             columns: ["upline_id"]
             isOneToOne: false
             referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainee_journey: {
+        Row: {
+          created_at: string
+          interview_guide_watched_at: string | null
+          interview_note: string | null
+          interview_result: string | null
+          interview_reviewed_at: string | null
+          stage: string
+          trainee_id: string
+          updated_at: string
+          webinar_watched_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          interview_guide_watched_at?: string | null
+          interview_note?: string | null
+          interview_result?: string | null
+          interview_reviewed_at?: string | null
+          stage?: string
+          trainee_id: string
+          updated_at?: string
+          webinar_watched_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          interview_guide_watched_at?: string | null
+          interview_note?: string | null
+          interview_result?: string | null
+          interview_reviewed_at?: string | null
+          stage?: string
+          trainee_id?: string
+          updated_at?: string
+          webinar_watched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_journey_trainee_id_fkey"
+            columns: ["trainee_id"]
+            isOneToOne: true
+            referencedRelation: "trainees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainee_session_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          image_path: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string | null
+          session_number: number
+          status: string
+          trainee_id: string
+          updated_at: string
+          upline_note: string | null
+          upline_voice_path: string | null
+          voice_path: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          session_number: number
+          status?: string
+          trainee_id: string
+          updated_at?: string
+          upline_note?: string | null
+          upline_voice_path?: string | null
+          voice_path?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          session_number?: number
+          status?: string
+          trainee_id?: string
+          updated_at?: string
+          upline_note?: string | null
+          upline_voice_path?: string | null
+          voice_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_session_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_session_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "beginner_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_session_reviews_trainee_id_fkey"
+            columns: ["trainee_id"]
+            isOneToOne: false
+            referencedRelation: "trainees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainee_session_schedule: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_number: number
+          id: string
+          scheduled_at: string
+          session_id: string | null
+          session_number: number
+          trainee_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_number: number
+          id?: string
+          scheduled_at: string
+          session_id?: string | null
+          session_number: number
+          trainee_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_number?: number
+          id?: string
+          scheduled_at?: string
+          session_id?: string | null
+          session_number?: number
+          trainee_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_session_schedule_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_session_schedule_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "beginner_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_session_schedule_trainee_id_fkey"
+            columns: ["trainee_id"]
+            isOneToOne: false
+            referencedRelation: "trainees"
             referencedColumns: ["id"]
           },
         ]

@@ -13,6 +13,7 @@ import {
   useMemberGuard,
   useTrainingOnly,
 } from "@/components/member/MemberShell";
+import { UplineMasterSchedule } from "@/components/journey/UplineMasterSchedule";
 import { WelcomeCard, type Credentials } from "@/components/team/WelcomeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -281,6 +282,10 @@ function SeatsPage() {
             </div>
           )}
         </section>
+
+        <div className="lg:col-span-2">
+          <UplineMasterSchedule />
+        </div>
       </div>
     </MemberShell>
   );

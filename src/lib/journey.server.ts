@@ -1,7 +1,7 @@
 /** Server-only helpers for the Basic Training journey. */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { DEFAULT_POLICY, type JourneyPolicy } from "./journey";
+import { DEFAULT_POLICY, normalizePaymentMethods, type JourneyPolicy } from "./journey";
 import { RESOURCE_BUCKET, THUMBNAIL_BUCKET, signPath } from "./storage.server";
 
 const admin = supabaseAdmin as any;
@@ -20,6 +20,7 @@ export async function loadPolicy(): Promise<JourneyPolicy> {
     ccTargetFullPayment: Number(value.ccTargetFullPayment ?? DEFAULT_POLICY.ccTargetFullPayment),
     ccTargetPartial: Number(value.ccTargetPartial ?? DEFAULT_POLICY.ccTargetPartial),
     mentorshipSeats: Number(value.mentorshipSeats ?? DEFAULT_POLICY.mentorshipSeats),
+    paymentMethods: normalizePaymentMethods(value.paymentMethods),
   };
 }
 
@@ -75,7 +76,7 @@ export async function loadLedger(payerId: string) {
   const { data } = await admin
     .from("payment_submissions")
     .select(
-      "id, purpose, claimed_amount_pkr, verified_amount_pkr, status, proof_path, admin_note, created_at, verified_at",
+      "id, purpose, claimed_amount_pkr, verified_amount_pkr, status, method, proof_path, admin_note, created_at, verified_at",
     )
     .eq("payer_id", payerId)
     .order("created_at", { ascending: false });
@@ -93,6 +94,8 @@ export async function loadLedger(payerId: string) {
       claimed: Number(row.claimed_amount_pkr ?? 0),
       verified: Number(row.verified_amount_pkr ?? 0),
       status: row.status as string,
+      method: (row.method ?? null) as string | null,
+      proofPath: (row.proof_path ?? null) as string | null,
       adminNote: (row.admin_note ?? null) as string | null,
       createdAt: row.created_at as string,
       verifiedAt: (row.verified_at ?? null) as string | null,

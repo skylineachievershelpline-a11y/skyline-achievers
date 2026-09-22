@@ -1,0 +1,1 @@
+ALTER TABLE public.payment_submissions ADD COLUMN IF NOT EXISTS method text;

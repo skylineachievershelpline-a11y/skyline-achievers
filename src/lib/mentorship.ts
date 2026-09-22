@@ -146,12 +146,13 @@ export function computeMemberProgress(
     if (input.extensions >= MAX_MENTORSHIP_EXTENSIONS || (feeExpired && input.extensions >= 2)) {
       warningStage = 3;
     }
+    // Never a suspension threat: an incomplete amount only changes the 2CC target.
     warning =
       warningStage >= 3
-        ? "Final warning: clear the remaining Personal Mentorship amount now or this account will be blocked."
+        ? "Your Personal Mentorship amount is still incomplete — complete it to keep the lower 2CC target."
         : warningStage === 2
-          ? "Second warning: your extra time is almost over. Please clear the remaining amount."
-          : "Complete your Personal Mentorship amount inside this time or your account will be suspended.";
+          ? "Your extra time is almost over. Please complete the remaining amount to keep the lower 2CC target."
+          : "Complete your Personal Mentorship amount within the time shown to keep the lower 2CC target.";
   } else if (ccRemaining !== null && ccRemaining > 0 && input.ccDueAt) {
     if (ccExpired) {
       warningStage = Math.min(3, input.ccExtensions + 2);

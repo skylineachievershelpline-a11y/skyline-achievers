@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Copy, IdCard, Loader2, Save, ShieldCheck, TrendingUp } from "lucide-react";
+import { Copy, IdCard, Loader2, Plus, Save, ShieldCheck, Trash2, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,6 +36,9 @@ export function JourneyTab() {
 
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [methods, setMethods] = useState<
+    { name: string; accountTitle: string; accountNumber: string; instructions: string; qrUrl: string }[]
+  >([]);
   const [form, setForm] = useState({
     mentorshipFeePkr: "",
     mentorshipDays: "",
@@ -65,6 +68,7 @@ export function JourneyTab() {
       ccTargetPartial: String(value.ccTargetPartial),
       mentorshipSeats: String(value.mentorshipSeats),
     });
+    setMethods(((value as any).paymentMethods ?? []) as any[]);
   }, [policy.data]);
 
   const persistPolicy = useMutation({
@@ -76,6 +80,15 @@ export function JourneyTab() {
           ccTargetFullPayment: Number(form.ccTargetFullPayment) || 0,
           ccTargetPartial: Number(form.ccTargetPartial) || 0,
           mentorshipSeats: Number(form.mentorshipSeats) || 1,
+          paymentMethods: methods
+            .filter((entry) => entry.name.trim().length > 0)
+            .map((entry) => ({
+              name: entry.name.trim(),
+              accountTitle: entry.accountTitle.trim(),
+              accountNumber: entry.accountNumber.trim(),
+              instructions: entry.instructions.trim(),
+              qrUrl: entry.qrUrl.trim(),
+            })),
         },
       } as never),
     onSuccess: () => {
@@ -151,6 +164,93 @@ export function JourneyTab() {
             </div>
           ))}
         </div>
+        {/* ---------- payment methods members see ---------- */}
+        <div className="mt-5 space-y-3">
+          <p className="font-display text-sm font-semibold">Payment methods</p>
+          <p className="text-[11px] text-muted-foreground">
+            These are the only payment details members see. Nothing is invented by the app.
+          </p>
+          {methods.map((entry, index) => (
+            <div key={index} className="raised-panel space-y-2 rounded-2xl p-3">
+              <div className="grid gap-2 sm:grid-cols-3">
+                {[
+                  { key: "name", label: "Method name (e.g. Easypaisa)" },
+                  { key: "accountTitle", label: "Account title" },
+                  { key: "accountNumber", label: "Account number" },
+                ].map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <Label>{field.label}</Label>
+                    <Input
+                      value={(entry as any)[field.key] ?? ""}
+                      onChange={(event) =>
+                        setMethods((current) =>
+                          current.map((row, rowIndex) =>
+                            rowIndex === index ? { ...row, [field.key]: event.target.value } : row,
+                          ),
+                        )
+                      }
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Instructions (optional)</Label>
+                  <Input
+                    value={entry.instructions}
+                    onChange={(event) =>
+                      setMethods((current) =>
+                        current.map((row, rowIndex) =>
+                          rowIndex === index ? { ...row, instructions: event.target.value } : row,
+                        ),
+                      )
+                    }
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>QR code image link (optional)</Label>
+                  <Input
+                    value={entry.qrUrl}
+                    onChange={(event) =>
+                      setMethods((current) =>
+                        current.map((row, rowIndex) =>
+                          rowIndex === index ? { ...row, qrUrl: event.target.value } : row,
+                        ),
+                      )
+                    }
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-xl text-destructive"
+                onClick={() =>
+                  setMethods((current) => current.filter((_, rowIndex) => rowIndex !== index))
+                }
+              >
+                <Trash2 className="h-4 w-4" /> Remove
+              </Button>
+            </div>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl"
+            onClick={() =>
+              setMethods((current) => [
+                ...current,
+                { name: "", accountTitle: "", accountNumber: "", instructions: "", qrUrl: "" },
+              ])
+            }
+          >
+            <Plus className="h-4 w-4" /> Add payment method
+          </Button>
+        </div>
+
         <Button
           variant="brand"
           className="mt-4 rounded-xl"
@@ -191,8 +291,8 @@ export function JourneyTab() {
                       <span className="text-[11px] text-muted-foreground">{row.payerCode}</span>
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {PURPOSE_LABEL[row.purpose] ?? row.purpose} · claimed {pkr(row.claimed)} ·{" "}
-                      {formatDateTime(row.createdAt)}
+                      {PURPOSE_LABEL[row.purpose] ?? row.purpose} · claimed {pkr(row.claimed)}
+                      {row.method ? ` · ${row.method}` : ""} · {formatDateTime(row.createdAt)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       Upline: {row.uplineName ?? "—"} {row.uplineCode ? `(${row.uplineCode})` : ""}
@@ -300,7 +400,8 @@ export function JourneyTab() {
                     {row.payerName} · {PURPOSE_LABEL[row.purpose] ?? row.purpose}
                   </span>
                   <span className="text-muted-foreground">
-                    claimed {pkr(row.claimed)} · verified {pkr(row.verified)} ·{" "}
+                    claimed {pkr(row.claimed)} · verified {pkr(row.verified)}
+                    {row.method ? ` · ${row.method}` : ""} ·{" "}
                     {row.status === "verified" ? "Verified" : "Rejected"}
                     {row.verifiedAt ? ` · ${formatDateTime(row.verifiedAt)}` : ""}
                   </span>

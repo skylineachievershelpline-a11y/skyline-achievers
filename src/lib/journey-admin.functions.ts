@@ -12,7 +12,7 @@ export const adminGetPaymentSubmissions = createServerFn({ method: "GET" }).hand
   const { data } = await (supabaseAdmin as any)
     .from("payment_submissions")
     .select(
-      "id, payer_id, payer_kind, payer_name, payer_code, purpose, claimed_amount_pkr, verified_amount_pkr, proof_path, phone, email, note, admin_note, status, created_at, verified_at, upline:upline_id (full_name, member_id)",
+      "id, payer_id, payer_kind, payer_name, payer_code, purpose, method, claimed_amount_pkr, verified_amount_pkr, proof_path, phone, email, note, admin_note, status, created_at, verified_at, upline:upline_id (full_name, member_id)",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -26,6 +26,7 @@ export const adminGetPaymentSubmissions = createServerFn({ method: "GET" }).hand
       payerName: row.payer_name as string,
       payerCode: (row.payer_code ?? null) as string | null,
       purpose: row.purpose as string,
+      method: (row.method ?? null) as string | null,
       claimed: Number(row.claimed_amount_pkr ?? 0),
       verified: Number(row.verified_amount_pkr ?? 0),
       proofUrl: await signProof(row.proof_path),
@@ -267,6 +268,13 @@ export const adminSaveJourneyPolicy = createServerFn({ method: "POST" })
       ccTargetFullPayment: number;
       ccTargetPartial: number;
       mentorshipSeats: number;
+      paymentMethods?: {
+        name: string;
+        accountTitle: string;
+        accountNumber: string;
+        instructions: string;
+        qrUrl: string;
+      }[];
     }) =>
       z
         .object({
@@ -275,6 +283,18 @@ export const adminSaveJourneyPolicy = createServerFn({ method: "POST" })
           ccTargetFullPayment: z.number().min(0).max(100_000_000),
           ccTargetPartial: z.number().min(0).max(100_000_000),
           mentorshipSeats: z.number().int().min(0).max(1000),
+          paymentMethods: z
+            .array(
+              z.object({
+                name: z.string().trim().min(1).max(60),
+                accountTitle: z.string().trim().max(120),
+                accountNumber: z.string().trim().max(120),
+                instructions: z.string().trim().max(600),
+                qrUrl: z.string().trim().max(500),
+              }),
+            )
+            .max(12)
+            .optional(),
         })
         .parse(data),
   )

@@ -17,12 +17,22 @@ export const SESSION_PLAN: { session: number; day: number; time: string }[] = [
   { session: 7, day: 4, time: "20:00" },
 ];
 
+/** A payment channel the office has configured. Nothing here is hard-coded. */
+export type PaymentMethod = {
+  name: string;
+  accountTitle: string;
+  accountNumber: string;
+  instructions: string;
+  qrUrl: string;
+};
+
 export type JourneyPolicy = {
   mentorshipFeePkr: number;
   mentorshipDays: number;
   ccTargetFullPayment: number;
   ccTargetPartial: number;
   mentorshipSeats: number;
+  paymentMethods: PaymentMethod[];
 };
 
 export const DEFAULT_POLICY: JourneyPolicy = {
@@ -31,7 +41,25 @@ export const DEFAULT_POLICY: JourneyPolicy = {
   ccTargetFullPayment: 150000,
   ccTargetPartial: 200000,
   mentorshipSeats: 3,
+  paymentMethods: [],
 };
+
+/** Keeps stored payment methods to the known shape. */
+export function normalizePaymentMethods(value: unknown): PaymentMethod[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => {
+      const row = (entry ?? {}) as Record<string, unknown>;
+      return {
+        name: String(row["name"] ?? "").trim(),
+        accountTitle: String(row["accountTitle"] ?? "").trim(),
+        accountNumber: String(row["accountNumber"] ?? "").trim(),
+        instructions: String(row["instructions"] ?? "").trim(),
+        qrUrl: String(row["qrUrl"] ?? "").trim(),
+      };
+    })
+    .filter((row) => row.name.length > 0);
+}
 
 export type JourneyStage =
   | "sessions"

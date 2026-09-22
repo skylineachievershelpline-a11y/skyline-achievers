@@ -216,8 +216,10 @@ export function SessionsTab() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{row.title}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Code {row.session_code} · {row.aspect_ratio ?? "16:9"} ·{" "}
-                  {row.is_published ? "Published" : "Hidden"}
+                  {row.session_kind === "basic"
+                    ? `Day ${row.day_number ?? "—"} · Session ${row.session_number ?? "—"}`
+                    : (KINDS.find((k) => k.value === row.session_kind)?.label ?? "Extra")}{" "}
+                  · Code {row.session_code} · {row.is_published ? "Published" : "Hidden"}
                 </p>
               </div>
               <button

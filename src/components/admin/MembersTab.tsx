@@ -126,6 +126,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
   const [moneyTarget, setMoneyTarget] = useState<any | null>(null);
+  const [menuTarget, setMenuTarget] = useState<{ id: string; name: string } | null>(null);
   const [mentorshipSlip, setMentorshipSlip] = useState<PaymentSlipData | null>(null);
 
   const setMentorship = useServerFn(adminSetMentorship);
@@ -350,6 +351,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     Payment
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg px-2 text-[11px]"
+                    onClick={() => setMenuTarget({ id: member.id, name: member.full_name })}
+                  >
+                    <ListChecks className="h-3.5 w-3.5" />
+                    Menu access
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="sm"
                     className="h-8 rounded-lg px-2 text-[11px]"
@@ -437,6 +447,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         </DialogContent>
       </Dialog>
 
+
+      <Dialog open={menuTarget !== null} onOpenChange={(open) => !open && setMenuTarget(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Menu access — {menuTarget?.name}</DialogTitle>
+          </DialogHeader>
+          {menuTarget ? <MenuAccessPicker memberId={menuTarget.id} /> : null}
+        </DialogContent>
+      </Dialog>
 
       <MentorshipDialog
         member={moneyTarget}

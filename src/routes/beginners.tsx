@@ -52,7 +52,7 @@ import {
 } from "@/lib/reels.functions";
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { sessionOpen, type JourneySession } from "@/lib/journey";
@@ -723,6 +723,18 @@ function BeginnersPage() {
             ) : focusedJourneySession?.review === "pending" ? (
               <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-300">
                 Review submitted — waiting for your upline
+              </div>
+            ) : focusedJourneySession?.review === "approved" ? (
+              <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-center text-sm font-semibold text-emerald-300">
+                Review approved
+              </div>
+            ) : focusedJourneySession?.scheduledAt ? (
+              <div className="inset-panel mt-5 rounded-2xl p-4 text-center">
+                <p className="text-sm font-semibold">Submit session review</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Review box opens at {formatDateTime12(focusedJourneySession.scheduledAt)} and stays
+                  open for 3 hours.
+                </p>
               </div>
             ) : null}
 

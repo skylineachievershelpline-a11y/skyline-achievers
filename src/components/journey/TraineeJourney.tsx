@@ -426,8 +426,10 @@ export function TraineeJourney() {
         </ul>
       </section>
 
-      {/* ---------- final interview guide ---------- */}
-      {data.stage === "interview_guide" || data.stage === "reassess" ? (
+      {/* ---------- final interview guide: stays open until the result is in ---------- */}
+      {data.stage === "interview_guide" ||
+      data.stage === "reassess" ||
+      data.stage === "ready_for_interview" ? (
         <section className="raised-panel rounded-[28px] p-5 animate-rise-in">
           <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">
             Final interview guide
@@ -437,13 +439,19 @@ export function TraineeJourney() {
           </h2>
           <p className="mt-2 text-xs text-muted-foreground">
             This video explains what the final interview is, why it matters, how to prepare, how to
-            communicate and what to expect.
+            communicate and what to expect. It stays open until your result is shared.
           </p>
           {data.stage === "reassess" && data.interviewNote ? (
             <p className="mt-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs text-amber-200">
               Your senior asked you to prepare again: {data.interviewNote}
             </p>
           ) : null}
+          <VoiceGuide
+            className="mt-3"
+            label="Listen"
+            ur="Mubarak ho, aap ne saat sessions mukammal kar liye hain. Ab ye Final Interview Guide video poori dekhein, phir apne upline se final interview dein. Interview pass hone ke baad Forever Business Plan wala session khul jayega."
+            en="Congratulations, you have completed all seven sessions. Watch this Final Interview Guide completely, then take your final interview with your upline. The Forever Business Plan session unlocks after you pass."
+          />
           {data.interviewGuide ? (
             <Button
               variant="brand"
@@ -471,27 +479,80 @@ export function TraineeJourney() {
         </section>
       ) : null}
 
+      {/* ---------- session 08 locked preview: no timing, interview gate only ---------- */}
+      {data.stage === "interview_guide" ||
+      data.stage === "reassess" ||
+      data.stage === "ready_for_interview" ? (
+        <section className="glass-panel overflow-hidden rounded-[28px] animate-rise-in">
+          <div className="relative aspect-video bg-media">
+            {data.businessPlan?.thumbnailUrl ? (
+              <img
+                src={data.businessPlan.thumbnailUrl}
+                alt="Forever Business Plan cover"
+                className="h-full w-full object-cover opacity-60"
+              />
+            ) : null}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/75 px-6 text-center backdrop-blur-sm">
+              <Lock className="h-6 w-6 text-brand-glow" />
+              <p className="text-sm font-semibold">Locked</p>
+              <p className="text-[11px] text-muted-foreground">
+                This session can only be opened after you pass your Final Interview.
+              </p>
+            </div>
+          </div>
+          <div className="p-5">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Session 08</p>
+            <h2 className="mt-1 font-display text-lg font-semibold">
+              {data.businessPlan?.title ?? "Forever Business Plan"}
+            </h2>
+          </div>
+        </section>
+      ) : null}
+
       {/* ---------- session 08: Forever Business Plan ---------- */}
       {data.stage === "interview_passed" || data.stage === "mentorship" ? (
-        <section className="raised-panel rounded-[28px] p-5 animate-rise-in">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Session 08</p>
-          <h2 className="mt-1 font-display text-lg font-semibold">
-            {data.businessPlan?.title ?? "Forever Business Plan"}
-          </h2>
-          <p className="mt-2 text-xs text-muted-foreground">
-            You passed your final interview, so the business plan session is now open.
-          </p>
-          {data.businessPlan ? (
-            <Button
-              variant="brand"
-              size="xl"
-              className="mt-4 w-full rounded-2xl"
-              onClick={() => open.mutate(data.businessPlan!.id)}
-            >
-              <PlayCircle className="h-4 w-4" /> Watch the business plan
-            </Button>
+        <>
+          {data.stage === "interview_passed" ? (
+            <section className="raised-panel rounded-[28px] p-5 text-center animate-scale-in">
+              <PartyPopper className="mx-auto h-8 w-8 text-brand-glow" />
+              <p className="mt-3 font-display text-lg font-semibold">
+                Congratulations! You have passed your Final Interview
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Your Forever Business Plan session is now unlocked. Watch it completely to move on to
+                Personal Mentorship.
+              </p>
+            </section>
           ) : null}
-        </section>
+
+          <SeatAlertTag startSeats={seats?.available ?? 3} />
+
+          <section className="raised-panel rounded-[28px] p-5 animate-rise-in">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Session 08</p>
+            <h2 className="mt-1 font-display text-lg font-semibold">
+              {data.businessPlan?.title ?? "Forever Business Plan"}
+            </h2>
+            <p className="mt-2 text-xs text-muted-foreground">
+              You passed your final interview, so the business plan session is now open.
+            </p>
+            <VoiceGuide
+              className="mt-3"
+              label="Listen"
+              ur="Mubarak ho, aap ka final interview pass ho gaya hai. Ab Forever Business Plan wala session poora dekhein. Personal Mentorship ki seats limited hain, is liye jaldi session complete karein — webinar dekhne ke baad payment ka option khul jayega."
+              en="Congratulations, you passed your final interview. Watch the complete Forever Business Plan session now. Personal Mentorship seats are limited, so finish quickly — the payment option opens after you watch the webinar."
+            />
+            {data.businessPlan ? (
+              <Button
+                variant="brand"
+                size="xl"
+                className="mt-4 w-full rounded-2xl"
+                onClick={() => open.mutate(data.businessPlan!.id)}
+              >
+                <PlayCircle className="h-4 w-4" /> Watch the business plan
+              </Button>
+            ) : null}
+          </section>
+        </>
       ) : null}
 
       {/* ---------- personal mentorship ---------- */}

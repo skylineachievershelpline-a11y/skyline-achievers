@@ -46,10 +46,19 @@ export const Route = createFileRoute("/session/$code")({
 function SessionPage() {
   const { code } = Route.useParams();
   const open = useServerFn(openBeginnerSession);
+  const loadJourney = useServerFn(getTraineeJourney);
+  const queryClient = useQueryClient();
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["beginner-session", code],
     queryFn: () => open({ data: { code } }),
+    retry: false,
+  });
+
+  // Signed-in trainees can send their review from here with no time limit.
+  const { data: journeyData } = useQuery({
+    queryKey: ["trainee-journey"],
+    queryFn: () => loadJourney(),
     retry: false,
   });
 
@@ -63,6 +72,12 @@ function SessionPage() {
 
   const session = data?.status === "ok" ? data.session : null;
   const extras = data?.status === "ok" ? (data.extras ?? []) : [];
+  const journeySession = session
+    ? ((journeyData?.sessions ?? []) as JourneySession[]).find(
+        (item) => item.sessionId === session.id,
+      ) ?? null
+    : null;
+
 
   return (
     <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">

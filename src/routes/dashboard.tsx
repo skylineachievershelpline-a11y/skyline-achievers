@@ -198,12 +198,13 @@ function DashboardPage() {
         {trainingOnly ? (
           <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
             <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
-            <p className="mt-3 font-display text-base font-semibold">Working section locked</p>
+            <p className="mt-3 font-display text-base font-semibold">Training first</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Your account is set to training only. Complete your training — your admin will unlock
-              working, earnings and team when you are ready.
+              Personal Mentorship accounts complete their training first. The daily working report,
+              earnings and team open with the Assistant Supervisor upgrade.
             </p>
           </div>
+
         ) : (
           <DailyReportPanel />
         )}

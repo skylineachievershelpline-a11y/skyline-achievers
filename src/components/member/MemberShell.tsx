@@ -116,7 +116,7 @@ export function useTrainingOnly() {
   // separate admin switch any more.
   const data = useMemberAccess();
   const rank = (data?.member as any)?.level?.rank_order ?? 0;
-  return Boolean(data?.member) && Number(rank) < 1;
+  return Boolean(data?.member) && Number(rank) < 2;
 }
 
 

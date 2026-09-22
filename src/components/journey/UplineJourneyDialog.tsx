@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime12 as formatDateTime } from "@/lib/format";
 import { BASIC_SESSION_COUNT, SESSION_PLAN, type JourneySession } from "@/lib/journey";
 import {
   getReviewUploadUrl,

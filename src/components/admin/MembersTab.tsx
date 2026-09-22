@@ -718,8 +718,6 @@ function MentorshipDialog({
             </p>
           </div>
 
-          <MenuAccessPicker memberId={member.id} />
-
           <Button
             variant="outline"
             size="xl"

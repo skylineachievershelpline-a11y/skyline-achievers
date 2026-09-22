@@ -23,11 +23,13 @@ async function activeTrainee(userId: string) {
   const { data } = await supabaseAdmin
     .from("trainees")
     .select(
-      "id, trainee_code, full_name, phone, age, status, avatar_path, upline_id, member_profiles:upline_id (id, member_id, full_name, phone, avatar_path)",
+      "id, trainee_code, full_name, phone, age, status, avatar_path, upline_id, created_at, member_profiles:upline_id (id, member_id, full_name, phone, avatar_path)",
     )
     .eq("id", userId)
     .maybeSingle();
   if (!data || (data as any).status !== "active") throw new Error("Your account is not active.");
+  const { ensureSchedule } = await import("./journey.server");
+  await ensureSchedule(data as any);
   return data as any;
 }
 
@@ -36,6 +38,7 @@ async function buildJourney(traineeId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const {
     ensureJourney,
+    ensureSchedule,
     loadJourneySessions,
     loadLedger,
     loadPolicy,
@@ -43,6 +46,14 @@ async function buildJourney(traineeId: string) {
     signThumb,
   } = await import("./journey.server");
   const admin = supabaseAdmin as any;
+
+  // Apply the upline's master schedule when this trainee has no timings yet.
+  const { data: traineeRow } = await admin
+    .from("trainees")
+    .select("id, upline_id, created_at")
+    .eq("id", traineeId)
+    .maybeSingle();
+  if (traineeRow) await ensureSchedule(traineeRow);
 
   const [journeyRow, sessionSet, policy, ledger] = await Promise.all([
     ensureJourney(traineeId),
@@ -654,4 +665,54 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
         thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
       },
     };
+  });
+
+/** The upline's one master schedule that every new trainee starts with. */
+export const getUplineSessionSchedule = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const member = await activeMember(context.userId);
+    const { loadUplineSchedule, loadJourneySessions } = await import("./journey.server");
+    const [slots, sessionSet] = await Promise.all([
+      loadUplineSchedule(member.id),
+      loadJourneySessions(),
+    ]);
+    const { signThumb } = await import("./journey.server");
+    const titles = await Promise.all(
+      (sessionSet.basic as any[]).slice(0, 7).map(async (row, index) => ({
+        session: Number(row.session_number ?? index + 1),
+        title: row.title as string,
+        thumbnailUrl: await signThumb(row.thumbnail_path),
+      })),
+    );
+    return {
+      slots,
+      sessions: titles,
+      upline: { name: member.full_name as string, code: member.member_id as string },
+    };
+  });
+
+export const saveUplineSessionSchedule = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { slots: { session: number; day: number; time: string }[] }) =>
+    z
+      .object({
+        slots: z
+          .array(
+            z.object({
+              session: z.number().int().min(1).max(7),
+              day: z.number().int().min(1).max(30),
+              time: z.string().regex(/^\d{1,2}:\d{2}$/),
+            }),
+          )
+          .min(1)
+          .max(7),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { saveUplineSchedule } = await import("./journey.server");
+    const slots = await saveUplineSchedule(member.id, data.slots);
+    return { ok: true as const, slots };
   });

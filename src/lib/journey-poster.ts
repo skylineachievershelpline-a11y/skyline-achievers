@@ -1,5 +1,5 @@
 import { BRAND } from "./brand";
-import { formatDateTime } from "./format";
+import { formatDateTime12, formatTime12 } from "./format";
 
 export type PosterSession = {
   sessionNumber: number;
@@ -153,7 +153,7 @@ export async function createSchedulePoster(input: {
     ctx.fillStyle = "#cbd5e1";
     ctx.font = "700 24px Manrope, sans-serif";
     ctx.fillText(
-      session.scheduledAt ? formatDateTime(session.scheduledAt) : "Timing to be confirmed",
+      session.scheduledAt ? formatDateTime12(session.scheduledAt) : "Timing to be confirmed",
       320,
       y + 132,
     );
@@ -166,6 +166,116 @@ export async function createSchedulePoster(input: {
   ctx.fillStyle = "#94a3b8";
   ctx.font = "700 22px Manrope, sans-serif";
   ctx.fillText("Be on time. Every session opens at its scheduled time.", 540, 1868);
+
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not create the poster."))),
+      "image/png",
+      0.96,
+    );
+  });
+}
+
+/**
+ * The upline's master schedule poster: the fixed day and time of every session
+ * that each new trainee will follow.
+ */
+export async function createMasterSchedulePoster(input: {
+  uplineName: string;
+  uplineCode: string;
+  slots: { session: number; day: number; time: string }[];
+  sessions: { session: number; title: string; thumbnailUrl: string | null }[];
+}): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Poster is not available on this device.");
+
+  await document.fonts.ready;
+  const logo = await loadBitmap(BRAND.logoUrl);
+  const thumbs = await Promise.all(
+    input.slots.map((slot) =>
+      loadBitmap(input.sessions.find((row) => row.session === slot.session)?.thumbnailUrl ?? null),
+    ),
+  );
+
+  const background = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  background.addColorStop(0, "#04070f");
+  background.addColorStop(0.55, "#071227");
+  background.addColorStop(1, "#02040a");
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (logo) {
+    ctx.drawImage(logo, (canvas.width - 150) / 2, 48, 150, 150);
+    logo.close();
+  }
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "900 52px Outfit, sans-serif";
+  ctx.fillText("SKYLINE ACHIEVERS", 540, 258);
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "800 26px Manrope, sans-serif";
+  ctx.fillText(BRAND.tagline.toUpperCase(), 540, 302);
+  ctx.fillStyle = "#e2e8f5";
+  ctx.font = "800 34px Outfit, sans-serif";
+  ctx.fillText("BASIC TRAINING SESSION SCHEDULE", 540, 368);
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "700 24px Manrope, sans-serif";
+  ctx.fillText(`Trainer: ${input.uplineName} · ${input.uplineCode}`, 540, 412);
+  ctx.fillText("All timings are Pakistan Standard Time", 540, 448);
+
+  let y = 500;
+  input.slots.forEach((slot, index) => {
+    const height = 170;
+    ctx.save();
+    roundRect(ctx, 80, y, 920, height, 26);
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56,189,248,0.22)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    const thumb = thumbs[index];
+    ctx.save();
+    roundRect(ctx, 104, y + 26, 190, 118, 18);
+    ctx.clip();
+    if (thumb) {
+      ctx.drawImage(thumb, 104, y + 26, 190, 118);
+    } else {
+      ctx.fillStyle = "rgba(37,99,235,0.25)";
+      ctx.fillRect(104, y + 26, 190, 118);
+    }
+    ctx.restore();
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "800 22px Manrope, sans-serif";
+    ctx.fillText(
+      `DAY ${String(slot.day).padStart(2, "0")} · SESSION ${String(slot.session).padStart(2, "0")}`,
+      320,
+      y + 62,
+    );
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 30px Outfit, sans-serif";
+    const title = input.sessions.find((row) => row.session === slot.session)?.title ?? "Session";
+    ctx.fillText(title.slice(0, 30), 320, y + 104);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "800 28px Manrope, sans-serif";
+    ctx.fillText(formatTime12(slot.time), 320, y + 144);
+    ctx.textAlign = "center";
+
+    thumb?.close();
+    y += height + 12;
+  });
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "700 22px Manrope, sans-serif";
+  ctx.fillText("Every session opens at its time and stays open for 3 hours.", 540, 1868);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(

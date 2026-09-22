@@ -1,14 +1,19 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
+import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
+import { getTraineeJourney } from "@/lib/journey.functions";
+import { type JourneySession } from "@/lib/journey";
 import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";
+
 
 export const Route = createFileRoute("/session/$code")({
   loader: ({ params }) => getBeginnerSessionPreview({ data: { code: params.code } }),
@@ -46,10 +51,19 @@ export const Route = createFileRoute("/session/$code")({
 function SessionPage() {
   const { code } = Route.useParams();
   const open = useServerFn(openBeginnerSession);
+  const loadJourney = useServerFn(getTraineeJourney);
+  const queryClient = useQueryClient();
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["beginner-session", code],
     queryFn: () => open({ data: { code } }),
+    retry: false,
+  });
+
+  // Signed-in trainees can send their review from here with no time limit.
+  const { data: journeyData } = useQuery({
+    queryKey: ["trainee-journey"],
+    queryFn: () => loadJourney(),
     retry: false,
   });
 
@@ -63,6 +77,12 @@ function SessionPage() {
 
   const session = data?.status === "ok" ? data.session : null;
   const extras = data?.status === "ok" ? (data.extras ?? []) : [];
+  const journeySession = session
+    ? ((journeyData?.sessions ?? []) as JourneySession[]).find(
+        (item) => item.sessionId === session.id,
+      ) ?? null
+    : null;
+
 
   return (
     <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
@@ -127,7 +147,32 @@ function SessionPage() {
                   </p>
                 ) : null}
               </section>
+
+              <ReviewShareNotice
+                sessionTitle={session.title}
+                sessionCode={session.code}
+                className="mt-5"
+              />
+
+              {journeySession && journeySession.review === "pending" ? (
+                <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-300">
+                  Review submitted — waiting for your upline
+                </div>
+              ) : journeySession && journeySession.review === "approved" ? (
+                <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-center text-sm font-semibold text-emerald-300">
+                  Review approved
+                </div>
+              ) : journeySession ? (
+                /* Code-joined session: no schedule window, submit any time. */
+                <SessionReviewForm
+                  sessionNumber={journeySession.sessionNumber}
+                  onSent={() => {
+                    void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
+                  }}
+                />
+              ) : null}
             </SessionGate>
+
           </div>
         )}
       </div>

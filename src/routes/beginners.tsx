@@ -54,8 +54,10 @@ import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
+import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
-import { sessionOpen, type JourneySession } from "@/lib/journey";
+import { type JourneySession } from "@/lib/journey";
+
 import { getTraineeJourney } from "@/lib/journey.functions";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
@@ -708,18 +710,29 @@ function BeginnersPage() {
             </SessionGate>
 
             {focusedJourneySession &&
-            journeyData?.stage === "sessions" &&
-            sessionOpen(focusedJourneySession) &&
             focusedJourneySession.review !== "pending" &&
             focusedJourneySession.review !== "approved" ? (
-              <SessionReviewForm
-                sessionNumber={focusedJourneySession.sessionNumber}
-                onSent={() => {
-                  void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
-                  setFocused(null);
-                  setView("home");
-                }}
-              />
+              <>
+                <ReviewShareNotice
+                  sessionTitle={focused.title}
+                  sessionCode={(focused as any).code ?? null}
+                  className="mt-5"
+                />
+                {/* Session opened with a code: the review box has no time limit. */}
+                <SessionReviewForm
+                  sessionNumber={focusedJourneySession.sessionNumber}
+                  onSent={() => {
+                    void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
+                    setFocused(null);
+                    setView("home");
+                  }}
+                />
+                {focusedJourneySession.scheduledAt ? (
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                    Scheduled time: {formatDateTime12(focusedJourneySession.scheduledAt)}
+                  </p>
+                ) : null}
+              </>
             ) : focusedJourneySession?.review === "pending" ? (
               <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-300">
                 Review submitted — waiting for your upline
@@ -728,15 +741,8 @@ function BeginnersPage() {
               <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-center text-sm font-semibold text-emerald-300">
                 Review approved
               </div>
-            ) : focusedJourneySession?.scheduledAt ? (
-              <div className="inset-panel mt-5 rounded-2xl p-4 text-center">
-                <p className="text-sm font-semibold">Submit session review</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Review box opens at {formatDateTime12(focusedJourneySession.scheduledAt)} and stays
-                  open for 3 hours.
-                </p>
-              </div>
             ) : null}
+
 
             <Button
               variant="outline"

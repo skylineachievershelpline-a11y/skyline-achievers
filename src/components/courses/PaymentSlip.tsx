@@ -117,48 +117,90 @@ function slipFooter(data: PaymentSlipData) {
   return data.kind === "daily-report" ? "REPORT PRINTED BY SKYLINE ACHIEVERS" : "THANK YOU FOR YOUR PAYMENT";
 }
 
+/**
+ * Smooth laser-printer sound: deep mechanical motor hum plus a soft, steady
+ * paper-roller feed. No harsh static bursts. Used by the payment slip, the
+ * daily working report slip and the schedule poster printer.
+ */
 export function playPrinterSound() {
   const AudioContextCtor =
     window.AudioContext ??
     (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioContextCtor) return () => undefined;
   const context = new AudioContextCtor();
-  const gain = context.createGain();
-  const filter = context.createBiquadFilter();
-  const oscillator = context.createOscillator();
-  const bufferSize = context.sampleRate * 2.4;
+  const now = context.currentTime;
+  const duration = 3;
+
+  const master = context.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.13, now + 0.35);
+  master.gain.setValueAtTime(0.13, now + duration - 0.6);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  master.connect(context.destination);
+
+  // Deep motor hum: two low resonant oscillators through a gentle low-pass.
+  const humFilter = context.createBiquadFilter();
+  humFilter.type = "lowpass";
+  humFilter.frequency.value = 320;
+  humFilter.Q.value = 0.6;
+  humFilter.connect(master);
+
+  const humGain = context.createGain();
+  humGain.gain.value = 0.55;
+  humGain.connect(humFilter);
+
+  const oscillators = [
+    { type: "sine" as OscillatorType, from: 58, to: 54, gain: 0.9 },
+    { type: "triangle" as OscillatorType, from: 116, to: 108, gain: 0.35 },
+  ].map(({ type, from, to, gain }) => {
+    const osc = context.createOscillator();
+    const level = context.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(from, now);
+    osc.frequency.linearRampToValueAtTime(to, now + duration);
+    level.gain.value = gain;
+    osc.connect(level).connect(humGain);
+    osc.start(now);
+    osc.stop(now + duration);
+    return osc;
+  });
+
+  // Smooth roller feed: filtered pink-ish noise, no pulsing.
+  const bufferSize = Math.floor(context.sampleRate * duration);
   const noiseBuffer = context.createBuffer(1, bufferSize, context.sampleRate);
   const channel = noiseBuffer.getChannelData(0);
-
+  let last = 0;
   for (let index = 0; index < channel.length; index += 1) {
-    const pulse = index % 900 < 160 ? 0.8 : 0.24;
-    channel[index] = (Math.random() * 2 - 1) * pulse;
+    const white = Math.random() * 2 - 1;
+    last = 0.96 * last + 0.04 * white;
+    channel[index] = last * 3.2;
   }
 
   const noise = context.createBufferSource();
   noise.buffer = noiseBuffer;
-  filter.type = "bandpass";
-  filter.frequency.setValueAtTime(760, context.currentTime);
-  filter.frequency.linearRampToValueAtTime(1180, context.currentTime + 1.7);
-  oscillator.type = "triangle";
-  oscillator.frequency.setValueAtTime(92, context.currentTime);
-  oscillator.frequency.linearRampToValueAtTime(66, context.currentTime + 2.2);
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.08);
-  gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 1.9);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 2.45);
-  noise.connect(filter);
-  oscillator.connect(filter);
-  filter.connect(gain);
-  gain.connect(context.destination);
+
+  const noiseFilter = context.createBiquadFilter();
+  noiseFilter.type = "lowpass";
+  noiseFilter.frequency.setValueAtTime(900, now);
+  noiseFilter.frequency.linearRampToValueAtTime(1400, now + duration * 0.6);
+  noiseFilter.Q.value = 0.4;
+
+  const noiseGain = context.createGain();
+  noiseGain.gain.setValueAtTime(0.0001, now);
+  noiseGain.gain.linearRampToValueAtTime(0.42, now + 0.5);
+  noiseGain.gain.linearRampToValueAtTime(0.3, now + duration - 0.5);
+  noiseGain.gain.linearRampToValueAtTime(0.0001, now + duration);
+
+  noise.connect(noiseFilter).connect(noiseGain).connect(master);
 
   void context.resume().catch(() => undefined);
-  noise.start();
-  oscillator.start();
-  noise.stop(context.currentTime + 2.5);
-  oscillator.stop(context.currentTime + 2.5);
+  noise.start(now);
+  noise.stop(now + duration);
 
-  const timer = window.setTimeout(() => void context.close().catch(() => undefined), 2700);
+  const timer = window.setTimeout(
+    () => void context.close().catch(() => undefined),
+    (duration + 0.3) * 1000,
+  );
   return () => {
     window.clearTimeout(timer);
     try {
@@ -166,14 +208,17 @@ export function playPrinterSound() {
     } catch {
       /* already stopped */
     }
-    try {
-      oscillator.stop();
-    } catch {
-      /* already stopped */
-    }
+    oscillators.forEach((osc) => {
+      try {
+        osc.stop();
+      } catch {
+        /* already stopped */
+      }
+    });
     void context.close().catch(() => undefined);
   };
 }
+
 
 async function blobFromCanvas(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => {

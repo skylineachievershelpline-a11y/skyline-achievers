@@ -8,6 +8,7 @@ import {
   Eye,
   Loader2,
   Lock,
+  PartyPopper,
   PlayCircle,
   ShieldCheck,
   Sparkles,

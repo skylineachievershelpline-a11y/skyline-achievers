@@ -23,6 +23,13 @@ import {
 
 const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
+const KINDS = [
+  { value: "basic", label: "Basic training session (1–7)" },
+  { value: "interview_guide", label: "Final Interview Guide" },
+  { value: "business_plan", label: "Session 08 — Forever Business Plan" },
+  { value: "mentorship_webinar", label: "Personal Mentorship webinar" },
+  { value: "extra", label: "Extra / other" },
+] as const;
 
 type SessionRow = {
   id: string;
@@ -33,6 +40,9 @@ type SessionRow = {
   sort_order: number | null;
   is_published: boolean;
   video_url: string | null;
+  day_number: number | null;
+  session_number: number | null;
+  session_kind: string | null;
 };
 
 export function SessionsTab() {
@@ -61,6 +71,9 @@ export function SessionsTab() {
   const [ratio, setRatio] = useState<string>("16:9");
   const [sortOrder, setSortOrder] = useState("0");
   const [published, setPublished] = useState(true);
+  const [kind, setKind] = useState<string>("basic");
+  const [dayNumber, setDayNumber] = useState("");
+  const [sessionNumber, setSessionNumber] = useState("");
 
   function refresh() {
     void queryClient.invalidateQueries({ queryKey: ["admin-sessions"] });
@@ -77,6 +90,9 @@ export function SessionsTab() {
     setRatio("16:9");
     setSortOrder("0");
     setPublished(true);
+    setKind("basic");
+    setDayNumber("");
+    setSessionNumber("");
   }
 
   function startEdit(row: SessionRow) {
@@ -90,6 +106,9 @@ export function SessionsTab() {
     setRatio(row.aspect_ratio ?? "16:9");
     setSortOrder(String(row.sort_order ?? 0));
     setPublished(row.is_published);
+    setKind(row.session_kind ?? "basic");
+    setDayNumber(row.day_number ? String(row.day_number) : "");
+    setSessionNumber(row.session_number ? String(row.session_number) : "");
     setOpen(true);
   }
 
@@ -146,6 +165,9 @@ export function SessionsTab() {
           aspectRatio: ratio,
           sortOrder: Number(sortOrder) || 0,
           isPublished: published,
+          sessionKind: kind,
+          dayNumber: kind === "basic" && dayNumber ? Number(dayNumber) : null,
+          sessionNumber: sessionNumber ? Number(sessionNumber) : null,
         },
       } as never);
       toast.success(editing ? "Session updated" : "Session created");
@@ -194,8 +216,10 @@ export function SessionsTab() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{row.title}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Code {row.session_code} · {row.aspect_ratio ?? "16:9"} ·{" "}
-                  {row.is_published ? "Published" : "Hidden"}
+                  {row.session_kind === "basic"
+                    ? `Day ${row.day_number ?? "—"} · Session ${row.session_number ?? "—"}`
+                    : (KINDS.find((k) => k.value === row.session_kind)?.label ?? "Extra")}{" "}
+                  · Code {row.session_code} · {row.is_published ? "Published" : "Hidden"}
                 </p>
               </div>
               <button
@@ -246,6 +270,44 @@ export function SessionsTab() {
             <DialogTitle>{editing ? "Edit session" : "New beginners session"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Session type</Label>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+                className={fieldClass}
+              >
+                {KINDS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {kind === "basic" || kind === "business_plan" ? (
+              <div className="grid grid-cols-2 gap-3">
+                {kind === "basic" ? (
+                  <div className="space-y-1.5">
+                    <Label>Day number</Label>
+                    <Input
+                      value={dayNumber}
+                      onChange={(e) => setDayNumber(e.target.value.replace(/\D/g, ""))}
+                      placeholder="1"
+                      className="h-11 rounded-2xl"
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-1.5">
+                  <Label>Session number</Label>
+                  <Input
+                    value={sessionNumber}
+                    onChange={(e) => setSessionNumber(e.target.value.replace(/\D/g, ""))}
+                    placeholder={kind === "business_plan" ? "8" : "1"}
+                    className="h-11 rounded-2xl"
+                  />
+                </div>
+              </div>
+            ) : null}
             <div className="space-y-1.5">
               <Label>Session code</Label>
               <Input

@@ -1177,7 +1177,7 @@ export const adminGetSessions = createServerFn({ method: "GET" }).handler(async 
   const { data } = await (supabaseAdmin as any)
     .from("beginner_sessions")
     .select(
-      "id, session_code, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+      "id, session_code, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at, day_number, session_number, session_kind",
     )
     .order("sort_order")
     .order("created_at", { ascending: false })
@@ -1198,6 +1198,9 @@ export const adminSaveSession = createServerFn({ method: "POST" })
       aspectRatio?: string;
       sortOrder?: number;
       isPublished: boolean;
+      dayNumber?: number | null;
+      sessionNumber?: number | null;
+      sessionKind?: string;
     }) =>
       z
         .object({
@@ -1217,6 +1220,11 @@ export const adminSaveSession = createServerFn({ method: "POST" })
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           sortOrder: z.number().int().min(0).max(999).optional(),
           isPublished: z.boolean(),
+          dayNumber: z.number().int().min(1).max(30).nullish(),
+          sessionNumber: z.number().int().min(1).max(30).nullish(),
+          sessionKind: z
+            .enum(["basic", "interview_guide", "business_plan", "mentorship_webinar", "extra"])
+            .optional(),
         })
         .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
           message: "Upload a video file or paste a video link.",
@@ -1235,6 +1243,9 @@ export const adminSaveSession = createServerFn({ method: "POST" })
       aspect_ratio: data.aspectRatio ?? "16:9",
       sort_order: data.sortOrder ?? 0,
       is_published: data.isPublished,
+      day_number: data.dayNumber ?? null,
+      session_number: data.sessionNumber ?? null,
+      session_kind: data.sessionKind ?? "basic",
     };
     if (data.videoPath) {
       payload["video_path"] = data.videoPath;

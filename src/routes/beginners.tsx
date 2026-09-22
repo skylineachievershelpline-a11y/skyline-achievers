@@ -53,6 +53,7 @@ import {
 import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate } from "@/lib/format";
+import { TraineeJourney } from "@/components/journey/TraineeJourney";
 import { RELATED_THRESHOLD, relevance, tokenize } from "@/lib/search-match";
 import { cn } from "@/lib/utils";
 import {
@@ -632,34 +633,6 @@ function BeginnersPage() {
             <ProgressRing done={unlockedCount} total={sessions.length} />
           </div>
 
-          {/* step track */}
-          <div className="inset-panel mt-6 rounded-2xl p-4">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Training track
-            </p>
-            <ol className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-              {sessions.map((session, index) => (
-                <li key={session.id} className="flex shrink-0 items-center gap-2">
-                  <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums transition-colors ${
-                      session.unlocked
-                        ? "border-cyan/40 bg-primary text-primary-foreground shadow-brand"
-                        : "border-metal/30 bg-surface-2 text-muted-foreground"
-                    }`}
-                    title={session.title}
-                  >
-                    {session.unlocked ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
-                  </span>
-                  {index < sessions.length - 1 ? (
-                    <span className="h-[2px] w-6 rounded-full bg-hairline" aria-hidden />
-                  ) : null}
-                </li>
-              ))}
-              {sessions.length === 0 ? (
-                <li className="text-xs text-muted-foreground">No sessions published yet.</li>
-              ) : null}
-            </ol>
-          </div>
         </section>
 
         <div className="relative mx-auto mt-4 w-full py-4">
@@ -672,56 +645,10 @@ function BeginnersPage() {
           <FlyingSkylineAiMascot />
         </div>
 
-        <section className="mt-5 grid grid-cols-2 gap-3 animate-rise-in sm:grid-cols-3">
-          <div className="glass-panel metal-edge rounded-2xl p-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
-              <Unlock className="h-4 w-4" />
-            </span>
-            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">{unlockedCount}</p>
-            <p className="text-[11px] text-muted-foreground">Sessions unlocked</p>
-          </div>
-          <div className="glass-panel metal-edge rounded-2xl p-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
-              <Lock className="h-4 w-4" />
-            </span>
-            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">
-              {Math.max(sessions.length - unlockedCount, 0)}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Sessions remaining</p>
-          </div>
-          <div className="glass-panel metal-edge col-span-2 rounded-2xl p-4 sm:col-span-1">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
-              <GraduationCap className="h-4 w-4" />
-            </span>
-            <p className="mt-4 font-display text-2xl font-semibold tabular-nums">{progress}%</p>
-            <p className="text-[11px] text-muted-foreground">Training progress</p>
-          </div>
-        </section>
+        <div className="mt-5">
+          <TraineeJourney />
+        </div>
 
-        <section className="raised-panel metal-edge mt-5 overflow-hidden rounded-[28px] p-5 animate-rise-in">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Journey map</p>
-              <h2 className="mt-1 font-display text-lg font-semibold">Your learning momentum</h2>
-            </div>
-            <span className="font-display text-2xl font-semibold text-brand-glow">{progress}%</span>
-          </div>
-          <div className="mt-5 flex h-28 items-end gap-2" aria-label={`${progress}% training progress`}>
-            {[18, 30, 42, 56, 68, 82, 100].map((height, index) => {
-              const active = progress >= Math.round(((index + 1) / 7) * 100);
-              return (
-                <span
-                  key={height}
-                  className={cn(
-                    "flex-1 rounded-t-xl border border-metal/20 transition-all duration-700",
-                    active ? "bg-primary shadow-brand" : "bg-surface-2",
-                  )}
-                  style={{ height: `${height}%` }}
-                />
-              );
-            })}
-          </div>
-        </section>
           </>
         ) : null}
 

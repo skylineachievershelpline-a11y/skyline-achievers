@@ -137,7 +137,9 @@ export function MemberShell({
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {
-    if (progress?.feeLocked && to !== "/dashboard" && to !== "/profile") {
+    const partialOpen =
+      progress?.partialTraining === true && (to === "/training" || to === "/sessions");
+    if (progress?.feeLocked && !partialOpen && to !== "/dashboard" && to !== "/profile") {
       return "Locked. Complete your Personal Mentorship amount to open this.";
     }
     if (progress?.trainingLocked && (to === "/training" || to === "/sessions")) {

@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, Loader2, ReceiptText, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, ListChecks, Loader2, ReceiptText, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -74,6 +74,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     memberId: string;
     password: string;
     message: string;
+    accountId?: string;
   } | null>(null);
 
   const { data, isPending } = useQuery({
@@ -126,6 +127,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
   const [manualPassword, setManualPassword] = useState("");
   const [moneyTarget, setMoneyTarget] = useState<any | null>(null);
+  const [menuTarget, setMenuTarget] = useState<{ id: string; name: string } | null>(null);
   const [mentorshipSlip, setMentorshipSlip] = useState<PaymentSlipData | null>(null);
 
   const setMentorship = useServerFn(adminSetMentorship);
@@ -350,6 +352,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                     Payment
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg px-2 text-[11px]"
+                    onClick={() => setMenuTarget({ id: member.id, name: member.full_name })}
+                  >
+                    <ListChecks className="h-3.5 w-3.5" />
+                    Menu access
+                  </Button>
+                  <Button
                     variant="secondary"
                     size="sm"
                     className="h-8 rounded-lg px-2 text-[11px]"
@@ -438,6 +449,15 @@ export function MembersTab({ levels }: { levels: Level[] }) {
       </Dialog>
 
 
+      <Dialog open={menuTarget !== null} onOpenChange={(open) => !open && setMenuTarget(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Menu access — {menuTarget?.name}</DialogTitle>
+          </DialogHeader>
+          {menuTarget ? <MenuAccessPicker memberId={menuTarget.id} /> : null}
+        </DialogContent>
+      </Dialog>
+
       <MentorshipDialog
         member={moneyTarget}
         onClose={() => setMoneyTarget(null)}
@@ -472,6 +492,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
               <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-2xl border border-hairline bg-surface p-3 text-xs leading-relaxed">
                 {credentials.message}
               </pre>
+              {credentials.accountId ? <MenuAccessPicker memberId={credentials.accountId} /> : null}
               <Button
                 variant="brand"
                 size="xl"

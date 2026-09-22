@@ -87,6 +87,11 @@ async function buildJourney(traineeId: string) {
       thumbnailUrl: await signThumb(row.thumbnail_path),
       scheduledAt: (planned?.scheduled_at ?? null) as string | null,
       review: (review?.status ?? "none") as ReviewStatus,
+      reviewId: (review?.id ?? null) as string | null,
+      reviewBody: (review?.body ?? null) as string | null,
+      reviewImageUrl: await signProof(review?.image_path),
+      reviewVoiceUrl: await signProof(review?.voice_path),
+      reviewedAt: (review?.reviewed_at ?? null) as string | null,
       uplineNote: (review?.upline_note ?? null) as string | null,
       uplineVoiceUrl: await signProof(review?.upline_voice_path),
     });

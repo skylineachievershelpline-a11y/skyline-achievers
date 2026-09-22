@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { AiQuestionsTab } from "@/components/admin/AiQuestionsTab";
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
+import { JourneyTab } from "@/components/admin/JourneyTab";
 import { InspirationTab } from "@/components/admin/InspirationTab";
 import { LibraryTab } from "@/components/admin/LibraryTab";
 import { MembersTab } from "@/components/admin/MembersTab";
@@ -157,6 +158,9 @@ function AdminPage() {
             <TabsTrigger value="sessions" className="rounded-xl">
               Sessions
             </TabsTrigger>
+            <TabsTrigger value="journey" className="rounded-xl">
+              Journey &amp; Payments
+            </TabsTrigger>
             <TabsTrigger value="whatsapp" className="rounded-xl">
               WhatsApp
             </TabsTrigger>
@@ -194,6 +198,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="sessions" className="mt-5">
             <SessionsTab />
+          </TabsContent>
+          <TabsContent value="journey" className="mt-5">
+            <JourneyTab />
           </TabsContent>
           <TabsContent value="whatsapp" className="mt-5">
             <WhatsappTab />

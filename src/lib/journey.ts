@@ -51,6 +51,11 @@ export type JourneySession = {
   thumbnailUrl: string | null;
   scheduledAt: string | null;
   review: ReviewStatus;
+  reviewId: string | null;
+  reviewBody: string | null;
+  reviewImageUrl: string | null;
+  reviewVoiceUrl: string | null;
+  reviewedAt: string | null;
   uplineNote: string | null;
   uplineVoiceUrl: string | null;
 };

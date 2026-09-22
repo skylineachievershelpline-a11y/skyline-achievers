@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Ban,
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
   Crown,
@@ -29,6 +30,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
+import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
+import { UplineJourneyDialog } from "@/components/journey/UplineJourneyDialog";
 import {
   deleteTrainee,
   getMyFboTeam,
@@ -71,6 +74,7 @@ function TeamPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [tab, setTab] = useState<"fbo" | "customers">("fbo");
+  const [journeyTrainee, setJourneyTrainee] = useState<{ id: string; name: string; phone: string | null } | null>(null);
 
 
   const { data, isPending } = useQuery({
@@ -196,6 +200,10 @@ function TeamPage() {
 
       {tab === "fbo" ? <FboTree ready={ready} /> : null}
 
+      {tab === "customers" ? (
+        <UplineActionQueue ready={ready} uplineName={data?.upline.fullName ?? "your upline"} />
+      ) : null}
+
       <div className={tab === "customers" ? "" : "hidden"}>
       <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
 
@@ -246,12 +254,22 @@ function TeamPage() {
                 <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan">Root</span>
               </div>
             </div>
-            {visibleTrainees.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">No matching members.</p> : visibleTrainees.map((person, index) => <TeamRow key={person.id} person={person} index={index} selected={selectedIds.includes(person.id)} busy={bulkBusy || status.isPending || drop.isPending || reset.isPending} onSelect={() => toggleSelected(person.id)} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onReset={() => reset.mutate(person.id)} onRemove={() => drop.mutate(person.id)} />)}
+            {visibleTrainees.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">No matching members.</p> : visibleTrainees.map((person, index) => <TeamRow key={person.id} person={person} index={index} selected={selectedIds.includes(person.id)} busy={bulkBusy || status.isPending || drop.isPending || reset.isPending} onSelect={() => toggleSelected(person.id)} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onReset={() => reset.mutate(person.id)} onRemove={() => drop.mutate(person.id)} onJourney={() => setJourneyTrainee({ id: person.id, name: person.fullName, phone: person.phone ?? null })} />)}
             <div className="flex items-center justify-between border-t border-border bg-surface/60 px-4 py-3 text-[11px] text-muted-foreground sm:px-5"><span>Showing {visibleTrainees.length} of {trainees.length}</span><span>{selectedIds.length} selected</span></div>
           </div>
         )}
       </section>
       </div>
+
+      {journeyTrainee ? (
+        <UplineJourneyDialog
+          traineeId={journeyTrainee.id}
+          traineeName={journeyTrainee.name}
+          traineePhone={journeyTrainee.phone}
+          uplineName={data?.upline.fullName ?? "your upline"}
+          onClose={() => setJourneyTrainee(null)}
+        />
+      ) : null}
     </MemberShell>
   );
 }
@@ -415,7 +433,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function TeamRow({ person, index, selected, busy, onSelect, onStatus, onReset, onRemove }: { person: any; index: number; selected: boolean; busy: boolean; onSelect: () => void; onStatus: (status: "active" | "blocked") => void; onReset: () => void; onRemove: () => void }) {
+function TeamRow({ person, index, selected, busy, onSelect, onStatus, onReset, onRemove, onJourney }: { person: any; index: number; selected: boolean; busy: boolean; onSelect: () => void; onStatus: (status: "active" | "blocked") => void; onReset: () => void; onRemove: () => void; onJourney: () => void }) {
   const progress = person.totalSessions > 0 ? Math.min(100, Math.round((person.sessionsWatched / person.totalSessions) * 100)) : 0;
   return <article className={`group border-b border-border px-4 py-3 transition-colors last:border-b-0 sm:px-5 ${selected ? "bg-primary/15" : "hover:bg-primary/5"}`}>
     <div className="grid gap-3 md:grid-cols-[34px_minmax(220px,1.5fr)_minmax(150px,1fr)_120px_126px] md:items-center">
@@ -426,7 +444,8 @@ function TeamRow({ person, index, selected, busy, onSelect, onStatus, onReset, o
       </div>
       <div><div className="mb-1 flex justify-between text-[10px]"><span className="text-muted-foreground">{person.sessionsWatched}/{person.totalSessions} sessions</span><span className="font-semibold text-primary">{progress}%</span></div><div className="h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} /></div><p className="mt-1 text-[10px] text-muted-foreground">Joined {formatDate(person.createdAt)}</p></div>
       <span className={`w-fit rounded-full border px-2 py-1 text-[10px] font-semibold ${person.status === "active" ? "border-cyan/30 bg-cyan/10 text-cyan" : "border-silver/20 bg-silver/10 text-silver"}`}>{person.status === "active" ? "Active" : "Blocked"}</span>
-      <div className="flex gap-1.5 md:justify-end">
+      <div className="flex flex-wrap gap-1.5 md:justify-end">
+        <Button size="sm" variant="brand" className="h-8 rounded-lg px-2 text-[11px]" onClick={onJourney}><CalendarClock />Journey</Button>
         <Button size="icon" variant="outline" className="h-8 w-8 rounded-lg" aria-label={`Reset ${person.fullName} password`} title="Reset password to 00000000" disabled={busy} onClick={() => { if (window.confirm(`Reset ${person.fullName}'s password to 00000000?`)) onReset(); }}><KeyRound className="h-3.5 w-3.5" /></Button>
         {person.status === "active" ? <Button size="sm" variant="outline" className="h-8 rounded-lg px-2 text-[11px]" disabled={busy} onClick={() => onStatus("blocked")}><Ban />Block</Button> : <Button size="sm" variant="brand" className="h-8 rounded-lg px-2 text-[11px]" disabled={busy} onClick={() => onStatus("active")}><UserCheck />Unblock</Button>}
         <Button size="icon" variant="destructive" className="h-8 w-8 rounded-lg" aria-label={`Remove ${person.fullName}`} disabled={busy} onClick={() => { if (window.confirm(`Remove ${person.fullName} permanently? Their ID and login will stop working.`)) onRemove(); }}><Trash2 className="h-3.5 w-3.5" /></Button>

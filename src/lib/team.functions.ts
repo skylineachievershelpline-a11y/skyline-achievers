@@ -49,9 +49,10 @@ export const getMyTeam = createServerFn({ method: "GET" })
   });
 
 /**
- * FBO Team Tree: the 12-digit Skyline members sitting directly under this
- * account. Read-only by design — nobody can edit or remove an FBO from here.
- * Each row carries the member's own daily working report summary.
+ * FBO Team Tree: every Skyline member (12-digit ID) in this account's downline,
+ * direct and indirect, with the level each one sits at. Read-only by design —
+ * nobody can edit or remove an FBO from here. Personal Mentorship members are
+ * marked separately so the two trees can be shown apart.
  */
 export const getMyFboTeam = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -60,17 +61,30 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { AVATAR_BUCKET, signPath } = await import("./storage.server");
 
-    const { data: rows } = await (supabaseAdmin as any)
-      .from("member_profiles")
-      .select(
-        "id, member_id, full_name, phone, status, working_enabled, avatar_path, created_at, last_login_at, levels:level_id (name, rank_order)",
-      )
-      .eq("upline_id", member.id)
-      .neq("status", "removed")
-      .order("created_at", { ascending: false })
-      .limit(500);
+    // Walk the hierarchy level by level: direct members, then their members.
+    const columns =
+      "id, member_id, full_name, phone, status, working_enabled, avatar_path, created_at, last_login_at, upline_id, levels:level_id (name, rank_order)";
+    const members: any[] = [];
+    const seen = new Set<string>([member.id]);
+    let frontier = [member.id];
+    const depthOf = new Map<string, number>();
+    for (let depth = 1; depth <= 8 && frontier.length > 0 && members.length < 2000; depth += 1) {
+      const { data: rows } = await (supabaseAdmin as any)
+        .from("member_profiles")
+        .select(columns)
+        .in("upline_id", frontier)
+        .neq("status", "removed")
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      const batch = ((rows ?? []) as any[]).filter((row) => !seen.has(row.id as string));
+      for (const row of batch) {
+        seen.add(row.id as string);
+        depthOf.set(row.id as string, depth);
+      }
+      members.push(...batch);
+      frontier = batch.map((row) => row.id as string);
+    }
 
-    const members = (rows ?? []) as any[];
     const ids = members.map((row) => row.id as string);
     const from = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
     const reportMap = new Map<string, any[]>();

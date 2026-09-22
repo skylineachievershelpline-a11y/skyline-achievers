@@ -15,8 +15,10 @@ import {
   adminAddMember,
   adminEditMember,
   adminDeleteMember,
+  adminGetMemberTrainingAccess,
   adminGetMembers,
   adminGetUplines,
+  adminSetMemberTrainingAccess,
   adminResetPassword,
   adminSetMentorship,
 } from "@/lib/admin.functions";

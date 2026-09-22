@@ -1,14 +1,19 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
+import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { SessionGate } from "@/components/media/SessionGate";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
+import { getTraineeJourney } from "@/lib/journey.functions";
+import { type JourneySession } from "@/lib/journey";
 import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.functions";
+
 
 export const Route = createFileRoute("/session/$code")({
   loader: ({ params }) => getBeginnerSessionPreview({ data: { code: params.code } }),

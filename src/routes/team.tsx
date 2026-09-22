@@ -73,7 +73,7 @@ function TeamPage() {
   const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [tab, setTab] = useState<"fbo" | "customers">("fbo");
+  const [tab, setTab] = useState<"fbo" | "mentorship" | "customers">("fbo");
   const [journeyTrainee, setJourneyTrainee] = useState<{ id: string; name: string; phone: string | null } | null>(null);
 
 
@@ -181,24 +181,28 @@ function TeamPage() {
 
   return (
     <MemberShell title="Team Tree" subtitle="Track everyone you registered" executive>
-      <div className="raised-panel metal-edge flex gap-2 rounded-2xl p-2 animate-rise-in">
-        <button
-          type="button"
-          onClick={() => setTab("fbo")}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "fbo" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          FBO team tree
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("customers")}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === "customers" ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          Preferred customer tree
-        </button>
+      <div className="raised-panel metal-edge flex flex-wrap gap-2 rounded-2xl p-2 animate-rise-in">
+        {(
+          [
+            { key: "fbo", label: "FBO team tree" },
+            { key: "mentorship", label: "Personal Mentorship" },
+            { key: "customers", label: "Preferred customers" },
+          ] as const
+        ).map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setTab(item.key)}
+            className={`min-w-[30%] flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${tab === item.key ? "brand-gradient text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      {tab === "fbo" ? <FboTree ready={ready} /> : null}
+      {tab === "fbo" || tab === "mentorship" ? (
+        <FboTree ready={ready} kind={tab === "fbo" ? "fbo" : "mentorship"} />
+      ) : null}
 
       {tab === "customers" ? (
         <UplineActionQueue ready={ready} uplineName={data?.upline.fullName ?? "your upline"} />

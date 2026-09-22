@@ -120,8 +120,23 @@ export const getDashboard = createServerFn({ method: "GET" })
       ccDone,
     });
 
-    return { member, blocked: false as const, videos, continueWatching, progress };
+    // Office-configured 2CC targets, so the dashboard never hard-codes amounts.
+    const { loadPolicy } = await import("./journey.server");
+    const policy = await loadPolicy();
+
+    return {
+      member,
+      blocked: false as const,
+      videos,
+      continueWatching,
+      progress,
+      ccTargets: {
+        full: policy.ccTargetFullPayment,
+        partial: policy.ccTargetPartial,
+      },
+    };
   });
+
 
 /** Every training video unlocked for this member. */
 export const getTrainingVideos = createServerFn({ method: "GET" })

@@ -758,6 +758,8 @@ function MentorshipDialog({
 
           <TrainingSectionAccess memberId={member.id} />
 
+          <MenuAccessPicker memberId={member.id} />
+
 
           <Button
             variant="brand"

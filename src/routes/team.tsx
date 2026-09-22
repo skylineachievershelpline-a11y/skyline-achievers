@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { GenealogyTree, type TreePerson } from "@/components/team/GenealogyTree";
 import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
-import { UplineJourneyDialog } from "@/components/journey/UplineJourneyDialog";
+import { TraineeProgressRecord } from "@/components/journey/TraineeProgressRecord";
 import {
   deleteTrainee,
   getMyFboTeam,
@@ -267,11 +267,9 @@ function TeamPage() {
       </div>
 
       {journeyTrainee ? (
-        <UplineJourneyDialog
+        <TraineeProgressRecord
           traineeId={journeyTrainee.id}
           traineeName={journeyTrainee.name}
-          traineePhone={journeyTrainee.phone}
-          uplineName={data?.upline.fullName ?? "your upline"}
           onClose={() => setJourneyTrainee(null)}
         />
       ) : null}

@@ -140,6 +140,10 @@ export function MemberShell({
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
   const progress = useMemberProgress();
+  const hiddenMenu = useHiddenMenu();
+  const visibleNav = NAV.filter(
+    (item) => item.to === "/dashboard" || !hiddenMenu.includes(item.to),
+  );
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {

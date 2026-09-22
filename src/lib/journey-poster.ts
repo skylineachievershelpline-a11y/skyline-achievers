@@ -1,5 +1,5 @@
 import { BRAND } from "./brand";
-import { formatDateTime } from "./format";
+import { formatDateTime12, formatTime12 } from "./format";
 
 export type PosterSession = {
   sessionNumber: number;

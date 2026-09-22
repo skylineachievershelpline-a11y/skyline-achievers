@@ -12,7 +12,7 @@ import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
-import { MentorshipFeeCard } from "@/components/member/MentorshipPanel";
+import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
   MemberShell,
@@ -162,6 +162,10 @@ function DashboardPage() {
             onPrintReceipt={openMentorshipReceipt}
             ccTargets={data.ccTargets ?? null}
           />
+        </div>
+      ) : progress && data.ccMoney ? (
+        <div className="mx-auto mt-2 w-full max-w-3xl">
+          <CcAmountCard money={data.ccMoney} />
         </div>
       ) : null}
 

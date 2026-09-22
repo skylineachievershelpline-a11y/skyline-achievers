@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, Lock, ReceiptText, Wallet } from "lucide-react";
+import { Clock, Lock, ReceiptText, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -50,19 +50,6 @@ export function MentorshipFeeCard({
 }) {
   return (
     <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
-      {progress.warning ? (
-        <div
-          className={`flex items-start gap-2 rounded-2xl border p-3 text-xs font-semibold ${
-            progress.warningStage >= 3
-              ? "border-destructive/50 bg-destructive/10 text-destructive"
-              : "border-amber-400/40 bg-amber-400/10 text-amber-300"
-          }`}
-        >
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{progress.warning}</span>
-        </div>
-      ) : null}
-
       {ccTargets ? (
         <div className="space-y-2 rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5">
           <p className="font-display text-sm font-bold text-cyan">
@@ -134,6 +121,50 @@ export function MentorshipFeeCard({
         <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         Your dashboard stays open. Complete the remaining amount before the deadline to keep the
         lower 2CC target — your verified amount updates as soon as the admin checks your payment.
+      </p>
+    </section>
+  );
+}
+
+/** Shown once the Personal Mentorship amount is complete: the 2CC money view. */
+export function CcAmountCard({
+  money,
+}: {
+  money: { total: number; received: number; remaining: number; discounted: boolean };
+}) {
+  const percent = money.total ? Math.min(100, Math.round((money.received / money.total) * 100)) : 0;
+  return (
+    <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
+      <div className="flex items-center gap-2">
+        <Wallet className="h-4 w-4 text-cyan" />
+        <h2 className="font-display text-base font-semibold">2CC amount</h2>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 text-center">
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold">{formatPkr(money.total)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Total</p>
+        </div>
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold text-cyan">{formatPkr(money.received)}</p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Received</p>
+        </div>
+        <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+          <p className="font-display text-sm font-bold text-destructive">
+            {formatPkr(money.remaining)}
+          </p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Remaining</p>
+        </div>
+      </div>
+
+      <Bar percent={percent} />
+
+      <p className="text-xs leading-5 text-muted-foreground">
+        Aap ki Personal Mentorship amount complete ho gayi hai — us ki wajah se aap ka 2CC target{" "}
+        <span className="font-bold text-cyan">{formatPkr(money.total)}</span> hai. Received mein aap
+        ki verified amount shamil hai, baqi{" "}
+        <span className="font-bold text-foreground">{formatPkr(money.remaining)}</span> complete
+        karni hai.
       </p>
     </section>
   );

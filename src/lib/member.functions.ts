@@ -99,6 +99,7 @@ export const getDashboard = createServerFn({ method: "GET" })
         continueWatching: [],
         progress: null,
         ccTargets: null,
+        ccMoney: null,
       };
 
     }

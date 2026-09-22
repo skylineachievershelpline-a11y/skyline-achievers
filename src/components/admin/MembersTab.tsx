@@ -15,10 +15,8 @@ import {
   adminAddMember,
   adminEditMember,
   adminDeleteMember,
-  adminGetMemberTrainingAccess,
   adminGetMembers,
   adminGetUplines,
-  adminSetMemberTrainingAccess,
   adminGetMemberMenuAccess,
   adminSetMemberMenuAccess,
   adminResetPassword,
@@ -41,20 +39,6 @@ type Upline = {
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
 
-function toDateTimeInput(value: string | null | undefined) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function fromDateTimeInput(value: string) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString();
-}
 
 export function MembersTab({ levels }: { levels: Level[] }) {
   const queryClient = useQueryClient();
@@ -695,22 +679,9 @@ function MentorshipDialog({
   onSave: (input: Record<string, unknown>) => void;
   pending: boolean;
 }) {
-  const [feeTotal, setFeeTotal] = useState("");
-  const [paid, setPaid] = useState("");
-  const [paymentDeadline, setPaymentDeadline] = useState("");
-  const [ccDeadline, setCcDeadline] = useState("");
-
-  useEffect(() => {
-    if (!member) return;
-    setFeeTotal(String(Number(member.mentorship_fee_pkr ?? 50000)));
-    setPaid(String(Number(member.mentorship_paid_pkr ?? 0)));
-    setPaymentDeadline(toDateTimeInput(member.mentorship_due_at));
-    setCcDeadline(toDateTimeInput(member.cc_due_at));
-  }, [member]);
-
   if (!member) return null;
-  const total = Number(feeTotal || 0);
-  const received = Number(paid || 0);
+  const total = Number(member.mentorship_fee_pkr ?? 50000);
+  const received = Number(member.mentorship_paid_pkr ?? 0);
   const remaining = Math.max(total - received, 0);
   const used = Number(member.mentorship_extensions ?? 0);
 
@@ -721,102 +692,43 @@ function MentorshipDialog({
           <DialogTitle>Personal Mentorship — {member.full_name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="fee-total">Total amount (Rs.)</Label>
-              <Input id="fee-total" inputMode="numeric" value={feeTotal} onChange={(e) => setFeeTotal(e.target.value)} className="h-11 rounded-2xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="fee-paid">Amount received (Rs.)</Label>
-              <Input id="fee-paid" inputMode="numeric" value={paid} onChange={(e) => setPaid(e.target.value)} className="h-11 rounded-2xl" />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Remaining: <span className="font-semibold text-foreground">Rs. {remaining.toLocaleString("en-PK")}</span>
-            {" · "}Deadline: {member.mentorship_due_at ? formatDateTime(member.mentorship_due_at) : "not set"}
-            {" · "}Extra days used: {used}/3
-          </p>
-
           <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Edit duration</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="payment-deadline">Payment deadline</Label>
-                <Input
-                  id="payment-deadline"
-                  type="datetime-local"
-                  value={paymentDeadline}
-                  onChange={(e) => setPaymentDeadline(e.target.value)}
-                  className="h-11 rounded-2xl"
-                />
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Payment summary
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-surface px-2 py-3">
+                <p className="text-[10px] uppercase text-muted-foreground">Required</p>
+                <p className="mt-1 text-sm font-semibold">Rs. {total.toLocaleString("en-PK")}</p>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cc-deadline">2CC target deadline</Label>
-                <Input
-                  id="cc-deadline"
-                  type="datetime-local"
-                  value={ccDeadline}
-                  onChange={(e) => setCcDeadline(e.target.value)}
-                  className="h-11 rounded-2xl"
-                />
+              <div className="rounded-xl bg-surface px-2 py-3">
+                <p className="text-[10px] uppercase text-muted-foreground">Verified</p>
+                <p className="mt-1 text-sm font-semibold">Rs. {received.toLocaleString("en-PK")}</p>
+              </div>
+              <div className="rounded-xl bg-surface px-2 py-3">
+                <p className="text-[10px] uppercase text-muted-foreground">Remaining</p>
+                <p className="mt-1 text-sm font-semibold">Rs. {remaining.toLocaleString("en-PK")}</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 h-10 rounded-xl"
-              disabled={pending}
-              onClick={() => onSave({
-                id: member.id,
-                feeTotal: total,
-                paid: received,
-                mentorshipDueAt: fromDateTimeInput(paymentDeadline),
-                ccDueAt: fromDateTimeInput(ccDeadline),
-              })}
-            >
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Save duration
-            </Button>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Amounts and the payment deadline are set in the Journey &amp; Payments tab when a claim
+              is verified. Deadline:{" "}
+              {member.mentorship_due_at ? formatDateTime(member.mentorship_due_at) : "not set"} ·
+              Extra days used: {used}/3
+            </p>
           </div>
-
-          <TrainingSectionAccess memberId={member.id} />
 
           <MenuAccessPicker memberId={member.id} />
-
-
-          <Button
-            variant="brand"
-            size="xl"
-            className="w-full"
-            disabled={pending}
-            onClick={() => onSave({
-              id: member.id,
-              feeTotal: total,
-              paid: received,
-              mentorshipDueAt: fromDateTimeInput(paymentDeadline),
-              ccDueAt: fromDateTimeInput(ccDeadline),
-            })}
-          >
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Save amount & duration
-          </Button>
 
           <Button
             variant="outline"
             size="xl"
             className="w-full"
             disabled={pending}
-            onClick={() => onSave({
-              id: member.id,
-              feeTotal: total,
-              paid: received,
-              mentorshipDueAt: fromDateTimeInput(paymentDeadline),
-              ccDueAt: fromDateTimeInput(ccDeadline),
-              printSlip: true,
-            })}
+            onClick={() => onSave({ id: member.id, printSlip: true })}
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ReceiptText className="h-4 w-4" />}
-            Save amount & print receipt
+            Print receipt
           </Button>
 
           <div className="grid grid-cols-2 gap-2">
@@ -842,107 +754,6 @@ function MentorshipDialog({
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-/**
- * Part payment members keep Training open, but only the sections ticked here.
- */
-function TrainingSectionAccess({ memberId }: { memberId: string }) {
-  const queryClient = useQueryClient();
-  const loadAccess = useServerFn(adminGetMemberTrainingAccess);
-  const saveAccess = useServerFn(adminSetMemberTrainingAccess);
-  const [picked, setPicked] = useState<string[] | null>(null);
-
-  const { data, isPending } = useQuery({
-    queryKey: ["admin-member-training-access", memberId],
-    queryFn: () => loadAccess({ data: { memberId } } as never),
-  });
-
-  useEffect(() => {
-    if (data) setPicked((data as any).granted as string[]);
-  }, [data]);
-
-  const save = useMutation({
-    mutationFn: (categoryIds: string[]) =>
-      saveAccess({ data: { memberId, categoryIds } } as never),
-    onSuccess: () => {
-      toast.success("Training access saved");
-      void queryClient.invalidateQueries({ queryKey: ["admin-member-training-access", memberId] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const sections = ((data as any)?.sections ?? []) as {
-    id: string;
-    name: string;
-    isPublished: boolean;
-  }[];
-  const selected = picked ?? [];
-
-  function toggle(id: string) {
-    setPicked((current) => {
-      const list = current ?? [];
-      return list.includes(id) ? list.filter((value) => value !== id) : [...list, id];
-    });
-  }
-
-  return (
-    <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        Training access on part payment
-      </p>
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        With any amount received, Training stays open for this member and only the ticked sections
-        are shown.
-      </p>
-      {isPending ? (
-        <div className="py-4 text-xs text-muted-foreground">Loading sections…</div>
-      ) : sections.length === 0 ? (
-        <p className="py-3 text-xs text-muted-foreground">No training sections created yet.</p>
-      ) : (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {sections.map((section) => (
-            <label
-              key={section.id}
-              className="flex items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(section.id)}
-                onChange={() => toggle(section.id)}
-                className="h-4 w-4"
-              />
-              <span className="min-w-0 flex-1 truncate">{section.name}</span>
-              {section.isPublished ? null : (
-                <span className="text-[10px] uppercase text-muted-foreground">draft</span>
-              )}
-            </label>
-          ))}
-        </div>
-      )}
-      <div className="mt-3 flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-10 rounded-xl"
-          disabled={save.isPending || isPending}
-          onClick={() => save.mutate(selected)}
-        >
-          {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Save training access
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-10 rounded-xl"
-          disabled={save.isPending || sections.length === 0}
-          onClick={() => setPicked(sections.map((section) => section.id))}
-        >
-          Select all
-        </Button>
-      </div>
-    </div>
   );
 }
 

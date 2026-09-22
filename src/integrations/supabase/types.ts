@@ -2146,17 +2146,64 @@ export type Database = {
           },
         ]
       }
+      trainee_report_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          revoked: boolean
+          token: string
+          trainee_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          revoked?: boolean
+          token: string
+          trainee_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          revoked?: boolean
+          token?: string
+          trainee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainee_report_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainee_report_links_trainee_id_fkey"
+            columns: ["trainee_id"]
+            isOneToOne: false
+            referencedRelation: "trainees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainee_session_reviews: {
         Row: {
           body: string | null
           created_at: string
           id: string
           image_path: string | null
+          opened_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           session_id: string | null
           session_number: number
           status: string
+          submitted_at: string | null
           trainee_id: string
           updated_at: string
           upline_note: string | null
@@ -2168,11 +2215,13 @@ export type Database = {
           created_at?: string
           id?: string
           image_path?: string | null
+          opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           session_id?: string | null
           session_number: number
           status?: string
+          submitted_at?: string | null
           trainee_id: string
           updated_at?: string
           upline_note?: string | null
@@ -2184,11 +2233,13 @@ export type Database = {
           created_at?: string
           id?: string
           image_path?: string | null
+          opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           session_id?: string | null
           session_number?: number
           status?: string
+          submitted_at?: string | null
           trainee_id?: string
           updated_at?: string
           upline_note?: string | null

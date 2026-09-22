@@ -86,7 +86,12 @@ export type JourneySession = {
   reviewedAt: string | null;
   uplineNote: string | null;
   uplineVoiceUrl: string | null;
+  /** When the trainee actually opened the video for the first time. */
+  openedAt?: string | null;
+  /** When the review was submitted (used for the on-time / late record). */
+  reviewSubmittedAt?: string | null;
 };
+
 
 /** Builds the seven default date/times starting from tomorrow (or a given day). */
 export function defaultSchedule(startDate: Date): { session: number; day: number; at: Date }[] {

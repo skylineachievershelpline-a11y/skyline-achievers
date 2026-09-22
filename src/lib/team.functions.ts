@@ -104,6 +104,24 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
       }
     }
 
+    // Approved leave days so the day-by-day report can show Leave instead of Absent.
+    const leaveMap = new Map<string, { from_date: string; to_date: string }[]>();
+    if (ids.length > 0) {
+      const { data: leaves } = await (supabaseAdmin as any)
+        .from("leave_applications")
+        .select("member_id, from_date, to_date, status")
+        .in("member_id", ids)
+        .eq("status", "approved");
+      for (const row of leaves ?? []) {
+        const list = leaveMap.get(row.member_id) ?? [];
+        list.push({ from_date: row.from_date, to_date: row.to_date });
+        leaveMap.set(row.member_id, list);
+      }
+    }
+    const { buildReportCalendar } = await import("./report-days.server");
+    const todayDate = new Date().toISOString().slice(0, 10);
+
+
     const team = await Promise.all(
       members.map(async (row) => {
         const reports = reportMap.get(row.id) ?? [];
@@ -135,16 +153,16 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
             twoCc: sum("two_cc"),
             mentorshipPaid: sum("mentorship_paid"),
             lastDate: (reports[0]?.report_date ?? null) as string | null,
-            recent: reports.slice(0, 7).map((entry) => ({
-              date: entry.report_date as string,
-              leads: Number(entry.leads_count ?? 0),
-              responses: Number(entry.responses ?? 0),
-              enrollments: Number(entry.enrollments ?? 0),
-              pending: Number(entry.pending_count ?? 0),
-              twoCc: Number(entry.two_cc ?? 0),
-              absent: Boolean(entry.is_absent),
-            })),
+            // Every calendar day: a submitted report, approved Leave, or Absent.
+            recent: buildReportCalendar({
+              reports,
+              leaves: leaveMap.get(row.id) ?? [],
+              endDate: todayDate,
+              days: 14,
+              joinedDate: String(row.created_at ?? "").slice(0, 10),
+            }),
           },
+
         };
       }),
     );

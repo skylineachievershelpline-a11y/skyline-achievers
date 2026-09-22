@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
 import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
+import { UplineRequestsPanel } from "@/components/journey/UplineRequestsPanel";
+
 import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
@@ -101,6 +103,11 @@ function DashboardPage() {
     >
       <AnnouncementBanner />
 
+      <div className="mx-auto mt-2 w-full max-w-3xl">
+        <UplineRequestsPanel />
+      </div>
+
+
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
         <div className="flex items-center gap-5 sm:gap-7">
           <div className="shrink-0">
@@ -191,12 +198,13 @@ function DashboardPage() {
         {trainingOnly ? (
           <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
             <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
-            <p className="mt-3 font-display text-base font-semibold">Working section locked</p>
+            <p className="mt-3 font-display text-base font-semibold">Training first</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Your account is set to training only. Complete your training — your admin will unlock
-              working, earnings and team when you are ready.
+              Personal Mentorship accounts complete their training first. The daily working report,
+              earnings and team open with the Assistant Supervisor upgrade.
             </p>
           </div>
+
         ) : (
           <DailyReportPanel />
         )}

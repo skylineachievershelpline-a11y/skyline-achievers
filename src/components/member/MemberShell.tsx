@@ -111,9 +111,14 @@ function useMemberAccess() {
 }
 
 export function useTrainingOnly() {
+  // Rank decides this now: a Personal Mentorship account trains only, and the
+  // working areas open with the Assistant Supervisor upgrade. There is no
+  // separate admin switch any more.
   const data = useMemberAccess();
-  return data?.member ? data.member.workingEnabled === false : false;
+  const rank = (data?.member as any)?.level?.rank_order ?? 0;
+  return Boolean(data?.member) && Number(rank) < 2;
 }
+
 
 /** Personal Mentorship money + target state for the signed-in member. */
 export function useMemberProgress() {

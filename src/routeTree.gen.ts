@@ -34,6 +34,7 @@ import { Route as ApiAiRouteImport } from './routes/api.ai'
 import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
+import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
@@ -164,6 +165,11 @@ const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   path: '/lecture/$lectureId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportTokenRoute = ReportTokenRouteImport.update({
+  id: '/report/$token',
+  path: '/report/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResourceResourceIdRoute = ResourceResourceIdRouteImport.update({
   id: '/resource/$resourceId',
   path: '/resource/$resourceId',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin': typeof AdminIndexRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/course/$courseId': typeof CourseCourseIdRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/course/$courseId'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
     | '/admin/'
@@ -399,6 +411,7 @@ export interface RootRouteChildren {
   CourseCourseIdRoute: typeof CourseCourseIdRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
+  ReportTokenRoute: typeof ReportTokenRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LectureLectureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/report/$token': {
+      id: '/report/$token'
+      path: '/report/$token'
+      fullPath: '/report/$token'
+      preLoaderRoute: typeof ReportTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resource/$resourceId': {
       id: '/resource/$resourceId'
       path: '/resource/$resourceId'
@@ -639,6 +659,7 @@ const rootRouteChildren: RootRouteChildren = {
   CourseCourseIdRoute: CourseCourseIdRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
+  ReportTokenRoute: ReportTokenRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
   AdminIndexRoute: AdminIndexRoute,

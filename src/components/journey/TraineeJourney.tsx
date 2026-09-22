@@ -351,6 +351,15 @@ export function TraineeJourney() {
                   )}
                   Start session
                 </Button>
+
+                {sessionOpen(current, now) &&
+                current.review !== "pending" &&
+                current.review !== "approved" ? (
+                  <SessionReviewForm
+                    sessionNumber={current.sessionNumber}
+                    onSent={() => refresh()}
+                  />
+                ) : null}
               </div>
             </>
           ) : (
@@ -381,7 +390,8 @@ export function TraineeJourney() {
             const expired = sessionExpired(session, now);
             const locked = !sessionOpen(session, now);
             return (
-              <li key={session.sessionNumber} className="glass-panel flex items-center gap-3 rounded-2xl p-3">
+              <li key={session.sessionNumber} className="glass-panel rounded-2xl p-3">
+                <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 font-display text-sm font-semibold tabular-nums text-brand-glow">
                   {pad(session.sessionNumber)}
                 </span>
@@ -416,6 +426,14 @@ export function TraineeJourney() {
                     <PlayCircle className="h-5 w-5" />
                   </button>
                 )}
+                </div>
+
+                {!locked && session.review !== "pending" && session.review !== "approved" ? (
+                  <SessionReviewForm
+                    sessionNumber={session.sessionNumber}
+                    onSent={() => refresh()}
+                  />
+                ) : null}
               </li>
             );
           })}

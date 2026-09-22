@@ -5,16 +5,10 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { getUplineActionQueue } from "@/lib/journey.functions";
-import { UplineJourneyDialog } from "./UplineJourneyDialog";
+import { TraineeProgressRecord } from "./TraineeProgressRecord";
 
 /** The upline's "action required" list across every trainee in the team. */
-export function UplineActionQueue({
-  ready,
-  uplineName,
-}: {
-  ready: boolean;
-  uplineName: string;
-}) {
+export function UplineActionQueue({ ready }: { ready: boolean }) {
   const load = useServerFn(getUplineActionQueue);
   const [openTrainee, setOpenTrainee] = useState<{
     id: string;
@@ -84,11 +78,9 @@ export function UplineActionQueue({
       </section>
 
       {openTrainee ? (
-        <UplineJourneyDialog
+        <TraineeProgressRecord
           traineeId={openTrainee.id}
           traineeName={openTrainee.name}
-          traineePhone={openTrainee.phone}
-          uplineName={uplineName}
           onClose={() => setOpenTrainee(null)}
         />
       ) : null}

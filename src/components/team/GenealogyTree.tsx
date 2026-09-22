@@ -1,4 +1,4 @@
-import { Crown, Minus, Plus, X } from "lucide-react";
+import { Crown, Maximize2, Minimize2, Minus, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,12 +26,12 @@ export type TreePerson = {
     lastDate: string | null;
     recent: {
       date: string;
+      status: "report" | "leave" | "absent";
       leads: number;
       responses: number;
       enrollments: number;
       pending: number;
       twoCc: number;
-      absent: boolean;
     }[];
   };
 };
@@ -50,6 +50,7 @@ type Props = {
  */
 export function GenealogyTree({ root, people, emptyHint }: Props) {
   const [collapsed, setCollapsed] = useState<string[]>([]);
+  const [fullScreen, setFullScreen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const childrenOf = (parentId: string) =>
@@ -131,7 +132,25 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
 
   return (
     <>
-      <div className="overflow-x-auto pb-4">
+      <div
+        className={
+          fullScreen
+            ? "fixed inset-0 z-40 overflow-auto bg-background p-3"
+            : "overflow-x-auto pb-4"
+        }
+      >
+        <div className="mb-2 flex justify-end">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="rounded-xl"
+            onClick={() => setFullScreen((value) => !value)}
+          >
+            {fullScreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            {fullScreen ? "Close full screen" : "Full screen"}
+          </Button>
+        </div>
         <div className="mx-auto flex min-w-max flex-col items-center px-4">
           <div className="glass-panel metal-edge w-[190px] rounded-2xl border border-cyan/30 px-3 py-2.5">
             <div className="flex items-center gap-2">
@@ -216,7 +235,7 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
             </div>
 
             <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-primary">
-              Last 7 working reports
+              Last 14 days · every day
             </p>
             <div className="mt-2 overflow-x-auto rounded-xl border border-hairline">
               <table className="w-full text-[11px]">
@@ -233,21 +252,31 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
                   {selected.report.recent.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-2 py-3 text-center text-muted-foreground">
-                        No reports in the last 30 days.
+                        No report days yet.
                       </td>
                     </tr>
                   ) : (
-                    selected.report.recent.map((row) => (
-                      <tr key={row.date} className="border-t border-border">
-                        <td className="px-2 py-1.5">{formatDate(row.date)}</td>
-                        <td className="px-2 py-1.5 text-right tabular-nums">
-                          {row.absent ? "Leave" : row.leads}
-                        </td>
-                        <td className="px-2 py-1.5 text-right tabular-nums">{row.responses}</td>
-                        <td className="px-2 py-1.5 text-right tabular-nums">{row.enrollments}</td>
-                        <td className="px-2 py-1.5 text-right tabular-nums">{row.twoCc}</td>
-                      </tr>
-                    ))
+                    selected.report.recent.map((row) =>
+                      row.status === "report" ? (
+                        <tr key={row.date} className="border-t border-border">
+                          <td className="px-2 py-1.5">{formatDate(row.date)}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{row.leads}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{row.responses}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{row.enrollments}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{row.twoCc}</td>
+                        </tr>
+                      ) : (
+                        <tr key={row.date} className="border-t border-border">
+                          <td className="px-2 py-1.5">{formatDate(row.date)}</td>
+                          <td
+                            colSpan={4}
+                            className={`px-2 py-1.5 text-right font-semibold ${row.status === "leave" ? "text-cyan" : "text-destructive"}`}
+                          >
+                            {row.status === "leave" ? "Leave (approved)" : "Absent"}
+                          </td>
+                        </tr>
+                      ),
+                    )
                   )}
                 </tbody>
               </table>

@@ -274,7 +274,7 @@ export function MemberShell({
                 </div>
 
                 <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
-                  {NAV.map((item) =>
+                  {visibleNav.map((item) =>
                     lockReason(item.to) ? (
                       <button
                         key={item.to}

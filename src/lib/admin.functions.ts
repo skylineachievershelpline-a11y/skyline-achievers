@@ -300,22 +300,16 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       id: string;
-      feeTotal?: number;
-      paid?: number;
-      mentorshipDueAt?: string | null;
-      ccDueAt?: string | null;
       grantDay?: boolean;
       grantCcDay?: boolean;
       trainingLocked?: boolean;
       resetCcTimer?: boolean;
+      printSlip?: boolean;
     }) =>
       z
         .object({
           id: uuid,
-          feeTotal: z.number().min(0).max(10_000_000).optional(),
-          paid: z.number().min(0).max(10_000_000).optional(),
-          mentorshipDueAt: z.string().datetime().nullable().optional(),
-          ccDueAt: z.string().datetime().nullable().optional(),
+          printSlip: z.boolean().optional(),
           grantDay: z.boolean().optional(),
           grantCcDay: z.boolean().optional(),
           trainingLocked: z.boolean().optional(),

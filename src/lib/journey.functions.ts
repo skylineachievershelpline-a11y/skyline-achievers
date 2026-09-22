@@ -503,7 +503,12 @@ export const recordInterviewResult = createServerFn({ method: "POST" })
     const trainee = await ownTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureJourney } = await import("./journey.server");
-    await ensureJourney(trainee.id);
+    const journey = await ensureJourney(trainee.id);
+    // Stage guard: an interview result is only valid once the trainee is ready.
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage !== "ready_for_interview" && stage !== "reassess") {
+      throw new Error("This trainee is not ready for the final interview yet.");
+    }
     const { error } = await (supabaseAdmin as any)
       .from("trainee_journey")
       .update({

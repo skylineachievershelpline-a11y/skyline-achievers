@@ -23,11 +23,13 @@ async function activeTrainee(userId: string) {
   const { data } = await supabaseAdmin
     .from("trainees")
     .select(
-      "id, trainee_code, full_name, phone, age, status, avatar_path, upline_id, member_profiles:upline_id (id, member_id, full_name, phone, avatar_path)",
+      "id, trainee_code, full_name, phone, age, status, avatar_path, upline_id, created_at, member_profiles:upline_id (id, member_id, full_name, phone, avatar_path)",
     )
     .eq("id", userId)
     .maybeSingle();
   if (!data || (data as any).status !== "active") throw new Error("Your account is not active.");
+  const { ensureSchedule } = await import("./journey.server");
+  await ensureSchedule(data as any);
   return data as any;
 }
 
@@ -36,6 +38,7 @@ async function buildJourney(traineeId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const {
     ensureJourney,
+    ensureSchedule,
     loadJourneySessions,
     loadLedger,
     loadPolicy,
@@ -43,6 +46,14 @@ async function buildJourney(traineeId: string) {
     signThumb,
   } = await import("./journey.server");
   const admin = supabaseAdmin as any;
+
+  // Apply the upline's master schedule when this trainee has no timings yet.
+  const { data: traineeRow } = await admin
+    .from("trainees")
+    .select("id, upline_id, created_at")
+    .eq("id", traineeId)
+    .maybeSingle();
+  if (traineeRow) await ensureSchedule(traineeRow);
 
   const [journeyRow, sessionSet, policy, ledger] = await Promise.all([
     ensureJourney(traineeId),

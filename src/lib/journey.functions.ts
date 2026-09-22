@@ -747,3 +747,212 @@ export const saveUplineSessionSchedule = createServerFn({ method: "POST" })
     const slots = await saveUplineSchedule(member.id, data.slots);
     return { ok: true as const, slots };
   });
+
+/** ---------- Upline requests panel ---------- */
+
+/**
+ * Every session review waiting for this upline's decision, newest first, with
+ * the trainee's words, picture and voice note ready to open, plus the trainees
+ * whose final interview result is due.
+ */
+export const getUplineReviewRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPath, AVATAR_BUCKET } = await import("./storage.server");
+    const admin = supabaseAdmin as any;
+
+    const { data: trainees } = await admin
+      .from("trainees")
+      .select("id, full_name, trainee_code, phone, avatar_path")
+      .eq("upline_id", member.id)
+      .eq("status", "active")
+      .limit(100);
+
+    const reviews: any[] = [];
+    const interviews: any[] = [];
+    for (const trainee of (trainees ?? []) as any[]) {
+      const journey = await buildJourney(trainee.id);
+      const avatarUrl = await signPath(AVATAR_BUCKET, trainee.avatar_path ?? null, 3600);
+      const person = {
+        traineeId: trainee.id as string,
+        name: trainee.full_name as string,
+        code: trainee.trainee_code as string,
+        avatarUrl,
+      };
+      const pending = journey.sessions.find((session) => session.review === "pending");
+      if (pending) {
+        reviews.push({
+          ...person,
+          reviewId: pending.reviewId,
+          sessionNumber: pending.sessionNumber,
+          title: pending.title,
+          scheduledAt: pending.scheduledAt,
+          openedAt: pending.openedAt ?? null,
+          submittedAt: pending.reviewSubmittedAt ?? null,
+          body: pending.reviewBody,
+          imageUrl: pending.reviewImageUrl,
+          voiceUrl: pending.reviewVoiceUrl,
+        });
+      }
+      if (journey.stage === "ready_for_interview" || journey.stage === "reassess") {
+        interviews.push({ ...person, stage: journey.stage, note: journey.interviewNote });
+      }
+    }
+    reviews.sort((a, b) => String(b.submittedAt ?? "").localeCompare(String(a.submittedAt ?? "")));
+    return { reviews, interviews };
+  });
+
+/** ---------- Shared progress report link ---------- */
+
+function reportToken() {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+}
+
+export const getTraineeReportLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    await ownTrainee(member.id, data.traineeId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("trainee_report_links")
+      .select("id, token, revoked, created_at")
+      .eq("trainee_id", data.traineeId)
+      .eq("created_by", member.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    return {
+      links: ((rows ?? []) as any[]).map((row) => ({
+        id: row.id as string,
+        token: row.token as string,
+        revoked: row.revoked === true,
+        createdAt: row.created_at as string,
+      })),
+    };
+  });
+
+export const createTraineeReportLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    await ownTrainee(member.id, data.traineeId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const token = reportToken();
+    const { error } = await (supabaseAdmin as any).from("trainee_report_links").insert({
+      token,
+      trainee_id: data.traineeId,
+      created_by: member.id,
+    });
+    if (error) throw new Error(error.message);
+    return { token };
+  });
+
+export const setTraineeReportLinkRevoked = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { linkId: string; revoked: boolean }) =>
+    z.object({ linkId: uuid, revoked: z.boolean() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await (supabaseAdmin as any)
+      .from("trainee_report_links")
+      .update({ revoked: data.revoked })
+      .eq("id", data.linkId)
+      .eq("created_by", member.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Read-only progress record behind a private link. Business information only:
+ * training timings, reviews and decisions — no phone numbers or private data.
+ */
+export const getSharedTraineeReport = createServerFn({ method: "POST" })
+  .inputValidator((data: { token: string }) =>
+    z.object({ token: z.string().trim().min(10).max(64) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const { data: link } = await admin
+      .from("trainee_report_links")
+      .select("trainee_id, revoked, created_at, created_by")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (!link || link.revoked === true) return { status: "invalid" as const };
+
+    const { data: trainee } = await admin
+      .from("trainees")
+      .select("id, full_name, trainee_code, status, created_at, upline_id")
+      .eq("id", link.trainee_id)
+      .maybeSingle();
+    if (!trainee) return { status: "invalid" as const };
+
+    const { data: upline } = await admin
+      .from("member_profiles")
+      .select("full_name, member_id")
+      .eq("id", trainee.upline_id)
+      .maybeSingle();
+
+    const journey = await buildJourney(trainee.id);
+    const { sessionWindowEndMs } = await import("./journey");
+
+    return {
+      status: "ok" as const,
+      trainee: {
+        name: trainee.full_name as string,
+        code: trainee.trainee_code as string,
+        joinedAt: trainee.created_at as string,
+        status: trainee.status as string,
+      },
+      upline: upline
+        ? { name: upline.full_name as string, code: upline.member_id as string }
+        : null,
+      stage: journey.stage,
+      interviewResult: journey.interviewResult,
+      interviewNote: journey.interviewNote,
+      wallet: {
+        required: journey.wallet.required,
+        verified: journey.wallet.verified,
+        remaining: journey.wallet.remaining,
+        ccTarget: journey.wallet.ccTarget,
+        ccVerified: journey.wallet.ccVerified,
+      },
+      sessions: journey.sessions.map((session) => {
+        const submitted = session.reviewSubmittedAt ?? null;
+        const late =
+          session.scheduledAt && submitted
+            ? new Date(submitted).getTime() > sessionWindowEndMs(session.scheduledAt)
+            : false;
+        const joinLate =
+          session.scheduledAt && session.openedAt
+            ? Math.max(
+                0,
+                Math.round(
+                  (new Date(session.openedAt).getTime() -
+                    new Date(session.scheduledAt).getTime()) /
+                    60000,
+                ),
+              )
+            : null;
+        return {
+          sessionNumber: session.sessionNumber,
+          title: session.title,
+          scheduledAt: session.scheduledAt,
+          openedAt: session.openedAt ?? null,
+          joinLateMinutes: joinLate,
+          submittedAt: submitted,
+          late,
+          review: session.review,
+          reviewBody: session.reviewBody,
+          reviewedAt: session.reviewedAt,
+          uplineNote: session.uplineNote,
+        };
+      }),
+    };
+  });

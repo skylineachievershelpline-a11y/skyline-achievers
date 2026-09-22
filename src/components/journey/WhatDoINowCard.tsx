@@ -1,7 +1,7 @@
 import { Clock, Compass, UserCheck } from "lucide-react";
 
 import { countdownText, type NextAction } from "@/lib/journey";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime12 as formatDateTime } from "@/lib/format";
 import { useNow } from "./useCountdown";
 
 const OWNER_LABEL: Record<NextAction["owner"], string> = {

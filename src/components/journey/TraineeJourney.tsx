@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime12 as formatDateTime } from "@/lib/format";
 import {
   BASIC_SESSION_COUNT,
   SESSION_WINDOW_HOURS,

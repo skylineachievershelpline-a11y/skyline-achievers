@@ -22,9 +22,12 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/format";
 import {
   BASIC_SESSION_COUNT,
+  SESSION_WINDOW_HOURS,
   countdownText,
   currentSessionNumber,
+  msLeftInWindow,
   nextAction,
+  sessionExpired,
   sessionOpen,
   type JourneySession,
 } from "@/lib/journey";
@@ -35,8 +38,10 @@ import {
   markWebinarWatched,
   playJourneyVideo,
 } from "@/lib/journey.functions";
+import { VoiceGuide } from "@/components/voice/VoiceGuide";
 import { PaymentClaimForm } from "./PaymentClaimForm";
 import { PaymentWalletCard } from "./PaymentWalletCard";
+import { SeatAlertTag } from "./SeatAlertTag";
 import { SessionReviewForm } from "./SessionReviewForm";
 import { WhatDoINowCard } from "./WhatDoINowCard";
 import { useNow } from "./useCountdown";
@@ -90,6 +95,12 @@ export function TraineeJourney() {
   const open = useMutation({
     mutationFn: (sessionId: string) => play({ data: { sessionId } } as never),
     onSuccess: (result: any) => {
+      if (result.status === "expired") {
+        toast.error(
+          `This session closed ${SESSION_WINDOW_HOURS} hours after its start time because no review was submitted.`,
+        );
+        return;
+      }
       if (result.status === "locked") {
         toast.error("This session opens at its scheduled time.");
         return;

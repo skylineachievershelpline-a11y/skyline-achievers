@@ -236,9 +236,9 @@ export function msUntilSession(session: JourneySession, nowMs = Date.now()): num
   return new Date(session.scheduledAt).getTime() - nowMs;
 }
 
-/** "01:42:18" style countdown. */
+/** Unambiguous duration label, so it is never mistaken for a 24-hour clock. */
 export function countdownText(ms: number): string {
-  if (ms <= 0) return "00:00:00";
+  if (ms <= 0) return "0h 00m 00s";
   const total = Math.floor(ms / 1000);
   const days = Math.floor(total / 86_400);
   const hours = Math.floor((total % 86_400) / 3600);
@@ -246,8 +246,8 @@ export function countdownText(ms: number): string {
   const seconds = total % 60;
   const pad = (value: number) => String(value).padStart(2, "0");
   return days > 0
-    ? `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-    : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    ? `${days}d ${hours}h ${pad(minutes)}m ${pad(seconds)}s`
+    : `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
 }
 
 export type NextAction = {

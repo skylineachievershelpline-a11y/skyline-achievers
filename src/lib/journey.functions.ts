@@ -551,3 +551,55 @@ export const getUplineActionQueue = createServerFn({ method: "GET" })
     }
     return { items };
   });
+
+/**
+ * Plays a journey video. Basic sessions open only once their scheduled time has
+ * arrived; the guide, business plan and webinar open when their stage is reached.
+ */
+export const playJourneyVideo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { sessionId: string }) => z.object({ sessionId: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const trainee = await activeTrainee(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const { signPath, VIDEO_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
+
+    const { data: row } = await admin
+      .from("beginner_sessions")
+      .select(
+        "id, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, session_kind, session_number, is_published",
+      )
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    if (!row || !row.is_published) return { status: "invalid" as const };
+
+    if ((row.session_kind ?? "basic") === "basic") {
+      const { data: slot } = await admin
+        .from("trainee_session_schedule")
+        .select("scheduled_at")
+        .eq("trainee_id", trainee.id)
+        .eq("session_number", row.session_number)
+        .maybeSingle();
+      if (!slot?.scheduled_at || new Date(slot.scheduled_at).getTime() > Date.now()) {
+        return { status: "locked" as const };
+      }
+    }
+
+    const videoUrl =
+      row.video_source === "external" && row.video_url
+        ? row.video_url
+        : await signPath(VIDEO_BUCKET, row.video_path, 60 * 60 * 4);
+
+    return {
+      status: "ok" as const,
+      session: {
+        id: row.id as string,
+        title: row.title as string,
+        description: (row.description ?? null) as string | null,
+        aspectRatio: (row.aspect_ratio ?? "16:9") as string,
+        videoUrl: videoUrl as string | null,
+        thumbnailUrl: await signPath(THUMBNAIL_BUCKET, row.thumbnail_path, 60 * 60 * 4),
+      },
+    };
+  });

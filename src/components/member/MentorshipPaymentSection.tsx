@@ -173,11 +173,20 @@ export function MentorshipPaymentSection() {
           <div className="space-y-1.5">
             <Label>Select payment method</Label>
             {methods.length === 0 ? (
-              <p className="rounded-2xl border border-hairline bg-surface-2 p-3 text-[11px] text-muted-foreground">
-                The office has not added payment methods yet. Please ask your upline or the office
-                for the current payment details.
-              </p>
+              <>
+                <p className="rounded-2xl border border-hairline bg-surface-2 p-3 text-[11px] text-muted-foreground">
+                  The office has not added payment methods yet. Write the method you used and the
+                  office will check it with your screenshot.
+                </p>
+                <Input
+                  value={method}
+                  onChange={(event) => setMethod(event.target.value)}
+                  placeholder="Easypaisa / JazzCash / bank transfer"
+                  className="h-12 rounded-2xl"
+                />
+              </>
             ) : (
+
               <div className="grid gap-2 sm:grid-cols-2">
                 {methods.map((entry) => (
                   <button

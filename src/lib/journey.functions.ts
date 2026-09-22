@@ -603,7 +603,9 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!row || !row.is_published) return { status: "invalid" as const };
 
-    if ((row.session_kind ?? "basic") === "basic") {
+    const kind = (row.session_kind ?? "basic") as string;
+
+    if (kind === "basic") {
       const { data: slot } = await admin
         .from("trainee_session_schedule")
         .select("scheduled_at")
@@ -611,6 +613,27 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
         .eq("session_number", row.session_number)
         .maybeSingle();
       if (!slot?.scheduled_at || new Date(slot.scheduled_at).getTime() > Date.now()) {
+        return { status: "locked" as const };
+      }
+      const { sessionWindowEndMs } = await import("./journey");
+      const { data: existingReview } = await admin
+        .from("trainee_session_reviews")
+        .select("id")
+        .eq("trainee_id", trainee.id)
+        .eq("session_number", row.session_number)
+        .limit(1)
+        .maybeSingle();
+      if (!existingReview && Date.now() > sessionWindowEndMs(slot.scheduled_at)) {
+        return { status: "expired" as const };
+      }
+    }
+
+    // The Forever Business Plan opens only after the final interview is passed.
+    if (kind === "business_plan") {
+      const { ensureJourney } = await import("./journey.server");
+      const journey: any = await ensureJourney(trainee.id);
+      const stage = journey?.stage ?? "sessions";
+      if (stage !== "interview_passed" && stage !== "mentorship") {
         return { status: "locked" as const };
       }
     }

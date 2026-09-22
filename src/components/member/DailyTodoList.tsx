@@ -60,7 +60,7 @@ export function DailyTodoList({
 
   const items = useMemo<Item[]>(() => {
     const list: Item[] = [];
-    if (report.data && !report.data.todaySubmitted) {
+    if (report.data && !(report.data as any).trainingOnly && !report.data.todaySubmitted) {
       list.push({
         id: "report",
         text: report.data.windowOpen

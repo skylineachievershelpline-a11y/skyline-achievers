@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
 import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
+import { UplineRequestsPanel } from "@/components/journey/UplineRequestsPanel";
+
 import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";

@@ -29,6 +29,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
+import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
+import { UplineJourneyDialog } from "@/components/journey/UplineJourneyDialog";
 import {
   deleteTrainee,
   getMyFboTeam,
@@ -195,6 +197,10 @@ function TeamPage() {
       </div>
 
       {tab === "fbo" ? <FboTree ready={ready} /> : null}
+
+      {tab === "customers" ? (
+        <UplineActionQueue ready={ready} uplineName={data?.upline.fullName ?? "your upline"} />
+      ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>
       <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">

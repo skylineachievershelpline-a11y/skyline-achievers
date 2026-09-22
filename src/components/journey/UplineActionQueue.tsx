@@ -29,7 +29,7 @@ export function UplineActionQueue({
     retry: false,
   });
 
-  const rows = (data?.rows ?? []) as any[];
+  const rows = (data?.items ?? []) as any[];
   if (rows.length === 0) return null;
 
   return (
@@ -54,9 +54,9 @@ export function UplineActionQueue({
             <li key={row.traineeId} className="glass-panel rounded-2xl p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{row.fullName}</p>
+                  <p className="truncate text-sm font-semibold">{row.name}</p>
                   <p className="truncate text-[11px] text-muted-foreground">
-                    {row.traineeCode} · {row.action?.now ?? "Keep following up"}
+                    {row.code} · {row.action?.now ?? "Keep following up"}
                   </p>
                 </div>
                 <Button
@@ -66,7 +66,7 @@ export function UplineActionQueue({
                   onClick={() =>
                     setOpenTrainee({
                       id: row.traineeId,
-                      name: row.fullName,
+                      name: row.name,
                       phone: row.phone ?? null,
                     })
                   }

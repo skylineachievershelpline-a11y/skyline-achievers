@@ -754,6 +754,9 @@ function MentorshipDialog({
             </Button>
           </div>
 
+          <TrainingSectionAccess memberId={member.id} />
+
+
           <Button
             variant="brand"
             size="xl"

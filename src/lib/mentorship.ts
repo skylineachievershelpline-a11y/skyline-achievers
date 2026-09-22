@@ -94,6 +94,8 @@ export type MemberProgress = {
   warning: string | null;
   /** Fee not clear yet: every section stays locked. */
   feeLocked: boolean;
+  /** Part payment received: training stays open with admin-picked sections. */
+  partialTraining: boolean;
   /** Training stays locked (fee pending, or the CC deadline ran out). */
   trainingLocked: boolean;
   ccDueAt: string | null;

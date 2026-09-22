@@ -176,7 +176,7 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6">
-        {progress?.feeLocked ? null : trainingOnly ? (
+        {trainingOnly ? (
           <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
             <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
             <p className="mt-3 font-display text-base font-semibold">Working section locked</p>
@@ -190,7 +190,7 @@ function DashboardPage() {
         )}
       </div>
 
-      {!progress?.feeLocked && data.continueWatching.length > 0 ? (
+      {data.continueWatching.length > 0 ? (
         <section className="mt-7">
           <SectionTitle>Continue your progress</SectionTitle>
           <Rail>{data.continueWatching.map((lecture: any) => <LectureCard key={lecture.id} lecture={lecture} resume />)}</Rail>

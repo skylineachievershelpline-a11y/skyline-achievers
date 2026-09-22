@@ -666,3 +666,53 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
       },
     };
   });
+
+/** The upline's one master schedule that every new trainee starts with. */
+export const getUplineSessionSchedule = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const member = await activeMember(context.userId);
+    const { loadUplineSchedule, loadJourneySessions } = await import("./journey.server");
+    const [slots, sessionSet] = await Promise.all([
+      loadUplineSchedule(member.id),
+      loadJourneySessions(),
+    ]);
+    const { signThumb } = await import("./journey.server");
+    const titles = await Promise.all(
+      (sessionSet.basic as any[]).slice(0, 7).map(async (row, index) => ({
+        session: Number(row.session_number ?? index + 1),
+        title: row.title as string,
+        thumbnailUrl: await signThumb(row.thumbnail_path),
+      })),
+    );
+    return {
+      slots,
+      sessions: titles,
+      upline: { name: member.full_name as string, code: member.member_id as string },
+    };
+  });
+
+export const saveUplineSessionSchedule = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { slots: { session: number; day: number; time: string }[] }) =>
+    z
+      .object({
+        slots: z
+          .array(
+            z.object({
+              session: z.number().int().min(1).max(7),
+              day: z.number().int().min(1).max(30),
+              time: z.string().regex(/^\d{1,2}:\d{2}$/),
+            }),
+          )
+          .min(1)
+          .max(7),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const { saveUplineSchedule } = await import("./journey.server");
+    const slots = await saveUplineSchedule(member.id, data.slots);
+    return { ok: true as const, slots };
+  });

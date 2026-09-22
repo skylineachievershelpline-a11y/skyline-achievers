@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
+import { GenealogyTree, type TreePerson } from "@/components/team/GenealogyTree";
 import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
 import { UplineJourneyDialog } from "@/components/journey/UplineJourneyDialog";
 import {

@@ -74,6 +74,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     memberId: string;
     password: string;
     message: string;
+    accountId?: string;
   } | null>(null);
 
   const { data, isPending } = useQuery({
@@ -491,6 +492,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
               <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-2xl border border-hairline bg-surface p-3 text-xs leading-relaxed">
                 {credentials.message}
               </pre>
+              {credentials.accountId ? <MenuAccessPicker memberId={credentials.accountId} /> : null}
               <Button
                 variant="brand"
                 size="xl"

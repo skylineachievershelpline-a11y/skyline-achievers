@@ -183,6 +183,13 @@
       "when": 1790050255560,
       "tag": "0025_lecture_access_member_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1790050420109,
+      "tag": "0026_member_menu_access",
+      "breakpoints": true
     }
   ]
 }

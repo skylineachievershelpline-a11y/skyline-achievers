@@ -274,7 +274,9 @@ export const submitSessionReview = createServerFn({ method: "POST" })
       image_path: data.imagePath ?? null,
       voice_path: data.voicePath ?? null,
       status: "pending",
+      submitted_at: new Date().toISOString(),
     });
+
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });

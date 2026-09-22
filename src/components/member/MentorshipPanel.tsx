@@ -39,7 +39,15 @@ function Bar({ percent }: { percent: number }) {
 }
 
 /** Money card shown until the Personal Mentorship amount is complete. */
-export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: MemberProgress; onPrintReceipt?: () => void }) {
+export function MentorshipFeeCard({
+  progress,
+  onPrintReceipt,
+  ccTargets,
+}: {
+  progress: MemberProgress;
+  onPrintReceipt?: () => void;
+  ccTargets?: { full: number; partial: number } | null;
+}) {
   return (
     <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
       {progress.warning ? (
@@ -54,6 +62,28 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
           <span>{progress.warning}</span>
         </div>
       ) : null}
+
+      {ccTargets ? (
+        <div className="space-y-2 rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5">
+          <p className="font-display text-sm font-bold text-cyan">
+            Special 2CC Offer — zaroor parhein
+          </p>
+          <p className="text-muted-foreground">
+            Agar aap neeche diye gaye time ke andar apni Personal Mentorship ki remaining amount
+            complete kar lete hain, to aapka 2CC{" "}
+            <span className="font-bold text-foreground">{formatPkr(ccTargets.partial)}</span> ka
+            nahi, balke Personal Mentorship ki wajah se discount ke sath sirf{" "}
+            <span className="font-bold text-cyan">{formatPkr(ccTargets.full)}</span> ka hoga.
+          </p>
+          <p className="text-muted-foreground">
+            Lekin agar aap is time ke andar amount complete nahi karte, to yeh offer aap ke liye
+            khatam ho jayegi aur aap ka 2CC {formatPkr(ccTargets.full)} ki jagah{" "}
+            <span className="font-bold text-foreground">{formatPkr(ccTargets.partial)}</span> ka ho
+            jayega. Aap ka dashboard aur training phir bhi khula rahega.
+          </p>
+        </div>
+      ) : null}
+
 
       <div className="flex items-center gap-2">
         <Wallet className="h-4 w-4 text-cyan" />

@@ -1243,6 +1243,9 @@ export const adminSaveSession = createServerFn({ method: "POST" })
       aspect_ratio: data.aspectRatio ?? "16:9",
       sort_order: data.sortOrder ?? 0,
       is_published: data.isPublished,
+      day_number: data.dayNumber ?? null,
+      session_number: data.sessionNumber ?? null,
+      session_kind: data.sessionKind ?? "basic",
     };
     if (data.videoPath) {
       payload["video_path"] = data.videoPath;

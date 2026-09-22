@@ -817,3 +817,104 @@ function MentorshipDialog({
     </Dialog>
   );
 }
+
+/**
+ * Part payment members keep Training open, but only the sections ticked here.
+ */
+function TrainingSectionAccess({ memberId }: { memberId: string }) {
+  const queryClient = useQueryClient();
+  const loadAccess = useServerFn(adminGetMemberTrainingAccess);
+  const saveAccess = useServerFn(adminSetMemberTrainingAccess);
+  const [picked, setPicked] = useState<string[] | null>(null);
+
+  const { data, isPending } = useQuery({
+    queryKey: ["admin-member-training-access", memberId],
+    queryFn: () => loadAccess({ data: { memberId } } as never),
+  });
+
+  useEffect(() => {
+    if (data) setPicked((data as any).granted as string[]);
+  }, [data]);
+
+  const save = useMutation({
+    mutationFn: (categoryIds: string[]) =>
+      saveAccess({ data: { memberId, categoryIds } } as never),
+    onSuccess: () => {
+      toast.success("Training access saved");
+      void queryClient.invalidateQueries({ queryKey: ["admin-member-training-access", memberId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const sections = ((data as any)?.sections ?? []) as {
+    id: string;
+    name: string;
+    isPublished: boolean;
+  }[];
+  const selected = picked ?? [];
+
+  function toggle(id: string) {
+    setPicked((current) => {
+      const list = current ?? [];
+      return list.includes(id) ? list.filter((value) => value !== id) : [...list, id];
+    });
+  }
+
+  return (
+    <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        Training access on part payment
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        With any amount received, Training stays open for this member and only the ticked sections
+        are shown.
+      </p>
+      {isPending ? (
+        <div className="py-4 text-xs text-muted-foreground">Loading sections…</div>
+      ) : sections.length === 0 ? (
+        <p className="py-3 text-xs text-muted-foreground">No training sections created yet.</p>
+      ) : (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {sections.map((section) => (
+            <label
+              key={section.id}
+              className="flex items-center gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-sm"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(section.id)}
+                onChange={() => toggle(section.id)}
+                className="h-4 w-4"
+              />
+              <span className="min-w-0 flex-1 truncate">{section.name}</span>
+              {section.isPublished ? null : (
+                <span className="text-[10px] uppercase text-muted-foreground">draft</span>
+              )}
+            </label>
+          ))}
+        </div>
+      )}
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10 rounded-xl"
+          disabled={save.isPending || isPending}
+          onClick={() => save.mutate(selected)}
+        >
+          {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Save training access
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-10 rounded-xl"
+          disabled={save.isPending || sections.length === 0}
+          onClick={() => setPicked(sections.map((section) => section.id))}
+        >
+          Select all
+        </Button>
+      </div>
+    </div>
+  );
+}

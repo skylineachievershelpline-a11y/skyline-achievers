@@ -23,6 +23,13 @@ import {
 
 const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 const RATIOS = ["16:9", "9:16", "1:1", "4:3"] as const;
+const KINDS = [
+  { value: "basic", label: "Basic training session (1–7)" },
+  { value: "interview_guide", label: "Final Interview Guide" },
+  { value: "business_plan", label: "Session 08 — Forever Business Plan" },
+  { value: "mentorship_webinar", label: "Personal Mentorship webinar" },
+  { value: "extra", label: "Extra / other" },
+] as const;
 
 type SessionRow = {
   id: string;
@@ -33,6 +40,9 @@ type SessionRow = {
   sort_order: number | null;
   is_published: boolean;
   video_url: string | null;
+  day_number: number | null;
+  session_number: number | null;
+  session_kind: string | null;
 };
 
 export function SessionsTab() {

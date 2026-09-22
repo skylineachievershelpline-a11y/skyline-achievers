@@ -1177,7 +1177,7 @@ export const adminGetSessions = createServerFn({ method: "GET" }).handler(async 
   const { data } = await (supabaseAdmin as any)
     .from("beginner_sessions")
     .select(
-      "id, session_code, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at",
+      "id, session_code, title, description, video_source, video_path, video_url, thumbnail_path, aspect_ratio, sort_order, is_published, created_at, day_number, session_number, session_kind",
     )
     .order("sort_order")
     .order("created_at", { ascending: false })

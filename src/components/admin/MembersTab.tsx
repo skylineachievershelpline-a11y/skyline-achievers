@@ -39,20 +39,6 @@ type Upline = {
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
 
-function toDateTimeInput(value: string | null | undefined) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function fromDateTimeInput(value: string) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString();
-}
 
 export function MembersTab({ levels }: { levels: Level[] }) {
   const queryClient = useQueryClient();

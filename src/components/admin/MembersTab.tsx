@@ -235,7 +235,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
           </button>
         ))}
       </div>
-      {selectedIds.length > 0 ? <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"><span className="mr-auto px-1 text-xs font-semibold text-primary">{selectedIds.length} selected</span><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("active")}><UserCheck />Activate</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("blocked")}><Ban />Block</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("working")}>Full access</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("training")}>Training only</Button><Button size="sm" variant="destructive" disabled={bulkBusy} onClick={() => void applyBulk("delete")}><Trash2 />Delete</Button></div> : null}
+      {selectedIds.length > 0 ? <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"><span className="mr-auto px-1 text-xs font-semibold text-primary">{selectedIds.length} selected</span><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("active")}><UserCheck />Activate</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("blocked")}><Ban />Block</Button><Button size="sm" variant="destructive" disabled={bulkBusy} onClick={() => void applyBulk("delete")}><Trash2 />Delete</Button></div> : null}
       </div>
 
       {isPending ? (
@@ -305,19 +305,6 @@ export function MembersTab({ levels }: { levels: Level[] }) {
                   >
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
-                  </select>
-                  <select aria-label={`Access for ${member.full_name}`}
-                    value={member.working_enabled === false ? "training" : "working"}
-                    onChange={(e) =>
-                      update.mutate({
-                        data: { id: member.id, workingEnabled: e.target.value === "working" },
-                      } as never)
-                    }
-                    className="h-8 min-w-0 rounded-lg border border-hairline bg-surface-2 px-2 text-xs"
-                    title="Access"
-                  >
-                    <option value="training">Training only</option>
-                    <option value="working">Training + working</option>
                   </select>
                   <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
                   <Button asChild variant="brand" size="sm" className="h-8 rounded-lg px-2 text-[11px]">
@@ -531,7 +518,7 @@ function AddMemberDialog({
   const [phone, setPhone] = useState("");
   const [levelId, setLevelId] = useState(levels[0]?.id ?? "");
   const [uplineId, setUplineId] = useState("");
-  const [workingEnabled, setWorkingEnabled] = useState(true);
+  const workingEnabled = true;
 
   useEffect(() => {
     if (!open) return;
@@ -645,18 +632,6 @@ function AddMemberDialog({
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="access">Access</Label>
-            <select
-              id="access"
-              value={workingEnabled ? "working" : "training"}
-              onChange={(e) => setWorkingEnabled(e.target.value === "working")}
-              className="h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm"
-            >
-              <option value="working">Training + working (everything unlocked)</option>
-              <option value="training">Training only (working sections locked)</option>
-            </select>
-          </div>
           <Button type="submit" variant="brand" size="xl" className="w-full" disabled={pending || !levelId || !uplineId}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Create member

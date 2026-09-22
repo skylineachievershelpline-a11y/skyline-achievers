@@ -24,6 +24,72 @@ export async function loadPolicy(): Promise<JourneyPolicy> {
   };
 }
 
+/** One upline's master session schedule, or the system default. */
+export async function loadUplineSchedule(uplineId: string | null | undefined) {
+  const { DEFAULT_MASTER_SLOTS, normalizeMasterSlots } = await import("./journey");
+  if (!uplineId) return DEFAULT_MASTER_SLOTS;
+  const { data } = await admin
+    .from("platform_settings")
+    .select("value")
+    .eq("key", `upline_schedule:${uplineId}`)
+    .maybeSingle();
+  const value = (data?.value ?? null) as any;
+  if (!value) return DEFAULT_MASTER_SLOTS;
+  return normalizeMasterSlots(value.slots ?? value);
+}
+
+export async function saveUplineSchedule(uplineId: string, slots: unknown) {
+  const { normalizeMasterSlots } = await import("./journey");
+  const rows = normalizeMasterSlots(slots);
+  const { error } = await admin
+    .from("platform_settings")
+    .upsert({ key: `upline_schedule:${uplineId}`, value: { slots: rows } }, { onConflict: "key" });
+  if (error) throw new Error(error.message);
+  return rows;
+}
+
+/**
+ * Every trainee needs real session timings. When the upline has not set them
+ * for this trainee yet, the upline's master schedule (or the system default) is
+ * applied automatically from the trainee's joining day.
+ */
+export async function ensureSchedule(trainee: {
+  id: string;
+  upline_id?: string | null;
+  created_at?: string | null;
+}) {
+  const { count } = await admin
+    .from("trainee_session_schedule")
+    .select("session_number", { count: "exact", head: true })
+    .eq("trainee_id", trainee.id);
+  if ((count ?? 0) > 0) return false;
+
+  const { scheduleFromMaster } = await import("./journey");
+  const slots = await loadUplineSchedule(trainee.upline_id ?? null);
+  const joinedAt = trainee.created_at ? new Date(trainee.created_at).getTime() : Date.now();
+  const planned = scheduleFromMaster(slots, joinedAt);
+  const { basic } = await loadJourneySessions();
+
+  const rows = planned.map((slot) => {
+    const session = basic.find(
+      (row: any, index: number) => Number(row.session_number ?? index + 1) === slot.session,
+    ) as any;
+    return {
+      trainee_id: trainee.id,
+      session_id: session?.id ?? null,
+      session_number: slot.session,
+      day_number: slot.day,
+      scheduled_at: slot.atIso,
+      created_by: trainee.upline_id ?? null,
+    };
+  });
+  if (rows.length === 0) return false;
+  await admin
+    .from("trainee_session_schedule")
+    .upsert(rows, { onConflict: "trainee_id,session_number" });
+  return true;
+}
+
 export async function ensureJourney(traineeId: string) {
   const { data } = await admin
     .from("trainee_journey")

@@ -147,6 +147,9 @@ export function MemberShell({
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {
+    if (to !== "/dashboard" && hiddenMenu.some((key) => to === key || to.startsWith(`${key}/`))) {
+      return "This section is not available for your account.";
+    }
     const partialOpen =
       progress?.partialTraining === true && (to === "/training" || to === "/sessions");
     if (progress?.feeLocked && !partialOpen && to !== "/dashboard" && to !== "/profile") {

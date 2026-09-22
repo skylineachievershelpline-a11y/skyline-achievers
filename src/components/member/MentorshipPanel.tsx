@@ -50,19 +50,6 @@ export function MentorshipFeeCard({
 }) {
   return (
     <section className="raised-panel metal-edge space-y-4 rounded-3xl p-5">
-      {progress.warning ? (
-        <div
-          className={`flex items-start gap-2 rounded-2xl border p-3 text-xs font-semibold ${
-            progress.warningStage >= 3
-              ? "border-destructive/50 bg-destructive/10 text-destructive"
-              : "border-amber-400/40 bg-amber-400/10 text-amber-300"
-          }`}
-        >
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{progress.warning}</span>
-        </div>
-      ) : null}
-
       {ccTargets ? (
         <div className="space-y-2 rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5">
           <p className="font-display text-sm font-bold text-cyan">

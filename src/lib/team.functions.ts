@@ -153,16 +153,16 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
             twoCc: sum("two_cc"),
             mentorshipPaid: sum("mentorship_paid"),
             lastDate: (reports[0]?.report_date ?? null) as string | null,
-            recent: reports.slice(0, 7).map((entry) => ({
-              date: entry.report_date as string,
-              leads: Number(entry.leads_count ?? 0),
-              responses: Number(entry.responses ?? 0),
-              enrollments: Number(entry.enrollments ?? 0),
-              pending: Number(entry.pending_count ?? 0),
-              twoCc: Number(entry.two_cc ?? 0),
-              absent: Boolean(entry.is_absent),
-            })),
+            // Every calendar day: a submitted report, approved Leave, or Absent.
+            recent: buildReportCalendar({
+              reports,
+              leaves: leaveMap.get(row.id) ?? [],
+              endDate: todayDate,
+              days: 14,
+              joinedDate: String(row.created_at ?? "").slice(0, 10),
+            }),
           },
+
         };
       }),
     );

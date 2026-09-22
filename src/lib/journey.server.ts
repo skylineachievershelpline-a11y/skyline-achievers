@@ -71,6 +71,11 @@ export async function signProof(path: string | null | undefined) {
   return signPath(RESOURCE_BUCKET, path ?? null, 60 * 60 * 6);
 }
 
+/** Member payment screenshots live separately from training review media. */
+export async function signMemberPaymentProof(path: string | null | undefined) {
+  return signPath("payment-proofs", path ?? null, 60 * 60 * 6);
+}
+
 /** Verified mentorship / 2CC totals from the ledger. */
 export async function loadLedger(payerId: string) {
   const { data } = await admin

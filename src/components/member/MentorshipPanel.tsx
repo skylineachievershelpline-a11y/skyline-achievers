@@ -78,17 +78,11 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
 
       <Bar percent={progress.feePercent} />
 
-      <Button
-        type="button"
-        variant="brand"
-        size="xl"
-        className="w-full rounded-2xl font-display"
-        onClick={() => {
-          document.getElementById("pay-mentorship")?.scrollIntoView({ behavior: "smooth" });
-        }}
-      >
-        <Wallet className="h-4 w-4" />
-        Pay remaining amount
+      <Button asChild variant="brand" size="xl" className="w-full rounded-2xl font-display">
+        <Link to="/pay-mentorship">
+          <Wallet className="h-4 w-4" />
+          Pay remaining amount
+        </Link>
       </Button>
 
       {progress.feePaid > 0 && onPrintReceipt ? (

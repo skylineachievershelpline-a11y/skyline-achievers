@@ -165,6 +165,9 @@ export function SessionsTab() {
           aspectRatio: ratio,
           sortOrder: Number(sortOrder) || 0,
           isPublished: published,
+          sessionKind: kind,
+          dayNumber: kind === "basic" && dayNumber ? Number(dayNumber) : null,
+          sessionNumber: sessionNumber ? Number(sessionNumber) : null,
         },
       } as never);
       toast.success(editing ? "Session updated" : "Session created");

@@ -1198,6 +1198,9 @@ export const adminSaveSession = createServerFn({ method: "POST" })
       aspectRatio?: string;
       sortOrder?: number;
       isPublished: boolean;
+      dayNumber?: number | null;
+      sessionNumber?: number | null;
+      sessionKind?: string;
     }) =>
       z
         .object({
@@ -1217,6 +1220,11 @@ export const adminSaveSession = createServerFn({ method: "POST" })
           aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3"]).optional(),
           sortOrder: z.number().int().min(0).max(999).optional(),
           isPublished: z.boolean(),
+          dayNumber: z.number().int().min(1).max(30).nullish(),
+          sessionNumber: z.number().int().min(1).max(30).nullish(),
+          sessionKind: z
+            .enum(["basic", "interview_guide", "business_plan", "mentorship_webinar", "extra"])
+            .optional(),
         })
         .refine((v) => Boolean(v.id || v.videoPath || v.videoUrl), {
           message: "Upload a video file or paste a video link.",

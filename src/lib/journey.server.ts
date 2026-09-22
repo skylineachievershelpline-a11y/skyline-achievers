@@ -95,6 +95,7 @@ export async function loadLedger(payerId: string) {
       verified: Number(row.verified_amount_pkr ?? 0),
       status: row.status as string,
       method: (row.method ?? null) as string | null,
+      proofPath: (row.proof_path ?? null) as string | null,
       adminNote: (row.admin_note ?? null) as string | null,
       createdAt: row.created_at as string,
       verifiedAt: (row.verified_at ?? null) as string | null,

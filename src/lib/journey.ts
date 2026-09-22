@@ -51,11 +51,11 @@ export function normalizePaymentMethods(value: unknown): PaymentMethod[] {
     .map((entry) => {
       const row = (entry ?? {}) as Record<string, unknown>;
       return {
-        name: String(row.name ?? "").trim(),
-        accountTitle: String(row.accountTitle ?? "").trim(),
-        accountNumber: String(row.accountNumber ?? "").trim(),
-        instructions: String(row.instructions ?? "").trim(),
-        qrUrl: String(row.qrUrl ?? "").trim(),
+        name: String(row["name"] ?? "").trim(),
+        accountTitle: String(row["accountTitle"] ?? "").trim(),
+        accountNumber: String(row["accountNumber"] ?? "").trim(),
+        instructions: String(row["instructions"] ?? "").trim(),
+        qrUrl: String(row["qrUrl"] ?? "").trim(),
       };
     })
     .filter((row) => row.name.length > 0);

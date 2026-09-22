@@ -14,15 +14,19 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { uploadJourneyFile } from "@/components/journey/journey-upload";
+import { compressImageForUpload } from "@/components/admin/upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime } from "@/lib/format";
-import { getReviewUploadUrl } from "@/lib/journey.functions";
-import { getMyPaymentCentre, submitMemberPaymentClaim } from "@/lib/member-payments.functions";
+import {
+  createMemberPaymentProofUploadUrl,
+  getMyPaymentCentre,
+  submitMemberPaymentClaim,
+} from "@/lib/member-payments.functions";
 import { formatPkr } from "@/lib/mentorship";
+import { putWithProgress } from "@/lib/upload-progress";
 
 const PURPOSE_LABEL: Record<string, string> = {
   mentorship: "Personal Mentorship",
@@ -50,7 +54,7 @@ function StatusChip({ status }: { status: string }) {
 export function MentorshipPaymentSection() {
   const queryClient = useQueryClient();
   const load = useServerFn(getMyPaymentCentre);
-  const slot = useServerFn(getReviewUploadUrl);
+  const createProofUrl = useServerFn(createMemberPaymentProofUploadUrl);
   const send = useServerFn(submitMemberPaymentClaim);
 
   const { data, isPending } = useQuery({
@@ -63,6 +67,7 @@ export function MentorshipPaymentSection() {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [proof, setProof] = useState<File | null>(null);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -76,7 +81,28 @@ export function MentorshipPaymentSection() {
         );
       }
       if (!proof) throw new Error("Attach the payment screenshot — it is required.");
-      const proofPath = await uploadJourneyFile(slot as never, proof);
+      const ready = await compressImageForUpload(proof, 900_000);
+      let proofPath = "";
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const upload = await createProofUrl({ data: { fileName: ready.name } });
+          await putWithProgress(upload.signedUrl, ready, (percent) => setUploadPercent(percent));
+          proofPath = upload.path;
+          break;
+        } catch (error) {
+          lastError = error;
+          setUploadPercent(0);
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+          }
+        }
+      }
+      if (!proofPath) {
+        throw lastError instanceof Error
+          ? lastError
+          : new Error("Screenshot upload failed. Check your connection and try again.");
+      }
       await send({
         data: {
           purpose: "mentorship" as const,
@@ -92,9 +118,17 @@ export function MentorshipPaymentSection() {
       setAmount("");
       setNote("");
       setProof(null);
+      setUploadPercent(null);
       void queryClient.invalidateQueries({ queryKey: ["member-payment-centre"] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => {
+      setUploadPercent(null);
+      toast.error(
+        error.message === "Failed to fetch"
+          ? "Screenshot upload failed. Check your internet and try again."
+          : error.message,
+      );
+    },
   });
 
   if (isPending || !data) return null;
@@ -337,7 +371,11 @@ export function MentorshipPaymentSection() {
               ) : (
                 <Upload className="h-4 w-4" />
               )}
-              Submit payment for verification
+              {submit.isPending
+                ? uploadPercent != null && uploadPercent < 100
+                  ? `Uploading screenshot ${uploadPercent}%`
+                  : "Submitting payment…"
+                : "Submit payment for verification"}
             </Button>
           </form>
         </div>

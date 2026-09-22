@@ -11,6 +11,8 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const PROOF_BUCKET = "payment-proofs";
+
 async function activeMemberRow(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await (supabaseAdmin as any)
@@ -99,6 +101,32 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
     };
   });
 
+/** Short-lived, member-scoped upload slot for a payment screenshot. */
+export const createMemberPaymentProofUploadUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { fileName: string }) =>
+    z.object({ fileName: z.string().trim().min(1).max(300) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMemberRow(context.userId);
+    const dot = data.fileName.lastIndexOf(".");
+    const extension =
+      dot > 0
+        ? data.fileName.slice(dot + 1).replace(/[^A-Za-z0-9]/g, "").toLowerCase()
+        : "jpg";
+    if (!["png", "jpg", "jpeg", "webp"].includes(extension)) {
+      throw new Error("Please choose a PNG, JPG or WebP screenshot.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const path = `${member.id}/${crypto.randomUUID()}.${extension}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from(PROOF_BUCKET)
+      .createSignedUploadUrl(path);
+    if (error || !signed) throw new Error(error?.message ?? "Could not prepare the screenshot upload.");
+    return { path: signed.path, signedUrl: signed.signedUrl };
+  });
+
 /** A member's payment claim. Stays pending until the office verifies it. */
 export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -122,6 +150,9 @@ export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const member = await activeMemberRow(context.userId);
+    if (!data.proofPath.startsWith(`${member.id}/`)) {
+      throw new Error("That payment screenshot does not belong to this account.");
+    }
     const { loadLedger, loadPolicy } = await import("./journey.server");
     const [policy, ledger] = await Promise.all([loadPolicy(), loadLedger(member.id)]);
 

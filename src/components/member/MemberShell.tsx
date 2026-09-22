@@ -116,6 +116,12 @@ export function useMemberProgress() {
   return useMemberAccess()?.progress ?? null;
 }
 
+/** Menu entries the admin switched off for this account. */
+function useHiddenMenu(): string[] {
+  const data = useMemberAccess() as { hiddenMenu?: string[] } | null;
+  return data?.hiddenMenu ?? [];
+}
+
 export function MemberShell({
   children,
   title,

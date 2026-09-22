@@ -162,8 +162,11 @@ export function computeMemberProgress(
     }
   }
 
+  // Part payment received: training opens, admin decides which sections show.
+  const partialTraining = !feeComplete && feePaid > 0;
+
   const trainingLocked =
-    !feeComplete ||
+    (!feeComplete && !partialTraining) ||
     input.trainingLocked ||
     (ccExpired && input.ccExtensions >= MAX_CC_EXTENSIONS && (ccRemaining ?? 0) > 0);
 

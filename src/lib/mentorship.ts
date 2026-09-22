@@ -182,6 +182,7 @@ export function computeMemberProgress(
     warningStage,
     warning,
     feeLocked: !feeComplete,
+    partialTraining,
     trainingLocked,
     ccDueAt: input.ccDueAt,
     ccMsLeft,

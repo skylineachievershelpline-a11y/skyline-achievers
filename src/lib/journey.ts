@@ -114,10 +114,38 @@ export function allSessionsApproved(sessions: JourneySession[]): boolean {
   );
 }
 
-/** A session can be watched only once its scheduled time has arrived. */
+/** How long a session stays open after its scheduled start time. */
+export const SESSION_WINDOW_HOURS = 3;
+
+/** When the 3-hour window for a scheduled session closes. */
+export function sessionWindowEndMs(scheduledAt: string): number {
+  return new Date(scheduledAt).getTime() + SESSION_WINDOW_HOURS * 3_600_000;
+}
+
+/**
+ * The window has closed and no review was sent, so the session is locked again.
+ * Once a review exists the session stays open.
+ */
+export function sessionExpired(session: JourneySession, nowMs = Date.now()): boolean {
+  if (!session.scheduledAt) return false;
+  if (session.review !== "none") return false;
+  return nowMs > sessionWindowEndMs(session.scheduledAt);
+}
+
+/** A session can be watched once its time has arrived and the window is live. */
 export function sessionOpen(session: JourneySession, nowMs = Date.now()): boolean {
   if (!session.scheduledAt) return false;
-  return new Date(session.scheduledAt).getTime() <= nowMs;
+  if (new Date(session.scheduledAt).getTime() > nowMs) return false;
+  return !sessionExpired(session, nowMs);
+}
+
+/** Milliseconds left in the live 3-hour window, or null when not running. */
+export function msLeftInWindow(session: JourneySession, nowMs = Date.now()): number | null {
+  if (!session.scheduledAt) return null;
+  const start = new Date(session.scheduledAt).getTime();
+  if (start > nowMs) return null;
+  const left = sessionWindowEndMs(session.scheduledAt) - nowMs;
+  return left > 0 ? left : 0;
 }
 
 export function msUntilSession(session: JourneySession, nowMs = Date.now()): number | null {

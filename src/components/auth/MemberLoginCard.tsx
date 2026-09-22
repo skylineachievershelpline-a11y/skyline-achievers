@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { VoiceGuide } from "@/components/voice/VoiceGuide";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,9 +91,16 @@ export function MemberLoginCard() {
 
   return (
     <form onSubmit={onSubmit} className="rounded-2xl bg-card p-4 sm:p-6">
-      <div className="mb-8 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-        <LockKeyhole className="h-3.5 w-3.5" />
-        Members only
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          <LockKeyhole className="h-3.5 w-3.5" />
+          Members only
+        </div>
+        <VoiceGuide
+          label="How to sign in"
+          ur="Khush aamdeed. Skyline Achievers mein login karne ka tareeqa ye hai. Agar aap sirf training le rahe hain, to Skyline Achievers ke sath registered mobile number aur apne password se login karein. Aur agar aap FBO hain, to apni baara digit ki ID aur password daal kar apna account open karein. Shukriya."
+          en="Welcome. Here is how to sign in to Skyline Achievers. If you are only taking the training, log in with the mobile number registered with Skyline Achievers and your password. If you are an FBO, open your account with your twelve digit ID and your password. Thank you."
+        />
       </div>
 
       <div className="space-y-4">

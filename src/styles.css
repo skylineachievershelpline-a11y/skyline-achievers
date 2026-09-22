@@ -1679,6 +1679,20 @@ body > div > :not(.liquid-atmosphere) {
   animation: ska-shimmer 2.4s linear infinite;
 }
 
+@keyframes seat-tag-swing {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+.seat-tag-swing {
+  transform-origin: top center;
+  animation: seat-tag-swing 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seat-tag-swing { animation: none; }
+}
+
 @utility press {
   transition:
     transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),

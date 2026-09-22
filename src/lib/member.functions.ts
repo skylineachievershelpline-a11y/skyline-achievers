@@ -220,7 +220,7 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     );
     const myRank = member.level ? (rankOf.get(member.level.id) ?? null) : null;
 
-    const visibleCategories = ((categories ?? []) as any[]).filter((category) => {
+    const rankCategories = ((categories ?? []) as any[]).filter((category) => {
       const list = sectionLevels.get(category.id);
       if (!list || list.length === 0) return true;
       if (!member.level) return false;
@@ -229,6 +229,11 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       const ranks = list.map((id) => rankOf.get(id)).filter((r): r is number => r != null);
       return ranks.length > 0 && myRank >= Math.min(...ranks);
     });
+
+    // Part payment members only see the sections granted to them by the admin.
+    const visibleCategories = partialTraining
+      ? ((categories ?? []) as any[]).filter((category) => memberSections.has(category.id))
+      : rankCategories;
 
     const visibleIds = new Set(visibleCategories.map((c) => c.id));
 

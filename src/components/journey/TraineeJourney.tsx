@@ -241,6 +241,13 @@ export function TraineeJourney() {
     <div className="space-y-5">
       <WhatDoINowCard action={action} />
 
+      <VoiceGuide
+        className="justify-center"
+        label="Listen to this step"
+        ur={`Assalam-o-Alaikum. Aap is waqt ${action.where} par hain. Ab aap ko ye karna hai: ${action.now}. Is ke baad: ${action.next}. Session apne muqarrar waqt par khulta hai aur sirf ${SESSION_WINDOW_HOURS} ghante khula rehta hai, is doran video dekh kar apna review zaroor submit karein.`}
+        en={`Welcome. You are at ${action.where}. Right now you need to: ${action.now}. After that: ${action.next}. Every session opens at its scheduled time and stays open for ${SESSION_WINDOW_HOURS} hours, so watch the video and submit your review inside that window.`}
+      />
+
       {/* ---------- hero: the session in front of the trainee right now ---------- */}
       {data.stage === "sessions" ? (
         <section className="raised-panel metal-edge overflow-hidden rounded-[30px] animate-rise-in">
@@ -266,9 +273,17 @@ export function TraineeJourney() {
                   />
                 ) : null}
                 {!sessionOpen(current, now) ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-sm">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 px-6 text-center backdrop-blur-sm">
                     <Lock className="h-6 w-6 text-brand-glow" />
-                    {current.scheduledAt ? (
+                    {sessionExpired(current, now) ? (
+                      <>
+                        <p className="text-sm font-semibold text-destructive">Session closed</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          The {SESSION_WINDOW_HOURS}-hour window ended and no review was submitted.
+                          Ask your upline to schedule this session again.
+                        </p>
+                      </>
+                    ) : current.scheduledAt ? (
                       <>
                         <p className="font-mono text-2xl tabular-nums">
                           {countdownText(new Date(current.scheduledAt).getTime() - now)}
@@ -278,11 +293,15 @@ export function TraineeJourney() {
                         </p>
                       </>
                     ) : (
-                      <p className="px-6 text-center text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Your upline has not set the timing for this session yet.
                       </p>
                     )}
                   </div>
+                ) : msLeftInWindow(current, now) !== null && current.review === "none" ? (
+                  <span className="absolute left-3 top-3 rounded-full bg-background/80 px-3 py-1 font-mono text-[11px] tabular-nums text-brand-glow backdrop-blur-sm">
+                    Closes in {countdownText(msLeftInWindow(current, now) ?? 0)}
+                  </span>
                 ) : null}
               </div>
 
@@ -358,6 +377,7 @@ export function TraineeJourney() {
         <ul className="mt-4 space-y-2">
           {basic.map((session) => {
             const badge = REVIEW_BADGE[session.review];
+            const expired = sessionExpired(session, now);
             const locked = !sessionOpen(session, now);
             return (
               <li key={session.sessionNumber} className="glass-panel flex items-center gap-3 rounded-2xl p-3">
@@ -373,6 +393,11 @@ export function TraineeJourney() {
                   {badge ? (
                     <p className={`mt-0.5 text-[11px] font-semibold ${badge.className}`}>
                       {badge.label}
+                    </p>
+                  ) : null}
+                  {expired ? (
+                    <p className="mt-0.5 text-[11px] font-semibold text-destructive">
+                      ⏳ Closed — no review inside the {SESSION_WINDOW_HOURS}-hour window
                     </p>
                   ) : null}
                 </div>

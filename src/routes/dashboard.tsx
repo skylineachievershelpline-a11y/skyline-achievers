@@ -12,7 +12,7 @@ import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
-import { MentorshipFeeCard } from "@/components/member/MentorshipPanel";
+import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
   MemberShell,

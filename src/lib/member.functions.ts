@@ -137,6 +137,8 @@ export const getDashboard = createServerFn({ method: "GET" })
         : Date.now() <= new Date(member.mentorship.dueAt).getTime());
     const ccTotal = paidInTime ? policy.ccTargetFullPayment : policy.ccTargetPartial;
     const ccReceived = mentorshipVerified + ledger.ccPaid;
+    // Assistant Supervisor and above already completed 2CC: no money card for them.
+    const ccAlreadyDone = (member.level?.rank_order ?? 0) >= 2;
 
     return {
       member,
@@ -148,12 +150,14 @@ export const getDashboard = createServerFn({ method: "GET" })
         full: policy.ccTargetFullPayment,
         partial: policy.ccTargetPartial,
       },
-      ccMoney: {
-        total: ccTotal,
-        received: ccReceived,
-        remaining: Math.max(0, ccTotal - ccReceived),
-        discounted: paidInTime,
-      },
+      ccMoney: ccAlreadyDone
+        ? null
+        : {
+            total: ccTotal,
+            received: ccReceived,
+            remaining: Math.max(0, ccTotal - ccReceived),
+            discounted: paidInTime,
+          },
     };
   });
 

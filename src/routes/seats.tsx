@@ -149,6 +149,8 @@ function SeatsPage() {
         </div>
       ) : null}
 
+      <UplineMasterSchedule />
+
       <div className="grid gap-4 lg:grid-cols-2">
         <form
           className="raised-panel metal-edge rounded-3xl p-6 animate-rise-in"
@@ -283,9 +285,6 @@ function SeatsPage() {
           )}
         </section>
 
-        <div className="lg:col-span-2">
-          <UplineMasterSchedule />
-        </div>
       </div>
     </MemberShell>
   );

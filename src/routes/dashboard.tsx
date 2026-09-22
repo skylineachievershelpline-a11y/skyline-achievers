@@ -11,6 +11,7 @@ import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
+import { DailyTodoList } from "@/components/member/DailyTodoList";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
@@ -169,6 +170,13 @@ function DashboardPage() {
         </div>
       ) : null}
 
+
+      <div className="mx-auto mt-6 w-full max-w-3xl">
+        <DailyTodoList
+          remaining={progress && !progress.feeComplete ? progress.feeRemaining : null}
+          deadline={progress?.dueAt ?? null}
+        />
+      </div>
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 

@@ -117,7 +117,7 @@ function slipFooter(data: PaymentSlipData) {
   return data.kind === "daily-report" ? "REPORT PRINTED BY SKYLINE ACHIEVERS" : "THANK YOU FOR YOUR PAYMENT";
 }
 
-function playPrinterSound() {
+export function playPrinterSound() {
   const AudioContextCtor =
     window.AudioContext ??
     (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

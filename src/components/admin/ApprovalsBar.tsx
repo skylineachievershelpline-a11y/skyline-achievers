@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { adminDecideEnrollment } from "@/lib/admin-courses.functions";
 import { adminDecideLeave, adminGetApprovals } from "@/lib/admin-reports.functions";
+import { adminGetPaymentSubmissions } from "@/lib/journey-admin.functions";
 import { formatDate } from "@/lib/format";
 
 /** Everything waiting for approval, pinned at the top of the admin panel. */
@@ -15,9 +16,18 @@ export function ApprovalsBar() {
   const decideLeave = useServerFn(adminDecideLeave);
   const decideCourse = useServerFn(adminDecideEnrollment);
 
+  const loadPayments = useServerFn(adminGetPaymentSubmissions);
+
   const { data } = useQuery({
     queryKey: ["admin-approvals"],
     queryFn: () => load(),
+    refetchInterval: 60_000,
+    retry: false,
+  });
+  // New payment claims and account requests appear at the top of the panel too.
+  const payments = useQuery({
+    queryKey: ["admin-payment-submissions"],
+    queryFn: () => loadPayments(),
     refetchInterval: 60_000,
     retry: false,
   });
@@ -47,8 +57,12 @@ export function ApprovalsBar() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const total = (data?.leaves.length ?? 0) + (data?.courses.length ?? 0);
-  if (!data || total === 0) return null;
+  const pendingPayments = (payments.data?.rows ?? []).filter(
+    (row: any) => row.status === "pending",
+  ) as any[];
+  const total =
+    (data?.leaves.length ?? 0) + (data?.courses.length ?? 0) + pendingPayments.length;
+  if (total === 0) return null;
 
   return (
     <section className="glass-panel metal-edge mb-6 rounded-3xl p-4">
@@ -65,7 +79,7 @@ export function ApprovalsBar() {
       </div>
 
       <ul className="mt-3 space-y-2">
-        {data.leaves.map((item) => (
+        {(data?.leaves ?? []).map((item) => (
           <li
             key={item.id}
             className="inset-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3"
@@ -90,7 +104,28 @@ export function ApprovalsBar() {
           </li>
         ))}
 
-        {data.courses.map((item) => (
+        {pendingPayments.map((item) => (
+          <li
+            key={item.id}
+            className="inset-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">
+                {item.purpose === "mentorship" ? "Personal Mentorship payment" : "2CC payment"} —{" "}
+                {item.payerName}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {item.payerCode ?? "—"} · {item.method ?? "Method not given"} · PKR{" "}
+                {item.claimed.toLocaleString("en-PK")} · upline {item.uplineName ?? "—"}
+              </p>
+              <p className="mt-1 text-[11px] text-cyan">
+                Open the Journey &amp; Payments tab to enter the verified amount.
+              </p>
+            </div>
+          </li>
+        ))}
+
+        {(data?.courses ?? []).map((item) => (
           <li
             key={item.id}
             className="inset-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3"

@@ -227,3 +227,14 @@
 - [x] Stage guards on interview-guide watched + interview result
 - [x] Upline trainee progress now counts approved session reviews (not old code-unlocks)
 - [ ] Signed-in end-to-end test of the 15 cases (needs owner to sign in once in preview)
+
+## Complete journey polish (this round)
+- [x] 2CC money card hidden for Assistant Supervisor and above
+- [x] Seat page: separate Session schedule and Print schedule poster buttons at the top, printer-style poster
+- [x] Separate search bars: FBO by 12-digit ID, Preferred customers by name/phone
+- [x] Automatic daily to-do list (6 AM to midnight PKT, hide/show, tick off)
+- [x] Upline reminders inside the to-do list (trainee actions, payments, deadlines)
+- [x] 15 missed working days without approved leave blocks the account
+- [x] Reporting during approved leave cancels/shortens that leave
+- [x] Payment claims pinned at the top of the admin panel
+- [x] Voice guide button always visible in the member header (Urdu/English)

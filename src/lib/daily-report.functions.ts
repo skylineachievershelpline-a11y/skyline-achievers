@@ -7,6 +7,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
 /** Reports can only be submitted after 8 PM PKT, until midnight. */
 export const REPORT_OPEN_HOUR = 20;
+/** Fifteen days inactive without approved leave blocks the account. */
+export const MISSED_DAYS_BLOCK = 15;
 
 const pktNow = () => new Date(Date.now() + PKT_OFFSET_MS);
 const pktToday = () => pktNow().toISOString().slice(0, 10);
@@ -127,9 +129,10 @@ export const getDailyReport = createServerFn({ method: "GET" })
       );
 
     // Count missed days walking back from yesterday. An approved leave day is skipped.
+    // Fifteen missed working days in a row without leave blocks the account.
     const joinedDay = new Date(member.created_at as string).toISOString().slice(0, 10);
     const missedDates: string[] = [];
-    for (let back = 1; back <= 6 && missedDates.length < 3; back += 1) {
+    for (let back = 1; back <= 60 && missedDates.length < MISSED_DAYS_BLOCK; back += 1) {
       const date = shiftDay(today, -back);
       if (date < joinedDay) break;
       if (onApprovedLeave(date)) continue;
@@ -138,7 +141,7 @@ export const getDailyReport = createServerFn({ method: "GET" })
     }
 
     let status = member.status as string;
-    if (missedDates.length >= 3 && status === "active") {
+    if (missedDates.length >= MISSED_DAYS_BLOCK && status === "active") {
       await supabaseAdmin
         .from("member_profiles")
         .update({ status: "blocked" })
@@ -214,6 +217,33 @@ export const submitDailyReport = createServerFn({ method: "POST" })
       { onConflict: "member_id,report_date" },
     );
     if (error) throw new Error(error.message);
+
+    // Working again during an approved leave cancels that leave from today on:
+    // the member counts as active from the day they report.
+    const today = pktToday();
+    const { data: running } = await supabaseAdmin
+      .from("leave_applications")
+      .select("id, from_date, to_date")
+      .eq("member_id", member.id)
+      .eq("status", "approved")
+      .lte("from_date", today)
+      .gte("to_date", today);
+    for (const leave of (running ?? []) as { id: string; from_date: string }[]) {
+      if (leave.from_date >= today) {
+        await supabaseAdmin
+          .from("leave_applications")
+          .update({ status: "cancelled", admin_note: "Cancelled automatically: member reported work." })
+          .eq("id", leave.id);
+      } else {
+        await supabaseAdmin
+          .from("leave_applications")
+          .update({
+            to_date: shiftDay(today, -1),
+            admin_note: "Shortened automatically: member reported work.",
+          })
+          .eq("id", leave.id);
+      }
+    }
     return { ok: true as const };
   });
 

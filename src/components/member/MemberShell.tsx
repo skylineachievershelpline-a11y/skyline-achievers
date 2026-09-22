@@ -26,6 +26,7 @@ import { createPortal } from "react-dom";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { BackButton } from "@/components/member/BackButton";
+import { VoiceGuideButton } from "@/components/voice/VoiceGuide";
 import { StoryLogo } from "@/components/story/StoryLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
@@ -130,11 +131,16 @@ export function MemberShell({
   title,
   subtitle,
   executive = false,
+  voiceUr,
+  voiceEn,
 }: {
   children: ReactNode;
   title?: string;
   subtitle?: string;
   executive?: boolean;
+  /** Screen guidance read aloud by the header voice button. */
+  voiceUr?: string;
+  voiceEn?: string;
 }) {
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
@@ -227,6 +233,17 @@ export function MemberShell({
               <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
+
+          <VoiceGuideButton
+            ur={
+              voiceUr ??
+              `Ye ${title ?? BRAND.name} ka screen hai. Menu kholne ke liye upar teen lines wala button dabayein. Har kaam ki tafseel screen par likhi hai, aur madad ke liye Skyline Achievers AI se pooch sakte hain.`
+            }
+            en={
+              voiceEn ??
+              `This is the ${title ?? BRAND.name} screen. Use the menu button at the top to move between sections, and ask Skyline Achievers AI if you need help.`
+            }
+          />
 
           <Link
             to="/notifications"

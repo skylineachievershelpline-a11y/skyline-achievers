@@ -126,7 +126,15 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
     },
   });
 
-  if (isPending || !data) return null;
+  if (isPending || !data) {
+    return standalone ? (
+      <section className="raised-panel metal-edge rounded-3xl p-5">
+        <div className="flex min-h-[12rem] items-center justify-center">
+          <SkylineLoader variant="page" />
+        </div>
+      </section>
+    ) : null;
+  }
 
   const { mentorship, cc, methods, policy, history } = data;
   const pending = history.filter((row) => row.status === "pending");

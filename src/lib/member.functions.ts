@@ -252,8 +252,15 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
         group_id: string | null;
       }[],
       videos: signed
-        .filter((video: any) => !video.category_id || visibleIds.has(video.category_id))
-        .map((video: any) => ({ ...video, locked: !allowed.has(video.id) })),
+        .filter((video: any) =>
+          partialTraining
+            ? video.category_id && visibleIds.has(video.category_id)
+            : !video.category_id || visibleIds.has(video.category_id),
+        )
+        .map((video: any) => ({
+          ...video,
+          locked: partialTraining ? false : !allowed.has(video.id),
+        })),
     };
   });
 

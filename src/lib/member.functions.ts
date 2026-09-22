@@ -176,6 +176,20 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
       (supabaseAdmin as any).from("training_category_access").select("category_id, level_id"),
     ]);
 
+    // Part payment: training opens, but only the sections the admin picked for
+    // this member personally.
+    const partialTraining =
+      !member.mentorship.completedAt &&
+      member.mentorship.feePaid > 0 &&
+      member.mentorship.feePaid < member.mentorship.feeTotal;
+    const { data: memberAccess } = await (supabaseAdmin as any)
+      .from("member_training_access")
+      .select("category_id")
+      .eq("member_id", context.userId);
+    const memberSections = new Set(
+      ((memberAccess ?? []) as { category_id: string }[]).map((row) => row.category_id),
+    );
+
     const allowed = new Set((access ?? []).map((row) => row.content_id));
     const signed = await signThumbnails(lectures ?? []);
 

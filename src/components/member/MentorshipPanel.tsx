@@ -94,8 +94,8 @@ export function MentorshipFeeCard({ progress, onPrintReceipt }: { progress: Memb
 
       <p className="flex items-start gap-2 text-xs text-muted-foreground">
         <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        Training, reels and every other section stay locked until your Personal Mentorship amount is
-        complete. Pay the remaining amount and your admin will update it right away.
+        Your dashboard stays open. Complete the remaining amount before the deadline to keep the
+        lower 2CC target — your verified amount updates as soon as the admin checks your payment.
       </p>
     </section>
   );

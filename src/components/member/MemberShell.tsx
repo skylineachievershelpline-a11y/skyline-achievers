@@ -150,11 +150,8 @@ export function MemberShell({
     if (to !== "/dashboard" && hiddenMenu.some((key) => to === key || to.startsWith(`${key}/`))) {
       return "This section is not available for your account.";
     }
-    const partialOpen =
-      progress?.partialTraining === true && (to === "/training" || to === "/sessions");
-    if (progress?.feeLocked && !partialOpen && to !== "/dashboard" && to !== "/profile") {
-      return "Locked. Complete your Personal Mentorship amount to open this.";
-    }
+    // Personal Mentorship payment is never a global lock: the dashboard and all
+    // other sections stay usable. Only an explicit admin training lock applies.
     if (progress?.trainingLocked && (to === "/training" || to === "/sessions")) {
       return "Training is locked right now. Your admin can unlock it.";
     }

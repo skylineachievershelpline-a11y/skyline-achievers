@@ -142,7 +142,32 @@ function SessionPage() {
                   </p>
                 ) : null}
               </section>
+
+              <ReviewShareNotice
+                sessionTitle={session.title}
+                sessionCode={session.code}
+                className="mt-5"
+              />
+
+              {journeySession && journeySession.review === "pending" ? (
+                <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-300">
+                  Review submitted — waiting for your upline
+                </div>
+              ) : journeySession && journeySession.review === "approved" ? (
+                <div className="mt-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-center text-sm font-semibold text-emerald-300">
+                  Review approved
+                </div>
+              ) : journeySession ? (
+                /* Code-joined session: no schedule window, submit any time. */
+                <SessionReviewForm
+                  sessionNumber={journeySession.sessionNumber}
+                  onSent={() => {
+                    void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
+                  }}
+                />
+              ) : null}
             </SessionGate>
+
           </div>
         )}
       </div>

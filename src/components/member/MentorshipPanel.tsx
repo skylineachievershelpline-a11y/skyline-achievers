@@ -1,4 +1,5 @@
 import { AlertTriangle, Clock, Lock, ReceiptText, Target, Wallet } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";

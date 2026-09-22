@@ -250,7 +250,13 @@ export const markInterviewGuideWatched = createServerFn({ method: "POST" })
     const trainee = await activeTrainee(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureJourney } = await import("./journey.server");
-    await ensureJourney(trainee.id);
+    const journey = await ensureJourney(trainee.id);
+    // Stage guard: the guide can only be marked watched from the guide stage
+    // (or the reassess loop). Everything else keeps its current stage.
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage !== "interview_guide" && stage !== "reassess") {
+      throw new Error("Complete all 7 sessions first — your upline must approve every review.");
+    }
     const { error } = await (supabaseAdmin as any)
       .from("trainee_journey")
       .update({
@@ -497,7 +503,12 @@ export const recordInterviewResult = createServerFn({ method: "POST" })
     const trainee = await ownTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureJourney } = await import("./journey.server");
-    await ensureJourney(trainee.id);
+    const journey = await ensureJourney(trainee.id);
+    // Stage guard: an interview result is only valid once the trainee is ready.
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage !== "ready_for_interview" && stage !== "reassess") {
+      throw new Error("This trainee is not ready for the final interview yet.");
+    }
     const { error } = await (supabaseAdmin as any)
       .from("trainee_journey")
       .update({

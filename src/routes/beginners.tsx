@@ -630,7 +630,6 @@ function BeginnersPage() {
                 ) : null}
               </div>
             </div>
-            <ProgressRing done={unlockedCount} total={sessions.length} />
           </div>
 
         </section>
@@ -734,9 +733,13 @@ function BeginnersPage() {
 
             {/* ---------- sessions ---------- */}
             <section className="mt-6">
-              <h2 className="mb-3 font-display text-lg font-semibold tracking-tight">
+              <h2 className="mb-1 font-display text-lg font-semibold tracking-tight">
                 All sessions
               </h2>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Your official Day / Session order, timings and reviews are on the Home tab — your
+                training journey. Session codes here only open a single session your trainer shares.
+              </p>
               {sessions.length === 0 ? (
                 <div className="glass-panel rounded-3xl px-5 py-10 text-center">
                   <p className="font-display text-sm font-semibold">No sessions published yet</p>

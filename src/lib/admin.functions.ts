@@ -300,22 +300,16 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       id: string;
-      feeTotal?: number;
-      paid?: number;
-      mentorshipDueAt?: string | null;
-      ccDueAt?: string | null;
       grantDay?: boolean;
       grantCcDay?: boolean;
       trainingLocked?: boolean;
       resetCcTimer?: boolean;
+      printSlip?: boolean;
     }) =>
       z
         .object({
           id: uuid,
-          feeTotal: z.number().min(0).max(10_000_000).optional(),
-          paid: z.number().min(0).max(10_000_000).optional(),
-          mentorshipDueAt: z.string().datetime().nullable().optional(),
-          ccDueAt: z.string().datetime().nullable().optional(),
+          printSlip: z.boolean().optional(),
           grantDay: z.boolean().optional(),
           grantCcDay: z.boolean().optional(),
           trainingLocked: z.boolean().optional(),
@@ -340,12 +334,12 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
 
     const now = Date.now();
     const patch: Record<string, string | number | boolean | null> = {};
-    const feeTotal = data.feeTotal ?? Number(row.mentorship_fee_pkr ?? 0);
-    const paid = data.paid ?? Number(row.mentorship_paid_pkr ?? 0);
-    if (data.feeTotal !== undefined) patch["mentorship_fee_pkr"] = data.feeTotal;
-    if (data.paid !== undefined) patch["mentorship_paid_pkr"] = data.paid;
-    if (data.mentorshipDueAt !== undefined) patch["mentorship_due_at"] = data.mentorshipDueAt;
-    if (data.ccDueAt !== undefined) patch["cc_due_at"] = data.ccDueAt;
+    // Single source of truth: amounts and the payment deadline come only from
+    // verified payment claims (Journey & Payments). Admin keeps extra days,
+    // the CC timer and the training lock here.
+    const feeTotal = Number(row.mentorship_fee_pkr ?? 0);
+    const paid = Number(row.mentorship_paid_pkr ?? 0);
+
 
     if (data.grantDay) {
       const used = Number(row.mentorship_extensions ?? 0);
@@ -378,9 +372,6 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
       patch["training_locked"] = false;
       patch["cc_due_at"] = new Date(now + CC_DAYS * 24 * 60 * 60 * 1000).toISOString();
       patch["cc_extensions"] = 0;
-    }
-    if (paid < feeTotal && row.mentorship_completed_at && data.paid !== undefined) {
-      patch["mentorship_completed_at"] = null;
     }
 
     const { adminUpdateMember } = await import("./admin.server");

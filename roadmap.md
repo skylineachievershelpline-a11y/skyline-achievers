@@ -220,3 +220,10 @@
 - [x] Add Personal Mentorship receipt details: name, rank, paid amount, total, remaining, date and time
 - [x] Add the same slow branded slip printer with machine sound to member and admin daily reports
 - [x] Add save/download and share actions for the receipt image
+
+## Journey/legacy conflict cleanup (Sep 22)
+- [x] Removed global dashboard lock from Personal Mentorship payment (MemberShell + dashboard)
+- [x] Single source of truth for amounts/deadline: verified payment claims only (adminSetMentorship no longer edits amounts)
+- [x] Stage guards on interview-guide watched + interview result
+- [x] Upline trainee progress now counts approved session reviews (not old code-unlocks)
+- [ ] Signed-in end-to-end test of the 15 cases (needs owner to sign in once in preview)

@@ -101,6 +101,11 @@ function DashboardPage() {
     >
       <AnnouncementBanner />
 
+      <div className="mx-auto mt-2 w-full max-w-3xl">
+        <UplineRequestsPanel />
+      </div>
+
+
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
         <div className="flex items-center gap-5 sm:gap-7">
           <div className="shrink-0">

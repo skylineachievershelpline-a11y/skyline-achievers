@@ -90,6 +90,9 @@ export function SessionsTab() {
     setRatio("16:9");
     setSortOrder("0");
     setPublished(true);
+    setKind("basic");
+    setDayNumber("");
+    setSessionNumber("");
   }
 
   function startEdit(row: SessionRow) {
@@ -103,6 +106,9 @@ export function SessionsTab() {
     setRatio(row.aspect_ratio ?? "16:9");
     setSortOrder(String(row.sort_order ?? 0));
     setPublished(row.is_published);
+    setKind(row.session_kind ?? "basic");
+    setDayNumber(row.day_number ? String(row.day_number) : "");
+    setSessionNumber(row.session_number ? String(row.session_number) : "");
     setOpen(true);
   }
 

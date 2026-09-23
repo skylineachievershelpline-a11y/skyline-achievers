@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 
 /**
  * Runs every 15 minutes. Sends the automatic phone alerts:
@@ -11,8 +10,9 @@ export const Route = createFileRoute("/api/public/cron/notify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const denied = await authenticateCronRequest(request);
-        if (denied) return denied;
+        if (!(await validCaller(request))) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         const result = await runNotifications();
         return Response.json(result);
       },
@@ -199,4 +199,20 @@ async function runNotifications() {
     .lt("created_at", new Date(now - 3 * 86_400_000).toISOString());
 
   return { ok: true, stats };
+}
+
+/** The timer sends a private token stored in the database. */
+async function validCaller(request: Request) {
+  const token = request.headers.get("x-skyline-cron") ?? "";
+  if (token.length < 32) return false;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("platform_settings")
+    .select("value")
+    .eq("key", "cron_notify_token")
+    .maybeSingle();
+  const expected = typeof data?.value === "string" ? data.value : "";
+  if (!expected || expected.length !== token.length) return false;
+  const { timingSafeEqual } = await import("node:crypto");
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(token));
 }

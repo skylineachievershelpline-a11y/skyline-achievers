@@ -34,7 +34,7 @@ async function runNotifications() {
   const minute = pkt.getUTCMinutes();
   const today = pkt.toISOString().slice(0, 10);
   const firstSlot = minute < 15;
-  const stats: Record<string, number> = {};
+  const stats: { sessionStart?: number; reviewReminder?: number; quotes?: number; report?: number; reels?: number } = {};
 
   /** Records a key once; false when this alert already went out. */
   async function once(key: string) {

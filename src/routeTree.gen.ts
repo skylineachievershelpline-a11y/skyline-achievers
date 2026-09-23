@@ -25,6 +25,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as SeatsRouteImport } from './routes/seats'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as TodoRouteImport } from './routes/todo'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -120,6 +121,11 @@ const TeamRoute = TeamRouteImport.update({
   path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TodoRoute = TodoRouteImport.update({
+  id: '/todo',
+  path: '/todo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
   path: '/training',
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
+  '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
+  '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/seats': typeof SeatsRoute
   '/sessions': typeof SessionsRoute
   '/team': typeof TeamRoute
+  '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/seats'
     | '/sessions'
     | '/team'
+    | '/todo'
     | '/training'
     | '/admin/login'
     | '/ai/$threadId'
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/seats'
     | '/sessions'
     | '/team'
+    | '/todo'
     | '/training'
     | '/admin/login'
     | '/ai/$threadId'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/seats'
     | '/sessions'
     | '/team'
+    | '/todo'
     | '/training'
     | '/admin/login'
     | '/ai/$threadId'
@@ -404,6 +416,7 @@ export interface RootRouteChildren {
   SeatsRoute: typeof SeatsRoute
   SessionsRoute: typeof SessionsRoute
   TeamRoute: typeof TeamRoute
+  TodoRoute: typeof TodoRoute
   TrainingRoute: typeof TrainingRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AiThreadIdRoute: typeof AiThreadIdRoute
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/todo': {
+      id: '/todo'
+      path: '/todo'
+      fullPath: '/todo'
+      preLoaderRoute: typeof TodoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/training': {
       id: '/training'
       path: '/training'
@@ -652,6 +672,7 @@ const rootRouteChildren: RootRouteChildren = {
   SeatsRoute: SeatsRoute,
   SessionsRoute: SessionsRoute,
   TeamRoute: TeamRoute,
+  TodoRoute: TodoRoute,
   TrainingRoute: TrainingRoute,
   AdminLoginRoute: AdminLoginRoute,
   AiThreadIdRoute: AiThreadIdRoute,

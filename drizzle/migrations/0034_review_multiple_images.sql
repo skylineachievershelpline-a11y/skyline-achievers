@@ -1,0 +1,1 @@
+ALTER TABLE public.trainee_session_reviews ADD COLUMN IF NOT EXISTS image_paths text[] NOT NULL DEFAULT '{}';

@@ -16,7 +16,8 @@ import { getBeginnerSessionPreview, openBeginnerSession } from "@/lib/sessions.f
 
 
 export const Route = createFileRoute("/session/$code")({
-  loader: ({ params }) => getBeginnerSessionPreview({ data: { code: params.code } }),
+  loader: ({ params }) =>
+    getBeginnerSessionPreview({ data: { code: params.code } }).catch(() => ({ session: null })),
   head: ({ loaderData }) => {
     const session = loaderData?.session;
     const title = session

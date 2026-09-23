@@ -53,7 +53,11 @@ async function buildJourney(traineeId: string) {
     .select("id, upline_id, created_at")
     .eq("id", traineeId)
     .maybeSingle();
-  if (traineeRow) await ensureSchedule(traineeRow);
+  if (traineeRow) {
+    await ensureSchedule(traineeRow);
+    const { rollMissedSessions } = await import("./journey.server");
+    await rollMissedSessions(traineeId);
+  }
 
   const [journeyRow, sessionSet, policy, ledger] = await Promise.all([
     ensureJourney(traineeId),

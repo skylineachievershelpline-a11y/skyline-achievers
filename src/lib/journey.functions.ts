@@ -245,30 +245,25 @@ export const submitSessionReview = createServerFn({ method: "POST" })
     );
     if (!session) throw new Error("That session is not available yet.");
 
-    // The scheduled time must have arrived before a review can be sent.
-    const { data: slot } = await admin
-      .from("trainee_session_schedule")
-      .select("scheduled_at")
-      .eq("trainee_id", trainee.id)
-      .eq("session_number", data.sessionNumber)
-      .maybeSingle();
-    if (!slot?.scheduled_at) throw new Error("Your upline has not scheduled this session yet.");
-    if (new Date(slot.scheduled_at).getTime() > Date.now()) {
-      throw new Error("This session opens at its scheduled time.");
+    // Missed sessions roll forward to the next day, so nothing is ever closed.
+    const { rollMissedSessions } = await import("./journey.server");
+    await rollMissedSessions(trainee.id);
+
+    // Scheduled sessions: the start time must have arrived. Sessions opened
+    // from a session code link can be reviewed at any time.
+    if (!data.anyTime) {
+      const { data: slot } = await admin
+        .from("trainee_session_schedule")
+        .select("scheduled_at")
+        .eq("trainee_id", trainee.id)
+        .eq("session_number", data.sessionNumber)
+        .maybeSingle();
+      if (!slot?.scheduled_at) throw new Error("Your upline has not scheduled this session yet.");
+      if (new Date(slot.scheduled_at).getTime() > Date.now()) {
+        throw new Error("This session opens at its scheduled time.");
+      }
     }
-    const { sessionWindowEndMs, SESSION_WINDOW_HOURS } = await import("./journey");
-    const { data: existingReview } = await admin
-      .from("trainee_session_reviews")
-      .select("id")
-      .eq("trainee_id", trainee.id)
-      .eq("session_number", data.sessionNumber)
-      .limit(1)
-      .maybeSingle();
-    if (!existingReview && Date.now() > sessionWindowEndMs(slot.scheduled_at)) {
-      throw new Error(
-        `This session closed ${SESSION_WINDOW_HOURS} hours after its start time because no review was submitted. Ask your upline to schedule it again.`,
-      );
-    }
+
 
     const { error } = await admin.from("trainee_session_reviews").insert({
       trainee_id: trainee.id,

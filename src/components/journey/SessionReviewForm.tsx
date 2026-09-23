@@ -14,9 +14,12 @@ import { uploadJourneyFile } from "./journey-upload";
 export function SessionReviewForm({
   sessionNumber,
   onSent,
+  anyTime = false,
 }: {
   sessionNumber: number;
   onSent: () => void;
+  /** Session opened from a code link: no schedule timing applies. */
+  anyTime?: boolean;
 }) {
   const slot = useServerFn(getReviewUploadUrl);
   const send = useServerFn(submitSessionReview);
@@ -28,7 +31,9 @@ export function SessionReviewForm({
     mutationFn: async () => {
       const imagePath = image ? await uploadJourneyFile(slot as never, image) : null;
       const voicePath = voice ? await uploadJourneyFile(slot as never, voice) : null;
-      await send({ data: { sessionNumber, body: body.trim(), imagePath, voicePath } } as never);
+      await send({
+        data: { sessionNumber, body: body.trim(), imagePath, voicePath, anyTime },
+      } as never);
     },
     onSuccess: () => {
       toast.success("Review sent to your upline");

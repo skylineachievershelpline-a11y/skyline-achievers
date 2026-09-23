@@ -278,6 +278,17 @@ export const submitSessionReview = createServerFn({ method: "POST" })
     });
 
     if (error) throw new Error(error.message);
+
+    // Background alert for the upline, even when their app is closed.
+    if (trainee.upline_id) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([trainee.upline_id], {
+        title: "New review to check",
+        body: `${trainee.full_name} submitted the Session ${data.sessionNumber} review.`,
+        path: "/dashboard",
+        tag: `review-${trainee.id}`,
+      });
+    }
     return { ok: true as const };
   });
 
@@ -367,6 +378,15 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
       status: "pending",
     });
     if (error) throw new Error(error.message);
+    if (trainee.upline_id) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([trainee.upline_id], {
+        title: "Payment proof received",
+        body: `${trainee.full_name} uploaded a payment proof for verification.`,
+        path: "/dashboard",
+        tag: `payment-${trainee.id}`,
+      });
+    }
     return { ok: true as const };
   });
 

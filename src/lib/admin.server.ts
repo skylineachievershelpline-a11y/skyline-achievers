@@ -450,5 +450,16 @@ export async function adminNotify(input: {
     media_path: input.mediaPath ?? null,
   });
   if (error) throw new Error(error.message);
+  // Push the announcement to every member device (or just the chosen rank).
+  const { pushToEveryone } = await import("./push.server");
+  await pushToEveryone(
+    {
+      title: input.title,
+      body: input.body ?? "New announcement from Skyline Achievers",
+      path: input.linkPath ?? "/notifications",
+      tag: "announcement",
+    },
+    input.audienceLevelId,
+  );
   return { ok: true as const };
 }

@@ -90,6 +90,8 @@ export type JourneySession = {
   openedAt?: string | null;
   /** When the review was submitted (used for the on-time / late record). */
   reviewSubmittedAt?: string | null;
+  /** "website" or "whatsapp" (recorded by the upline). */
+  reviewSource?: string | null;
 };
 
 

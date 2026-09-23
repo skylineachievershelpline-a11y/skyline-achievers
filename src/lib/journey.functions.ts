@@ -74,7 +74,7 @@ async function buildJourney(traineeId: string) {
     admin
       .from("trainee_session_reviews")
       .select(
-        "id, session_number, body, image_path, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at",
+        "id, session_number, body, image_path, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at, source",
       )
       .eq("trainee_id", traineeId)
       .order("created_at", { ascending: false }),
@@ -119,6 +119,7 @@ async function buildJourney(traineeId: string) {
       uplineVoiceUrl: await signProof(review?.upline_voice_path),
       openedAt: openedBy.get(row.id as string) ?? null,
       reviewSubmittedAt: (review?.submitted_at ?? review?.created_at ?? null) as string | null,
+      reviewSource: (review?.source ?? null) as string | null,
     });
   }
 
@@ -406,6 +407,83 @@ export const getMentorshipSeats = createServerFn({ method: "GET" }).handler(asyn
 });
 
 /** ---------- Upline side ---------- */
+
+/**
+ * The trainee sent the session review on WhatsApp instead of the website.
+ * The upline records it here and approves it in one step; the record shows
+ * "Review shared on WhatsApp".
+ */
+export const approveWhatsappReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string; sessionNumber: number; note?: string | null }) =>
+    z
+      .object({
+        traineeId: uuid,
+        sessionNumber: z.number().int().min(1).max(7),
+        note: z.string().trim().max(2000).nullish(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    await ownTrainee(member.id, data.traineeId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { loadJourneySessions } = await import("./journey.server");
+    const admin = supabaseAdmin as any;
+    const now = new Date().toISOString();
+
+    const { basic } = await loadJourneySessions();
+    const session = basic.find(
+      (row: any, index: number) => Number(row.session_number ?? index + 1) === data.sessionNumber,
+    ) as any;
+
+    const { data: existing } = await admin
+      .from("trainee_session_reviews")
+      .select("id, status")
+      .eq("trainee_id", data.traineeId)
+      .eq("session_number", data.sessionNumber)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing?.status === "approved") throw new Error("This session is already approved.");
+
+    const decision = {
+      status: "approved",
+      upline_note: data.note ?? "Review shared on WhatsApp",
+      reviewed_at: now,
+      reviewed_by: member.id,
+      source: "whatsapp",
+    };
+    const { error } = existing
+      ? await admin.from("trainee_session_reviews").update(decision).eq("id", existing.id)
+      : await admin.from("trainee_session_reviews").insert({
+          ...decision,
+          trainee_id: data.traineeId,
+          session_id: session?.id ?? null,
+          session_number: data.sessionNumber,
+          body: "Review shared on WhatsApp",
+          submitted_at: now,
+        });
+    if (error) throw new Error(error.message);
+
+    const journey = await buildJourney(data.traineeId);
+    const { allSessionsApproved } = await import("./journey");
+    if (allSessionsApproved(journey.sessions) && journey.stage === "sessions") {
+      await admin
+        .from("trainee_journey")
+        .update({ stage: "interview_guide" })
+        .eq("trainee_id", data.traineeId);
+    }
+
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([data.traineeId], {
+      title: "Review approved",
+      body: `Your WhatsApp review for Session ${String(data.sessionNumber).padStart(2, "0")} is approved. Your next session is ready.`,
+      path: "/beginners",
+      tag: `review-decision-${data.traineeId}`,
+    });
+    return { ok: true as const };
+  });
 
 async function ownTrainee(uplineId: string, traineeId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

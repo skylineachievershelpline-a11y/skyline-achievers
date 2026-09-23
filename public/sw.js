@@ -1,6 +1,7 @@
-// Minimal service worker: makes the site installable and serves a cached
-// shell when the member is offline. Training media is never cached.
-const CACHE = "skyline-shell-v1";
+// Service worker: makes the site installable, serves a cached shell when the
+// member is offline, and shows push notifications while the app is closed.
+// Training media is never cached.
+const CACHE = "skyline-shell-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/app-icon-192.png", "/app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -44,5 +45,48 @@ self.addEventListener("fetch", (event) => {
           headers: { "content-type": "text/plain" },
         });
       }),
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Push notifications: arrive even when the app is fully closed.
+// ---------------------------------------------------------------------------
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (error) {
+    payload = { title: "Skyline Achievers", body: event.data ? event.data.text() : "" };
+  }
+
+  const title = payload.title || "Skyline Achievers";
+  const options = {
+    body: payload.body || "",
+    icon: "/app-icon-192.png",
+    badge: "/app-icon-192.png",
+    tag: payload.tag || "skyline",
+    renotify: true,
+    vibrate: [180, 90, 180],
+    data: { path: payload.path || "/notifications" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const path = (event.notification.data && event.notification.data.path) || "/notifications";
+  const target = new URL(path, self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.startsWith(self.location.origin) && "focus" in client) {
+          void client.navigate(target);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    }),
   );
 });

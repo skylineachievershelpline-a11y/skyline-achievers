@@ -278,10 +278,9 @@ export function TraineeJourney() {
                     <Lock className="h-6 w-6 text-brand-glow" />
                     {sessionExpired(current, now) ? (
                       <>
-                        <p className="text-sm font-semibold text-destructive">Session closed</p>
+                        <p className="text-sm font-semibold text-brand-glow">Moving to the next day</p>
                         <p className="text-[11px] text-muted-foreground">
-                          The {SESSION_WINDOW_HOURS}-hour window ended and no review was submitted.
-                          Ask your upline to schedule this session again.
+                          This session moves to the same time tomorrow. Refresh to see the new time.
                         </p>
                       </>
                     ) : current.scheduledAt ? (

@@ -166,6 +166,7 @@ function SessionPage() {
                 /* Code-joined session: no schedule window, submit any time. */
                 <SessionReviewForm
                   sessionNumber={journeySession.sessionNumber}
+                  anyTime
                   onSent={() => {
                     void queryClient.invalidateQueries({ queryKey: ["trainee-journey"] });
                   }}

@@ -16,6 +16,7 @@ import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { PushAlertsCard } from "@/components/member/PushAlertsCard";
+import { PushWelcomeDialog } from "@/components/member/PushWelcomeDialog";
 import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
@@ -189,6 +190,7 @@ function DashboardPage() {
       </div>
 
       <div className="mx-auto mt-4 w-full max-w-3xl">
+        <PushWelcomeDialog />
         <PushAlertsCard />
       </div>
 

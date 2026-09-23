@@ -55,6 +55,7 @@ import { fastSignOut } from "@/lib/sign-out";
 import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
 import { PushAlertsCard } from "@/components/member/PushAlertsCard";
+import { PushWelcomeDialog } from "@/components/member/PushWelcomeDialog";
 import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { type JourneySession } from "@/lib/journey";
@@ -664,6 +665,7 @@ function BeginnersPage() {
         </div>
 
         <div className="mt-4">
+          <PushWelcomeDialog />
           <PushAlertsCard />
         </div>
 

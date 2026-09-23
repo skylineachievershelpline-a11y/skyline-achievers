@@ -90,6 +90,50 @@ export async function ensureSchedule(trainee: {
   return true;
 }
 
+/**
+ * No fixed dates: when the current session's 3-hour window passes without a
+ * review, that session and every later session without a review move forward
+ * by whole days (same clock times) until the next live slot. Returns true when
+ * anything moved.
+ */
+export async function rollMissedSessions(traineeId: string, nowMs = Date.now()) {
+  const { SESSION_WINDOW_HOURS } = await import("./journey");
+  const [{ data: schedule }, { data: reviews }] = await Promise.all([
+    admin
+      .from("trainee_session_schedule")
+      .select("id, session_number, scheduled_at")
+      .eq("trainee_id", traineeId)
+      .order("session_number", { ascending: true }),
+    admin.from("trainee_session_reviews").select("session_number").eq("trainee_id", traineeId),
+  ]);
+  const reviewed = new Set(((reviews ?? []) as any[]).map((row) => Number(row.session_number)));
+  const rows = ((schedule ?? []) as any[]).filter((row) => row.scheduled_at);
+  const current = rows.find((row) => !reviewed.has(Number(row.session_number)));
+  if (!current) return false;
+
+  const windowMs = SESSION_WINDOW_HOURS * 3_600_000;
+  const start = new Date(current.scheduled_at).getTime();
+  if (nowMs <= start + windowMs) return false;
+
+  const day = 86_400_000;
+  const shiftDays = Math.ceil((nowMs - (start + windowMs)) / day);
+  const shift = shiftDays * day;
+  const later = rows.filter(
+    (row) =>
+      Number(row.session_number) >= Number(current.session_number) &&
+      !reviewed.has(Number(row.session_number)),
+  );
+  await Promise.all(
+    later.map((row) =>
+      admin
+        .from("trainee_session_schedule")
+        .update({ scheduled_at: new Date(new Date(row.scheduled_at).getTime() + shift).toISOString() })
+        .eq("id", row.id),
+    ),
+  );
+  return true;
+}
+
 export async function ensureJourney(traineeId: string) {
   const { data } = await admin
     .from("trainee_journey")

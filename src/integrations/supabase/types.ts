@@ -1666,6 +1666,21 @@ export type Database = {
         }
         Relationships: []
       }
+      push_log: {
+        Row: {
+          created_at: string
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -2235,6 +2250,7 @@ export type Database = {
           reviewed_by: string | null
           session_id: string | null
           session_number: number
+          source: string
           status: string
           submitted_at: string | null
           trainee_id: string
@@ -2253,6 +2269,7 @@ export type Database = {
           reviewed_by?: string | null
           session_id?: string | null
           session_number: number
+          source?: string
           status?: string
           submitted_at?: string | null
           trainee_id: string
@@ -2271,6 +2288,7 @@ export type Database = {
           reviewed_by?: string | null
           session_id?: string | null
           session_number?: number
+          source?: string
           status?: string
           submitted_at?: string | null
           trainee_id?: string

@@ -114,7 +114,14 @@ function SharedReportPage() {
                         : "not sent"
                     }
                   />
-                  <Row label="Decision" value={session.review} />
+                  <Row
+                    label="Decision"
+                    value={
+                      session.reviewSource === "whatsapp"
+                        ? `${session.review} — Review shared on WhatsApp`
+                        : session.review
+                    }
+                  />
                   {session.reviewedAt ? (
                     <Row label="Decided on" value={formatDateTime(session.reviewedAt)} />
                   ) : null}

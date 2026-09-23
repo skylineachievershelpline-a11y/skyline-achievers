@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Eye, EyeOff, Lock } from "lucide-react";
+import { Bot, Eye, EyeOff, ListChecks, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -13,7 +13,7 @@ import { AvatarPicker } from "@/components/member/AvatarPicker";
 import { LectureCard, Rail } from "@/components/member/cards";
 import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
-import { DailyTodoList } from "@/components/member/DailyTodoList";
+
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
@@ -179,10 +179,12 @@ function DashboardPage() {
 
 
       <div className="mx-auto mt-6 w-full max-w-3xl">
-        <DailyTodoList
-          remaining={progress && !progress.feeComplete ? progress.feeRemaining : null}
-          deadline={progress?.dueAt ?? null}
-        />
+        <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
+          <Link to="/todo">
+            <span className="flex items-center gap-2"><ListChecks /> To-do List</span>
+            <span className="text-xs opacity-80">View today's tasks</span>
+          </Link>
+        </Button>
       </div>
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>

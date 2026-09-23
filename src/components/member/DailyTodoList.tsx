@@ -64,15 +64,15 @@ export function DailyTodoList({
       list.push({
         id: "report",
         text: report.data.windowOpen
-          ? "Aaj ka daily working report submit karein (12 baje tak)."
-          : `Aaj ka daily report ${report.data.openHourLabel} ke baad submit karna hai.`,
+          ? "Submit today's daily working report (before 12 midnight)."
+          : `Today's daily report opens after ${report.data.openHourLabel}.`,
         tone: report.data.windowOpen ? "urgent" : "info",
       });
     }
     if (remaining && remaining > 0) {
       list.push({
         id: "payment",
-        text: `Personal Mentorship ki baqi raqam ${formatPkr(remaining)} complete karein${
+        text: `Complete the remaining Personal Mentorship amount of ${formatPkr(remaining)}${
           deadline ? ` — last date ${new Date(deadline).toLocaleDateString("en-GB")}` : ""
         }.`,
         tone: "urgent",
@@ -81,7 +81,7 @@ export function DailyTodoList({
     for (const row of (queue.data?.items ?? []) as any[]) {
       list.push({
         id: `trainee-${row.traineeId}`,
-        text: `${row.name} (${row.code}): ${row.action?.now ?? "follow up karein"}`,
+        text: `${row.name} (${row.code}): ${row.action?.now ?? "Follow up with this trainee"}`,
         tone: row.pendingReviewSession ? "urgent" : "info",
       });
     }
@@ -112,9 +112,9 @@ export function DailyTodoList({
           <ListChecks className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm font-semibold">Aaj ka kaam</p>
+          <p className="font-display text-sm font-semibold">Today's to-do list</p>
           <p className="text-[11px] text-muted-foreground">
-            {openCount === 0 ? "Sab kaam mukammal — shabash!" : `${openCount} kaam baqi hain`}
+            {openCount === 0 ? "All done — great work!" : `${openCount} task${openCount === 1 ? "" : "s"} remaining`}
           </p>
         </div>
         <Button

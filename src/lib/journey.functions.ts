@@ -113,6 +113,11 @@ async function buildJourney(traineeId: string) {
       reviewId: (review?.id ?? null) as string | null,
       reviewBody: (review?.body ?? null) as string | null,
       reviewImageUrl: await signProof(review?.image_path),
+      reviewImageUrls: (
+        await Promise.all(
+          ((review?.image_paths?.length ? review.image_paths : review?.image_path ? [review.image_path] : []) as string[]).map((path) => signProof(path)),
+        )
+      ).filter((url): url is string => Boolean(url)),
       reviewVoiceUrl: await signProof(review?.voice_path),
       reviewedAt: (review?.reviewed_at ?? null) as string | null,
       uplineNote: (review?.upline_note ?? null) as string | null,
@@ -921,6 +926,7 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
           submittedAt: pending.reviewSubmittedAt ?? null,
           body: pending.reviewBody,
           imageUrl: pending.reviewImageUrl,
+          imageUrls: pending.reviewImageUrls ?? [],
           voiceUrl: pending.reviewVoiceUrl,
         });
       }

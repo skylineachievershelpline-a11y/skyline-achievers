@@ -126,13 +126,14 @@ export function UplineRequestsPanel() {
                   <p className="whitespace-pre-wrap rounded-xl bg-surface-2 p-3 text-xs">
                     {row.body}
                   </p>
-                  {row.imageUrl ? (
+                  {((row as any).imageUrls?.length ? (row as any).imageUrls : row.imageUrl ? [row.imageUrl] : []).map((url: string) => (
                     <img
-                      src={row.imageUrl}
+                      key={url}
+                      src={url}
                       alt="Review picture"
                       className="max-h-64 w-full rounded-xl object-contain"
                     />
-                  ) : null}
+                  ))}
                   {row.voiceUrl ? (
                     <audio controls src={row.voiceUrl} className="w-full" />
                   ) : null}

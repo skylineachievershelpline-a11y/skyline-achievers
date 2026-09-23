@@ -220,3 +220,39 @@ export async function loadLedger(payerId: string) {
     pendingCount: rows.filter((row) => row.status === "pending").length,
   };
 }
+
+/**
+ * After an upline changes the master schedule, every one of their trainees gets
+ * the new clock times for sessions that have no review yet. Missed sessions
+ * then roll forward to the next live slot.
+ */
+export async function syncTraineesToSchedule(uplineId: string) {
+  const { scheduleFromMaster } = await import("./journey");
+  const slots = await loadUplineSchedule(uplineId);
+  const { data: trainees } = await admin
+    .from("trainees")
+    .select("id, upline_id, created_at")
+    .eq("upline_id", uplineId);
+  for (const trainee of (trainees ?? []) as any[]) {
+    await ensureSchedule(trainee);
+    const { data: reviews } = await admin
+      .from("trainee_session_reviews")
+      .select("session_number")
+      .eq("trainee_id", trainee.id);
+    const reviewed = new Set(((reviews ?? []) as any[]).map((r) => Number(r.session_number)));
+    const joinedAt = trainee.created_at ? new Date(trainee.created_at).getTime() : Date.now();
+    const planned = scheduleFromMaster(slots, joinedAt);
+    await Promise.all(
+      planned
+        .filter((slot) => !reviewed.has(slot.session))
+        .map((slot) =>
+          admin
+            .from("trainee_session_schedule")
+            .update({ scheduled_at: slot.atIso, day_number: slot.day })
+            .eq("trainee_id", trainee.id)
+            .eq("session_number", slot.session),
+        ),
+    );
+    await rollMissedSessions(trainee.id);
+  }
+}

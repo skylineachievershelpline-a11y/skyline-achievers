@@ -82,6 +82,7 @@ export type JourneySession = {
   reviewId: string | null;
   reviewBody: string | null;
   reviewImageUrl: string | null;
+  reviewImageUrls?: string[];
   reviewVoiceUrl: string | null;
   reviewedAt: string | null;
   uplineNote: string | null;

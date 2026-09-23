@@ -40,6 +40,7 @@ import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resou
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
 import { Route as ApiPublicAiRouteImport } from './routes/api.public.ai'
+import { Route as ApiPublicCronNotifyRouteImport } from './routes/api.public.cron.notify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +197,11 @@ const ApiPublicAiRoute = ApiPublicAiRouteImport.update({
   path: '/api/public/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronNotifyRoute = ApiPublicCronNotifyRouteImport.update({
+  id: '/api/public/cron/notify',
+  path: '/api/public/cron/notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/api/public/cron/notify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/api/public/cron/notify'
   id:
     | '__root__'
     | '/'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/api/public/cron/notify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -431,6 +443,7 @@ export interface RootRouteChildren {
   AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
   ApiPublicAiRoute: typeof ApiPublicAiRoute
+  ApiPublicCronNotifyRoute: typeof ApiPublicCronNotifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -652,6 +665,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/notify': {
+      id: '/api/public/cron/notify'
+      path: '/api/public/cron/notify'
+      fullPath: '/api/public/cron/notify'
+      preLoaderRoute: typeof ApiPublicCronNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -687,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
   ApiPublicAiRoute: ApiPublicAiRoute,
+  ApiPublicCronNotifyRoute: ApiPublicCronNotifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

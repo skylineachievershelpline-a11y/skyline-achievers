@@ -2245,6 +2245,7 @@ export type Database = {
           created_at: string
           id: string
           image_path: string | null
+          image_paths: string[]
           opened_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -2264,6 +2265,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_path?: string | null
+          image_paths?: string[]
           opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -2283,6 +2285,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_path?: string | null
+          image_paths?: string[]
           opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null

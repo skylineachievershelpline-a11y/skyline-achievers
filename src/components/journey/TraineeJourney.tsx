@@ -427,12 +427,6 @@ export function TraineeJourney() {
                 )}
                 </div>
 
-                {!locked && session.review !== "pending" && session.review !== "approved" ? (
-                  <SessionReviewForm
-                    sessionNumber={session.sessionNumber}
-                    onSent={() => refresh()}
-                  />
-                ) : null}
               </li>
             );
           })}

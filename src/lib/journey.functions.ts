@@ -74,7 +74,7 @@ async function buildJourney(traineeId: string) {
     admin
       .from("trainee_session_reviews")
       .select(
-        "id, session_number, body, image_path, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at, source",
+        "id, session_number, body, image_path, image_paths, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at, source",
       )
       .eq("trainee_id", traineeId)
       .order("created_at", { ascending: false }),
@@ -113,6 +113,11 @@ async function buildJourney(traineeId: string) {
       reviewId: (review?.id ?? null) as string | null,
       reviewBody: (review?.body ?? null) as string | null,
       reviewImageUrl: await signProof(review?.image_path),
+      reviewImageUrls: (
+        await Promise.all(
+          ((review?.image_paths?.length ? review.image_paths : review?.image_path ? [review.image_path] : []) as string[]).map((path) => signProof(path)),
+        )
+      ).filter((url): url is string => Boolean(url)),
       reviewVoiceUrl: await signProof(review?.voice_path),
       reviewedAt: (review?.reviewed_at ?? null) as string | null,
       uplineNote: (review?.upline_note ?? null) as string | null,
@@ -223,14 +228,16 @@ export const submitSessionReview = createServerFn({ method: "POST" })
       sessionNumber: number;
       body: string;
       imagePath?: string | null;
+      imagePaths?: string[];
       voicePath?: string | null;
       anyTime?: boolean;
     }) =>
       z
         .object({
           sessionNumber: z.number().int().min(1).max(7),
-          body: z.string().trim().min(10, "Write a short review of the session").max(4000),
+          body: z.string().trim().max(4000),
           imagePath: optionalPath,
+          imagePaths: z.array(z.string().min(1).max(500)).max(10).optional(),
           voicePath: optionalPath,
           anyTime: z.boolean().optional(),
         })
@@ -268,12 +275,17 @@ export const submitSessionReview = createServerFn({ method: "POST" })
     }
 
 
+    const images = [...(data.imagePaths ?? []), ...(data.imagePath ? [data.imagePath] : [])];
+    if (!data.body && images.length === 0 && !data.voicePath) {
+      throw new Error("Add a text, a picture or a voice note to send your review.");
+    }
     const { error } = await admin.from("trainee_session_reviews").insert({
       trainee_id: trainee.id,
       session_id: (session as any).id,
       session_number: data.sessionNumber,
       body: data.body,
-      image_path: data.imagePath ?? null,
+      image_path: images[0] ?? null,
+      image_paths: images,
       voice_path: data.voicePath ?? null,
       status: "pending",
       submitted_at: new Date().toISOString(),
@@ -863,8 +875,9 @@ export const saveUplineSessionSchedule = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    const { saveUplineSchedule } = await import("./journey.server");
+    const { saveUplineSchedule, syncTraineesToSchedule } = await import("./journey.server");
     const slots = await saveUplineSchedule(member.id, data.slots);
+    await syncTraineesToSchedule(member.id);
     return { ok: true as const, slots };
   });
 
@@ -913,6 +926,7 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
           submittedAt: pending.reviewSubmittedAt ?? null,
           body: pending.reviewBody,
           imageUrl: pending.reviewImageUrl,
+          imageUrls: pending.reviewImageUrls ?? [],
           voiceUrl: pending.reviewVoiceUrl,
         });
       }

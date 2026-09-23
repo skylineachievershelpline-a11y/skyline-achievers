@@ -223,6 +223,7 @@ export const submitSessionReview = createServerFn({ method: "POST" })
       body: string;
       imagePath?: string | null;
       voicePath?: string | null;
+      anyTime?: boolean;
     }) =>
       z
         .object({
@@ -230,6 +231,7 @@ export const submitSessionReview = createServerFn({ method: "POST" })
           body: z.string().trim().min(10, "Write a short review of the session").max(4000),
           imagePath: optionalPath,
           voicePath: optionalPath,
+          anyTime: z.boolean().optional(),
         })
         .parse(data),
   )

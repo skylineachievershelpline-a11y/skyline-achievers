@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/member/cards";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
 import { NotificationMedia } from "@/components/member/NotificationMedia";
+import { PushAlertsCard } from "@/components/member/PushAlertsCard";
 import {
   dismissNotification,
   getNotifications,
@@ -63,6 +64,7 @@ function NotificationsPage() {
 
   return (
     <MemberShell title="Announcements" subtitle="Updates from your administrators">
+      <PushAlertsCard className="mb-4" />
       {!ready || isPending ? (
         <div className="flex justify-center py-16">
           <SkylineLoader />

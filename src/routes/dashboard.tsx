@@ -15,6 +15,7 @@ import { DailyInspiration } from "@/components/member/DailyInspiration";
 import { DailyReportPanel } from "@/components/member/DailyReportPanel";
 
 import { formatRankName, RankPin } from "@/components/member/RankPin";
+import { PushAlertsCard } from "@/components/member/PushAlertsCard";
 import { CcAmountCard, MentorshipFeeCard } from "@/components/member/MentorshipPanel";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import {
@@ -185,6 +186,10 @@ function DashboardPage() {
             <span className="text-xs opacity-80">View today's tasks</span>
           </Link>
         </Button>
+      </div>
+
+      <div className="mx-auto mt-4 w-full max-w-3xl">
+        <PushAlertsCard />
       </div>
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>

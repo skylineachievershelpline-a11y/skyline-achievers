@@ -278,6 +278,17 @@ export const submitSessionReview = createServerFn({ method: "POST" })
     });
 
     if (error) throw new Error(error.message);
+
+    // Background alert for the upline, even when their app is closed.
+    if (trainee.upline_id) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([trainee.upline_id], {
+        title: "New review to check",
+        body: `${trainee.full_name} submitted the Session ${data.sessionNumber} review.`,
+        path: "/dashboard",
+        tag: `review-${trainee.id}`,
+      });
+    }
     return { ok: true as const };
   });
 
@@ -367,6 +378,15 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
       status: "pending",
     });
     if (error) throw new Error(error.message);
+    if (trainee.upline_id) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([trainee.upline_id], {
+        title: "Payment proof received",
+        body: `${trainee.full_name} uploaded a payment proof for verification.`,
+        path: "/dashboard",
+        tag: `payment-${trainee.id}`,
+      });
+    }
     return { ok: true as const };
   });
 
@@ -521,6 +541,17 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
         .update({ stage: "interview_guide" })
         .eq("trainee_id", review.trainee_id);
     }
+
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([review.trainee_id], {
+      title: data.decision === "approved" ? "Review approved" : "Review needs changes",
+      body:
+        data.decision === "approved"
+          ? "Your upline approved your session review. Your next session is ready."
+          : "Your upline asked for changes. Open the session to read the note.",
+      path: "/beginners",
+      tag: `review-decision-${review.trainee_id}`,
+    });
     return { ok: true as const };
   });
 
@@ -556,6 +587,16 @@ export const recordInterviewResult = createServerFn({ method: "POST" })
       })
       .eq("trainee_id", trainee.id);
     if (error) throw new Error(error.message);
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([trainee.id], {
+      title: data.result === "pass" ? "Final interview passed" : "Final interview: reassess",
+      body:
+        data.result === "pass"
+          ? "Congratulations! Session 08 and the Forever Business Plan are unlocked."
+          : "Your upline asked you to revise before the next interview.",
+      path: "/beginners",
+      tag: `interview-${trainee.id}`,
+    });
     return { ok: true as const };
   });
 

@@ -54,6 +54,7 @@ import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
+import { PushAlertsCard } from "@/components/member/PushAlertsCard";
 import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { type JourneySession } from "@/lib/journey";
@@ -660,6 +661,10 @@ function BeginnersPage() {
             </Link>
           </Button>
           <FlyingSkylineAiMascot />
+        </div>
+
+        <div className="mt-4">
+          <PushAlertsCard />
         </div>
 
         <div className="mt-5">

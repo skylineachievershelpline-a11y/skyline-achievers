@@ -6,6 +6,7 @@ import {
   Copy,
   Link2,
   Loader2,
+  MessageCircle,
   ShieldOff,
   X,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime12 } from "@/lib/format";
 import { SESSION_WINDOW_HOURS } from "@/lib/journey";
 import {
+  approveWhatsappReview,
   createTraineeReportLink,
   getTraineeJourneyForUpline,
   getTraineeReportLinks,
@@ -59,6 +61,19 @@ export function TraineeProgressRecord({
     queryKey: ["trainee-report-links", traineeId],
     queryFn: () => loadLinks({ data: { traineeId } } as never),
     retry: false,
+  });
+
+  const markWhatsapp = useServerFn(approveWhatsappReview);
+  const whatsapp = useMutation({
+    mutationFn: (sessionNumber: number) =>
+      markWhatsapp({ data: { traineeId, sessionNumber } } as never),
+    onSuccess: () => {
+      toast.success("Marked as reviewed on WhatsApp and approved");
+      void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });
+      void queryClient.invalidateQueries({ queryKey: ["upline-review-requests"] });
+      void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const origin = typeof window === "undefined" ? "" : window.location.origin;
@@ -204,6 +219,34 @@ export function TraineeProgressRecord({
                         {session.reviewBody}
                       </p>
                     ) : null}
+                    {session.reviewSource === "whatsapp" ? (
+                      <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                        <MessageCircle className="h-3.5 w-3.5" /> Review shared on WhatsApp
+                      </p>
+                    ) : null}
+                    {session.review !== "approved" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2 w-full rounded-xl text-[12px]"
+                        disabled={whatsapp.isPending}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Did ${traineeName} send the Session ${String(session.sessionNumber).padStart(2, "0")} review on WhatsApp? It will be approved.`,
+                            )
+                          )
+                            whatsapp.mutate(session.sessionNumber);
+                        }}
+                      >
+                        {whatsapp.isPending && whatsapp.variables === session.sessionNumber ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        )}
+                        Approve review received on WhatsApp
+                      </Button>
+                    ) : null}
                     {session.uplineNote ? (
                       <p className="mt-1 text-[11px] text-primary">Note: {session.uplineNote}</p>
                     ) : null}
@@ -291,7 +334,7 @@ export function TraineeProgressRecord({
             </div>
 
             <p className="mt-4 text-[10px] text-muted-foreground">
-              Session timings are set from the Seat Reservation page. This record is read-only.
+              Session timings are set from the Seat Reservation page. A missed session moves to the next day automatically.
             </p>
             <Button variant="outline" className="mt-3 w-full rounded-2xl" onClick={onClose}>
               Close

@@ -1072,6 +1072,7 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
           reviewBody: session.reviewBody,
           reviewedAt: session.reviewedAt,
           uplineNote: session.uplineNote,
+          reviewSource: session.reviewSource ?? null,
         };
       }),
     };

@@ -1697,15 +1697,7 @@ export type Database = {
           p256dh?: string
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "push_subscriptions_member_id_fkey"
-            columns: ["member_id"]
-            isOneToOne: false
-            referencedRelation: "member_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reel_comments: {
         Row: {

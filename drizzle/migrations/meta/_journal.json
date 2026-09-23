@@ -225,6 +225,13 @@
       "when": 1790176476352,
       "tag": "0031_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790176506915,
+      "tag": "0032_push_subscriptions_any_user",
+      "breakpoints": true
     }
   ]
 }

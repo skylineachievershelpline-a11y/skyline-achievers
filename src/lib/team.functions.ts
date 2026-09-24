@@ -19,7 +19,7 @@ async function activeMember(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("member_profiles")
-    .select("id, member_id, full_name, status")
+    .select("id, member_id, full_name, status, avatar_path")
     .eq("id", userId)
     .maybeSingle();
   if (!data || data.status !== "active") throw new Error("Your membership is not active.");
@@ -214,7 +214,7 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
     });
 
     return {
-      upline: { id: member.id, memberId: member.member_id, fullName: member.full_name },
+      upline: { id: member.id, memberId: member.member_id, fullName: member.full_name, avatarUrl: await signPath(AVATAR_BUCKET, (member as any).avatar_path ?? null, 60 * 60) },
       team,
       fbos: team.filter((row) => row.kind === "fbo"),
       mentorship: team.filter((row) => row.kind === "mentorship"),

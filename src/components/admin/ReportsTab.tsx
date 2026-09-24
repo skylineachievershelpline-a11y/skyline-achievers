@@ -357,6 +357,7 @@ export function ReportsTab() {
                 <thead className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   <tr className="border-b border-border">
                     <th className="p-3">Date</th>
+                    <th className="p-3">Status</th>
                     <th className="p-3 text-right">Leads</th>
                     <th className="p-3 text-right">Response</th>
                     <th className="p-3 text-right">Enroll</th>
@@ -371,6 +372,7 @@ export function ReportsTab() {
                     editDay?.date === day.date ? (
                       <tr key={day.date} className="border-b border-border/60 last:border-0">
                         <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
+                        <td className="p-3 text-primary">Report</td>
                         {(
                           [
                             "leads",
@@ -422,6 +424,9 @@ export function ReportsTab() {
                     ) : (
                       <tr key={day.date} className="border-b border-border/60 last:border-0">
                         <td className="p-3 font-semibold">{dayLabel(day.date)}</td>
+                        <td className={`p-3 font-semibold ${day.status === "absent" ? "text-red-400" : day.status === "leave" ? "text-primary" : "text-foreground"}`}>
+                          {day.status === "absent" ? "Absent" : day.status === "leave" ? "Approved Leave" : "Report"}
+                        </td>
                         <td className="p-3 text-right tabular-nums">{day.leads}</td>
                         <td className="p-3 text-right tabular-nums">{day.responses}</td>
                         <td className="p-3 text-right tabular-nums">{day.enrollments}</td>
@@ -435,6 +440,7 @@ export function ReportsTab() {
                             variant="outline"
                             size="sm"
                             className="rounded-xl"
+                            disabled={day.status !== "report"}
                             onClick={() =>
                               setEditDay({
                                 date: day.date,

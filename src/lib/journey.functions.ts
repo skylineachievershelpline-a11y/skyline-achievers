@@ -842,7 +842,6 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
     return {
       status: "ok" as const,
-      generatedAt: link.created_at as string,
       session: {
         id: row.id as string,
         title: row.title as string,
@@ -1062,6 +1061,7 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
 
     return {
       status: "ok" as const,
+      generatedAt: link.created_at as string,
       trainee: {
         name: trainee.full_name as string,
         code: trainee.trainee_code as string,

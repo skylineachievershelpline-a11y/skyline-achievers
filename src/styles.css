@@ -2431,3 +2431,10 @@ html.is-installed-app .landing-web-only { display: none; }
 .app-shell-only .hero-sequence,
 .app-shell-only [class*="reveal"] { opacity: 1 !important; transform: none !important; filter: none !important; }
 .app-shell-only { position: relative; z-index: 1; }
+/* Phone webviews can paint the animated canvas over the login card: disable it in the app shell. */
+@media all and (display-mode: standalone), all and (display-mode: fullscreen), all and (display-mode: minimal-ui) {
+  .liquid-atmosphere { display: none !important; }
+}
+html.is-installed-app .liquid-atmosphere { display: none !important; }
+.app-shell-only, [role="dialog"] { isolation: isolate; transform: translateZ(0); }
+[role="dialog"].fixed { transform: translate(-50%, -50%) translateZ(0); }

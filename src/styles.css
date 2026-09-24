@@ -2436,5 +2436,4 @@ html.is-installed-app .landing-web-only { display: none; }
   .liquid-atmosphere { display: none !important; }
 }
 html.is-installed-app .liquid-atmosphere { display: none !important; }
-.app-shell-only, [role="dialog"] { isolation: isolate; transform: translateZ(0); }
-[role="dialog"].fixed { transform: translate(-50%, -50%) translateZ(0); }
+.app-shell-only, [role="dialog"] { isolation: isolate; will-change: transform; }

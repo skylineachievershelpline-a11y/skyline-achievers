@@ -1,5 +1,6 @@
 import { BellRing, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -37,10 +38,10 @@ export function PushWelcomeDialog() {
     close();
   }
 
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-background/80 p-4 backdrop-blur-sm sm:items-center">
-      <div className="raised-panel metal-edge w-full max-w-sm rounded-3xl p-6 text-center animate-rise-in">
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[300] flex min-h-[100dvh] items-center justify-center overflow-y-auto bg-background/80 px-4 py-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm">
+      <div className="raised-panel metal-edge my-auto w-full max-w-sm rounded-3xl p-6 text-center animate-rise-in">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan/30 bg-surface-2 text-cyan">
           <BellRing className="h-7 w-7" />
         </span>
@@ -67,6 +68,7 @@ export function PushWelcomeDialog() {
           Not now
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

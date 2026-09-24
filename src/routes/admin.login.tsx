@@ -71,7 +71,10 @@ function AdminLoginPage() {
           <BrandLogo size="lg" withWordmark={false} />
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight">Staff access</h1>
-            <p className="mt-1 text-xs text-muted-foreground">Restricted area — passcode required</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Restricted area — username and password required
+            </p>
+
           </div>
         </div>
 

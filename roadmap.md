@@ -4,7 +4,7 @@
 - [x] Keep the member name, rank pin, and Member ID together on member and admin dashboard profiles
 - [x] Separate Admin Members into All, Personal Mentorship, and FBO views
 - [x] Show “2CC Complete” instead of mentorship payment controls for Assistant Supervisor and higher
-- [ ] Run the final signed-in website and app function check after account-access permission
+- [x] Run the final signed-in website and app function check after account-access permission
 
 ## Landing page (done)
 - [x] Login shown as a button that opens a login popup

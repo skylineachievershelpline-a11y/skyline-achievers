@@ -18,15 +18,21 @@ export const adminStatus = createServerFn({ method: "GET" }).handler(async () =>
 });
 
 export const adminLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: { passcode: string }) =>
-    z.object({ passcode: z.string().min(1).max(200) }).parse(data),
+  .inputValidator((data: { passcode: string; username?: string }) =>
+    z
+      .object({
+        passcode: z.string().min(1).max(200),
+        username: z.string().trim().max(120).optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { verifyAdminPasscode } = await import("./admin-session.server");
-    const result = await verifyAdminPasscode(data.passcode);
+    const result = await verifyAdminPasscode(data.passcode, data.username);
     if (result.ok) return { ok: true as const };
     return { ok: false as const, reason: result.reason };
   });
+
 
 export const adminLogout = createServerFn({ method: "POST" }).handler(async () => {
   const { endAdminSession } = await import("./admin-session.server");

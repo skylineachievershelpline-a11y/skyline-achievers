@@ -121,44 +121,62 @@ export function ReportsTab() {
     }
   }
 
+  const monday = shiftDay(today, -((new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7));
+  const monthStart = `${today.slice(0, 8)}01`;
+  const presets = [
+    { label: "Today", from: today, to: today },
+    { label: "This week", from: monday, to: today },
+    { label: "This month", from: monthStart, to: today },
+  ];
+
   return (
     <div className="space-y-5">
-      <RatesCard />
-
       <div className="raised-panel metal-edge rounded-3xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-          Daily reports
+          Team working progress
         </p>
-        <h2 className="mt-1 font-display text-xl font-bold">Working reports by day</h2>
+        <h2 className="mt-1 font-display text-xl font-bold">All members' progress</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Leads, response, enrollments, pending, 2CC and Personal Mentorship fees for every member.
+          Leads worked, enrollments, 2CC and Personal Mentorship payments for the selected period.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {[
-            { label: "Today", days: 0 },
-            { label: "Last 3 days", days: 2 },
-            { label: "Last 7 days", days: 6 },
-            { label: "Last 30 days", days: 29 },
-          ].map((preset) => (
-            <Button
-              key={preset.label}
-              variant="outline"
-              size="sm"
-              className="rounded-2xl"
-              onClick={() => {
-                setFrom(shiftDay(today, -preset.days));
-                setTo(today);
-              }}
-            >
-              {preset.label}
-            </Button>
-          ))}
+          {presets.map((preset) => {
+            const active = from === preset.from && to === preset.to;
+            return (
+              <Button
+                key={preset.label}
+                variant={active ? "default" : "outline"}
+                size="sm"
+                className="rounded-2xl"
+                onClick={() => {
+                  setFrom(preset.from);
+                  setTo(preset.to);
+                }}
+              >
+                {preset.label}
+              </Button>
+            );
+          })}
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr] sm:max-w-md">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:max-w-xl">
           <div className="space-y-2">
-            <Label htmlFor="admin-report-from">From</Label>
+            <Label htmlFor="admin-report-day">Single day</Label>
+            <Input
+              id="admin-report-day"
+              type="date"
+              value={from === to ? from : ""}
+              max={today}
+              onChange={(event) => {
+                if (!event.target.value) return;
+                setFrom(event.target.value);
+                setTo(event.target.value);
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="admin-report-from">Custom from</Label>
             <Input
               id="admin-report-from"
               type="date"
@@ -168,7 +186,7 @@ export function ReportsTab() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="admin-report-to">To</Label>
+            <Label htmlFor="admin-report-to">Custom to</Label>
             <Input
               id="admin-report-to"
               type="date"
@@ -180,16 +198,26 @@ export function ReportsTab() {
         </div>
 
         {data ? (
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-6">
-            <Tile label="Leads" value={String(data.totals.leads)} />
-            <Tile label="Response" value={String(data.totals.responses)} />
-            <Tile label="Enrollments" value={String(data.totals.enrollments)} />
-            <Tile label="Pending" value={String(data.totals.pending)} />
-            <Tile label="2CC" value={String(data.totals.twoCc)} />
-            <Tile label="PM fees" value={String(data.totals.mentorshipPaid)} />
-          </div>
+          <>
+            <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Tile label="Leads worked" value={String(data.totals.leads)} />
+              <Tile label="Enrollments" value={String(data.totals.enrollments)} />
+              <Tile label="2CC" value={String(data.totals.twoCc)} />
+              <Tile label="PM payments (period)" value={String(data.totals.mentorshipPaid)} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Tile label="PM full paid" value={String(data.pm?.full ?? 0)} />
+              <Tile label="PM half paid" value={String(data.pm?.half ?? 0)} />
+              <Tile label="PM not paid" value={String(data.pm?.unpaid ?? 0)} />
+              <Tile
+                label="PM received (Rs.)"
+                value={(data.pm?.received ?? 0).toLocaleString("en-PK")}
+              />
+            </div>
+          </>
         ) : null}
       </div>
+
 
       <div className="raised-panel metal-edge overflow-hidden rounded-3xl">
         {isPending ? (

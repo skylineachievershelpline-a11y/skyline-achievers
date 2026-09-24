@@ -112,7 +112,22 @@ export const adminGetReports = createServerFn({ method: "POST" })
       totals.mentorshipPaid += row.mentorshipPaid;
     }
 
-    return { from, to, today, members: list, totals };
+    // Personal Mentorship payment status (verified amounts on each profile).
+    const { data: pmRows } = await supabaseAdmin
+      .from("member_profiles")
+      .select("mentorship_fee_pkr, mentorship_paid_pkr");
+    const pm = { full: 0, half: 0, unpaid: 0, received: 0 };
+    for (const r of (pmRows ?? []) as { mentorship_fee_pkr?: number | null; mentorship_paid_pkr?: number | null }[]) {
+      const fee = Number(r.mentorship_fee_pkr ?? 0);
+      const paid = Number(r.mentorship_paid_pkr ?? 0);
+      if (fee <= 0 && paid <= 0) continue;
+      pm.received += paid;
+      if (fee > 0 && paid >= fee) pm.full += 1;
+      else if (paid > 0) pm.half += 1;
+      else pm.unpaid += 1;
+    }
+
+    return { from, to, today, members: list, totals, pm };
   });
 
 /** Day-by-day daily report for one member in any range. */

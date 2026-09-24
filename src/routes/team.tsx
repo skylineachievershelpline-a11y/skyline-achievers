@@ -31,7 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
-import { GenealogyTree, type TreePerson } from "@/components/team/GenealogyTree";
+import { GenealogyTree, personState, type TreePerson } from "@/components/team/GenealogyTree";
 import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
 import { TraineeProgressRecord } from "@/components/journey/TraineeProgressRecord";
 import {
@@ -230,6 +230,128 @@ function TeamPage() {
           <div><div className="mb-2 flex justify-between text-xs"><span className="font-semibold">Team completion</span><span className="font-bold text-primary">{completionRate}%</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${completionRate}%` }} /></div></div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground"><span>{stats?.thisMonth ?? 0} this month</span><span>{stats?.started ?? 0} started</span><span>{stats?.blocked ?? 0} blocked</span><span>{invites.filter((i) => i.is_active).length} active links</span></div>
         </div>
+      </section>
+
+      <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">
+        <div className="border-b border-border p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div><SectionTitle className="mb-0">Team hierarchy</SectionTitle><p className="text-xs text-muted-foreground">{trainees.length} direct members under {data?.upline.fullName ?? "you"}</p></div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 sm:w-64">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={memberSearch} onChange={(event) => setMemberSearch(event.target.value)} placeholder="Find by name or phone number" className="h-9 rounded-lg pl-9 text-xs" />
+              </div>
+              <select aria-label="Filter team status" value={memberFilter} onChange={(event) => setMemberFilter(event.target.value as typeof memberFilter)} className="h-9 rounded-lg border border-hairline bg-surface-2 px-3 text-xs">
+                <option value="all">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option>
+              </select>
+              <Button asChild variant="brand" size="sm" className="rounded-lg"><Link to="/seats"><UserPlus />Add member</Link></Button>
+            </div>
+          </div>
+          {selectedIds.length > 0 ? <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2"><span className="mr-auto px-1 text-xs font-semibold text-primary">{selectedIds.length} selected</span><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("active")}><UserCheck />Unblock</Button><Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => void applyBulk("blocked")}><Ban />Block</Button><Button size="sm" variant="destructive" disabled={bulkBusy} onClick={() => void applyBulk("remove")}><Trash2 />Remove</Button></div> : null}
+        </div>
+
+        {trainees.length === 0 ? <div className="p-5"><EmptyState title="No one registered yet" hint="Reserve a seat below or share your registration link." /></div> : (
+          <div>
+            <div className="hidden grid-cols-[34px_minmax(220px,1.5fr)_minmax(150px,1fr)_120px_126px] items-center gap-3 border-b border-border bg-surface/70 px-5 py-2.5 text-[10px] font-bold uppercase text-muted-foreground md:grid">
+              <input type="checkbox" aria-label="Select all visible members" checked={allVisibleSelected} onChange={() => setSelectedIds(allVisibleSelected ? selectedIds.filter((id) => !visibleTrainees.some((person) => person.id === id)) : Array.from(new Set([...selectedIds, ...visibleTrainees.map((person) => person.id)])))} className="h-4 w-4 accent-primary" />
+              <span>Member</span><span>Training</span><span>Status</span><span className="text-right">Actions</span>
+            </div>
+            <div className="border-b border-border bg-primary/10 px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground"><Crown className="h-3.5 w-3.5" /></span>
+                <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold">{data?.upline.fullName ?? "You"}</p><p className="truncate text-[10px] text-primary">{data?.upline.memberId} · Upline</p></div>
+                <span className="rounded-full border border-cyan/30 bg-cyan/10 px-2 py-1 text-[10px] font-semibold text-cyan">Root</span>
+              </div>
+            </div>
+            {visibleTrainees.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">No matching members.</p> : visibleTrainees.map((person, index) => <TeamRow key={person.id} person={person} index={index} selected={selectedIds.includes(person.id)} busy={bulkBusy || status.isPending || drop.isPending || reset.isPending} onSelect={() => toggleSelected(person.id)} onStatus={(next) => status.mutate({ traineeId: person.id, status: next })} onReset={() => reset.mutate(person.id)} onRemove={() => drop.mutate(person.id)} onJourney={() => setJourneyTrainee({ id: person.id, name: person.fullName, phone: person.phone ?? null })} />)}
+            <div className="flex items-center justify-between border-t border-border bg-surface/60 px-4 py-3 text-[11px] text-muted-foreground sm:px-5"><span>Showing {visibleTrainees.length} of {trainees.length}</span><span>{selectedIds.length} selected</span></div>
+          </div>
+        )}
+      </section>
+      </div>
+
+      {journeyTrainee ? (
+        <TraineeProgressRecord
+          traineeId={journeyTrainee.id}
+          traineeName={journeyTrainee.name}
+          onClose={() => setJourneyTrainee(null)}
+        />
+      ) : null}
+    </MemberShell>
+  );
+}
+
+/**
+ * FBO / Personal Mentorship chart: every Skyline member (12-digit ID) below this
+ * account, drawn as a family tree. Read-only — an upline can watch the daily
+ * working report but never edit or delete a record.
+ */
+function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }) {
+  const load = useServerFn(getMyFboTeam);
+  const [search, setSearch] = useState("");
+  const [showStats, setShowStats] = useState(false);
+  const { data, isPending } = useQuery({
+    queryKey: ["my-fbo-team"],
+    queryFn: () => load(),
+    enabled: ready,
+    retry: false,
+  });
+
+  if (isPending) {
+    return (
+      <div className="mt-6 flex justify-center py-10">
+        <SkylineLoader />
+      </div>
+    );
+  }
+
+  const everyone = (data?.team ?? []) as TreePerson[];
+  const group = everyone.filter((person) => person.kind === kind);
+  const needle = search.trim().toLowerCase();
+  const people = needle
+    ? group.filter(
+        (person) =>
+          person.memberId.toLowerCase().includes(needle) ||
+          person.fullName.toLowerCase().includes(needle),
+      )
+    : group;
+  const mentorship = kind === "mentorship";
+
+  return (
+    <>
+      <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-primary">
+              {mentorship ? "Personal Mentorship network" : "FBO network"}
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-bold">
+              {mentorship ? "Personal Mentorship tree" : "Your FBO team tree"}
+            </h1>
+          </div>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setShowStats((v) => !v)}>
+            {showStats ? "Hide team stats" : "Show team stats"}
+          </Button>
+        </div>
+        {showStats ? (
+          mentorship ? (
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Stat icon={<Users className="h-4 w-4" />} label="Total persons" value={group.length} />
+              <Stat icon={<UserCheck className="h-4 w-4" />} label="Full fee paid" value={group.filter((p) => (p.payment?.required ?? 0) > 0 && (p.payment?.verified ?? 0) === (p.payment?.required ?? 0)).length} />
+              <Stat icon={<Ban className="h-4 w-4" />} label="Pending / half" value={group.filter((p) => (p.payment?.verified ?? 0) < (p.payment?.required ?? 0)).length} />
+              <Stat icon={<UserPlus className="h-4 w-4" />} label="Paid extra" value={group.filter((p) => (p.payment?.required ?? 0) > 0 && (p.payment?.verified ?? 0) > (p.payment?.required ?? 0)).length} />
+            </div>
+          ) : (
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Stat icon={<Users className="h-4 w-4" />} label="Total team" value={group.length} />
+              <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={group.filter((p) => personState(p) === "active").length} />
+              <Stat icon={<Ban className="h-4 w-4" />} label="Inactive" value={group.filter((p) => personState(p) === "inactive").length} />
+              <Stat icon={<CalendarDays className="h-4 w-4" />} label="On leave" value={group.filter((p) => personState(p) === "leave").length} />
+              <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={group.filter((p) => p.uplineId === (data?.upline as any)?.id).length} />
+              <Stat icon={<Users className="h-4 w-4" />} label="Indirect" value={group.filter((p) => p.uplineId !== (data?.upline as any)?.id).length} />
+            </div>
+          )
+        ) : null}
       </section>
 
       <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">

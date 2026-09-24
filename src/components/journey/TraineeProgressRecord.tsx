@@ -229,8 +229,8 @@ export function TraineeProgressRecord({
 
   const markWhatsapp = useServerFn(approveWhatsappReview);
   const whatsapp = useMutation({
-    mutationFn: (sessionNumber: number) =>
-      markWhatsapp({ data: { traineeId, sessionNumber } } as never),
+    mutationFn: (values: { sessionNumber: number; score: number }) =>
+      markWhatsapp({ data: { traineeId, ...values } } as never),
     onSuccess: () => {
       toast.success("Marked as reviewed on WhatsApp and approved");
       void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });

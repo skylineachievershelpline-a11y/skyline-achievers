@@ -5,6 +5,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { formatDateTime12 as formatDateTime } from "@/lib/format";
 import { getSharedTraineeReport } from "@/lib/journey.functions";
+import {
+  JOURNEY_MAX_SCORE,
+  attendanceCategory,
+  maxScoreForSession,
+  performanceCategory,
+} from "@/lib/journey-scoring";
 
 export const Route = createFileRoute("/report/$token")({
   head: () => ({
@@ -45,6 +51,14 @@ function SharedReportPage() {
   });
 
   const data = report.data as Awaited<ReturnType<typeof getSharedTraineeReport>> | undefined;
+  const sessions = data?.status === "ok" ? data.sessions : [];
+  const scoredSessions = sessions.filter((session) => session.score != null).length;
+  const totalScore = sessions.reduce((sum, session) => sum + Number(session.score ?? 0), 0);
+  const performance = performanceCategory(totalScore, scoredSessions);
+  const attended = sessions.filter((session) => session.openedAt).length;
+  const onTime = sessions.filter(
+    (session) => session.openedAt && Number(session.joinLateMinutes ?? 0) <= 10,
+  ).length;
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -80,6 +94,26 @@ function SharedReportPage() {
             </div>
           </section>
 
+           <section className="mt-4 overflow-hidden rounded-3xl border border-cyan/25 bg-primary/10 p-5">
+             <p className="text-[10px] font-bold uppercase tracking-wide text-primary">Performance result</p>
+             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+               <div className="inset-panel rounded-xl p-3">
+                 <p className="font-display text-xl font-bold text-cyan">{totalScore}/{JOURNEY_MAX_SCORE}</p>
+                 <p className="text-[9px] uppercase text-muted-foreground">Total marks</p>
+               </div>
+               <div className="inset-panel rounded-xl p-3">
+                 <p className="font-display text-xl font-bold">{attended}/7</p>
+                 <p className="text-[9px] uppercase text-muted-foreground">Attended</p>
+               </div>
+               <div className="inset-panel rounded-xl p-3">
+                 <p className="font-display text-xl font-bold">{onTime}/7</p>
+                 <p className="text-[9px] uppercase text-muted-foreground">On time</p>
+               </div>
+             </div>
+             <p className="mt-3 font-display text-base font-semibold">{performance.label}</p>
+             <p className="mt-1 text-xs text-muted-foreground">{performance.detail}</p>
+           </section>
+
           <section className="glass-panel mt-4 space-y-3 rounded-3xl p-5">
             <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
               Sessions, timings and reviews
@@ -98,11 +132,7 @@ function SharedReportPage() {
                     label="Joined"
                     value={
                       session.openedAt
-                        ? `${formatDateTime(session.openedAt)}${
-                            session.joinLateMinutes && session.joinLateMinutes > 0
-                              ? ` · ${session.joinLateMinutes} min late`
-                              : " · on time"
-                          }`
+                         ? `${formatDateTime(session.openedAt)} · ${attendanceCategory(session.joinLateMinutes, true)}${session.joinLateMinutes ? ` (${session.joinLateMinutes} min)` : ""}`
                         : "not joined"
                     }
                   />
@@ -122,6 +152,10 @@ function SharedReportPage() {
                         : session.review
                     }
                   />
+                   <Row
+                     label="Marks"
+                     value={session.score == null ? "not scored" : `${session.score} / ${maxScoreForSession(session.sessionNumber)}`}
+                   />
                   {session.reviewedAt ? (
                     <Row label="Decided on" value={formatDateTime(session.reviewedAt)} />
                   ) : null}
@@ -132,6 +166,22 @@ function SharedReportPage() {
                     {session.reviewBody}
                   </p>
                 ) : null}
+                 {session.reviewImageUrls.length ? (
+                   <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                     {session.reviewImageUrls.map((url) => (
+                       <a key={url} href={url} target="_blank" rel="noreferrer">
+                         <img src={url} alt={`Session ${session.sessionNumber} review`} className="aspect-square w-full rounded-xl object-cover" />
+                       </a>
+                     ))}
+                   </div>
+                 ) : null}
+                 {session.reviewVoiceUrl ? <audio controls src={session.reviewVoiceUrl} className="mt-2 w-full" /> : null}
+                 {session.uplineVoiceUrl ? (
+                   <div className="mt-2">
+                     <p className="mb-1 text-[10px] font-semibold uppercase text-muted-foreground">Upline voice reply</p>
+                     <audio controls src={session.uplineVoiceUrl} className="w-full" />
+                   </div>
+                 ) : null}
               </div>
             ))}
           </section>

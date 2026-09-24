@@ -131,10 +131,10 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
     const to = data.to ?? today;
     const from = data.from ?? shiftDay(to, -6);
 
-    const [{ data: member }, { data: reports }] = await Promise.all([
+    const [{ data: member }, { data: reports }, { data: leaves }] = await Promise.all([
       supabaseAdmin
         .from("member_profiles")
-        .select("id, member_id, full_name")
+        .select("id, member_id, full_name, created_at")
         .eq("id", data.memberId)
         .maybeSingle(),
       supabaseAdmin
@@ -144,19 +144,22 @@ export const adminGetMemberReport = createServerFn({ method: "POST" })
         .gte("report_date", from)
         .lte("report_date", to)
         .order("report_date", { ascending: false }),
+      supabaseAdmin
+        .from("leave_applications")
+        .select("from_date, to_date, status")
+        .eq("member_id", data.memberId)
+        .eq("status", "approved"),
     ]);
 
-    const days = (reports ?? []).map((row) => ({
-      date: row.report_date as string,
-      leads: Number(row.leads_count ?? 0),
-      responses: Number(row.responses ?? 0),
-      enrollments: Number(row.enrollments ?? 0),
-      pending: Number(row.pending_count ?? 0),
-      twoCc: Number(row.two_cc ?? 0),
-      mentorshipPaid: Number(row.mentorship_paid ?? 0),
-      absent: Boolean(row.is_absent),
-      absentReason: (row.absent_reason as string | null) ?? null,
-    }));
+    const { buildReportCalendar } = await import("./report-days.server");
+    const rangeLength = Math.max(1, Math.round((new Date(`${to}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86_400_000) + 1);
+    const days = buildReportCalendar({
+      reports: (reports ?? []) as Record<string, unknown>[],
+      leaves: (leaves ?? []) as { from_date: string; to_date: string; status?: string | null }[],
+      endDate: to,
+      days: Math.min(rangeLength, 366),
+      joinedDate: member?.created_at ? String(member.created_at).slice(0, 10) : null,
+    });
 
     return {
       from,

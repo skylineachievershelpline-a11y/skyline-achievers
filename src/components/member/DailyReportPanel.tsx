@@ -28,7 +28,6 @@ import {
   type ReportDay,
 } from "@/lib/daily-report.functions";
 import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
-import type { ReportCalendarDay } from "@/lib/report-days.server";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -125,7 +124,7 @@ export function DailyReportPanel() {
   const rangeEnd = toDate || today;
 
   const rangeRows = useMemo(() => {
-    const days = (data?.calendar ?? []) as ReportCalendarDay[];
+    const days = data?.calendar ?? [];
     return days
       .filter((day) => day.date >= rangeStart && day.date <= rangeEnd)
       .sort((a, b) => (a.date < b.date ? 1 : -1));

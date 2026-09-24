@@ -93,6 +93,8 @@ export type JourneySession = {
   reviewSubmittedAt?: string | null;
   /** "website" or "whatsapp" (recorded by the upline). */
   reviewSource?: string | null;
+  /** Upline-assigned marks for this session. */
+  score?: number | null;
 };
 
 

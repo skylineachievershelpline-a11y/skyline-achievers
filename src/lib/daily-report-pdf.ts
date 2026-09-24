@@ -9,6 +9,7 @@ export type DailyReportRow = {
   twoCc: number;
   mentorshipPaid: number;
   absent?: boolean;
+  status?: "report" | "leave" | "absent";
 };
 
 const dayLabel = (date: string) =>
@@ -124,10 +125,19 @@ export async function buildDailyReportPdf(options: {
       doc.addPage();
       y = 60;
     }
+    const status = row.status ?? (row.absent ? "absent" : "report");
     doc.text(dayLabel(row.date), 44, y);
-    REPORT_COLUMNS.forEach((column, index) => {
-      doc.text(String(Number(row[column.key]) || 0), columnX[index]!, y, { align: "right" });
-    });
+    if (status !== "report") {
+      doc.setTextColor(status === "leave" ? 37 : 205, status === "leave" ? 99 : 55, status === "leave" ? 235 : 55);
+      doc.setFont("helvetica", "bold");
+      doc.text(status === "leave" ? "LEAVE" : "ABSENT", width - 44, y, { align: "right" });
+      doc.setTextColor(20, 24, 40);
+      doc.setFont("helvetica", "normal");
+    } else {
+      REPORT_COLUMNS.forEach((column, index) => {
+        doc.text(String(Number(row[column.key]) || 0), columnX[index]!, y, { align: "right" });
+      });
+    }
     y += 18;
   }
 

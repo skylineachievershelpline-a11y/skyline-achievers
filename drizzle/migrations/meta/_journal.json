@@ -253,6 +253,13 @@
       "when": 1790246573745,
       "tag": "0035_drop_open_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790249482434,
+      "tag": "0036_add_session_review_marks",
+      "breakpoints": true
     }
   ]
 }

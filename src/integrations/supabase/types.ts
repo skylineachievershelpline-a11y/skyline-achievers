@@ -2249,6 +2249,7 @@ export type Database = {
           opened_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          score: number | null
           session_id: string | null
           session_number: number
           source: string
@@ -2269,6 +2270,7 @@ export type Database = {
           opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          score?: number | null
           session_id?: string | null
           session_number: number
           source?: string
@@ -2289,6 +2291,7 @@ export type Database = {
           opened_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          score?: number | null
           session_id?: string | null
           session_number?: number
           source?: string

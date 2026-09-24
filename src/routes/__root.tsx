@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { OfflineSupport } from "@/components/OfflineSupport";
 import {
   Outlet,
   Link,
@@ -172,6 +173,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <UploadDock />
+      <OfflineSupport />
       <Toaster />
     </QueryClientProvider>
   );

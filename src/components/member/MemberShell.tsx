@@ -217,7 +217,7 @@ export function MemberShell({
     if (!m) return;
     void rememberCurrentAccount({
       name: m.fullName,
-      code: m.memberCode ?? m.code ?? undefined,
+      code: m.accountId ?? undefined,
       kind: "member",
     });
   }, [memberAccess]);
@@ -362,7 +362,7 @@ export function MemberShell({
                 {settingsOpen ? (
                   <AccountSettings
                     currentName={(memberAccess?.member as any)?.fullName ?? title ?? "Account"}
-                    currentCode={(memberAccess?.member as any)?.memberCode ?? (memberAccess?.member as any)?.code ?? ""}
+                    currentCode={(memberAccess?.member as any)?.accountId ?? ""}
                     onClose={() => setSettingsOpen(false)}
                     onSignOut={signOut}
                   />

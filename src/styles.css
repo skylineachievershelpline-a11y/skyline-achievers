@@ -2426,3 +2426,8 @@ body > div > :not(.liquid-atmosphere) {
 }
 html.is-installed-app .app-shell-only { display: flex; }
 html.is-installed-app .landing-web-only { display: none; }
+/* App shell has no scroll-reveal observer: always show its content. */
+.app-shell-only .motion-ready,
+.app-shell-only .hero-sequence,
+.app-shell-only [class*="reveal"] { opacity: 1 !important; transform: none !important; filter: none !important; }
+.app-shell-only { position: relative; z-index: 1; }

@@ -17,9 +17,12 @@ import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime12 } from "@/lib/format";
 import { SESSION_WINDOW_HOURS } from "@/lib/journey";
+import { JOURNEY_MAX_SCORE, maxScoreForSession, performanceCategory } from "@/lib/journey-scoring";
 import {
   approveWhatsappReview,
   createTraineeReportLink,
@@ -41,11 +44,18 @@ function ReviewDetails({
   const [open, setOpen] = useState(session.review === "pending");
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
+  const [score, setScore] = useState(session.score == null ? "" : String(session.score));
+  const maximum = maxScoreForSession(session.sessionNumber);
   const decide = useServerFn(reviewSessionSubmission);
   const mutation = useMutation({
     mutationFn: (decision: "approved" | "rejected") =>
       decide({
-        data: { reviewId: session.reviewId, decision, note: reason.trim() || null },
+        data: {
+          reviewId: session.reviewId,
+          decision,
+          note: reason.trim() || null,
+          score: decision === "approved" ? Number(score) : null,
+        },
       } as never),
     onSuccess: (_r, decision) => {
       toast.success(decision === "approved" ? "Review approved" : "Review rejected");
@@ -120,11 +130,25 @@ function ReviewDetails({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <div className="inset-panel space-y-2 rounded-xl p-3">
+                  <Label htmlFor={`score-${session.reviewId}`}>Marks (maximum {maximum})</Label>
+                  <Input
+                    id={`score-${session.reviewId}`}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={maximum}
+                    value={score}
+                    onChange={(event) => setScore(event.target.value)}
+                    placeholder={`0–${maximum}`}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="brand"
                   className="rounded-xl"
-                  disabled={mutation.isPending}
+                  disabled={mutation.isPending || score === ""}
                   onClick={() => mutation.mutate("approved")}
                 >
                   {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -133,8 +157,30 @@ function ReviewDetails({
                 <Button variant="outline" className="rounded-xl" onClick={() => setRejecting(true)}>
                   <XCircle className="h-4 w-4" /> Reject
                 </Button>
+                </div>
               </div>
             )
+          ) : session.review === "approved" && session.score == null ? (
+            <div className="inset-panel space-y-2 rounded-xl p-3">
+              <Label htmlFor={`score-${session.reviewId}`}>Add marks (maximum {maximum})</Label>
+              <div className="flex gap-2">
+                <Input
+                  id={`score-${session.reviewId}`}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={maximum}
+                  value={score}
+                  onChange={(event) => setScore(event.target.value)}
+                  placeholder={`0–${maximum}`}
+                />
+                <Button variant="brand" disabled={mutation.isPending || score === ""} onClick={() => mutation.mutate("approved")}>
+                  Save marks
+                </Button>
+              </div>
+            </div>
+          ) : session.score != null ? (
+            <p className="text-sm font-semibold text-cyan">Marks: {session.score} / {maximum}</p>
           ) : null}
         </div>
       ) : null}
@@ -215,6 +261,10 @@ export function TraineeProgressRecord({
   });
 
   const sessions = (data?.sessions ?? []) as any[];
+  const scoredSessions = sessions.filter((session) => session.score != null).length;
+  const totalScore = sessions.reduce((sum, session) => sum + Number(session.score ?? 0), 0);
+  const performance = performanceCategory(totalScore, scoredSessions);
+  const [whatsappScores, setWhatsappScores] = useState<Record<number, string>>({});
 
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-background/90 p-3 pt-4 backdrop-blur-sm">
@@ -256,8 +306,8 @@ export function TraineeProgressRecord({
                   value: sessions.filter((s) => s.review === "pending").length,
                 },
                 {
-                  label: "No review",
-                  value: sessions.filter((s) => s.review === "none").length,
+                  label: "Marks",
+                  value: `${totalScore}/${JOURNEY_MAX_SCORE}`,
                 },
               ].map((item) => (
                 <div key={item.label} className="inset-panel rounded-xl px-2 py-2">
@@ -267,6 +317,11 @@ export function TraineeProgressRecord({
                   </p>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-3 rounded-2xl border border-cyan/25 bg-primary/10 p-3">
+              <p className="font-display text-sm font-semibold text-cyan">{performance.label}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{performance.detail}</p>
             </div>
 
             <ul className="mt-4 space-y-2">
@@ -349,27 +404,28 @@ export function TraineeProgressRecord({
                       </p>
                     ) : null}
                     {session.review !== "approved" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-2 w-full rounded-xl text-[12px]"
-                        disabled={whatsapp.isPending}
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              `Did ${traineeName} send the Session ${String(session.sessionNumber).padStart(2, "0")} review on WhatsApp? It will be approved.`,
-                            )
-                          )
-                            whatsapp.mutate(session.sessionNumber);
-                        }}
-                      >
-                        {whatsapp.isPending && whatsapp.variables === session.sessionNumber ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <MessageCircle className="h-3.5 w-3.5" />
-                        )}
-                        Approve review received on WhatsApp
-                      </Button>
+                      <div className="mt-2 grid grid-cols-[6rem_1fr] gap-2">
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={maxScoreForSession(session.sessionNumber)}
+                          value={whatsappScores[session.sessionNumber] ?? ""}
+                          onChange={(event) => setWhatsappScores((current) => ({ ...current, [session.sessionNumber]: event.target.value }))}
+                          placeholder={`0–${maxScoreForSession(session.sessionNumber)}`}
+                          aria-label={`Session ${session.sessionNumber} WhatsApp review marks`}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl text-[12px]"
+                          disabled={whatsapp.isPending || !(whatsappScores[session.sessionNumber] ?? "")}
+                          onClick={() => whatsapp.mutate({ sessionNumber: session.sessionNumber, score: Number(whatsappScores[session.sessionNumber]) })}
+                        >
+                          {whatsapp.isPending && whatsapp.variables?.sessionNumber === session.sessionNumber ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5" />}
+                          Approve WhatsApp review
+                        </Button>
+                      </div>
                     ) : null}
                     {session.uplineNote ? (
                       <p className="mt-1 text-[11px] text-primary">Note: {session.uplineNote}</p>

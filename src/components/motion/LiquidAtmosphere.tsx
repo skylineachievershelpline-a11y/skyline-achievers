@@ -16,6 +16,11 @@ export function LiquidAtmosphere() {
     let frame = 0;
     let running = true;
 
+    const cancelFrame = () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
     const resize = () => {
       ratio = Math.min(window.devicePixelRatio || 1, 1.5);
       width = window.innerWidth;
@@ -97,27 +102,36 @@ export function LiquidAtmosphere() {
       const isVisible = !document.hidden;
       if (isVisible) {
         running = true;
-        resize(); // Re-sync dimensions on resume
-        if (!reduceMotion) {
-          window.cancelAnimationFrame(frame);
-          frame = window.requestAnimationFrame(draw);
-        }
+        resize();
+        cancelFrame();
+        draw(0);
       } else {
         running = false;
-        window.cancelAnimationFrame(frame);
+        cancelFrame();
       }
+    };
+
+    const onRestore = () => {
+      running = true;
+      resize();
+      cancelFrame();
+      draw(0);
     };
 
     resize();
     draw(0);
     window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("focus", onVisibility); // Also check on focus
+    window.addEventListener("focus", onRestore);
+    window.addEventListener("pageshow", onRestore);
+    window.addEventListener("orientationchange", onRestore, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       running = false;
-      window.cancelAnimationFrame(frame);
+      cancelFrame();
       window.removeEventListener("resize", resize);
-      window.removeEventListener("focus", onVisibility);
+      window.removeEventListener("focus", onRestore);
+      window.removeEventListener("pageshow", onRestore);
+      window.removeEventListener("orientationchange", onRestore);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

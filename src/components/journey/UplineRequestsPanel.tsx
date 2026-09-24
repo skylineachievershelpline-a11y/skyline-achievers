@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { VoiceRecorder } from "@/components/media/VoiceRecorder";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime12 } from "@/lib/format";
 import {
@@ -15,6 +17,7 @@ import {
   reviewSessionSubmission,
 } from "@/lib/journey.functions";
 import { uploadJourneyFile } from "./journey-upload";
+import { maxScoreForSession } from "@/lib/journey-scoring";
 
 /**
  * Requests waiting for the upline, right at the top of the dashboard: every
@@ -31,6 +34,7 @@ export function UplineRequestsPanel() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [voice, setVoice] = useState<File | null>(null);
+  const [score, setScore] = useState("");
 
   const { data } = useQuery({
     queryKey: ["upline-review-requests"],
@@ -41,6 +45,7 @@ export function UplineRequestsPanel() {
   function refresh() {
     setNote("");
     setVoice(null);
+    setScore("");
     setOpenId(null);
     void queryClient.invalidateQueries({ queryKey: ["upline-review-requests"] });
     void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
@@ -55,6 +60,7 @@ export function UplineRequestsPanel() {
           decision: values.decision,
           note: note.trim() || null,
           voicePath,
+          score: values.decision === "approved" ? Number(score) : null,
         },
       } as never);
     },
@@ -114,6 +120,7 @@ export function UplineRequestsPanel() {
                   onClick={() => {
                     setNote("");
                     setVoice(null);
+                    setScore("");
                     setOpenId(open ? null : row.reviewId);
                   }}
                 >
@@ -151,11 +158,26 @@ export function UplineRequestsPanel() {
                     className="rounded-2xl"
                   />
                   <VoiceRecorder value={voice} onChange={setVoice} label="Voice reply (optional)" />
+                  <div className="inset-panel space-y-2 rounded-2xl p-3">
+                    <Label htmlFor={`score-${row.reviewId}`}>
+                      Session marks (maximum {maxScoreForSession(row.sessionNumber)})
+                    </Label>
+                    <Input
+                      id={`score-${row.reviewId}`}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={maxScoreForSession(row.sessionNumber)}
+                      value={score}
+                      onChange={(event) => setScore(event.target.value)}
+                      placeholder={`0–${maxScoreForSession(row.sessionNumber)}`}
+                    />
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant="brand"
                       className="flex-1 rounded-2xl"
-                      disabled={send.isPending}
+                      disabled={send.isPending || score === ""}
                       onClick={() =>
                         send.mutate({ reviewId: row.reviewId, decision: "approved" })
                       }

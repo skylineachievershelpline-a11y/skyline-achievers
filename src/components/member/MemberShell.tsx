@@ -171,6 +171,9 @@ export function MemberShell({
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {
+    // Server rendering cannot see the browser session or its cached access
+    // rules. Keep the first browser render identical, then apply locks.
+    if (!portalReady) return null;
     if (to !== "/dashboard" && hiddenMenu.some((key) => to === key || to.startsWith(`${key}/`))) {
       return "This section is not available for your account.";
     }

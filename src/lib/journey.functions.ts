@@ -401,6 +401,10 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
         tag: `payment-${trainee.id}`,
       });
     }
+    {
+      const { pushToAdmin } = await import("./push.server");
+      await pushToAdmin({ title: "New payment proof", body: `${trainee.full_name} submitted a payment proof to verify.`, tag: "admin-payment" });
+    }
     return { ok: true as const };
   });
 

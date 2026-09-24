@@ -273,5 +273,9 @@ export const submitCoursePayment = createServerFn({ method: "POST" })
     } else {
       await supabaseAdmin.from("course_enrollments").insert(payload);
     }
+    {
+      const { pushToAdmin } = await import("./push.server");
+      await pushToAdmin({ title: "New course enrollment", body: "A member requested a paid course. Please verify the payment.", tag: "admin-course" });
+    }
     return { ok: true as const, alreadyApproved: false };
   });

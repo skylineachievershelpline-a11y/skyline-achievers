@@ -365,5 +365,7 @@ function LandingPage() {
         </DialogContent>
       </Dialog>
     </main>
+    </>
   );
+
 }

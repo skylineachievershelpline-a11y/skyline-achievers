@@ -104,9 +104,19 @@ export async function rollMissedSessions(traineeId: string, nowMs = Date.now()) 
       .select("id, session_number, scheduled_at")
       .eq("trainee_id", traineeId)
       .order("session_number", { ascending: true }),
-    admin.from("trainee_session_reviews").select("session_number").eq("trainee_id", traineeId),
+    admin
+      .from("trainee_session_reviews")
+      .select("session_number, status, created_at")
+      .eq("trainee_id", traineeId)
+      .order("created_at", { ascending: true }),
   ]);
-  const reviewed = new Set(((reviews ?? []) as any[]).map((row) => Number(row.session_number)));
+  // Latest review per session; a rejected review counts as "not reviewed" so
+  // the session rolls to the next day and is watched again.
+  const latest = new Map<number, string>();
+  for (const row of (reviews ?? []) as any[]) latest.set(Number(row.session_number), row.status);
+  const reviewed = new Set(
+    [...latest.entries()].filter(([, status]) => status !== "rejected").map(([n]) => n),
+  );
   const rows = ((schedule ?? []) as any[]).filter((row) => row.scheduled_at);
   const current = rows.find((row) => !reviewed.has(Number(row.session_number)));
   if (!current) return false;

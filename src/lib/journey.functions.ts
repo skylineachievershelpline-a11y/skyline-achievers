@@ -607,9 +607,6 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     if (!review) throw new Error("That review no longer exists.");
     await ownTrainee(member.id, review.trainee_id);
 
-    if (data.decision === "rejected" && !data.note && !data.voicePath) {
-      throw new Error("Add a written note or a voice note so the trainee knows what to improve.");
-    }
 
     const { error } = await admin
       .from("trainee_session_reviews")

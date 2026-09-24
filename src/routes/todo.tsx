@@ -44,13 +44,14 @@ function TodoPage() {
   }
 
   const progress = data?.progress ?? null;
+  const isFbo = Number(data?.member?.level?.rank_order ?? 0) >= 2;
 
   return (
     <MemberShell title="To-do List" subtitle="Your tasks for today" executive>
       <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 sm:px-4">
         <DailyTodoList
-          remaining={progress && !progress.feeComplete ? progress.feeRemaining : null}
-          deadline={progress?.dueAt ?? null}
+          remaining={!isFbo && progress && !progress.feeComplete ? progress.feeRemaining : null}
+          deadline={!isFbo ? progress?.dueAt ?? null : null}
         />
       </section>
     </MemberShell>

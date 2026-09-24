@@ -302,5 +302,9 @@ export const submitLeaveApplication = createServerFn({ method: "POST" })
       reason: data.reason,
     });
     if (error) throw new Error(error.message);
+    {
+      const { pushToAdmin } = await import("./push.server");
+      await pushToAdmin({ title: "New leave application", body: `${(member as any).full_name ?? "A member"} applied for leave.`, tag: "admin-leave" });
+    }
     return { ok: true as const };
   });

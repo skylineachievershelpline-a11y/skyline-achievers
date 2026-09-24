@@ -163,7 +163,7 @@ export const getDailyReport = createServerFn({ method: "GET" })
       reports: (reports ?? []) as Record<string, unknown>[],
       leaves: (leaves ?? []) as { from_date: string; to_date: string; status?: string | null }[],
       endDate: today,
-      days: 30,
+      days: 121,
       joinedDate: joinedDay,
     });
 

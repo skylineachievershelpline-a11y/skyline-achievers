@@ -256,9 +256,9 @@
 - [x] Separate Skyline Admin app with its own install and admin alerts
 
 ## Senior report, daily history and install polish (Sep 24)
-- [ ] Add upline-assigned marks across seven sessions totaling 100
-- [ ] Show senior-facing performance category, attendance timing, total marks and every review attachment
-- [ ] Show every selected FBO report date as submitted, Absent or approved Leave
-- [ ] Keep the animated Skyline background intact after leaving and reopening the app
-- [ ] Replace the lower landing install section with a premium swinging tag attached beside the logo
-- [ ] Keep one-tap installation where supported and show accurate phone-specific steps otherwise
+- [x] Add upline-assigned marks across seven sessions totaling 100
+- [x] Show senior-facing performance category, attendance timing, total marks and every review attachment
+- [x] Show every selected FBO report date as submitted, Absent or approved Leave
+- [x] Keep the animated Skyline background intact after leaving and reopening the app
+- [x] Replace the lower landing install section with a premium swinging tag attached beside the logo
+- [x] Keep one-tap installation where supported and show accurate phone-specific steps otherwise

@@ -32,6 +32,7 @@ export type PaymentSlipData = {
     pending: number;
     twoCc: number;
     mentorshipPaid: number;
+    status?: "report" | "leave" | "absent";
   }> | null;
   submittedAt: Date;
 };
@@ -67,6 +68,8 @@ function details(data: PaymentSlipData): Array<[string, string]> {
       ["Rank", data.rank ?? "—"],
       ["Report Period", data.rangeLabel ?? "—"],
       ["Total Days", String(rows.length)],
+      ["Absent Days", String(rows.filter((row) => row.status === "absent").length)],
+      ["Approved Leave", String(rows.filter((row) => row.status === "leave").length)],
       ["Leads", String(total("leads"))],
       ["Response", String(total("responses"))],
       ["Enrollments", String(total("enrollments"))],

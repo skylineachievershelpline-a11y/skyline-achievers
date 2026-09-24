@@ -74,7 +74,7 @@ async function buildJourney(traineeId: string) {
     admin
       .from("trainee_session_reviews")
       .select(
-        "id, session_number, body, image_path, image_paths, voice_path, status, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at, source",
+        "id, session_number, body, image_path, image_paths, voice_path, status, score, upline_note, upline_voice_path, reviewed_at, created_at, submitted_at, source",
       )
       .eq("trainee_id", traineeId)
       .order("created_at", { ascending: false }),
@@ -125,6 +125,7 @@ async function buildJourney(traineeId: string) {
       openedAt: openedBy.get(row.id as string) ?? null,
       reviewSubmittedAt: (review?.submitted_at ?? review?.created_at ?? null) as string | null,
       reviewSource: (review?.source ?? null) as string | null,
+      score: review?.score == null ? null : Number(review.score),
     });
   }
 
@@ -431,11 +432,12 @@ export const getMentorshipSeats = createServerFn({ method: "GET" }).handler(asyn
  */
 export const approveWhatsappReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { traineeId: string; sessionNumber: number; note?: string | null }) =>
+  .inputValidator((data: { traineeId: string; sessionNumber: number; score: number; note?: string | null }) =>
     z
       .object({
         traineeId: uuid,
         sessionNumber: z.number().int().min(1).max(7),
+        score: z.number().int().min(0).max(15),
         note: z.string().trim().max(2000).nullish(),
       })
       .parse(data),
@@ -447,6 +449,9 @@ export const approveWhatsappReview = createServerFn({ method: "POST" })
     const { loadJourneySessions } = await import("./journey.server");
     const admin = supabaseAdmin as any;
     const now = new Date().toISOString();
+    const { maxScoreForSession } = await import("./journey-scoring");
+    const maximum = maxScoreForSession(data.sessionNumber);
+    if (data.score > maximum) throw new Error(`Session ${data.sessionNumber} allows up to ${maximum} marks.`);
 
     const { basic } = await loadJourneySessions();
     const session = basic.find(
@@ -469,6 +474,7 @@ export const approveWhatsappReview = createServerFn({ method: "POST" })
       reviewed_at: now,
       reviewed_by: member.id,
       source: "whatsapp",
+      score: data.score,
     };
     const { error } = existing
       ? await admin.from("trainee_session_reviews").update(decision).eq("id", existing.id)
@@ -587,6 +593,7 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     (data: {
       reviewId: string;
       decision: "approved" | "rejected";
+      score?: number | null;
       note?: string | null;
       voicePath?: string | null;
     }) =>
@@ -594,6 +601,7 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
         .object({
           reviewId: uuid,
           decision: z.enum(["approved", "rejected"]),
+          score: z.number().int().min(0).max(15).nullish(),
           note: z.string().trim().max(2000).nullish(),
           voicePath: optionalPath,
         })
@@ -605,22 +613,34 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     const admin = supabaseAdmin as any;
     const { data: review } = await admin
       .from("trainee_session_reviews")
-      .select("id, trainee_id")
+      .select("id, trainee_id, session_number, status")
       .eq("id", data.reviewId)
       .maybeSingle();
     if (!review) throw new Error("That review no longer exists.");
     await ownTrainee(member.id, review.trainee_id);
 
+    if (data.decision === "approved") {
+      if (data.score == null) throw new Error("Add marks before approving this review.");
+      const { maxScoreForSession } = await import("./journey-scoring");
+      const maximum = maxScoreForSession(Number(review.session_number));
+      if (data.score > maximum) throw new Error(`This session allows up to ${maximum} marks.`);
+    }
 
+
+    const scoreOnly = review.status === "approved" && data.decision === "approved";
+    const update = scoreOnly
+      ? { score: data.score }
+      : {
+          status: data.decision,
+          score: data.decision === "approved" ? data.score : null,
+          upline_note: data.note ?? null,
+          upline_voice_path: data.voicePath ?? null,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: member.id,
+        };
     const { error } = await admin
       .from("trainee_session_reviews")
-      .update({
-        status: data.decision,
-        upline_note: data.note ?? null,
-        upline_voice_path: data.voicePath ?? null,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: member.id,
-      })
+      .update(update)
       .eq("id", data.reviewId);
     if (error) throw new Error(error.message);
 
@@ -634,16 +654,18 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
         .eq("trainee_id", review.trainee_id);
     }
 
-    const { pushToUsers } = await import("./push.server");
-    await pushToUsers([review.trainee_id], {
-      title: data.decision === "approved" ? "Review approved" : "Review needs changes",
-      body:
-        data.decision === "approved"
-          ? "Your upline approved your session review. Your next session is ready."
-          : "Your upline asked for changes. Open the session to read the note.",
-      path: "/beginners",
-      tag: `review-decision-${review.trainee_id}`,
-    });
+    if (!scoreOnly) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([review.trainee_id], {
+        title: data.decision === "approved" ? "Review approved" : "Review needs changes",
+        body:
+          data.decision === "approved"
+            ? "Your upline approved your session review. Your next session is ready."
+            : "Your upline asked for changes. Open the session to read the note.",
+        path: "/beginners",
+        tag: `review-decision-${review.trainee_id}`,
+      });
+    }
     return { ok: true as const };
   });
 
@@ -1039,6 +1061,7 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
 
     return {
       status: "ok" as const,
+      generatedAt: link.created_at as string,
       trainee: {
         name: trainee.full_name as string,
         code: trainee.trainee_code as string,
@@ -1085,6 +1108,10 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
           late,
           review: session.review,
           reviewBody: session.reviewBody,
+          reviewImageUrls: session.reviewImageUrls ?? [],
+          reviewVoiceUrl: session.reviewVoiceUrl,
+          uplineVoiceUrl: session.uplineVoiceUrl,
+          score: session.score ?? null,
           reviewedAt: session.reviewedAt,
           uplineNote: session.uplineNote,
           reviewSource: session.reviewSource ?? null,

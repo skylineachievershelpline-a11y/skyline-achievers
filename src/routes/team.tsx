@@ -285,6 +285,10 @@ function TeamPage() {
 function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }) {
   const load = useServerFn(getMyFboTeam);
   const [search, setSearch] = useState("");
+  const [showStats, setShowStats] = useState(false);
+  const [period, setPeriod] = useState<"all" | "today" | "week" | "month" | "custom">("all");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
   const { data, isPending } = useQuery({
     queryKey: ["my-fbo-team"],
     queryFn: () => load(),
@@ -301,7 +305,21 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
   }
 
   const everyone = (data?.team ?? []) as TreePerson[];
-  const group = everyone.filter((person) => person.kind === kind);
+  const today = new Date(Date.now() + 5 * 3600_000).toISOString().slice(0, 10);
+  const weekStart = new Date(Date.now() + 5 * 3600_000 - 6 * 86_400_000).toISOString().slice(0, 10);
+  const monthStart = `${today.slice(0, 8)}01`;
+  const range =
+    period === "today" ? [today, today]
+    : period === "week" ? [weekStart, today]
+    : period === "month" ? [monthStart, today]
+    : period === "custom" ? [customFrom || "0000-01-01", customTo || "9999-12-31"]
+    : null;
+  const group = everyone.filter((person) => {
+    if (person.kind !== kind) return false;
+    if (!range) return true;
+    const joined = String(person.createdAt ?? "").slice(0, 10);
+    return joined >= (range[0] ?? "") && joined <= (range[1] ?? "9999");
+  });
   const needle = search.trim().toLowerCase();
   const people = needle
     ? group.filter(
@@ -316,7 +334,7 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
   return (
     <>
       <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase text-primary">
               {mentorship ? "Personal Mentorship network" : "FBO network"}
@@ -325,20 +343,54 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
               {mentorship ? "Personal Mentorship tree" : "Your FBO team tree"}
             </h1>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {mentorship ? "Read-only · verified payment record" : "Read-only · last 30 days of reports"}
-          </p>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setShowStats((v) => !v)}>
+            {showStats ? "Hide team stats" : "Show team stats"}
+          </Button>
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat icon={<Users className="h-4 w-4" />} label="Total" value={stats?.total ?? 0} />
-          <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={stats?.direct ?? 0} />
-          <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
-          <Stat
-            icon={<CheckCircle2 className="h-4 w-4" />}
-            label="Enrollments"
-            value={stats?.enrollments ?? 0}
-          />
-        </div>
+        {showStats ? (
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Stat icon={<Users className="h-4 w-4" />} label="Total team" value={stats?.total ?? 0} />
+            <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={stats?.direct ?? 0} />
+            <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
+            <Stat
+              icon={<Ban className="h-4 w-4" />}
+              label="Inactive"
+              value={Math.max(0, (stats?.total ?? 0) - (stats?.active ?? 0))}
+            />
+          </div>
+        ) : null}
+        {mentorship ? (
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["all", "All"],
+                ["today", "Today"],
+                ["week", "Weekly"],
+                ["month", "Monthly"],
+                ["custom", "Custom"],
+              ] as const).map(([key, label]) => (
+                <Button
+                  key={key}
+                  size="sm"
+                  variant={period === key ? "default" : "outline"}
+                  className="rounded-2xl"
+                  onClick={() => setPeriod(key)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            {period === "custom" ? (
+              <div className="grid max-w-sm grid-cols-2 gap-2">
+                <Input type="date" value={customFrom} max={today} onChange={(e) => setCustomFrom(e.target.value)} aria-label="From date" />
+                <Input type="date" value={customTo} max={today} onChange={(e) => setCustomTo(e.target.value)} aria-label="To date" />
+              </div>
+            ) : null}
+            <p className="text-[11px] text-muted-foreground">
+              {group.length} member{group.length === 1 ? "" : "s"} joined in this period
+            </p>
+          </div>
+        ) : null}
       </section>
 
       <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">

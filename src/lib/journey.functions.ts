@@ -298,7 +298,7 @@ export const submitSessionReview = createServerFn({ method: "POST" })
       const { pushToUsers } = await import("./push.server");
       await pushToUsers([trainee.upline_id], {
         title: "New review to check",
-        body: `${trainee.full_name} submitted the Session ${data.sessionNumber} review.`,
+        body: `${trainee.full_name} ne Session ${String(data.sessionNumber).padStart(2, "0")} ka review bhej diya hai! Abhi check karein.`,
         path: "/dashboard",
         tag: `review-${trainee.id}`,
       });

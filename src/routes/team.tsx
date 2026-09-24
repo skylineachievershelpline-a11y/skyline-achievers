@@ -1,4 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
+import { TraineeDayTracker } from "@/components/journey/TraineeDayTracker";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -206,7 +207,10 @@ function TeamPage() {
       ) : null}
 
       {tab === "customers" ? (
-        <UplineActionQueue ready={ready} />
+        <>
+          <UplineActionQueue ready={ready} />
+          <TraineeDayTracker ready={ready} />
+        </>
       ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>

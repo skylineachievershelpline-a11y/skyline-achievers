@@ -15,6 +15,21 @@ export type TreePerson = {
   avatarUrl: string | null;
   createdAt: string;
   lastLoginAt: string | null;
+  payment: {
+    required: number;
+    verified: number;
+    remaining: number;
+    dueAt: string | null;
+    history: {
+      id: string;
+      purpose: string;
+      claimed: number;
+      verified: number;
+      status: string;
+      createdAt: string;
+      verifiedAt: string | null;
+    }[];
+  };
   report: {
     days: number;
     absentDays: number;
@@ -210,16 +225,22 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              {[
-                { label: "Leads", value: selected.report.leads },
-                { label: "Enroll", value: selected.report.enrollments },
-                { label: "2CC", value: selected.report.twoCc },
-                { label: "Response", value: selected.report.responses },
-                { label: "Pending", value: selected.report.pending },
-                { label: "Report days", value: selected.report.days },
-              ].map((item) => (
+              {(selected.kind === "mentorship"
+                ? [
+                    { label: "Required", value: `Rs. ${selected.payment.required.toLocaleString("en-PK")}` },
+                    { label: "Paid", value: `Rs. ${selected.payment.verified.toLocaleString("en-PK")}` },
+                    { label: "Remaining", value: `Rs. ${selected.payment.remaining.toLocaleString("en-PK")}` },
+                  ]
+                : [
+                    { label: "Leads", value: selected.report.leads },
+                    { label: "Enroll", value: selected.report.enrollments },
+                    { label: "2CC", value: selected.report.twoCc },
+                    { label: "Response", value: selected.report.responses },
+                    { label: "Pending", value: selected.report.pending },
+                    { label: "Report days", value: selected.report.days },
+                  ]).map((item) => (
                 <div key={item.label} className="inset-panel rounded-xl px-2 py-2">
-                  <p className="font-display text-lg font-semibold tabular-nums">{item.value}</p>
+                  <p className="break-words font-display text-sm font-semibold tabular-nums sm:text-lg">{item.value}</p>
                   <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
                     {item.label}
                   </p>
@@ -230,13 +251,44 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
             <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
               <p>Status: {selected.status === "active" ? "Active" : "Blocked"}</p>
               <p>Joined: {formatDate(selected.createdAt)}</p>
-              <p>Last report: {selected.report.lastDate ? formatDate(selected.report.lastDate) : "—"}</p>
-              <p>Leave days: {selected.report.absentDays}</p>
+              {selected.kind === "mentorship" ? (
+                <>
+                  <p>Payment status: {selected.payment.remaining === 0 ? "Completed" : "Incomplete"}</p>
+                  <p>Due date: {selected.payment.dueAt ? formatDate(selected.payment.dueAt) : "Not set"}</p>
+                </>
+              ) : (
+                <>
+                  <p>Last report: {selected.report.lastDate ? formatDate(selected.report.lastDate) : "—"}</p>
+                  <p>Leave days: {selected.report.absentDays}</p>
+                </>
+              )}
             </div>
 
             <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-primary">
-              Last 14 days · every day
+              {selected.kind === "mentorship" ? "Payment history" : "Last 14 days · every day"}
             </p>
+            {selected.kind === "mentorship" ? (
+              <div className="mt-2 space-y-2">
+                {selected.payment.history.length === 0 ? (
+                  <p className="rounded-xl border border-hairline px-3 py-4 text-center text-[11px] text-muted-foreground">
+                    No payment submissions yet. Verified paid amount is shown above.
+                  </p>
+                ) : selected.payment.history.map((row) => (
+                  <div key={row.id} className="inset-panel rounded-xl p-3 text-[11px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold">{row.purpose === "two_cc" ? "2CC" : "Personal Mentorship"}</p>
+                      <span className={row.status === "verified" ? "font-semibold text-cyan" : row.status === "rejected" ? "font-semibold text-destructive" : "font-semibold text-primary"}>
+                        {row.status === "verified" ? "Verified" : row.status === "rejected" ? "Rejected" : "Pending"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-muted-foreground">
+                      {formatDate(row.createdAt)} · Claimed Rs. {row.claimed.toLocaleString("en-PK")}
+                      {row.status === "verified" ? ` · Verified Rs. ${row.verified.toLocaleString("en-PK")}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="mt-2 overflow-x-auto rounded-xl border border-hairline">
               <table className="w-full text-[11px]">
                 <thead className="bg-surface/70 text-[10px] uppercase text-muted-foreground">
@@ -281,6 +333,7 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
                 </tbody>
               </table>
             </div>
+            )}
 
             <p className="mt-3 text-[10px] text-muted-foreground">
               Business information only. Personal details stay private and records here are

@@ -55,7 +55,9 @@ function SharedReportPage() {
   const scoredSessions = sessions.filter((session) => session.score != null).length;
   const totalScore = sessions.reduce((sum, session) => sum + Number(session.score ?? 0), 0);
   const performance = performanceCategory(totalScore, scoredSessions);
-  const attended = sessions.filter((session) => session.openedAt).length;
+  const attended = sessions.filter(
+    (session) => Boolean(session.openedAt) || session.review === "approved",
+  ).length;
   const onTime = sessions.filter(
     (session) => session.openedAt && Number(session.joinLateMinutes ?? 0) <= 10,
   ).length;
@@ -131,11 +133,11 @@ function SharedReportPage() {
                   />
                   <Row
                     label="Joined"
-                    value={
-                      session.openedAt
-                         ? `${formatDateTime(session.openedAt)} · ${attendanceCategory(session.joinLateMinutes, true)}${session.joinLateMinutes ? ` (${session.joinLateMinutes} min)` : ""}`
-                        : "not joined"
-                    }
+                    value={session.openedAt
+                      ? `${formatDateTime(session.openedAt)} · ${attendanceCategory(session.joinLateMinutes, true)}${session.joinLateMinutes ? ` (${session.joinLateMinutes} min)` : ""}`
+                      : session.review === "approved"
+                        ? `Attended · review approved${session.reviewedAt ? ` ${formatDateTime(session.reviewedAt)}` : ""}`
+                        : "Not attended"}
                   />
                   <Row
                     label="Review sent"

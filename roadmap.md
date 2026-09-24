@@ -268,3 +268,9 @@
 - [x] Center the notification permission popup in the currently visible phone screen
 - [x] Center the Preferred Customer journey popup in the currently visible screen
 - [x] Verify both overlays at phone size
+
+## Personal Mentorship records and attendance
+- [x] Replace Personal Mentorship working reports with verified payment and due details
+- [x] Keep working report details exclusive to FBO records
+- [x] Count upline-approved website and WhatsApp reviews as attended sessions
+- [ ] Verify the signed-in phone flow

@@ -63,7 +63,7 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
 
     // Walk the hierarchy level by level: direct members, then their members.
     const columns =
-      "id, member_id, full_name, phone, status, working_enabled, avatar_path, created_at, last_login_at, upline_id, levels:level_id (name, rank_order)";
+      "id, member_id, full_name, phone, status, working_enabled, avatar_path, created_at, last_login_at, upline_id, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, levels:level_id (name, rank_order)";
     const members: any[] = [];
     const seen = new Set<string>([member.id]);
     let frontier = [member.id];
@@ -88,19 +88,33 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
     const ids = members.map((row) => row.id as string);
     const from = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
     const reportMap = new Map<string, any[]>();
+    const paymentMap = new Map<string, any[]>();
     if (ids.length > 0) {
-      const { data: reports } = await (supabaseAdmin as any)
-        .from("member_daily_reports")
-        .select(
-          "member_id, report_date, leads_count, responses, enrollments, pending_count, two_cc, mentorship_paid, is_absent",
-        )
-        .in("member_id", ids)
-        .gte("report_date", from)
-        .order("report_date", { ascending: false });
+      const [{ data: reports }, { data: payments }] = await Promise.all([
+        (supabaseAdmin as any)
+          .from("member_daily_reports")
+          .select(
+            "member_id, report_date, leads_count, responses, enrollments, pending_count, two_cc, mentorship_paid, is_absent",
+          )
+          .in("member_id", ids)
+          .gte("report_date", from)
+          .order("report_date", { ascending: false }),
+        (supabaseAdmin as any)
+          .from("payment_submissions")
+          .select("id, payer_id, purpose, claimed_amount_pkr, verified_amount_pkr, status, created_at, verified_at")
+          .in("payer_id", ids)
+          .in("purpose", ["mentorship", "two_cc"])
+          .order("created_at", { ascending: false }),
+      ]);
       for (const row of reports ?? []) {
         const list = reportMap.get(row.member_id) ?? [];
         list.push(row);
         reportMap.set(row.member_id, list);
+      }
+      for (const row of payments ?? []) {
+        const list = paymentMap.get(row.payer_id) ?? [];
+        list.push(row);
+        paymentMap.set(row.payer_id, list);
       }
     }
 
@@ -125,8 +139,16 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
     const team = await Promise.all(
       members.map(async (row) => {
         const reports = reportMap.get(row.id) ?? [];
+        const payments = paymentMap.get(row.id) ?? [];
         const sum = (key: string) =>
           reports.reduce((total, entry) => total + Number(entry[key] ?? 0), 0);
+        const mentorshipRequired = Number(row.mentorship_fee_pkr ?? 0);
+        const mentorshipVerified = Math.max(
+          Number(row.mentorship_paid_pkr ?? 0),
+          payments
+            .filter((entry) => entry.purpose === "mentorship" && entry.status === "verified")
+            .reduce((total, entry) => total + Number(entry.verified_amount_pkr ?? 0), 0),
+        );
         return {
           id: row.id as string,
           memberId: row.member_id as string,
@@ -143,6 +165,21 @@ export const getMyFboTeam = createServerFn({ method: "GET" })
           avatarUrl: await signPath(AVATAR_BUCKET, row.avatar_path, 60 * 60),
           createdAt: row.created_at as string,
           lastLoginAt: (row.last_login_at ?? null) as string | null,
+          payment: {
+            required: mentorshipRequired,
+            verified: mentorshipVerified,
+            remaining: Math.max(0, mentorshipRequired - mentorshipVerified),
+            dueAt: (row.mentorship_due_at ?? null) as string | null,
+            history: payments.map((entry) => ({
+              id: entry.id as string,
+              purpose: entry.purpose as string,
+              claimed: Number(entry.claimed_amount_pkr ?? 0),
+              verified: Number(entry.verified_amount_pkr ?? 0),
+              status: entry.status as string,
+              createdAt: entry.created_at as string,
+              verifiedAt: (entry.verified_at ?? null) as string | null,
+            })),
+          },
           report: {
             days: reports.filter((entry) => !entry.is_absent).length,
             absentDays: reports.filter((entry) => entry.is_absent).length,

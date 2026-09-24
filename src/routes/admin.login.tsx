@@ -47,14 +47,15 @@ function AdminLoginPage() {
           await navigate({ to: "/admin", replace: true });
           return;
         }
-        setError("Session could not be saved. Please enter the passcode again.");
+        setError("Session could not be saved. Please sign in again.");
         return;
       }
       setError(
         result.reason === "throttled"
           ? "Too many attempts. Please wait a few minutes and try again."
-          : "Incorrect passcode.",
+          : "Incorrect username or password.",
       );
+
     } catch {
       setError("Could not open the panel. Please try again.");
     } finally {

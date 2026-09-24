@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { getUplineActionQueue } from "@/lib/journey.functions";
 import { TraineeProgressRecord } from "./TraineeProgressRecord";
 
-const DAYS = [1, 2, 3, 4, 5, 6, 7, 8];
 const pkt = (offsetDays = 0) =>
   new Date(Date.now() + 5 * 3600_000 - offsetDays * 86_400_000).toISOString().slice(0, 10);
 
@@ -40,6 +39,9 @@ export function TraineeDayTracker({ ready }: { ready: boolean }) {
     const joined = String(row.joinedAt ?? "").slice(0, 10);
     return joined >= (range[0] ?? "") && joined <= (range[1] ?? "9999");
   });
+  const dayCount = Math.max(4, ...((data?.items ?? []) as any[]).map((row) => Number(row.trainingDays ?? 4)));
+  const DAYS = [...Array.from({ length: dayCount }, (_, i) => i + 1), 99];
+  const label = (d: number) => (d === 99 ? "Training done" : `Day ${String(d).padStart(2, "0")}`);
   const rows = day ? all.filter((row) => row.currentDay === day) : all;
 
   return (
@@ -50,7 +52,7 @@ export function TraineeDayTracker({ ready }: { ready: boolean }) {
         </span>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Training tracker</p>
-          <p className="text-[11px] text-muted-foreground">Kon kis din par hai — tap a day to filter</p>
+          <p className="text-[11px] text-muted-foreground">Aaj kis din ki training hai — day par tap karein</p>
         </div>
       </div>
 
@@ -68,7 +70,7 @@ export function TraineeDayTracker({ ready }: { ready: boolean }) {
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
+      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5">
         {DAYS.map((d) => {
           const count = all.filter((row) => row.currentDay === d).length;
           const active = day === d;
@@ -79,7 +81,7 @@ export function TraineeDayTracker({ ready }: { ready: boolean }) {
               onClick={() => setDay(active ? null : d)}
               className={`glass-panel rounded-2xl p-2 text-center transition ${active ? "ring-2 ring-primary" : ""}`}
             >
-              <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{d === 8 ? "Session 08" : `Day ${String(d).padStart(2, "0")}`}</p>
+              <p className="text-[9px] uppercase tracking-wide text-muted-foreground">{label(d)}</p>
               <p className="font-display text-lg font-bold text-primary">{count}</p>
             </button>
           );
@@ -102,7 +104,7 @@ export function TraineeDayTracker({ ready }: { ready: boolean }) {
                   <p className="truncate text-[11px] text-muted-foreground">{row.code}</p>
                 </div>
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
-                  {row.currentDay === 8 ? "Session 08" : `Day ${String(row.currentDay).padStart(2, "0")}`}
+                  {label(row.currentDay)}
                 </span>
               </button>
             </li>

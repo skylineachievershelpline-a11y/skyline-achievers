@@ -31,7 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
-import { GenealogyTree, type TreePerson } from "@/components/team/GenealogyTree";
+import { GenealogyTree, personState, type TreePerson } from "@/components/team/GenealogyTree";
 import { UplineActionQueue } from "@/components/journey/UplineActionQueue";
 import { TraineeProgressRecord } from "@/components/journey/TraineeProgressRecord";
 import {
@@ -290,9 +290,6 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
   const load = useServerFn(getMyFboTeam);
   const [search, setSearch] = useState("");
   const [showStats, setShowStats] = useState(false);
-  const [period, setPeriod] = useState<"all" | "today" | "week" | "month" | "custom">("all");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
   const { data, isPending } = useQuery({
     queryKey: ["my-fbo-team"],
     queryFn: () => load(),
@@ -309,21 +306,7 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
   }
 
   const everyone = (data?.team ?? []) as TreePerson[];
-  const today = new Date(Date.now() + 5 * 3600_000).toISOString().slice(0, 10);
-  const weekStart = new Date(Date.now() + 5 * 3600_000 - 6 * 86_400_000).toISOString().slice(0, 10);
-  const monthStart = `${today.slice(0, 8)}01`;
-  const range =
-    period === "today" ? [today, today]
-    : period === "week" ? [weekStart, today]
-    : period === "month" ? [monthStart, today]
-    : period === "custom" ? [customFrom || "0000-01-01", customTo || "9999-12-31"]
-    : null;
-  const group = everyone.filter((person) => {
-    if (person.kind !== kind) return false;
-    if (!range) return true;
-    const joined = String(person.createdAt ?? "").slice(0, 10);
-    return joined >= (range[0] ?? "") && joined <= (range[1] ?? "9999");
-  });
+  const group = everyone.filter((person) => person.kind === kind);
   const needle = search.trim().toLowerCase();
   const people = needle
     ? group.filter(
@@ -332,7 +315,6 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
           person.fullName.toLowerCase().includes(needle),
       )
     : group;
-  const stats = (kind === "fbo" ? data?.stats : data?.mentorshipStats) as any;
   const mentorship = kind === "mentorship";
 
   return (
@@ -352,48 +334,23 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
           </Button>
         </div>
         {showStats ? (
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat icon={<Users className="h-4 w-4" />} label="Total team" value={stats?.total ?? 0} />
-            <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={stats?.direct ?? 0} />
-            <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
-            <Stat
-              icon={<Ban className="h-4 w-4" />}
-              label="Inactive"
-              value={Math.max(0, (stats?.total ?? 0) - (stats?.active ?? 0))}
-            />
-          </div>
-        ) : null}
-        {mentorship ? (
-          <div className="mt-4 space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {([
-                ["all", "All"],
-                ["today", "Today"],
-                ["week", "Weekly"],
-                ["month", "Monthly"],
-                ["custom", "Custom"],
-              ] as const).map(([key, label]) => (
-                <Button
-                  key={key}
-                  size="sm"
-                  variant={period === key ? "default" : "outline"}
-                  className="rounded-2xl"
-                  onClick={() => setPeriod(key)}
-                >
-                  {label}
-                </Button>
-              ))}
+          mentorship ? (
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Stat icon={<Users className="h-4 w-4" />} label="Total persons" value={group.length} />
+              <Stat icon={<UserCheck className="h-4 w-4" />} label="Full fee paid" value={group.filter((p) => (p.payment?.required ?? 0) > 0 && (p.payment?.verified ?? 0) === (p.payment?.required ?? 0)).length} />
+              <Stat icon={<Ban className="h-4 w-4" />} label="Pending / half" value={group.filter((p) => (p.payment?.verified ?? 0) < (p.payment?.required ?? 0)).length} />
+              <Stat icon={<UserPlus className="h-4 w-4" />} label="Paid extra" value={group.filter((p) => (p.payment?.required ?? 0) > 0 && (p.payment?.verified ?? 0) > (p.payment?.required ?? 0)).length} />
             </div>
-            {period === "custom" ? (
-              <div className="grid max-w-sm grid-cols-2 gap-2">
-                <Input type="date" value={customFrom} max={today} onChange={(e) => setCustomFrom(e.target.value)} aria-label="From date" />
-                <Input type="date" value={customTo} max={today} onChange={(e) => setCustomTo(e.target.value)} aria-label="To date" />
-              </div>
-            ) : null}
-            <p className="text-[11px] text-muted-foreground">
-              {group.length} member{group.length === 1 ? "" : "s"} joined in this period
-            </p>
-          </div>
+          ) : (
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Stat icon={<Users className="h-4 w-4" />} label="Total team" value={group.length} />
+              <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={group.filter((p) => personState(p) === "active").length} />
+              <Stat icon={<Ban className="h-4 w-4" />} label="Inactive" value={group.filter((p) => personState(p) === "inactive").length} />
+              <Stat icon={<CalendarDays className="h-4 w-4" />} label="On leave" value={group.filter((p) => personState(p) === "leave").length} />
+              <Stat icon={<UserPlus className="h-4 w-4" />} label="Direct" value={group.filter((p) => p.uplineId === (data?.upline as any)?.id).length} />
+              <Stat icon={<Users className="h-4 w-4" />} label="Indirect" value={group.filter((p) => p.uplineId !== (data?.upline as any)?.id).length} />
+            </div>
+          )
         ) : null}
       </section>
 

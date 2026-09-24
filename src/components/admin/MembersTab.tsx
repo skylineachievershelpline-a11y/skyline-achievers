@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
+import { formatRankName } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

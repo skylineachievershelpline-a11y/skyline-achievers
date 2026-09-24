@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
-  Download,
   GraduationCap,
   LogIn,
   Smartphone,

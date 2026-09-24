@@ -613,7 +613,7 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     const admin = supabaseAdmin as any;
     const { data: review } = await admin
       .from("trainee_session_reviews")
-      .select("id, trainee_id, session_number")
+      .select("id, trainee_id, session_number, status")
       .eq("id", data.reviewId)
       .maybeSingle();
     if (!review) throw new Error("That review no longer exists.");
@@ -627,16 +627,20 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     }
 
 
+    const scoreOnly = review.status === "approved" && data.decision === "approved";
+    const update = scoreOnly
+      ? { score: data.score }
+      : {
+          status: data.decision,
+          score: data.decision === "approved" ? data.score : null,
+          upline_note: data.note ?? null,
+          upline_voice_path: data.voicePath ?? null,
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: member.id,
+        };
     const { error } = await admin
       .from("trainee_session_reviews")
-      .update({
-        status: data.decision,
-        score: data.decision === "approved" ? data.score : null,
-        upline_note: data.note ?? null,
-        upline_voice_path: data.voicePath ?? null,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: member.id,
-      })
+      .update(update)
       .eq("id", data.reviewId);
     if (error) throw new Error(error.message);
 
@@ -650,16 +654,18 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
         .eq("trainee_id", review.trainee_id);
     }
 
-    const { pushToUsers } = await import("./push.server");
-    await pushToUsers([review.trainee_id], {
-      title: data.decision === "approved" ? "Review approved" : "Review needs changes",
-      body:
-        data.decision === "approved"
-          ? "Your upline approved your session review. Your next session is ready."
-          : "Your upline asked for changes. Open the session to read the note.",
-      path: "/beginners",
-      tag: `review-decision-${review.trainee_id}`,
-    });
+    if (!scoreOnly) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([review.trainee_id], {
+        title: data.decision === "approved" ? "Review approved" : "Review needs changes",
+        body:
+          data.decision === "approved"
+            ? "Your upline approved your session review. Your next session is ready."
+            : "Your upline asked for changes. Open the session to read the note.",
+        path: "/beginners",
+        tag: `review-decision-${review.trainee_id}`,
+      });
+    }
     return { ok: true as const };
   });
 
@@ -836,6 +842,7 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
     return {
       status: "ok" as const,
+      generatedAt: link.created_at as string,
       session: {
         id: row.id as string,
         title: row.title as string,

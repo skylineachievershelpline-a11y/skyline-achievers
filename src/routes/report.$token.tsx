@@ -79,6 +79,7 @@ function SharedReportPage() {
             <div className="mt-3">
               <Row label="Status" value={data.trainee.status} />
               <Row label="Joined" value={formatDateTime(data.trainee.joinedAt)} />
+               <Row label="Report generated" value={formatDateTime(data.generatedAt)} />
               <Row
                 label="Upline"
                 value={data.upline ? `${data.upline.name} · ${data.upline.code}` : "—"}

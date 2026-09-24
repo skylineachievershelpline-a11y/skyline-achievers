@@ -151,6 +151,13 @@ function LandingPage() {
     return () => window.removeEventListener("scroll", update);
   }, []);
 
+  // Installed app: iOS reports standalone on the navigator, not the media query.
+  useEffect(() => {
+    if ((window.navigator as unknown as { standalone?: boolean }).standalone === true) {
+      document.documentElement.classList.add("is-installed-app");
+    }
+  }, []);
+
   if (launching) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
@@ -161,7 +168,16 @@ function LandingPage() {
   }
 
   return (
-    <main className="motion-scope cinematic-landing relative min-h-screen overflow-hidden">
+    <>
+    {/* Installed app: no marketing page — sign in straight away. */}
+    <main className="app-shell-only min-h-screen flex-col items-center justify-center gap-6 bg-background px-5 py-10">
+      <BrandLogo size="lg" />
+      <p className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">{BRAND.tagline}</p>
+      <div className="w-full max-w-sm">
+        <MemberLoginCard />
+      </div>
+    </main>
+    <main className="landing-web-only motion-scope cinematic-landing relative min-h-screen overflow-hidden">
       <section className="cinematic-hero relative flex min-h-[92svh] flex-col overflow-hidden border-b border-hairline shadow-lift">
         <img
           src={skylineBackground}

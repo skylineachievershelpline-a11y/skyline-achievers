@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   CheckCircle2,
+  ChevronDown,
   Clock,
   Copy,
   Link2,
@@ -9,11 +10,14 @@ import {
   MessageCircle,
   ShieldOff,
   X,
+  XCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime12 } from "@/lib/format";
 import { SESSION_WINDOW_HOURS } from "@/lib/journey";
 import {
@@ -21,8 +25,122 @@ import {
   createTraineeReportLink,
   getTraineeJourneyForUpline,
   getTraineeReportLinks,
+  reviewSessionSubmission,
   setTraineeReportLinkRevoked,
 } from "@/lib/journey.functions";
+
+/** Hidden by default: "Show review" reveals text, pictures and voice note plus decisions. */
+function ReviewDetails({
+  session,
+  onDone,
+}: {
+  session: any;
+  traineeId: string;
+  onDone: () => void;
+}) {
+  const [open, setOpen] = useState(session.review === "pending");
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState("");
+  const decide = useServerFn(reviewSessionSubmission);
+  const mutation = useMutation({
+    mutationFn: (decision: "approved" | "rejected") =>
+      decide({
+        data: { reviewId: session.reviewId, decision, note: reason.trim() || null },
+      } as never),
+    onSuccess: (_r, decision) => {
+      toast.success(decision === "approved" ? "Review approved" : "Review rejected");
+      setRejecting(false);
+      setReason("");
+      onDone();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const images: string[] = session.reviewImageUrls?.length
+    ? session.reviewImageUrls
+    : session.reviewImageUrl
+      ? [session.reviewImageUrl]
+      : [];
+
+  return (
+    <div className="mt-2">
+      <Button
+        size="sm"
+        variant={open ? "outline" : "brand"}
+        className="w-full rounded-xl text-[12px]"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        {open ? "Hide review" : "Show review"}
+      </Button>
+      {open ? (
+        <div className="mt-2 space-y-2 rounded-2xl border border-hairline p-3">
+          {session.reviewBody ? (
+            <p className="whitespace-pre-wrap rounded-xl bg-surface-2 p-2 text-[12px]">
+              {session.reviewBody}
+            </p>
+          ) : null}
+          {images.length ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {images.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noreferrer">
+                  <img src={url} alt="Review" className="aspect-square w-full rounded-xl object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : null}
+          {session.reviewVoiceUrl ? (
+            <audio controls src={session.reviewVoiceUrl} className="w-full" />
+          ) : null}
+          {!session.reviewBody && !images.length && !session.reviewVoiceUrl ? (
+            <p className="text-[11px] text-muted-foreground">No review content saved.</p>
+          ) : null}
+
+          {session.review === "pending" ? (
+            rejecting ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Reason (optional)"
+                  className="rounded-xl text-sm"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="rounded-xl" onClick={() => setRejecting(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="rounded-xl"
+                    disabled={mutation.isPending}
+                    onClick={() => mutation.mutate("rejected")}
+                  >
+                    {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="brand"
+                  className="rounded-xl"
+                  disabled={mutation.isPending}
+                  onClick={() => mutation.mutate("approved")}
+                >
+                  {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Approve
+                </Button>
+                <Button variant="outline" className="rounded-xl" onClick={() => setRejecting(true)}>
+                  <XCircle className="h-4 w-4" /> Reject
+                </Button>
+              </div>
+            )
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 const STATUS_LABEL: Record<string, string> = {
   none: "No review yet",
@@ -99,8 +217,8 @@ export function TraineeProgressRecord({
   const sessions = (data?.sessions ?? []) as any[];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center">
-      <div className="raised-panel metal-edge max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-5">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-background/90 p-3 pt-4 backdrop-blur-sm">
+      <div className="raised-panel metal-edge w-full max-w-2xl rounded-3xl p-5 animate-rise-in">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
@@ -214,10 +332,16 @@ export function TraineeProgressRecord({
                         {session.reviewedAt ? formatDateTime12(session.reviewedAt) : "Pending"}
                       </p>
                     </div>
-                    {session.reviewBody ? (
-                      <p className="mt-2 whitespace-pre-wrap rounded-xl bg-surface-2 p-2 text-[11px]">
-                        {session.reviewBody}
-                      </p>
+                    {session.reviewId ? (
+                      <ReviewDetails
+                        session={session}
+                        traineeId={traineeId}
+                        onDone={() => {
+                          void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });
+                          void queryClient.invalidateQueries({ queryKey: ["upline-review-requests"] });
+                          void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
+                        }}
+                      />
                     ) : null}
                     {session.reviewSource === "whatsapp" ? (
                       <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">

@@ -243,3 +243,14 @@
 - [x] Reporting during approved leave cancels/shortens that leave
 - [x] Payment claims pinned at the top of the admin panel
 - [x] Voice guide button always visible in the member header (Urdu/English)
+
+## Complete build list (Sep 24)
+- [x] Action Required shows only "Review now" for submitted reviews
+- [x] "Show review" per session with text / pictures / voice + Approve / Reject (reason optional)
+- [x] Upline alert + push on new review
+- [x] Session stays open 3h after submit; pending after window; rejected rolls to next day; approved stays open
+- [x] Journey record opens full-screen from the top
+- [x] Settings in side menu: profile, switch account, add account, log out
+- [x] App opens straight to the dashboard when signed in
+- [x] Offline mode: saved screens + data, offline banner
+- [x] Separate Skyline Admin app with its own install and admin alerts

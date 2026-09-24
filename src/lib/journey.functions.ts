@@ -298,7 +298,7 @@ export const submitSessionReview = createServerFn({ method: "POST" })
       const { pushToUsers } = await import("./push.server");
       await pushToUsers([trainee.upline_id], {
         title: "New review to check",
-        body: `${trainee.full_name} submitted the Session ${data.sessionNumber} review.`,
+        body: `${trainee.full_name} ne Session ${String(data.sessionNumber).padStart(2, "0")} ka review bhej diya hai! Abhi check karein.`,
         path: "/dashboard",
         tag: `review-${trainee.id}`,
       });
@@ -400,6 +400,10 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
         path: "/dashboard",
         tag: `payment-${trainee.id}`,
       });
+    }
+    {
+      const { pushToAdmin } = await import("./push.server");
+      await pushToAdmin({ title: "New payment proof", body: `${trainee.full_name} submitted a payment proof to verify.`, tag: "admin-payment" });
     }
     return { ok: true as const };
   });
@@ -607,9 +611,6 @@ export const reviewSessionSubmission = createServerFn({ method: "POST" })
     if (!review) throw new Error("That review no longer exists.");
     await ownTrainee(member.id, review.trainee_id);
 
-    if (data.decision === "rejected" && !data.note && !data.voicePath) {
-      throw new Error("Add a written note or a voice note so the trainee knows what to improve.");
-    }
 
     const { error } = await admin
       .from("trainee_session_reviews")

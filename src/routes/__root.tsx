@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { OfflineSupport } from "@/components/OfflineSupport";
 import {
   Outlet,
   Link,
@@ -6,6 +7,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -165,6 +167,15 @@ function RootComponent() {
     else window.addEventListener("load", register, { once: true });
   }, []);
 
+  // The admin area installs as its own "Skyline Admin" app.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    if (!link) return;
+    const href = pathname.startsWith("/admin") ? "/admin-manifest.webmanifest" : "/manifest.webmanifest";
+    if (link.getAttribute("href") !== href) link.setAttribute("href", href);
+  }, [pathname]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LiquidAtmosphere />
@@ -172,6 +183,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <UploadDock />
+      <OfflineSupport />
       <Toaster />
     </QueryClientProvider>
   );

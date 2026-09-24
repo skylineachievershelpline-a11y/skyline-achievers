@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { AiQuestionsTab } from "@/components/admin/AiQuestionsTab";
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
+import { AdminAppCard } from "@/components/admin/AdminAppCard";
 import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
 import { JourneyTab } from "@/components/admin/JourneyTab";
 import { InspirationTab } from "@/components/admin/InspirationTab";
@@ -122,6 +123,7 @@ function AdminPage() {
           </Button>
         </header>
 
+        <AdminAppCard />
         <ApprovalsBar />
 
         <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

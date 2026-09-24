@@ -1,3 +1,6 @@
+import { Settings as SettingsIcon } from "lucide-react";
+import { AccountSettings } from "@/components/member/AccountSettings";
+import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -351,7 +354,15 @@ function BeginnersPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  function signOut() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  useEffect(() => {
+    const t = (data as any)?.trainee;
+    if (t) void rememberCurrentAccount({ name: t.fullName, code: t.code ?? t.traineeCode, kind: "trainee" });
+  }, [data]);
+
+  async function signOut() {
+    const { data: s } = await supabase.auth.getSession();
+    if (s.session) forgetAccount(s.session.user.id);
     fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 
@@ -498,14 +509,26 @@ function BeginnersPage() {
           </Link>
           <button
             type="button"
-            onClick={() => void signOut()}
-            className="logout-button shrink-0 px-3 py-2 text-xs"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Settings"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-metal/30 bg-surface-2 text-muted-foreground hover:text-brand"
           >
-            <LogOut className="h-4 w-4" />
-            Logout
+            <SettingsIcon className="h-4 w-4" />
           </button>
         </div>
       </header>
+      {settingsOpen ? (
+        <div className="fixed inset-0 z-[210]">
+          <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-hidden rounded-l-3xl border-l border-hairline">
+            <AccountSettings
+              currentName={trainee.fullName}
+              currentCode={(trainee as any).code ?? (trainee as any).traineeCode ?? ""}
+              onClose={() => setSettingsOpen(false)}
+              onSignOut={() => void signOut()}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {portalReady && typeof document !== "undefined"
         ? createPortal(

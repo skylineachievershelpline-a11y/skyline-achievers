@@ -186,5 +186,9 @@ export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
       status: "pending",
     });
     if (error) throw new Error(error.message);
+    {
+      const { pushToAdmin } = await import("./push.server");
+      await pushToAdmin({ title: "New payment proof", body: `${member.full_name} submitted a payment proof to verify.`, tag: "admin-payment" });
+    }
     return { ok: true as const };
   });

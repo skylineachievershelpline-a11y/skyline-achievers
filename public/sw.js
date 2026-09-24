@@ -1,12 +1,15 @@
-// Service worker: makes the site installable, serves a cached shell when the
-// member is offline, and shows push notifications while the app is closed.
-// Training media is never cached.
-const CACHE = "skyline-shell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/app-icon-192.png", "/app-icon-512.png"];
+// Service worker: makes the site installable, keeps the app working offline
+// (saved screens + app files), and shows push notifications while the app is
+// closed. Training media is never cached.
+const CACHE = "skyline-shell-v3";
+const SHELL = ["/", "/dashboard", "/beginners", "/manifest.webmanifest", "/app-icon-192.png", "/app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()),
+    caches
+      .open(CACHE)
+      .then((cache) => Promise.all(SHELL.map((url) => cache.add(url).catch(() => undefined))))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -19,26 +22,51 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+const MEDIA = /\.(mp4|webm|mov|m4a|mp3|ogg|wav)$/i;
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/_serverFn") || url.pathname.startsWith("/api")) return;
+  if (MEDIA.test(url.pathname) || request.headers.has("range")) return;
 
+  // App files (scripts, styles, fonts, images): saved once, served instantly.
+  const isAsset =
+    url.pathname.startsWith("/assets/") ||
+    /\.(js|css|woff2?|png|jpg|jpeg|webp|svg|ico)$/i.test(url.pathname);
+  if (isAsset) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              void caches.open(CACHE).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          }),
+      ),
+    );
+    return;
+  }
+
+  // Pages: fresh from the network, the last saved copy when offline.
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response.ok && SHELL.includes(url.pathname)) {
+        if (response.ok && request.mode === "navigate") {
           const copy = response.clone();
-          void caches.open(CACHE).then((cache) => cache.put(request, copy));
+          void caches.open(CACHE).then((cache) => cache.put(url.pathname, copy));
         }
         return response;
       })
       .catch(async () => {
-        const cached = await caches.match(request);
+        const cached = (await caches.match(url.pathname)) || (await caches.match(request));
         if (cached) return cached;
-        const shell = await caches.match("/");
+        const shell = (await caches.match("/dashboard")) || (await caches.match("/"));
         if (shell) return shell;
         return new Response("You are offline.", {
           status: 503,

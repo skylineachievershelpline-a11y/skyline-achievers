@@ -1654,3 +1654,37 @@ export const adminSetMemberMenuAccess = createServerFn({ method: "POST" })
     }
     return { ok: true as const };
   });
+
+/** Registers this device for the separate Skyline Admin app alerts. */
+export const adminSavePushDevice = createServerFn({ method: "POST" })
+  .inputValidator((data: { endpoint: string; p256dh: string; auth: string; userAgent?: string }) =>
+    z
+      .object({
+        endpoint: z.string().url().max(600),
+        p256dh: z.string().min(10).max(400),
+        auth: z.string().min(5).max(200),
+        userAgent: z.string().max(300).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireAdmin } = await import("./admin-session.server");
+    await requireAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ADMIN_PUSH_ID } = await import("./push.server");
+    const { error } = await (supabaseAdmin as any).from("push_subscriptions").upsert(
+      {
+        member_id: ADMIN_PUSH_ID,
+        endpoint: data.endpoint,
+        p256dh: data.p256dh,
+        auth: data.auth,
+        user_agent: data.userAgent ?? null,
+        last_used_at: new Date().toISOString(),
+      },
+      { onConflict: "endpoint" },
+    );
+    if (error) throw new Error(error.message);
+    const { pushToAdmin } = await import("./push.server");
+    await pushToAdmin({ title: "Skyline Admin", body: "Admin alerts are on for this device." , tag: "admin-test" });
+    return { ok: true as const };
+  });

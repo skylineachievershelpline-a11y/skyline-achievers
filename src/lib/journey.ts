@@ -209,17 +209,19 @@ export function sessionWindowEndMs(scheduledAt: string): number {
 }
 
 /**
- * The window has closed and no review was sent, so the session is locked again.
- * Once a review exists the session stays open.
+ * The 3-hour window has closed. Approved sessions never expire; a pending
+ * review stays pending but the video closes; with no review (or a rejected
+ * one) the session rolls to the next day on the server.
  */
 export function sessionExpired(session: JourneySession, nowMs = Date.now()): boolean {
   if (!session.scheduledAt) return false;
-  if (session.review !== "none") return false;
+  if (session.review === "approved") return false;
   return nowMs > sessionWindowEndMs(session.scheduledAt);
 }
 
-/** A session can be watched once its time has arrived and the window is live. */
+/** Approved sessions stay open forever; others only inside their live window. */
 export function sessionOpen(session: JourneySession, nowMs = Date.now()): boolean {
+  if (session.review === "approved") return true;
   if (!session.scheduledAt) return false;
   if (new Date(session.scheduledAt).getTime() > nowMs) return false;
   return !sessionExpired(session, nowMs);

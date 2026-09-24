@@ -30,6 +30,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/brand";
 import { getSessionRole } from "@/lib/member.functions";
 import { getAccessToken } from "@/lib/session-token";
+import { consumeOpenLoginFlag, listDeviceAccounts } from "@/lib/device-accounts";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -95,18 +97,47 @@ function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   const resolveRole = useServerFn(getSessionRole);
+  // Opened like an app: a signed-in person goes straight to their own screen,
+  // with a splash instead of the landing page flashing first.
+  const [launching, setLaunching] = useState(false);
 
   useEffect(() => {
     let active = true;
+    if (consumeOpenLoginFlag()) {
+      setLoginOpen(true);
+      return;
+    }
+    const hasStored = Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+    if (hasStored) setLaunching(true);
     void getAccessToken().then(async (token) => {
       // No live token means the stored session is dead: never ask the server.
-      if (!active || !token) return;
+      if (!active) return;
+      if (!token) {
+        // Offline with a saved account: open the saved dashboard copy.
+        if (hasStored && !navigator.onLine) {
+          const saved = listDeviceAccounts()[0];
+          void navigate({ to: saved?.kind === "trainee" ? "/beginners" : "/dashboard" });
+          return;
+        }
+        setLaunching(false);
+        return;
+      }
       // Only send people to a screen their account actually belongs to.
       const role = await resolveRole().catch(() => null);
-      if (!active || !role) return;
+      if (!active) return;
+      if (!role) {
+        if (!navigator.onLine) {
+          const saved = listDeviceAccounts()[0];
+          void navigate({ to: saved?.kind === "trainee" ? "/beginners" : "/dashboard" });
+        } else setLaunching(false);
+        return;
+      }
       if (role.role === "member") void navigate({ to: "/dashboard" });
       else if (role.role === "trainee") void navigate({ to: "/beginners" });
-      else await supabase.auth.signOut();
+      else {
+        await supabase.auth.signOut();
+        setLaunching(false);
+      }
     });
     return () => {
       active = false;
@@ -119,6 +150,15 @@ function LandingPage() {
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
+
+  if (launching) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+        <BrandLogo size="lg" withWordmark={false} />
+        <Loader2 className="h-5 w-5 animate-spin text-brand-glow" />
+      </main>
+    );
+  }
 
   return (
     <main className="motion-scope cinematic-landing relative min-h-screen overflow-hidden">

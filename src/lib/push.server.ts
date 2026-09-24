@@ -126,3 +126,11 @@ export async function pushToEveryone(payload: PushPayload, levelId?: string | nu
   const ids = ((data ?? []) as { id: string }[]).map((row) => row.id);
   return pushToUsers(ids, payload);
 }
+
+/** Admin app devices are stored under this fixed id, separate from every member. */
+export const ADMIN_PUSH_ID = "00000000-0000-0000-0000-00000000ad00";
+
+/** Alerts for the separate Skyline Admin app only. Never throws. */
+export function pushToAdmin(payload: PushPayload) {
+  return pushToUsers([ADMIN_PUSH_ID], { path: "/admin", tag: "admin", ...payload });
+}

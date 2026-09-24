@@ -276,7 +276,14 @@ export function TraineeJourney() {
                 {!sessionOpen(current, now) ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 px-6 text-center backdrop-blur-sm">
                     <Lock className="h-6 w-6 text-brand-glow" />
-                    {sessionExpired(current, now) ? (
+                    {sessionExpired(current, now) && current.review === "pending" ? (
+                      <>
+                        <p className="text-sm font-semibold text-amber-300">Review pending</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Your upline is checking it. The 3-hour session window has closed.
+                        </p>
+                      </>
+                    ) : sessionExpired(current, now) ? (
                       <>
                         <p className="text-sm font-semibold text-brand-glow">Moving to the next day</p>
                         <p className="text-[11px] text-muted-foreground">
@@ -298,7 +305,7 @@ export function TraineeJourney() {
                       </p>
                     )}
                   </div>
-                ) : msLeftInWindow(current, now) !== null && current.review === "none" ? (
+                ) : msLeftInWindow(current, now) !== null && current.review !== "approved" ? (
                   <span className="absolute left-3 top-3 rounded-full bg-background/80 px-3 py-1 font-mono text-[11px] tabular-nums text-brand-glow backdrop-blur-sm">
                     Closes in {countdownText(msLeftInWindow(current, now) ?? 0)}
                   </span>
@@ -320,7 +327,8 @@ export function TraineeJourney() {
                 {current.review === "rejected" ? (
                   <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3">
                     <p className="text-xs font-semibold text-destructive">
-                      Your upline asked you to do this session again
+                      Aap ka review reject ho gaya hai. Kal aap ne yehi session dobara dekhna hai, ya
+                      upline se rabta kar ke recorded session dekh sakte hain.
                     </p>
                     {current.uplineNote ? (
                       <p className="mt-1 text-[11px] text-muted-foreground">{current.uplineNote}</p>
@@ -335,12 +343,7 @@ export function TraineeJourney() {
                   variant="brand"
                   size="xl"
                   className="mt-4 w-full rounded-2xl"
-                  disabled={
-                    !sessionOpen(current, now) ||
-                    current.review === "pending" ||
-                    open.isPending ||
-                    !current.sessionId
-                  }
+                  disabled={!sessionOpen(current, now) || open.isPending || !current.sessionId}
                   onClick={() => current.sessionId && open.mutate(current.sessionId)}
                 >
                   {open.isPending ? (

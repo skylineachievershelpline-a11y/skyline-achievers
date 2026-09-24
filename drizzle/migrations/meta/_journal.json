@@ -246,6 +246,13 @@
       "when": 1790192226523,
       "tag": "0034_review_multiple_images",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790246573745,
+      "tag": "0035_drop_open_read_policies",
+      "breakpoints": true
     }
   ]
 }

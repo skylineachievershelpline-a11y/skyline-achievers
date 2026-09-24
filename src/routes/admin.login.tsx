@@ -28,6 +28,7 @@ function AdminLoginPage() {
   const queryClient = useQueryClient();
   const login = useServerFn(adminLogin);
   const checkStatus = useServerFn(adminStatus);
+  const [username, setUsername] = useState("");
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,11 +38,12 @@ function AdminLoginPage() {
     setError(null);
     setPending(true);
     try {
-      const result = await login({ data: { passcode } });
+      const result = await login({ data: { username, passcode } });
       if (result.ok) {
         const verified = await checkStatus();
         if (verified.isAdmin) {
           queryClient.setQueryData(["admin-status"], verified);
+
           await navigate({ to: "/admin", replace: true });
           return;
         }

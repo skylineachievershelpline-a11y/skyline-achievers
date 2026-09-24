@@ -98,6 +98,11 @@
 - [x] Fit vertical reels comfortably within phone screens
 - [x] Format large like and comment counts in compact K/M style
 - [x] Add visible Skyline Achievers branding to every reel
+- [x] Add desktop previous/next reel controls for laptop navigation
+
+## Laptop side menu accessibility
+- [x] Keep the navigation list scrollable on shorter laptop screens
+- [x] Keep Logout fixed and reachable at the bottom of the menu
 
 ## Chrome Neon member profile and inspiration
 - [x] Rebuild the dashboard profile in the selected reference layout

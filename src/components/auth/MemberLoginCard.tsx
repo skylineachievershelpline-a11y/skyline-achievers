@@ -1,3 +1,4 @@
+import { rememberCurrentAccount } from "@/lib/device-accounts";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
@@ -69,6 +70,7 @@ export function MemberLoginCard() {
         );
         return;
       }
+      await rememberCurrentAccount({ code: id, kind: "trainee", name: id });
       await navigate({ to: "/beginners" });
       return;
     }
@@ -86,6 +88,7 @@ export function MemberLoginCard() {
       );
       return;
     }
+    await rememberCurrentAccount({ code: id, kind: "member", name: id });
     await navigate({ to: "/dashboard" });
   }
 

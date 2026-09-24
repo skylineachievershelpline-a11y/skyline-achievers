@@ -293,6 +293,16 @@ export function MemberShell({
                 "fixed inset-0 z-[200] transition-opacity duration-300",
                 menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
               )}
+              onPointerDown={(event) => {
+                if (!(event.target as HTMLElement).closest("aside")) setMenuOpen(false);
+              }}
+              onTouchStart={(event) => {
+                (event.currentTarget as any)._sx = event.touches[0]?.clientX ?? 0;
+              }}
+              onTouchEnd={(event) => {
+                const sx = (event.currentTarget as any)._sx ?? 0;
+                if (sx - (event.changedTouches[0]?.clientX ?? sx) > 60) setMenuOpen(false);
+              }}
             >
               <button
                 type="button"

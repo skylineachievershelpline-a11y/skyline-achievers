@@ -1,5 +1,5 @@
 import { Crown, Maximize2, Minimize2, Minus, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
@@ -67,6 +67,9 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
   const [collapsed, setCollapsed] = useState<string[]>([]);
   const [fullScreen, setFullScreen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
 
   const childrenOf = (parentId: string) =>
     people.filter((person) => person.uplineId === parentId);
@@ -157,59 +160,107 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
     );
   }
 
-  return (
-    <>
-      <div
-        className={
-          fullScreen
-            ? "fixed inset-0 z-40 overflow-auto bg-background p-3"
-            : "overflow-x-auto pb-4"
-        }
-      >
-        <div className="mb-2 flex justify-end">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="rounded-xl"
-            onClick={() => setFullScreen((value) => !value)}
-          >
-            {fullScreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-            {fullScreen ? "Close full screen" : "Full screen"}
-          </Button>
-        </div>
-        <div className="mx-auto flex min-w-max flex-col items-center px-4">
-          <div className="glass-panel metal-edge w-[190px] rounded-2xl border border-cyan/30 px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground">
-                <Crown className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-display text-xs font-semibold">{root.fullName}</p>
-                <p className="truncate text-[10px] text-cyan">{root.memberId} · You</p>
-              </div>
-            </div>
-          </div>
+  function onPointerDown(event: React.PointerEvent) {
+    if (!fullScreen) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+  function onPointerMove(event: React.PointerEvent) {
+    if (!fullScreen || !pointers.current.has(event.pointerId)) return;
+    const prev = pointers.current.get(event.pointerId)!;
+    const next = { x: event.clientX, y: event.clientY };
+    if (pointers.current.size === 2) {
+      const other = [...pointers.current.entries()].find(([id]) => id !== event.pointerId)![1];
+      const before = Math.hypot(prev.x - other.x, prev.y - other.y);
+      const after = Math.hypot(next.x - other.x, next.y - other.y);
+      if (before > 0) setScale((s) => Math.min(3, Math.max(0.3, s * (after / before))));
+    } else {
+      setOffset((o) => ({ x: o.x + next.x - prev.x, y: o.y + next.y - prev.y }));
+    }
+    pointers.current.set(event.pointerId, next);
+  }
+  function onPointerUp(event: React.PointerEvent) {
+    pointers.current.delete(event.pointerId);
+  }
 
-          {topLevel.length === 0 ? (
-            <p className="mt-6 max-w-xs text-center text-xs text-muted-foreground">{emptyHint}</p>
-          ) : (
-            <div className="relative flex items-start gap-5">
-              {topLevel.length > 1 ? (
-                <span
-                  className="absolute left-[84px] right-[84px] top-6 h-px bg-primary/30"
-                  aria-hidden
-                />
-              ) : null}
-              {topLevel.map((person) => renderPerson(person))}
-            </div>
-          )}
+  const treeBody = (
+    <div className="mx-auto flex min-w-max flex-col items-center px-4">
+      <div className="glass-panel metal-edge w-[190px] rounded-2xl border border-cyan/30 px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground">
+            <Crown className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-display text-xs font-semibold">{root.fullName}</p>
+            <p className="truncate text-[10px] text-cyan">{root.memberId} · You</p>
+          </div>
         </div>
       </div>
+      {topLevel.length === 0 ? (
+        <p className="mt-6 max-w-xs text-center text-xs text-muted-foreground">{emptyHint}</p>
+      ) : (
+        <div className="relative flex items-start gap-5">
+          {topLevel.length > 1 ? (
+            <span className="absolute left-[84px] right-[84px] top-6 h-px bg-primary/30" aria-hidden />
+          ) : null}
+          {topLevel.map((person) => renderPerson(person))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      {fullScreen ? (
+        <div className="fixed inset-0 z-40 overflow-hidden bg-background">
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 p-3">
+            <div className="flex gap-2">
+              <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom out" onClick={() => setScale((s) => Math.max(0.3, s - 0.2))}>
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom in" onClick={() => setScale((s) => Math.min(3, s + 0.2))}>
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}>
+                Reset
+              </Button>
+            </div>
+            <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFullScreen(false)}>
+              <Minimize2 className="h-3.5 w-3.5" /> Close
+            </Button>
+          </div>
+          <div
+            className="h-full w-full touch-none select-none pt-16"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onWheel={(event) => setScale((s) => Math.min(3, Math.max(0.3, s - event.deltaY * 0.001)))}
+          >
+            <div
+              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: "top center" }}
+            >
+              {treeBody}
+            </div>
+          </div>
+          <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[10px] text-muted-foreground">
+            Drag to move · pinch or use + / − to zoom
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto pb-4">
+          <div className="mb-2 flex justify-end">
+            <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFullScreen(true)}>
+              <Maximize2 className="h-3.5 w-3.5" /> Full screen
+            </Button>
+          </div>
+          {treeBody}
+        </div>
+      )}
 
       {selected ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center">
-          <div className="raised-panel metal-edge max-h-[85vh] w-full max-w-md overflow-y-auto rounded-3xl p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3">
+          <div className="raised-panel metal-edge max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-3xl p-5">
             <div className="flex items-start gap-3">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-hairline bg-surface-2 font-display text-lg font-bold text-primary">
                 {selected.avatarUrl ? (

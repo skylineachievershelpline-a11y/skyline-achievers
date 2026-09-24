@@ -245,6 +245,18 @@
   to { transform: rotate(360deg); }
 }
 
+/* ---------- Solar team tree orbits ---------- */
+
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbit-counter {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
 @keyframes skyline-logo-build {
   0% { clip-path: inset(100% 0 0 0); opacity: 0.15; filter: blur(6px) saturate(0.6); }
   20% { opacity: 0.6; }

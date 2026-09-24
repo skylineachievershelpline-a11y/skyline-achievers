@@ -325,7 +325,9 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
               {mentorship ? "Personal Mentorship tree" : "Your FBO team tree"}
             </h1>
           </div>
-          <p className="text-xs text-muted-foreground">Read-only · last 30 days of reports</p>
+          <p className="text-xs text-muted-foreground">
+            {mentorship ? "Read-only · verified payment record" : "Read-only · last 30 days of reports"}
+          </p>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat icon={<Users className="h-4 w-4" />} label="Total" value={stats?.total ?? 0} />
@@ -346,7 +348,7 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
           </SectionTitle>
           <p className="text-xs text-muted-foreground">
             {people.length} {mentorship ? "mentorship members" : "FBOs"} under{" "}
-            {data?.upline.fullName ?? "you"} · tap any card to open the ID and report
+            {data?.upline.fullName ?? "you"} · tap any card to open the ID and {mentorship ? "payment record" : "report"}
           </p>
           <div className="relative mt-3">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

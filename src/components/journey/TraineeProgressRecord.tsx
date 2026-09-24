@@ -366,8 +366,12 @@ export function TraineeProgressRecord({
                         {session.scheduledAt ? formatDateTime12(session.scheduledAt) : "—"}
                       </p>
                       <p>
-                        Session opened:{" "}
-                        {session.openedAt ? formatDateTime12(session.openedAt) : "Not opened"}
+                        Attendance:{" "}
+                        {session.openedAt
+                          ? `Attended · ${formatDateTime12(session.openedAt)}`
+                          : session.review === "approved"
+                            ? `Attended · review approved${session.reviewedAt ? ` ${formatDateTime12(session.reviewedAt)}` : ""}`
+                            : "Not attended"}
                         {session.openedAt && session.scheduledAt
                           ? ` (${Math.max(
                               0,

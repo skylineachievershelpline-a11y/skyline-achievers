@@ -346,7 +346,7 @@ function LandingPage() {
       <WhatsappJoinCard variant="chip" />
 
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-        <DialogContent className="metal-edge rounded-2xl p-0 sm:max-w-md">
+        <DialogContent className="metal-edge max-h-[92dvh] overflow-y-auto rounded-2xl p-0 sm:max-w-md">
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="font-display text-xl">Member login</DialogTitle>
           </DialogHeader>

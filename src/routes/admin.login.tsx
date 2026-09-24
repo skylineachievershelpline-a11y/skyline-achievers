@@ -28,6 +28,7 @@ function AdminLoginPage() {
   const queryClient = useQueryClient();
   const login = useServerFn(adminLogin);
   const checkStatus = useServerFn(adminStatus);
+  const [username, setUsername] = useState("");
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -37,22 +38,24 @@ function AdminLoginPage() {
     setError(null);
     setPending(true);
     try {
-      const result = await login({ data: { passcode } });
+      const result = await login({ data: { username, passcode } });
       if (result.ok) {
         const verified = await checkStatus();
         if (verified.isAdmin) {
           queryClient.setQueryData(["admin-status"], verified);
+
           await navigate({ to: "/admin", replace: true });
           return;
         }
-        setError("Session could not be saved. Please enter the passcode again.");
+        setError("Session could not be saved. Please sign in again.");
         return;
       }
       setError(
         result.reason === "throttled"
           ? "Too many attempts. Please wait a few minutes and try again."
-          : "Incorrect passcode.",
+          : "Incorrect username or password.",
       );
+
     } catch {
       setError("Could not open the panel. Please try again.");
     } finally {
@@ -68,22 +71,41 @@ function AdminLoginPage() {
           <BrandLogo size="lg" withWordmark={false} />
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight">Staff access</h1>
-            <p className="mt-1 text-xs text-muted-foreground">Restricted area — passcode required</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Restricted area — username and password required
+            </p>
+
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="glass-panel-strong metal-edge rounded-3xl p-6">
           <div className="space-y-2">
-            <Label htmlFor="passcode">Passcode</Label>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              placeholder="skyadmin76"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="h-12 rounded-2xl text-base"
+            />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="passcode">Password</Label>
             <Input
               id="passcode"
               type="password"
-              autoComplete="off"
+              autoComplete="current-password"
+              placeholder="Enter admin password"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               className="h-12 rounded-2xl text-base tracking-widest"
             />
           </div>
+
 
           {error ? (
             <p className="mt-4 flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">

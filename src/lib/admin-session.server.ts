@@ -60,6 +60,7 @@ const WINDOW_MINUTES = 15;
 
 export async function verifyAdminPasscode(
   passcode: string,
+  username?: string,
 ): Promise<{ ok: true } | { ok: false; reason: "invalid" | "throttled" }> {
   const ip = requestIp();
   const since = new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString();
@@ -75,10 +76,19 @@ export async function verifyAdminPasscode(
 
   const expected = process.env["ADMIN_PASSCODE"];
   if (!expected) throw new Error("ADMIN_PASSCODE is not configured");
+  const expectedUser = process.env["ADMIN_USERNAME"];
 
-  const a = createHash("sha256").update(passcode ?? "", "utf8").digest();
-  const b = createHash("sha256").update(expected, "utf8").digest();
-  const matches = timingSafeEqual(a, b);
+  const digest = (value: string) => createHash("sha256").update(value, "utf8").digest();
+  let matches = timingSafeEqual(digest(passcode ?? ""), digest(expected));
+
+  // When a staff username is configured it must match too.
+  if (expectedUser) {
+    const userMatches = timingSafeEqual(
+      digest((username ?? "").trim().toLowerCase()),
+      digest(expectedUser.trim().toLowerCase()),
+    );
+    matches = matches && userMatches;
+  }
 
   await supabaseAdmin.from("admin_login_attempts").insert({ ip, succeeded: matches });
 
@@ -88,6 +98,7 @@ export async function verifyAdminPasscode(
   await session.update({ admin: true, since: new Date().toISOString() });
   return { ok: true };
 }
+
 
 export async function endAdminSession(): Promise<void> {
   const session = await readAdminSession();

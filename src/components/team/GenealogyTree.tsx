@@ -146,43 +146,56 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
 
   const orbit = (
     <div className="relative mx-auto" style={{ width: size, height: size }}>
-      {rings.map((_, index) => {
+      {rings.map((ring, index) => {
         const r = (index + 1) * RING;
+        const dur = 70 + index * 45;
+        const reverse = index % 2 === 1;
+        const ringStyle: React.CSSProperties = {
+          left: mid - r,
+          top: mid - r,
+          width: r * 2,
+          height: r * 2,
+          animation: `orbit-spin ${dur}s linear infinite`,
+          animationDirection: reverse ? "reverse" : "normal",
+        };
         return (
-          <span
-            key={index}
-            aria-hidden
-            className="absolute rounded-full border border-dashed border-cyan/30 animate-[spin_60s_linear_infinite]"
-            style={{ left: mid - r, top: mid - r, width: r * 2, height: r * 2, boxShadow: "0 0 30px hsl(var(--primary) / 0.15) inset" }}
-          />
+          <div key={`orbit-${index}`} className="absolute" style={ringStyle}>
+            <span
+              aria-hidden
+              className="absolute inset-0 rounded-full border border-dashed border-cyan/30"
+              style={{ boxShadow: "0 0 30px hsl(var(--primary) / 0.15) inset" }}
+            />
+            {ring.map((person, i) => {
+              const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2 + index * 0.4;
+              const x = r + r * Math.cos(angle);
+              const y = r + r * Math.sin(angle);
+              const state = personState(person);
+              return (
+                <button
+                  key={person.id}
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => setOpenId(person.id)}
+                  className="absolute flex w-20 flex-col items-center text-center"
+                  style={{
+                    left: x,
+                    top: y,
+                    animation: `orbit-counter ${dur}s linear infinite`,
+                    animationDirection: reverse ? "reverse" : "normal",
+                  }}
+                >
+                  <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-cyan/50 bg-surface-2 font-display text-sm font-bold text-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]">
+                    {person.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" /> : person.fullName.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className={`absolute right-4 top-0 h-3.5 w-3.5 rounded-full border-2 border-background ${dot[state]}`} aria-label={state} />
+                  <span className="mt-1 w-full truncate text-[10px] font-semibold">{person.fullName}</span>
+                  <span className="w-full truncate text-[8px] text-primary">{person.memberId}</span>
+                </button>
+              );
+            })}
+          </div>
         );
       })}
-      {rings.map((ring, index) =>
-        ring.map((person, i) => {
-          const r = (index + 1) * RING;
-          const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2 + index * 0.4;
-          const x = mid + r * Math.cos(angle);
-          const y = mid + r * Math.sin(angle);
-          const state = personState(person);
-          return (
-            <button
-              key={person.id}
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => setOpenId(person.id)}
-              className="absolute flex w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
-              style={{ left: x, top: y }}
-            >
-              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-cyan/50 bg-surface-2 font-display text-sm font-bold text-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]">
-                {person.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" /> : person.fullName.slice(0, 1).toUpperCase()}
-              </span>
-              <span className={`absolute right-4 top-0 h-3.5 w-3.5 rounded-full border-2 border-background ${dot[state]}`} aria-label={state} />
-              <span className="mt-1 w-full truncate text-[10px] font-semibold">{person.fullName}</span>
-              <span className="w-full truncate text-[8px] text-primary">{person.memberId}</span>
-            </button>
-          );
-        }),
-      )}
       <div
         className="absolute flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
         style={{ left: mid, top: mid }}

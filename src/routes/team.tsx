@@ -379,6 +379,7 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
               id: (data?.upline as any)?.id ?? "root",
               memberId: data?.upline.memberId ?? "",
               fullName: data?.upline.fullName ?? "You",
+              avatarUrl: (data?.upline as any)?.avatarUrl ?? null,
             }}
             people={people}
             emptyHint={

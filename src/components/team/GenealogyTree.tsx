@@ -1,5 +1,6 @@
 import { Crown, Maximize2, Minimize2, Minus, Plus, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
@@ -52,7 +53,7 @@ export type TreePerson = {
 };
 
 type Props = {
-  root: { id: string; memberId: string; fullName: string };
+  root: { id: string; memberId: string; fullName: string; avatarUrl?: string | null };
   people: TreePerson[];
   /** Only these people are drawn as nodes (the rest just carry the chain). */
   emptyHint: string;
@@ -88,7 +89,7 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
   const focusPerson = focusId ? people.find((p) => p.id === focusId) ?? null : null;
   const center = focusPerson
     ? { id: focusPerson.id, memberId: focusPerson.memberId, fullName: focusPerson.fullName, avatarUrl: focusPerson.avatarUrl }
-    : { ...root, avatarUrl: null as string | null };
+    : { ...root, avatarUrl: root.avatarUrl ?? null };
 
   // Generations around the focused person: ring 1 = direct, ring 2 = next, ...
   const rings: TreePerson[][] = [];
@@ -99,6 +100,12 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
   }
   const size = (rings.length + 1) * RING * 2 + 120;
   const mid = size / 2;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const fit = Math.min(window.innerWidth, window.innerHeight - 120) / size;
+    setScale(Math.min(1.4, Math.max(0.25, fit)));
+    setOffset({ x: 0, y: 0 });
+  }, [fullScreen, size]);
 
   const found = people.find((person) => person.id === openId) ?? null;
   const selected = found
@@ -227,8 +234,8 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
 
   return (
     <>
-      {fullScreen ? (
-        <div className="fixed inset-0 z-40 bg-background">
+      {fullScreen && typeof document !== "undefined" ? createPortal(
+        <div className="fixed inset-0 z-[60] h-[100dvh] w-screen bg-background">
           <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 p-3">
             {controls}
             <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFullScreen(false)}>
@@ -239,7 +246,8 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
           <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[10px] text-muted-foreground">
             Drag · pinch to zoom · tap a person · green active · red inactive · blue leave
           </p>
-        </div>
+        </div>,
+        document.body,
       ) : (
         <div>
           <div className="mb-2 flex items-center justify-between gap-2">

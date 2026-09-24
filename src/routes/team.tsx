@@ -206,7 +206,10 @@ function TeamPage() {
       ) : null}
 
       {tab === "customers" ? (
-        <UplineActionQueue ready={ready} />
+        <>
+          <UplineActionQueue ready={ready} />
+          <TraineeDayTracker ready={ready} />
+        </>
       ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>

@@ -726,7 +726,7 @@ export const getUplineActionQueue = createServerFn({ method: "GET" })
 
     const { data: trainees } = await admin
       .from("trainees")
-      .select("id, full_name, trainee_code, phone, avatar_path")
+      .select("id, full_name, trainee_code, phone, avatar_path, created_at")
       .eq("upline_id", member.id)
       .eq("status", "active")
       .limit(100);
@@ -742,7 +742,12 @@ export const getUplineActionQueue = createServerFn({ method: "GET" })
         mentorshipDueAt: journey.mentorshipDueAt,
         webinarWatched: Boolean(journey.webinarWatchedAt),
       });
+      const approvedCount = journey.sessions.filter(
+        (session) => session.sessionNumber <= 7 && session.review === "approved",
+      ).length;
       items.push({
+        currentDay: journey.stage === "sessions" ? Math.min(7, approvedCount + 1) : 8,
+        joinedAt: (trainee.created_at ?? null) as string | null,
         traineeId: trainee.id as string,
         name: trainee.full_name as string,
         code: trainee.trainee_code as string,

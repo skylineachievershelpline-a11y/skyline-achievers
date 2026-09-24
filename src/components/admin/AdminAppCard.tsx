@@ -24,10 +24,23 @@ function toKey(value: string) {
 export function AdminAppCard() {
   const save = useServerFn(adminSavePushDevice);
   const [canInstall, setCanInstall] = useState(false);
+  const [installed, setInstalled] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [on, setOn] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => subscribeInstallPrompt((event) => setCanInstall(Boolean(event))), []);
+  useEffect(() => {
+    const check = () =>
+      setInstalled(
+        window.matchMedia("(display-mode: standalone)").matches ||
+          (navigator as any).standalone === true,
+      );
+    check();
+    window.addEventListener("appinstalled", check);
+    return () => window.removeEventListener("appinstalled", check);
+  }, []);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     void navigator.serviceWorker.getRegistration("/admin").then(async (reg) => {

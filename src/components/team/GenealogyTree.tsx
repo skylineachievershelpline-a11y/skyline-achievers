@@ -75,7 +75,19 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
   const topLevel = people.filter(
     (person) => !person.uplineId || person.uplineId === root.id || !ids.has(person.uplineId),
   );
-  const selected = people.find((person) => person.id === openId) ?? null;
+  const found = people.find((person) => person.id === openId) ?? null;
+  const selected = found
+    ? {
+        ...found,
+        payment: {
+          required: found.payment?.required ?? 0,
+          verified: found.payment?.verified ?? 0,
+          remaining: found.payment?.remaining ?? 0,
+          dueAt: found.payment?.dueAt ?? null,
+          history: found.payment?.history ?? [],
+        },
+      }
+    : null;
 
   function toggle(id: string) {
     setCollapsed((current) =>

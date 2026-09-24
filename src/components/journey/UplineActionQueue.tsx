@@ -23,7 +23,8 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
     retry: false,
   });
 
-  const rows = (data?.items ?? []) as any[];
+  // Only trainees who actually sent a review need action here.
+  const rows = ((data?.items ?? []) as any[]).filter((row) => row.pendingReviewSession);
   if (rows.length === 0) return null;
 
   return (
@@ -55,7 +56,7 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
                 </div>
                 <Button
                   size="sm"
-                  variant={row.action?.owner === "upline" ? "brand" : "outline"}
+                  variant="brand"
                   className="shrink-0 rounded-xl"
                   onClick={() =>
                     setOpenTrainee({
@@ -65,11 +66,7 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
                     })
                   }
                 >
-                  {row.pendingReviewSession
-                    ? "Review now"
-                    : row.action?.owner === "upline"
-                      ? "Open"
-                      : "View"}
+                  Review now
                 </Button>
               </div>
             </li>

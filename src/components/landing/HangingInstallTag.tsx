@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import {
   clearInstallPrompt,
+  getInstallPrompt,
   isIosSafari,
   isPreviewContext,
   subscribeInstallPrompt,
@@ -46,10 +47,11 @@ export function HangingInstallTag({ className }: { className?: string }) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (prompt) {
+    const nativePrompt = prompt ?? getInstallPrompt();
+    if (nativePrompt) {
       try {
-        await prompt.prompt();
-        const choice = await prompt.userChoice;
+        await nativePrompt.prompt();
+        const choice = await nativePrompt.userChoice;
         if (choice.outcome === "accepted") setInstalled(true);
       } finally {
         clearInstallPrompt();
@@ -58,8 +60,8 @@ export function HangingInstallTag({ className }: { className?: string }) {
     }
 
     if (isPreviewContext()) {
-      toast.info("Open the published Skyline Achievers link in Chrome or Safari, then tap this tag again.");
-      setGuideOpen(true);
+      window.open("https://skyline-achievers.lovable.app/", "_blank", "noopener,noreferrer");
+      toast.info("Published Skyline app opened for installation.");
       return;
     }
 

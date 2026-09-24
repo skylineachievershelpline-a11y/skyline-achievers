@@ -746,7 +746,11 @@ export const getUplineActionQueue = createServerFn({ method: "GET" })
         (session) => session.sessionNumber <= 7 && session.review === "approved",
       ).length;
       items.push({
-        currentDay: journey.stage === "sessions" ? Math.min(7, approvedCount + 1) : 8,
+        currentDay:
+          journey.stage === "sessions"
+            ? (journey.sessions.find((s) => s.sessionNumber <= 7 && s.review !== "approved")?.dayNumber ?? 99)
+            : 99,
+        trainingDays: Math.max(4, ...journey.sessions.filter((s) => s.sessionNumber <= 7).map((s) => s.dayNumber)),
         joinedAt: (trainee.created_at ?? null) as string | null,
         traineeId: trainee.id as string,
         name: trainee.full_name as string,

@@ -265,6 +265,6 @@
 - [x] Make the preview install tag open the real published app instead of showing browser instructions
 
 ## Viewport-centered overlays
-- [ ] Center the notification permission popup in the currently visible phone screen
-- [ ] Center the Preferred Customer journey popup in the currently visible screen
-- [ ] Verify both overlays at phone size
+- [x] Center the notification permission popup in the currently visible phone screen
+- [x] Center the Preferred Customer journey popup in the currently visible screen
+- [x] Verify both overlays at phone size

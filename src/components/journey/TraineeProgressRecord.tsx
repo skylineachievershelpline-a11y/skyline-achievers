@@ -12,7 +12,8 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
@@ -210,6 +211,7 @@ export function TraineeProgressRecord({
   traineeName: string;
   onClose: () => void;
 }) {
+  const [portalReady, setPortalReady] = useState(false);
   const queryClient = useQueryClient();
   const load = useServerFn(getTraineeJourneyForUpline);
   const loadLinks = useServerFn(getTraineeReportLinks);
@@ -266,9 +268,15 @@ export function TraineeProgressRecord({
   const performance = performanceCategory(totalScore, scoredSessions);
   const [whatsappScores, setWhatsappScores] = useState<Record<number, string>>({});
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-background/90 p-3 pt-4 backdrop-blur-sm">
-      <div className="raised-panel metal-edge w-full max-w-2xl rounded-3xl p-5 animate-rise-in">
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
+
+  if (!portalReady || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[300] flex min-h-[100dvh] items-center justify-center bg-background/90 p-3 backdrop-blur-sm">
+      <div className="raised-panel metal-edge max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-3xl p-5 animate-rise-in [scrollbar-gutter:stable]">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
@@ -522,6 +530,7 @@ export function TraineeProgressRecord({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

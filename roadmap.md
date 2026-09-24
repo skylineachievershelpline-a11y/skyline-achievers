@@ -263,3 +263,8 @@
 - [x] Replace the lower landing install section with a premium swinging tag attached beside the logo
 - [x] Keep one-tap installation where supported and show accurate phone-specific steps otherwise
 - [x] Make the preview install tag open the real published app instead of showing browser instructions
+
+## Viewport-centered overlays
+- [ ] Center the notification permission popup in the currently visible phone screen
+- [ ] Center the Preferred Customer journey popup in the currently visible screen
+- [ ] Verify both overlays at phone size

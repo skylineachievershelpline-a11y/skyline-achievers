@@ -267,8 +267,8 @@ function BeginnersPage() {
       if (!data.session) void navigate({ to: "/" });
       else setReady(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) void navigate({ to: "/" });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" && !session) void navigate({ to: "/" });
     });
     return () => {
       active = false;

@@ -57,8 +57,11 @@ export function useMemberGuard() {
       setReady(true);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) void navigate({ to: "/" });
+    // Only a real sign-out sends a person back. Early "no session yet" events
+    // fired while the stored session is still loading used to bounce the app
+    // back to the landing page and straight in again.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" && !session) void navigate({ to: "/" });
     });
     return () => {
       active = false;

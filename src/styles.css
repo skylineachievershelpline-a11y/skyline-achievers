@@ -2413,3 +2413,16 @@ body > div > :not(.liquid-atmosphere) {
     animation: none;
   }
 }
+
+/* Installed app opens straight on the account: no marketing page inside the app. */
+.app-shell-only { display: none; }
+@media all and (display-mode: standalone) {
+  .app-shell-only { display: flex; }
+  .landing-web-only { display: none; }
+}
+@media all and (display-mode: fullscreen), all and (display-mode: minimal-ui) {
+  .app-shell-only { display: flex; }
+  .landing-web-only { display: none; }
+}
+html.is-installed-app .app-shell-only { display: flex; }
+html.is-installed-app .landing-web-only { display: none; }

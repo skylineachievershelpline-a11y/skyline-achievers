@@ -123,12 +123,12 @@ function AdminMemberDashboardPage() {
             ) : (
               <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-2 border-cyan/40 bg-surface-2 font-display text-3xl font-bold text-cyan shadow-brand sm:h-28 sm:w-28">{initial}</div>
             )}
-            <div className="min-w-0 flex-1 pt-1">
+            <div className="min-w-0 flex-1 pt-3">
                <div className="flex items-center gap-1.5">
                  <h1 className="min-w-0 break-words font-display text-xl font-bold leading-tight sm:text-2xl">{member.fullName}</h1>
                  <RankPin rank={member.level?.name} className="h-12 w-12" />
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-5 sm:max-w-sm">
+               <div className="mt-1 grid grid-cols-2 gap-5 sm:max-w-sm">
                 <div><p className="break-all font-achiever-display text-sm font-bold text-cyan sm:text-base">{member.memberId}</p><p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p></div>
                 <div><p className="break-words font-achiever-display text-sm font-bold sm:text-base">{formatRankName(member.level?.name)}</p><p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p></div>
               </div>

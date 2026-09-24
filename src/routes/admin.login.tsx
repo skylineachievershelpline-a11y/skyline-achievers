@@ -77,16 +77,32 @@ function AdminLoginPage() {
 
         <form onSubmit={onSubmit} className="glass-panel-strong metal-edge rounded-3xl p-6">
           <div className="space-y-2">
-            <Label htmlFor="passcode">Passcode</Label>
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              placeholder="skyadmin76"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="h-12 rounded-2xl text-base"
+            />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="passcode">Password</Label>
             <Input
               id="passcode"
               type="password"
-              autoComplete="off"
+              autoComplete="current-password"
+              placeholder="Enter admin password"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               className="h-12 rounded-2xl text-base tracking-widest"
             />
           </div>
+
 
           {error ? (
             <p className="mt-4 flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-foreground">

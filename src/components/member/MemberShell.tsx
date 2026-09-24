@@ -35,6 +35,9 @@ import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { AccountSettings } from "@/components/member/AccountSettings";
+import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
+import { Settings } from "lucide-react";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -207,7 +210,21 @@ export function MemberShell({
     retry: false,
   });
 
-  function signOut() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const memberAccess = useMemberAccess();
+  useEffect(() => {
+    const m = memberAccess?.member as any;
+    if (!m) return;
+    void rememberCurrentAccount({
+      name: m.fullName,
+      code: m.memberCode ?? m.code ?? undefined,
+      kind: "member",
+    });
+  }, [memberAccess]);
+
+  async function signOut() {
+    const { data: s } = await supabase.auth.getSession();
+    if (s.session) forgetAccount(s.session.user.id);
     fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 
@@ -332,16 +349,24 @@ export function MemberShell({
                 <div className="shrink-0 border-t border-hairline pt-3">
                   <button
                     type="button"
-                    onClick={() => void signOut()}
-                    className="logout-button w-full font-display text-sm"
+                    onClick={() => setSettingsOpen(true)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold shadow-glass hover:border-cyan/40"
                   >
-                    <LogOut className="h-4 w-4" />
-                    Logout
+                    <Settings className="h-4.5 w-4.5 text-brand-glow" />
+                    Settings
                   </button>
                   <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                     {BRAND.tagline}
                   </p>
                 </div>
+                {settingsOpen ? (
+                  <AccountSettings
+                    currentName={(memberAccess?.member as any)?.fullName ?? title ?? "Account"}
+                    currentCode={(memberAccess?.member as any)?.memberCode ?? (memberAccess?.member as any)?.code ?? ""}
+                    onClose={() => setSettingsOpen(false)}
+                    onSignOut={signOut}
+                  />
+                ) : null}
               </aside>
             </div>,
             document.body,

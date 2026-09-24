@@ -282,7 +282,7 @@ export function MemberShell({
               />
               <aside
                 className={cn(
-                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                   "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex max-h-[100dvh] w-[82vw] max-w-xs flex-col overflow-hidden rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                   menuOpen ? "translate-x-0" : "-translate-x-full",
                 )}
               >
@@ -298,7 +298,7 @@ export function MemberShell({
                   </button>
                 </div>
 
-                <nav className="mt-6 flex-1 space-y-1.5 overflow-y-auto">
+                <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
                   {visibleNav.map((item) =>
                     lockReason(item.to) ? (
                       <button
@@ -329,17 +329,19 @@ export function MemberShell({
                   )}
                 </nav>
 
-                <button
-                  type="button"
-                  onClick={() => void signOut()}
-                  className="logout-button mt-4 w-full font-display text-sm"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </button>
-                <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  {BRAND.tagline}
-                </p>
+                <div className="shrink-0 border-t border-hairline pt-3">
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    className="logout-button w-full font-display text-sm"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                  <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {BRAND.tagline}
+                  </p>
+                </div>
               </aside>
             </div>,
             document.body,

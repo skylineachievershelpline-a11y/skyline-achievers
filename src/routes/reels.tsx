@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Bookmark,
+  ChevronDown,
+  ChevronUp,
   Download,
   Heart,
   Loader2,
@@ -109,6 +111,7 @@ function ReelsPage() {
   const [commentsFor, setCommentsFor] = useState<Reel | null>(null);
   const [local, setLocal] = useState<Record<string, Partial<Reel>>>({});
   const marked = useRef<Set<string>>(new Set());
+  const reelFeedRef = useRef<HTMLDivElement | null>(null);
 
   const { data, isPending } = useQuery({
     queryKey: ["reels"],
@@ -187,6 +190,18 @@ function ReelsPage() {
     }
   }
 
+  function moveReel(direction: -1 | 1) {
+    const currentIndex = Math.max(0, reels.findIndex((reel) => reel.id === activeId));
+    const nextIndex = Math.min(reels.length - 1, Math.max(0, currentIndex + direction));
+    const nextReel = reels[nextIndex];
+    const feed = reelFeedRef.current;
+    if (!nextReel || !feed) return;
+    const target = feed.querySelector<HTMLElement>(`[data-reel-id="${nextReel.id}"]`);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const activeIndex = Math.max(0, reels.findIndex((reel) => reel.id === activeId));
+
   if (!ready || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -211,22 +226,68 @@ function ReelsPage() {
           hint="Short clips will appear here as soon as they are posted."
         />
       ) : (
-        <div className="no-scrollbar mx-auto h-[calc(100dvh-11rem)] min-h-[31rem] max-w-md snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]">
-          <div>
-            {reels.map((reel) => (
-              <ReelCard
-                key={reel.id}
-                reel={reel}
-                isActive={activeId === reel.id}
-                onActive={() => onActive(reel.id)}
-                onLike={() => void onLike(reel)}
-                onSave={() => void onSave(reel)}
-                 onDownload={() => void onDownload(reel)}
-                onComments={() => setCommentsFor(reel)}
-                onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
-              />
-            ))}
+        <div className="relative mx-auto max-w-md">
+          <div
+            ref={reelFeedRef}
+            className="no-scrollbar h-[calc(100dvh-11rem)] min-h-[31rem] snap-y snap-mandatory scroll-smooth overflow-y-auto overscroll-contain rounded-3xl [-webkit-overflow-scrolling:touch]"
+          >
+            <div>
+              {reels.map((reel) => (
+                <ReelCard
+                  key={reel.id}
+                  reel={reel}
+                  isActive={activeId === reel.id}
+                  onActive={() => onActive(reel.id)}
+                  onLike={() => void onLike(reel)}
+                  onSave={() => void onSave(reel)}
+                  onDownload={() => void onDownload(reel)}
+                  onComments={() => setCommentsFor(reel)}
+                  onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
+                />
+              ))}
+            </div>
           </div>
+
+          <div className="absolute left-[calc(100%+0.75rem)] top-1/2 hidden -translate-y-1/2 flex-col gap-2 md:flex">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="rounded-full shadow-glass"
+              onClick={() => moveReel(-1)}
+              disabled={activeIndex <= 0}
+              aria-label="Previous reel"
+              title="Previous reel"
+            >
+              <ChevronUp className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              variant="brand"
+              size="icon"
+              className="rounded-full shadow-brand"
+              onClick={() => moveReel(1)}
+              disabled={activeIndex >= reels.length - 1}
+              aria-label="Next reel"
+              title="Next reel"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {activeIndex < reels.length - 1 ? (
+            <Button
+              type="button"
+              variant="brand"
+              size="icon"
+              className="absolute bottom-4 right-3 z-20 rounded-full shadow-brand md:hidden"
+              onClick={() => moveReel(1)}
+              aria-label="Next reel"
+              title="Next reel"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </Button>
+          ) : null}
         </div>
       )}
 
@@ -316,6 +377,7 @@ function ReelCard({
 
   return (
     <article
+      data-reel-id={reel.id}
       className={`metal-edge relative mx-auto flex h-[calc(100dvh-11rem)] min-h-[31rem] w-full snap-start snap-always items-center justify-center overflow-hidden rounded-3xl border bg-media shadow-lift transition-all duration-500 ease-out will-change-transform ${
         visible ? "scale-100 opacity-100" : "scale-[0.98] opacity-80"
       }`}

@@ -58,26 +58,48 @@ type Props = {
   emptyHint: string;
 };
 
-/**
- * Genealogy-style team chart: every person is a card, lines connect each card to
- * the person who registered them, and tapping a card opens their ID and working
- * report — business information only, no private personal details.
- */
+export function personState(person: TreePerson): "active" | "inactive" | "leave" {
+  if (person.status !== "active") return "inactive";
+  const today = new Date(Date.now() + 5 * 3600_000).toISOString().slice(0, 10);
+  const recent = person.report?.recent ?? [];
+  if (recent.some((row) => row.date === today && row.status === "leave")) return "leave";
+  const last = person.report?.lastDate;
+  if (!last) return "inactive";
+  const days = (Date.parse(today) - Date.parse(String(last).slice(0, 10))) / 86_400_000;
+  return days <= 3 ? "active" : "inactive";
+}
+
+const RING = 120;
+
 export function GenealogyTree({ root, people, emptyHint }: Props) {
-  const [collapsed, setCollapsed] = useState<string[]>([]);
   const [fullScreen, setFullScreen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
 
-  const childrenOf = (parentId: string) =>
-    people.filter((person) => person.uplineId === parentId);
-  // People whose own upline is not in this view still hang under the root.
   const ids = new Set(people.map((person) => person.id));
-  const topLevel = people.filter(
-    (person) => !person.uplineId || person.uplineId === root.id || !ids.has(person.uplineId),
-  );
+  const childrenOf = (parentId: string) =>
+    parentId === root.id
+      ? people.filter((p) => !p.uplineId || p.uplineId === root.id || !ids.has(p.uplineId))
+      : people.filter((person) => person.uplineId === parentId);
+  const topLevel = childrenOf(root.id);
+  const focusPerson = focusId ? people.find((p) => p.id === focusId) ?? null : null;
+  const center = focusPerson
+    ? { id: focusPerson.id, memberId: focusPerson.memberId, fullName: focusPerson.fullName, avatarUrl: focusPerson.avatarUrl }
+    : { ...root, avatarUrl: null as string | null };
+
+  // Generations around the focused person: ring 1 = direct, ring 2 = next, ...
+  const rings: TreePerson[][] = [];
+  let frontier = childrenOf(center.id);
+  while (frontier.length && rings.length < 4) {
+    rings.push(frontier);
+    frontier = frontier.flatMap((p) => childrenOf(p.id));
+  }
+  const size = (rings.length + 1) * RING * 2 + 120;
+  const mid = size / 2;
+
   const found = people.find((person) => person.id === openId) ?? null;
   const selected = found
     ? {
@@ -92,88 +114,18 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
       }
     : null;
 
-  function toggle(id: string) {
-    setCollapsed((current) =>
-      current.includes(id) ? current.filter((value) => value !== id) : [...current, id],
-    );
-  }
-
-  function renderPerson(person: TreePerson) {
-    const kids = childrenOf(person.id);
-    const isOpen = !collapsed.includes(person.id);
-    return (
-      <div key={person.id} className="relative flex shrink-0 flex-col items-center pt-6">
-        <span className="absolute left-1/2 top-0 h-6 w-px bg-primary/40" aria-hidden />
-        <button
-          type="button"
-          onClick={() => setOpenId(person.id)}
-          className={`glass-panel metal-edge depth-hover w-[168px] rounded-2xl px-3 py-2.5 text-left transition-transform ${
-            openId === person.id ? "ring-2 ring-cyan/60" : ""
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-2 font-display text-xs font-bold text-primary">
-              {person.avatarUrl ? (
-                <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                person.fullName.slice(0, 1).toUpperCase()
-              )}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-display text-xs font-semibold">{person.fullName}</p>
-              <p className="truncate text-[10px] text-primary">{person.memberId}</p>
-            </div>
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[9px] uppercase tracking-wide text-muted-foreground">
-            <span className="truncate">{person.rank ?? "No rank"}</span>
-            <span
-              className={person.status === "active" ? "text-cyan" : "text-silver"}
-            >
-              {person.status === "active" ? "Active" : "Blocked"}
-            </span>
-          </div>
-        </button>
-
-        {kids.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => toggle(person.id)}
-            aria-label={isOpen ? `Hide team of ${person.fullName}` : `Show team of ${person.fullName}`}
-            className="z-10 -mt-2 flex h-5 w-5 items-center justify-center rounded-full border border-cyan/40 bg-surface text-cyan"
-          >
-            {isOpen ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-          </button>
-        ) : null}
-
-        {kids.length > 0 && isOpen ? (
-          <div className="relative flex items-start gap-5 pt-1">
-            {kids.length > 1 ? (
-              <span
-                className="absolute left-[84px] right-[84px] top-0 h-px bg-primary/30"
-                aria-hidden
-              />
-            ) : null}
-            {kids.map((child) => renderPerson(child))}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
   function onPointerDown(event: React.PointerEvent) {
-    if (!fullScreen) return;
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
   function onPointerMove(event: React.PointerEvent) {
-    if (!fullScreen || !pointers.current.has(event.pointerId)) return;
+    if (!pointers.current.has(event.pointerId)) return;
     const prev = pointers.current.get(event.pointerId)!;
     const next = { x: event.clientX, y: event.clientY };
     if (pointers.current.size === 2) {
       const other = [...pointers.current.entries()].find(([id]) => id !== event.pointerId)![1];
       const before = Math.hypot(prev.x - other.x, prev.y - other.y);
       const after = Math.hypot(next.x - other.x, next.y - other.y);
-      if (before > 0) setScale((s) => Math.min(3, Math.max(0.3, s * (after / before))));
+      if (before > 0) setScale((s) => Math.min(3, Math.max(0.25, s * (after / before))));
     } else {
       setOffset((o) => ({ x: o.x + next.x - prev.x, y: o.y + next.y - prev.y }));
     }
@@ -183,78 +135,120 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
     pointers.current.delete(event.pointerId);
   }
 
-  const treeBody = (
-    <div className="mx-auto flex min-w-max flex-col items-center px-4">
-      <div className="glass-panel metal-edge w-[190px] rounded-2xl border border-cyan/30 px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan/30 brand-gradient text-primary-foreground">
-            <Crown className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate font-display text-xs font-semibold">{root.fullName}</p>
-            <p className="truncate text-[10px] text-cyan">{root.memberId} · You</p>
-          </div>
-        </div>
-      </div>
-      {topLevel.length === 0 ? (
-        <p className="mt-6 max-w-xs text-center text-xs text-muted-foreground">{emptyHint}</p>
-      ) : (
-        <div className="relative flex items-start gap-5">
-          {topLevel.length > 1 ? (
-            <span className="absolute left-[84px] right-[84px] top-6 h-px bg-primary/30" aria-hidden />
-          ) : null}
-          {topLevel.map((person) => renderPerson(person))}
-        </div>
+  const dot = { active: "bg-emerald-500", inactive: "bg-destructive", leave: "bg-sky-500" } as const;
+
+  const orbit = (
+    <div className="relative mx-auto" style={{ width: size, height: size }}>
+      {rings.map((_, index) => {
+        const r = (index + 1) * RING;
+        return (
+          <span
+            key={index}
+            aria-hidden
+            className="absolute rounded-full border border-dashed border-cyan/30 animate-[spin_60s_linear_infinite]"
+            style={{ left: mid - r, top: mid - r, width: r * 2, height: r * 2, boxShadow: "0 0 30px hsl(var(--primary) / 0.15) inset" }}
+          />
+        );
+      })}
+      {rings.map((ring, index) =>
+        ring.map((person, i) => {
+          const r = (index + 1) * RING;
+          const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2 + index * 0.4;
+          const x = mid + r * Math.cos(angle);
+          const y = mid + r * Math.sin(angle);
+          const state = personState(person);
+          return (
+            <button
+              key={person.id}
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => setOpenId(person.id)}
+              className="absolute flex w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+              style={{ left: x, top: y }}
+            >
+              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-cyan/50 bg-surface-2 font-display text-sm font-bold text-primary shadow-[0_0_18px_hsl(var(--primary)/0.45)]">
+                {person.avatarUrl ? <img src={person.avatarUrl} alt="" className="h-full w-full object-cover" /> : person.fullName.slice(0, 1).toUpperCase()}
+              </span>
+              <span className={`absolute right-4 top-0 h-3.5 w-3.5 rounded-full border-2 border-background ${dot[state]}`} aria-label={state} />
+              <span className="mt-1 w-full truncate text-[10px] font-semibold">{person.fullName}</span>
+              <span className="w-full truncate text-[8px] text-primary">{person.memberId}</span>
+            </button>
+          );
+        }),
       )}
+      <div
+        className="absolute flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+        style={{ left: mid, top: mid }}
+      >
+        <Crown className="h-5 w-5 text-amber-400 drop-shadow" />
+        <span className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-cyan brand-gradient font-display text-2xl font-bold text-primary-foreground shadow-[0_0_40px_hsl(var(--primary)/0.6)]">
+          {center.avatarUrl ? <img src={center.avatarUrl} alt="" className="h-full w-full object-cover" /> : center.fullName.slice(0, 1).toUpperCase()}
+        </span>
+        <span className="mt-1 w-full truncate text-xs font-bold">{center.fullName}</span>
+        <span className="w-full truncate text-[9px] text-cyan">{center.memberId}</span>
+      </div>
     </div>
   );
+
+  const controls = (
+    <div className="flex flex-wrap items-center gap-2">
+      {focusPerson ? (
+        <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFocusId(focusPerson.uplineId && ids.has(focusPerson.uplineId) ? focusPerson.uplineId : null)}>
+          ← Back
+        </Button>
+      ) : null}
+      <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom out" onClick={() => setScale((s) => Math.max(0.25, s - 0.2))}><Minus className="h-4 w-4" /></Button>
+      <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom in" onClick={() => setScale((s) => Math.min(3, s + 0.2))}><Plus className="h-4 w-4" /></Button>
+      <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}>Reset</Button>
+    </div>
+  );
+
+  const canvas = (
+    <div
+      className="relative h-full w-full touch-none select-none overflow-hidden"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onWheel={(event) => setScale((s) => Math.min(3, Math.max(0.25, s * Math.exp(-event.deltaY * 0.0015))))}
+    >
+      <div
+        className="absolute left-1/2 top-1/2"
+        style={{ transform: `translate(-50%, -50%) translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
+      >
+        {orbit}
+      </div>
+    </div>
+  );
+
+  if (topLevel.length === 0) {
+    return <p className="py-8 text-center text-xs text-muted-foreground">{emptyHint}</p>;
+  }
 
   return (
     <>
       {fullScreen ? (
-        <div className="fixed inset-0 z-40 overflow-hidden bg-background">
+        <div className="fixed inset-0 z-40 bg-background">
           <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 p-3">
-            <div className="flex gap-2">
-              <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom out" onClick={() => setScale((s) => Math.max(0.3, s - 0.2))}>
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Button type="button" size="icon" variant="outline" className="rounded-xl" aria-label="Zoom in" onClick={() => setScale((s) => Math.min(3, s + 0.2))}>
-                <Plus className="h-4 w-4" />
-              </Button>
-              <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }}>
-                Reset
-              </Button>
-            </div>
+            {controls}
             <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFullScreen(false)}>
               <Minimize2 className="h-3.5 w-3.5" /> Close
             </Button>
           </div>
-          <div
-            className="h-full w-full touch-none select-none pt-16"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            onWheel={(event) => setScale((s) => Math.min(3, Math.max(0.3, s - event.deltaY * 0.001)))}
-          >
-            <div
-              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: "top center" }}
-            >
-              {treeBody}
-            </div>
-          </div>
+          {canvas}
           <p className="pointer-events-none absolute inset-x-0 bottom-3 text-center text-[10px] text-muted-foreground">
-            Drag to move · pinch or use + / − to zoom
+            Drag · pinch to zoom · tap a person · green active · red inactive · blue leave
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto pb-4">
-          <div className="mb-2 flex justify-end">
-            <Button type="button" size="sm" variant="outline" className="rounded-xl" onClick={() => setFullScreen(true)}>
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            {controls}
+            <Button type="button" size="sm" className="rounded-xl" onClick={() => setFullScreen(true)}>
               <Maximize2 className="h-3.5 w-3.5" /> Full screen
             </Button>
           </div>
-          {treeBody}
+          <div className="h-[70vh] rounded-2xl border border-hairline bg-background/40">{canvas}</div>
         </div>
       )}
 
@@ -271,6 +265,7 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-display text-base font-bold">{selected.fullName}</p>
+                <p className="text-[11px] font-semibold capitalize">{personState(selected)}</p>
                 <p className="text-xs text-primary">{selected.memberId}</p>
                 <p className="text-[11px] text-muted-foreground">
                   {selected.rank ?? "No rank"} ·{" "}
@@ -402,6 +397,14 @@ export function GenealogyTree({ root, people, emptyHint }: Props) {
               Business information only. Personal details stay private and records here are
               read-only.
             </p>
+            {childrenOf(selected.id).length > 0 ? (
+              <Button
+                className="mt-3 w-full rounded-2xl"
+                onClick={() => { setFocusId(selected.id); setOpenId(null); setOffset({ x: 0, y: 0 }); }}
+              >
+                Show {selected.fullName}'s circle ({childrenOf(selected.id).length})
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               className="mt-3 w-full rounded-2xl"

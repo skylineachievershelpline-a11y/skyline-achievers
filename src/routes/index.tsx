@@ -21,7 +21,8 @@ import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
 import { PublicSkylineAi } from "@/components/ai/PublicSkylineAi";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { IntroductionSection } from "@/components/landing/IntroductionSection";
-import { LandingInstallSection } from "@/components/landing/LandingInstallSection";
+import { HangingInstallTag } from "@/components/landing/HangingInstallTag";
+
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -196,18 +197,11 @@ function LandingPage() {
         <div className="hero-orbit absolute right-[8%] top-[22%] hidden h-72 w-72 rounded-full lg:block" aria-hidden />
 
         <nav className={`cinematic-nav fixed inset-x-0 top-0 z-40 mx-auto flex w-full items-center justify-between px-5 sm:px-8 lg:px-12 ${scrolled ? "is-compact" : ""}`}>
-          <BrandLogo size="md" secretGesture />
+          <div className="flex items-center gap-1.5">
+            <BrandLogo size="md" secretGesture />
+            <HangingInstallTag />
+          </div>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="hidden h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md sm:inline-flex"
-            >
-              <a href="#install">
-                <Download className="h-4 w-4" />
-                Install app
-              </a>
-            </Button>
             <Button
               variant="outline"
               className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"
@@ -329,7 +323,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <LandingInstallSection />
+      
 
       <ReviewsSection />
 

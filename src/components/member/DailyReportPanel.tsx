@@ -28,6 +28,7 @@ import {
   type ReportDay,
 } from "@/lib/daily-report.functions";
 import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
+import type { ReportCalendarDay } from "@/lib/report-days.server";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -124,7 +125,7 @@ export function DailyReportPanel() {
   const rangeEnd = toDate || today;
 
   const rangeRows = useMemo(() => {
-    const days = data?.days ?? [];
+    const days = (data?.calendar ?? []) as ReportCalendarDay[];
     return days
       .filter((day) => day.date >= rangeStart && day.date <= rangeEnd)
       .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -467,14 +468,20 @@ export function DailyReportPanel() {
                 {rangeRows.map((row) => (
                   <tr key={row.date} className="border-b border-border/60 last:border-0">
                     <td className="p-3 font-semibold">{dayShort(row.date)}</td>
-                    <td className="p-3 text-right tabular-nums">{row.leads}</td>
-                    <td className="p-3 text-right tabular-nums">{row.responses}</td>
-                    <td className="p-3 text-right tabular-nums">{row.enrollments}</td>
-                    <td className="p-3 text-right tabular-nums">{row.pending}</td>
-                    <td className="p-3 text-right tabular-nums">{row.twoCc}</td>
-                    <td className="p-3 text-right font-semibold tabular-nums text-cyan">
-                      {row.mentorshipPaid}
-                    </td>
+                    {row.status === "report" ? (
+                      <>
+                        <td className="p-3 text-right tabular-nums">{row.leads}</td>
+                        <td className="p-3 text-right tabular-nums">{row.responses}</td>
+                        <td className="p-3 text-right tabular-nums">{row.enrollments}</td>
+                        <td className="p-3 text-right tabular-nums">{row.pending}</td>
+                        <td className="p-3 text-right tabular-nums">{row.twoCc}</td>
+                        <td className="p-3 text-right font-semibold tabular-nums text-cyan">{row.mentorshipPaid}</td>
+                      </>
+                    ) : (
+                      <td colSpan={6} className={`p-3 text-center font-bold uppercase ${row.status === "leave" ? "text-primary" : "text-destructive"}`}>
+                        {row.status === "leave" ? "Leave" : "Absent"}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

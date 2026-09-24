@@ -94,18 +94,30 @@ export function LiquidAtmosphere() {
     };
 
     const onVisibility = () => {
-      running = !document.hidden;
-      if (running && !reduceMotion) frame = window.requestAnimationFrame(draw);
+      const isVisible = !document.hidden;
+      if (isVisible) {
+        running = true;
+        resize(); // Re-sync dimensions on resume
+        if (!reduceMotion) {
+          window.cancelAnimationFrame(frame);
+          frame = window.requestAnimationFrame(draw);
+        }
+      } else {
+        running = false;
+        window.cancelAnimationFrame(frame);
+      }
     };
 
     resize();
     draw(0);
     window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("focus", onVisibility); // Also check on focus
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       running = false;
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("focus", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

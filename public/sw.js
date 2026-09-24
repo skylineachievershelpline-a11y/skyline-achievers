@@ -88,14 +88,23 @@ self.addEventListener("push", (event) => {
   }
 
   const title = payload.title || "Skyline Achievers";
+  const path = payload.path || "/notifications";
+  const isAdminAlert = path.startsWith("/admin") || payload.tag === "admin";
   const options = {
     body: payload.body || "",
-    icon: "/app-icon-192.png",
-    badge: "/app-icon-192.png",
+    icon: isAdminAlert ? "/admin-icon-192.png" : "/app-icon-192.png",
+    badge: isAdminAlert ? "/admin-icon-192.png" : "/app-icon-192.png",
     tag: payload.tag || "skyline",
     renotify: true,
-    vibrate: [180, 90, 180],
-    data: { path: payload.path || "/notifications" },
+    requireInteraction: true,
+    silent: false,
+    vibrate: [240, 90, 240, 90, 360],
+    timestamp: Date.now(),
+    data: { path },
+    actions: [
+      { action: "open", title: "Open" },
+      { action: "dismiss", title: "Dismiss" },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -103,6 +112,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const path = (event.notification.data && event.notification.data.path) || "/notifications";
   const target = new URL(path, self.location.origin).href;
 

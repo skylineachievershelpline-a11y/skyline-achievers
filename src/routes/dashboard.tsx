@@ -78,6 +78,7 @@ function DashboardPage() {
 
   const member = data.member;
   const progress = data.progress ?? null;
+  const isFbo = Number(member?.level?.rank_order ?? 0) >= 2;
   const openMentorshipReceipt = () => {
     if (!member || !progress || progress.feePaid <= 0) return;
     setMentorshipSlip({
@@ -165,7 +166,7 @@ function DashboardPage() {
       </section>
 
       {/* Payment status is information only — it never locks the dashboard. */}
-      {progress && !progress.feeComplete ? (
+      {!isFbo && progress && !progress.feeComplete ? (
         <div className="mx-auto mt-2 w-full max-w-3xl">
           <MentorshipFeeCard
             progress={progress}
@@ -173,7 +174,7 @@ function DashboardPage() {
             ccTargets={data.ccTargets ?? null}
           />
         </div>
-      ) : progress && data.ccMoney ? (
+      ) : !isFbo && progress && data.ccMoney ? (
         <div className="mx-auto mt-2 w-full max-w-3xl">
           <CcAmountCard money={data.ccMoney} />
         </div>

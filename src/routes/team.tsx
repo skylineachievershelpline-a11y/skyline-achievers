@@ -318,7 +318,7 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
     if (person.kind !== kind) return false;
     if (!range) return true;
     const joined = String(person.createdAt ?? "").slice(0, 10);
-    return joined >= range[0] && joined <= range[1];
+    return joined >= (range[0] ?? "") && joined <= (range[1] ?? "9999");
   });
   const needle = search.trim().toLowerCase();
   const people = needle

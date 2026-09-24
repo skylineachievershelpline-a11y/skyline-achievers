@@ -2,11 +2,12 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, ListChecks, Loader2, ReceiptText, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { BadgeCheck, Ban, CircleDollarSign, Copy, ExternalLink, KeyRound, ListChecks, Loader2, ReceiptText, Search, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
+import { formatRankName } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +39,7 @@ type Upline = {
 
 
 const STATUSES = ["all", "active", "blocked", "removed"] as const;
+const MEMBER_GROUPS = ["all", "mentorship", "fbo"] as const;
 
 
 export function MembersTab({ levels }: { levels: Level[] }) {
@@ -51,6 +53,7 @@ export function MembersTab({ levels }: { levels: Level[] }) {
   const [search, setSearch] = useState("");
   const [term, setTerm] = useState("");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("all");
+  const [memberGroup, setMemberGroup] = useState<(typeof MEMBER_GROUPS)[number]>("all");
   const [showAdd, setShowAdd] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -156,7 +159,13 @@ export function MembersTab({ levels }: { levels: Level[] }) {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const members = data?.members ?? [];
+  const allMembers = data?.members ?? [];
+  const members = allMembers.filter((member: any) => {
+    const isFbo = Number(member.levels?.rank_order ?? 0) >= 2;
+    if (memberGroup === "fbo") return isFbo;
+    if (memberGroup === "mentorship") return !isFbo;
+    return true;
+  });
   const allSelected = members.length > 0 && members.every((member: any) => selectedIds.includes(member.id));
 
   function toggleSelected(id: string) {
@@ -221,7 +230,25 @@ export function MembersTab({ levels }: { levels: Level[] }) {
         </Button>
         </div>
 
-      <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+      <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto" aria-label="Member type">
+        {MEMBER_GROUPS.map((option) => (
+          <Button
+            key={option}
+            type="button"
+            variant={memberGroup === option ? "brand" : "outline"}
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              setMemberGroup(option);
+              setSelectedIds([]);
+            }}
+          >
+            {option === "all" ? "All members" : option === "mentorship" ? "Personal Mentorship" : "FBO"}
+          </Button>
+        ))}
+      </div>
+
+      <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
         {STATUSES.map((option) => (
           <button
             key={option}
@@ -655,6 +682,7 @@ function MentorshipDialog({
   pending: boolean;
 }) {
   if (!member) return null;
+  const isFbo = Number(member.levels?.rank_order ?? 0) >= 2;
   const total = Number(member.mentorship_fee_pkr ?? 50000);
   const received = Number(member.mentorship_paid_pkr ?? 0);
   const remaining = Math.max(total - received, 0);
@@ -664,8 +692,17 @@ function MentorshipDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[85vh] overflow-y-auto rounded-3xl">
         <DialogHeader>
-          <DialogTitle>Personal Mentorship — {member.full_name}</DialogTitle>
+          <DialogTitle>{isFbo ? "2CC Status" : "Personal Mentorship"} — {member.full_name}</DialogTitle>
         </DialogHeader>
+        {isFbo ? (
+          <div className="rounded-2xl border border-cyan/30 bg-primary/10 p-6 text-center">
+            <BadgeCheck className="mx-auto h-10 w-10 text-cyan" />
+            <p className="mt-3 font-display text-xl font-semibold text-cyan">2CC Complete</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {formatRankName(member.levels?.name)} rank confirmed. This member is an FBO.
+            </p>
+          </div>
+        ) : (
         <div className="space-y-4">
           <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -725,6 +762,7 @@ function MentorshipDialog({
             </Button>
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -148,6 +148,7 @@ export const adminVerifyPayment = createServerFn({ method: "POST" })
         .from("member_profiles")
         .update({ mentorship_paid_pkr: ledger.mentorshipPaid })
         .eq("id", memberRow.id);
+      if (data.decision === "verified") await autoPromoteAfterCc(memberRow.id);
     }
 
     return {
@@ -285,6 +286,52 @@ async function moveLedgerToMember(traineeId: string, accountId: string) {
     .eq("id", accountId);
 }
 
+/** Moves a Personal Mentorship member to Assistant Supervisor once 2CC is fully verified. */
+export async function autoPromoteAfterCc(memberId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as any;
+  const { data: member } = await admin
+    .from("member_profiles")
+    .select("id, full_name, level_id, mentorship_fee_pkr, mentorship_paid_pkr, mentorship_due_at, mentorship_completed_at, levels(rank_order)")
+    .eq("id", memberId)
+    .maybeSingle();
+  if (!member || Number(member.levels?.rank_order ?? 1) > 1) return false;
+  const { loadLedger, loadPolicy } = await import("./journey.server");
+  const { computeCcMoney } = await import("./journey");
+  const [ledger, policy] = await Promise.all([loadLedger(memberId), loadPolicy()]);
+  const required = Number(member.mentorship_fee_pkr) || policy.mentorshipFeePkr;
+  const verified = Math.max(ledger.mentorshipPaid, Number(member.mentorship_paid_pkr) || 0);
+  if (verified < required) return false;
+  const paidInTime =
+    !member.mentorship_due_at ||
+    (member.mentorship_completed_at
+      ? new Date(member.mentorship_completed_at).getTime() <= new Date(member.mentorship_due_at).getTime()
+      : Date.now() <= new Date(member.mentorship_due_at).getTime());
+  const cc = computeCcMoney({
+    policy,
+    mentorshipVerified: verified,
+    ccPaid: ledger.ccPaid,
+    paidInTime,
+    completedAt: member.mentorship_completed_at ?? null,
+  });
+  if (cc.remaining > 0) return false;
+  const { data: next } = await admin.from("levels").select("id, name").eq("rank_order", 2).maybeSingle();
+  if (!next) return false;
+  await admin
+    .from("member_profiles")
+    .update({ level_id: next.id, level_since: new Date().toISOString(), training_locked: false })
+    .eq("id", memberId);
+  try {
+    const { pushToMember } = (await import("./push.server")) as any;
+    await pushToMember?.(memberId, {
+      title: "Congratulations! 🎉",
+      body: "Aap ka 2CC complete ho gaya — ab aap Assistant Supervisor hain.",
+      tag: "rank-up",
+    });
+  } catch {}
+  return true;
+}
+
 /** 2CC target reached: the rank moves up automatically. */
 export const adminSyncRankUpgrade = createServerFn({ method: "POST" })
   .inputValidator((data: { memberId: string }) => z.object({ memberId: uuid }).parse(data))
@@ -315,7 +362,7 @@ export const adminSyncRankUpgrade = createServerFn({ method: "POST" })
     const { data: nextLevel } = await admin
       .from("levels")
       .select("id, name")
-      .eq("slug", "assistant-supervisor")
+      .eq("rank_order", 2)
       .maybeSingle();
     if (!nextLevel) return { upgraded: false as const, target, ccPaid: ledger.ccPaid };
 

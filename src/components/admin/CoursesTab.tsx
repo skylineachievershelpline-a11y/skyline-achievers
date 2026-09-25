@@ -588,6 +588,7 @@ function MethodForm({
     accountName: string | null;
     accountNumber: string | null;
     instructions: string | null;
+    qrUrl: string | null;
     isActive: boolean;
   }) => Promise<void>;
 }) {
@@ -595,6 +596,7 @@ function MethodForm({
   const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [qrUrl, setQrUrl] = useState("");
   const [busy, setBusy] = useState(false);
 
   return (
@@ -605,6 +607,11 @@ function MethodForm({
         <Input placeholder="Account title" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
         <Input placeholder="Account number / IBAN" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
       </div>
+      <Input
+        placeholder="QR code image link (optional — otherwise a QR is generated)"
+        value={qrUrl}
+        onChange={(e) => setQrUrl(e.target.value)}
+      />
       <Textarea
         placeholder="Extra instructions (optional)"
         value={instructions}
@@ -627,12 +634,15 @@ function MethodForm({
               accountName: accountName.trim() || null,
               accountNumber: accountNumber.trim() || null,
               instructions: instructions.trim() || null,
+              qrUrl: qrUrl.trim() || null,
               isActive: true,
             });
             setLabel("");
             setAccountName("");
             setAccountNumber("");
             setInstructions("");
+            setQrUrl("");
+
           } finally {
             setBusy(false);
           }

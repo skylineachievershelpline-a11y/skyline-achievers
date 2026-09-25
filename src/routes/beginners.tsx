@@ -57,6 +57,7 @@ import { BRAND, memberIdToAuthEmail } from "@/lib/brand";
 import { fastSignOut } from "@/lib/sign-out";
 import { formatDate, formatDateTime12 } from "@/lib/format";
 import { TraineeJourney } from "@/components/journey/TraineeJourney";
+import { MentorshipSeatTag } from "@/components/journey/MentorshipSeatTag";
 import { PushAlertsCard } from "@/components/member/PushAlertsCard";
 import { PushWelcomeDialog } from "@/components/member/PushWelcomeDialog";
 import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
@@ -666,6 +667,7 @@ function BeginnersPage() {
                 <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   {trainee.traineeCode} · joined {formatDate(trainee.createdAt)}
                 </p>
+                <MentorshipSeatTag className="mt-2" />
                 {trainee.upline ? (
                   <p className="mt-2 text-xs text-muted-foreground">
                     Trainer: {trainee.upline.fullName} ({trainee.upline.memberId})

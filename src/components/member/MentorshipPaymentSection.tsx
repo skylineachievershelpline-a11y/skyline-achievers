@@ -201,14 +201,13 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       ) : null}
       {payingCc ? (
         <CcDeadlineNotice cc={cc} />
-      ) : !mentorship.complete ? (
       ) : (
         <p className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs font-semibold text-amber-300">
           Complete your Personal Mentorship amount within {policy.mentorshipDays} days to keep the
           lower 2CC target of {formatPkr(policy.ccTargetFullPayment)}. After that the applicable
           target is {formatPkr(policy.ccTargetPartial)}. Your account is never suspended for this.
         </p>
-      ) : null}
+      )}
 
       {/* ---------- where to pay ---------- */}
       {payLimit > 0 ? (

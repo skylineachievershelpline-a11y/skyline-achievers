@@ -392,6 +392,7 @@ export function CoursesTab() {
                       accountName: method.account_name,
                       accountNumber: method.account_number,
                       instructions: method.instructions,
+                      qrUrl: method.qr_url ?? null,
                       isActive: !method.is_active,
                       sortOrder: method.sort_order,
                     } as never,

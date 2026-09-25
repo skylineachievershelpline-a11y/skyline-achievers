@@ -180,8 +180,29 @@ export const getTraineeJourney = createServerFn({ method: "GET" })
     const trainee = await activeTrainee(context.userId);
     const journey = await buildJourney(trainee.id);
     const { signPath, AVATAR_BUCKET } = await import("./storage.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: methods }, { data: jrow }] = await Promise.all([
+      (supabaseAdmin as any)
+        .from("course_payment_methods")
+        .select("id, label, account_name, account_number, instructions")
+        .eq("is_active", true)
+        .order("sort_order"),
+      (supabaseAdmin as any)
+        .from("trainee_journey")
+        .select("mentorship_account_code")
+        .eq("trainee_id", trainee.id)
+        .maybeSingle(),
+    ]);
     return {
       ...journey,
+      mentorshipAccountCode: (jrow?.mentorship_account_code ?? null) as string | null,
+      paymentMethods: ((methods ?? []) as any[]).map((m) => ({
+        id: m.id as string,
+        label: m.label as string,
+        accountName: (m.account_name ?? null) as string | null,
+        accountNumber: (m.account_number ?? null) as string | null,
+        instructions: (m.instructions ?? null) as string | null,
+      })),
       profile: {
         id: trainee.id as string,
         code: trainee.trainee_code as string,
@@ -355,6 +376,8 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       purpose: "mentorship" | "two_cc";
+      fullName?: string | null;
+      method?: string | null;
       claimedAmount: number;
       proofPath: string;
       phone?: string | null;
@@ -365,6 +388,8 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
       z
         .object({
           purpose: z.enum(["mentorship", "two_cc"]),
+          fullName: z.string().trim().min(2).max(120).nullish(),
+          method: z.string().trim().max(120).nullish(),
           claimedAmount: z.number().min(1, "Enter the amount you paid").max(100_000_000),
           proofPath: z.string().trim().min(3).max(300),
           phone: z.string().trim().max(20).nullish(),
@@ -376,11 +401,22 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const trainee = await activeTrainee(context.userId);
+    if (data.purpose === "mentorship" && (!data.phone || !data.email || !data.age || !data.fullName)) {
+      throw new Error("Full name, age, active phone number and active email are all required.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Keep the trainee record in step so the new account gets the right details.
+    if (data.purpose === "mentorship") {
+      await (supabaseAdmin as any)
+        .from("trainees")
+        .update({ full_name: data.fullName, age: data.age, phone: data.phone })
+        .eq("id", trainee.id);
+    }
     const { error } = await (supabaseAdmin as any).from("payment_submissions").insert({
       payer_id: trainee.id,
       payer_kind: "trainee",
-      payer_name: trainee.full_name,
+      method: data.method ?? null,
+      payer_name: data.fullName ?? trainee.full_name,
       payer_code: trainee.trainee_code,
       upline_id: trainee.upline_id,
       purpose: data.purpose,

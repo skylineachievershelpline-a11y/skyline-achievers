@@ -29,6 +29,7 @@ import {
   createTraineeReportLink,
   getTraineeJourneyForUpline,
   getTraineeReportLinks,
+  grantForeverAccess,
   reviewSessionSubmission,
   setTraineeReportLinkRevoked,
 } from "@/lib/journey.functions";
@@ -248,6 +249,17 @@ export function TraineeProgressRecord({
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const grant = useServerFn(grantForeverAccess);
+  const access = useMutation({
+    mutationFn: () => grant({ data: { traineeId } } as never),
+    onSuccess: () => {
+      toast.success("Session 08 access de diya — trainee ko congratulations bhej diya");
+      void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });
+      void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
   const create = useMutation({
@@ -272,6 +284,22 @@ export function TraineeProgressRecord({
   const scoredSessions = sessions.filter((session) => session.score != null).length;
   const totalScore = sessions.reduce((sum, session) => sum + Number(session.score ?? 0), 0);
   const performance = performanceCategory(totalScore, scoredSessions);
+  const basicApproved = sessions.filter(
+    (s) => s.sessionNumber <= 7 && s.review === "approved",
+  ).length;
+  const accessGiven = data?.stage === "interview_passed" || data?.stage === "mentorship";
+  const needsAccess = basicApproved >= 7 && !accessGiven;
+  const accessButton = (
+    <Button
+      type="button"
+      className="w-full"
+      disabled={access.isPending}
+      onClick={() => access.mutate()}
+    >
+      {access.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+      Give Session 08 access
+    </Button>
+  );
   const [whatsappScores, setWhatsappScores] = useState<Record<number, string>>({});
 
   useEffect(() => {
@@ -309,6 +337,22 @@ export function TraineeProgressRecord({
           </div>
         ) : (
           <>
+            {needsAccess ? (
+              <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/10 p-3">
+                <p className="text-sm font-bold text-primary">
+                  7 sessions complete — is person ko Session 08 access dena hai
+                </p>
+                <p className="mb-2 text-[11px] text-muted-foreground">
+                  Access dene par trainee ko training complete aur Final Interview pass ki congratulations milegi.
+                </p>
+                {accessButton}
+              </div>
+            ) : null}
+            {accessGiven ? (
+              <p className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-semibold text-emerald-300">
+                Session 08 access given · Final Interview passed
+              </p>
+            ) : null}
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
               {[
                 {
@@ -421,7 +465,17 @@ export function TraineeProgressRecord({
                         <MessageCircle className="h-3.5 w-3.5" /> Review shared on WhatsApp
                       </p>
                     ) : null}
-                    {session.review !== "approved" ? (
+                    {session.sessionNumber > 7 ? (
+                      accessGiven ? (
+                        <p className="mt-2 text-[11px] font-semibold text-emerald-300">Access given ✓</p>
+                      ) : needsAccess ? (
+                        <div className="mt-2">{accessButton}</div>
+                      ) : (
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                          Saare 7 sessions approve hone ke baad yahan access button aayega.
+                        </p>
+                      )
+                    ) : session.review !== "approved" ? (
                       <div className="mt-2 grid grid-cols-[6rem_1fr] gap-2">
                         <Input
                           type="number"

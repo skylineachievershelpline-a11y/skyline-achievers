@@ -1109,3 +1109,44 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
       }),
     };
   });
+
+/** Upline grants Session 08 (Forever Business Plan) once all seven sessions are approved. */
+export const grantForeverAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const trainee = await ownTrainee(member.id, data.traineeId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ensureJourney } = await import("./journey.server");
+    const journey = await ensureJourney(trainee.id);
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage === "interview_passed" || stage === "mentorship") return { ok: true as const };
+    const { data: rows } = await (supabaseAdmin as any)
+      .from("trainee_session_reviews")
+      .select("session_number")
+      .eq("trainee_id", trainee.id)
+      .eq("status", "approved")
+      .lte("session_number", 7);
+    const approved = new Set(((rows ?? []) as any[]).map((r) => Number(r.session_number)));
+    if (approved.size < 7) throw new Error("Pehle saare 7 sessions ke reviews approve karein.");
+    const now = new Date().toISOString();
+    const { error } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .update({
+        interview_result: "pass",
+        interview_reviewed_at: now,
+        interview_guide_watched_at: (journey as any)?.interview_guide_watched_at ?? now,
+        stage: "interview_passed",
+      })
+      .eq("trainee_id", trainee.id);
+    if (error) throw new Error(error.message);
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([trainee.id], {
+      title: "Congratulations! 🎉",
+      body: "Aap ne training complete kar li aur Final Interview pass kar liya. Session 08 ab open hai.",
+      path: "/beginners",
+      tag: `interview-${trainee.id}`,
+    });
+    return { ok: true as const };
+  });

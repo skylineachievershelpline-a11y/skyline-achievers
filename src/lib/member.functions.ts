@@ -276,8 +276,11 @@ export const getTrainingLibrary = createServerFn({ method: "GET" })
     });
 
     // Part payment members only see the sections granted to them by the admin.
+    // Personal Mentorship sections open automatically; admin-picked extras add on top.
     const visibleCategories = partialTraining
-      ? ((categories ?? []) as any[]).filter((category) => memberSections.has(category.id))
+      ? ((categories ?? []) as any[]).filter(
+          (category) => memberSections.has(category.id) || rankCategories.includes(category),
+        )
       : rankCategories;
 
     const visibleIds = new Set(visibleCategories.map((c) => c.id));

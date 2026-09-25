@@ -439,7 +439,9 @@ export function TraineeJourney() {
               The guide video is being prepared by the office.
             </p>
           )}
+          </div>
         </section>
+
       ) : null}
 
       {data.stage === "ready_for_interview" ? (

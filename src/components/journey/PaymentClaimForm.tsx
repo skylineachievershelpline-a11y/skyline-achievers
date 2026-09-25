@@ -50,7 +50,7 @@ export function PaymentClaimForm({
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState(profile.age ? String(profile.age) : "");
-  const [amount, setAmount] = useState(String(defaultAmount));
+  const [amount, setAmount] = useState(purpose === "mentorship" ? "" : String(defaultAmount));
   const [method, setMethod] = useState("");
   const [note, setNote] = useState("");
   const [proof, setProof] = useState<File | null>(null);
@@ -118,11 +118,18 @@ export function PaymentClaimForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Upline ID (added automatically)</Label>
+          <Label className="flex items-center gap-1.5">
+            Upline ID (locked)
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-glow" />
+          </Label>
           <Input
             value={profile.upline ? `${profile.upline.name} (${profile.upline.code})` : "—"}
             readOnly
-            className="h-11 rounded-2xl opacity-80"
+            disabled
+            tabIndex={-1}
+            aria-readonly="true"
+            onChange={() => undefined}
+            className="h-11 cursor-not-allowed rounded-2xl opacity-80"
           />
         </div>
         <div className="space-y-1.5">

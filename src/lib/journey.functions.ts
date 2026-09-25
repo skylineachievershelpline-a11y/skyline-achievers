@@ -798,8 +798,8 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
 
     // The Forever Business Plan opens only after the final interview is passed.
-    const { loadSessionSet: _lss } = await import("./journey.server");
-    const _set: any = await (_lss as any)();
+    const { loadJourneySessions: _lss } = await import("./journey.server");
+    const _set: any = await _lss();
     if (kind === "business_plan" || _set?.businessPlan?.id === row.id) {
       const { ensureJourney } = await import("./journey.server");
       const journey: any = await ensureJourney(trainee.id);

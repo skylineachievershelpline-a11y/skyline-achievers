@@ -116,6 +116,8 @@ if (typeof window !== "undefined") {
     const found = list.find((a) => a.userId === session.user.id);
     if (!found) return;
     found.refreshToken = session.refresh_token;
+    found.accessToken = session.access_token;
+    found.expiresAt = session.expires_at ?? undefined;
     write(list);
   });
 }

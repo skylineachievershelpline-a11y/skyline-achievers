@@ -40,7 +40,7 @@ export function AccountSettings({
     const to = await switchToAccount(userId);
     setBusy(null);
     if (!to) {
-      toast.error("This account needs to sign in again. Use Add account.");
+      toast.error("Session expired — please enter this account's password once.");
       setAccounts(listDeviceAccounts());
       return;
     }

@@ -162,6 +162,8 @@ export function PaymentClaimForm({
           <Label>Amount paid (Rs.)</Label>
           <Input
             value={amount}
+            inputMode="numeric"
+            placeholder="Enter the amount you paid"
             onChange={(event) => setAmount(event.target.value.replace(/\D/g, ""))}
             className="h-11 rounded-2xl tabular-nums"
           />

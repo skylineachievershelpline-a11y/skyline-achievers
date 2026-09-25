@@ -215,18 +215,13 @@ export function sessionWindowEndMs(scheduledAt: string): number {
  * review stays pending but the video closes; with no review (or a rejected
  * one) the session rolls to the next day on the server.
  */
-export function sessionExpired(session: JourneySession, nowMs = Date.now()): boolean {
-  if (!session.scheduledAt) return false;
-  if (session.review === "approved") return false;
-  return nowMs > sessionWindowEndMs(session.scheduledAt);
+export function sessionExpired(_session: JourneySession, _nowMs = Date.now()): boolean {
+  return false;
 }
 
-/** Approved sessions stay open forever; others only inside their live window. */
-export function sessionOpen(session: JourneySession, nowMs = Date.now()): boolean {
-  if (session.review === "approved") return true;
-  if (!session.scheduledAt) return false;
-  if (new Date(session.scheduledAt).getTime() > nowMs) return false;
-  return !sessionExpired(session, nowMs);
+/** Every session stays open: all sessions can be watched and reviewed any day. */
+export function sessionOpen(_session: JourneySession, _nowMs = Date.now()): boolean {
+  return true;
 }
 
 /** Milliseconds left in the live 3-hour window, or null when not running. */

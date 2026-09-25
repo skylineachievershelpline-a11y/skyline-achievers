@@ -437,11 +437,15 @@ export function TraineeProgressRecord({
                           size="sm"
                           variant="outline"
                           className="rounded-xl text-[12px]"
-                          disabled={whatsapp.isPending}
+                          disabled={whatsapp.isPending || (whatsappScores[session.sessionNumber] ?? "").trim() === ""}
                           onClick={() => {
                             const max = maxScoreForSession(session.sessionNumber);
-                            const raw = whatsappScores[session.sessionNumber] ?? "";
-                            const score = raw === "" ? max : Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
+                            const raw = (whatsappScores[session.sessionNumber] ?? "").trim();
+                            if (raw === "") {
+                              toast.error("Pehle marks likhein, phir approve karein.");
+                              return;
+                            }
+                            const score = Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
                             whatsapp.mutate({ sessionNumber: session.sessionNumber, score });
                           }}
                         >

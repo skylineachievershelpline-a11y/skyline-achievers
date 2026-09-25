@@ -511,6 +511,7 @@ export function TraineeJourney() {
                 <PlayCircle className="h-4 w-4" /> Watch the business plan
               </Button>
             ) : null}
+            </div>
           </section>
         </>
       ) : null}

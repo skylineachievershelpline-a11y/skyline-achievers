@@ -44,7 +44,6 @@ import { PaymentClaimForm } from "./PaymentClaimForm";
 import { PaymentWalletCard } from "./PaymentWalletCard";
 import { SeatAlertTag } from "./SeatAlertTag";
 import { SessionReviewForm } from "./SessionReviewForm";
-import { WhatDoINowCard } from "./WhatDoINowCard";
 import { useNow } from "./useCountdown";
 
 type Playing = {
@@ -238,7 +237,6 @@ export function TraineeJourney() {
 
   return (
     <div className="space-y-5">
-      <WhatDoINowCard action={action} />
 
       <VoiceGuide
         className="justify-center"
@@ -370,22 +368,6 @@ export function TraineeJourney() {
         </section>
       ) : null}
 
-      {/* ---------- progress strip: full session list lives in the side menu ---------- */}
-      <section className="glass-panel metal-edge rounded-[24px] px-5 py-4 animate-rise-in">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Basic training progress
-            </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Saare sessions side menu (☰) se open hotay hain
-            </p>
-          </div>
-          <span className="font-display text-2xl font-semibold tabular-nums text-brand-glow">
-            {approvedCount}/{BASIC_SESSION_COUNT}
-          </span>
-        </div>
-      </section>
 
       {/* ---------- final interview guide: stays open until the result is in ---------- */}
       {data.stage === "interview_guide" ||

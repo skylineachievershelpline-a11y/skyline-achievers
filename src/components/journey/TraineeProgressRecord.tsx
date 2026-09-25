@@ -31,8 +31,84 @@ import {
   getTraineeReportLinks,
   grantForeverAccess,
   reviewSessionSubmission,
+  scheduleFinalInterview,
   setTraineeReportLinkRevoked,
 } from "@/lib/journey.functions";
+
+/** Upline sets or changes the trainee's final interview date/time (Pakistan time). */
+function InterviewScheduler({
+  traineeId,
+  requestedAt,
+  availabilityNote,
+  scheduledAt,
+  onDone,
+}: {
+  traineeId: string;
+  requestedAt: string | null;
+  availabilityNote: string | null;
+  scheduledAt: string | null;
+  onDone: () => void;
+}) {
+  const schedule = useServerFn(scheduleFinalInterview);
+  const [value, setValue] = useState(() => {
+    if (!scheduledAt) return "";
+    const date = new Date(scheduledAt);
+    const pkt = new Date(date.getTime() + 5 * 3_600_000);
+    return pkt.toISOString().slice(0, 16);
+  });
+  const save = useMutation({
+    mutationFn: () => {
+      if (!value) throw new Error("Pehle date aur time choose karein.");
+      // The picker value is Pakistan time; convert it back to a real moment.
+      const pktMs = new Date(`${value}:00`).getTime();
+      return schedule({
+        data: { traineeId, scheduledAt: new Date(pktMs - 5 * 3_600_000).toISOString() },
+      } as never);
+    },
+    onSuccess: () => {
+      toast.success("Interview time set — trainee ko notification chali gayi");
+      onDone();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <div className="mt-4 rounded-2xl border-2 border-red-500/50 bg-red-500/10 p-3">
+      <p className="text-sm font-bold text-red-300">🎓 Final Interview</p>
+      {requestedAt ? (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Ready request: {formatDateTime12(requestedAt)}
+        </p>
+      ) : (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Person ne abhi "ready" button nahi dabaya — phir bhi time set kar saktay hain.
+        </p>
+      )}
+      {availabilityNote ? (
+        <p className="mt-1 rounded-xl bg-background/60 p-2 text-[11px] text-foreground">
+          Availability: {availabilityNote}
+        </p>
+      ) : null}
+      <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+        <Input
+          type="datetime-local"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          aria-label="Final interview date and time (Pakistan time)"
+        />
+        <Button size="sm" disabled={save.isPending} onClick={() => save.mutate()}>
+          {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Clock className="h-3.5 w-3.5" />}
+          {scheduledAt ? "Change time" : "Set time"}
+        </Button>
+      </div>
+      {scheduledAt ? (
+        <p className="mt-1 text-[11px] font-semibold text-red-200">
+          Scheduled: {formatDateTime12(scheduledAt)} (PKT)
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 /** Hidden by default: "Show review" reveals text, pictures and voice note plus decisions. */
 function ReviewDetails({
@@ -352,6 +428,18 @@ export function TraineeProgressRecord({
               <p className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-semibold text-emerald-300">
                 Session 08 access given · Final Interview passed
               </p>
+            ) : null}
+            {data?.stage === "ready_for_interview" || data?.stage === "reassess" ? (
+              <InterviewScheduler
+                traineeId={traineeId}
+                requestedAt={(data as any)?.interviewRequestedAt ?? null}
+                availabilityNote={(data as any)?.interviewAvailabilityNote ?? null}
+                scheduledAt={(data as any)?.interviewScheduledAt ?? null}
+                onDone={() => {
+                  void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });
+                  void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
+                }}
+              />
             ) : null}
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
               {[

@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   CalendarClock,
   CheckCircle2,
-  Clock,
   Eye,
   Loader2,
   Lock,
@@ -38,6 +37,7 @@ import {
   markInterviewGuideWatched,
   markWebinarWatched,
   playJourneyVideo,
+  requestFinalInterview,
 } from "@/lib/journey.functions";
 import { VoiceGuide } from "@/components/voice/VoiceGuide";
 import { PaymentClaimForm } from "./PaymentClaimForm";
@@ -59,12 +59,6 @@ type Playing = {
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
-
-const REVIEW_BADGE: Record<string, { label: string; className: string }> = {
-  pending: { label: "🟡 Review pending", className: "text-amber-300" },
-  approved: { label: "✅ Approved", className: "text-brand-glow" },
-  rejected: { label: "🔁 Send again", className: "text-destructive" },
-};
 
 /** The complete guided journey shown on the trainee's dashboard. */
 export function TraineeJourney() {
@@ -376,79 +370,21 @@ export function TraineeJourney() {
         </section>
       ) : null}
 
-      {/* ---------- the seven-session track ---------- */}
-      <section className="glass-panel metal-edge rounded-[28px] p-5 animate-rise-in">
-        <div className="flex items-end justify-between gap-3">
+      {/* ---------- progress strip: full session list lives in the side menu ---------- */}
+      <section className="glass-panel metal-edge rounded-[24px] px-5 py-4 animate-rise-in">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Basic training
+              Basic training progress
             </p>
-            <h2 className="mt-1 font-display text-lg font-semibold">7 guided sessions</h2>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Saare sessions side menu (☰) se open hotay hain
+            </p>
           </div>
           <span className="font-display text-2xl font-semibold tabular-nums text-brand-glow">
             {approvedCount}/{BASIC_SESSION_COUNT}
           </span>
         </div>
-
-        <ul className="mt-4 space-y-2">
-          {basic.map((session) => {
-            const badge = REVIEW_BADGE[session.review];
-            const expired = sessionExpired(session, now);
-            const locked = !sessionOpen(session, now);
-            return (
-              <li key={session.sessionNumber} className="glass-panel rounded-2xl p-3">
-                <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 font-display text-sm font-semibold tabular-nums text-brand-glow">
-                  {pad(session.sessionNumber)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{session.title}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    Day {pad(session.dayNumber)} ·{" "}
-                    {session.scheduledAt ? formatDateTime(session.scheduledAt) : "timing not set"}
-                  </p>
-                  {badge ? (
-                    <p className={`mt-0.5 text-[11px] font-semibold ${badge.className}`}>
-                      {badge.label}
-                    </p>
-                  ) : null}
-                  {expired ? (
-                    <p className="mt-0.5 text-[11px] font-semibold text-destructive">
-                      ⏳ Closed — no review inside the {SESSION_WINDOW_HOURS}-hour window
-                    </p>
-                  ) : null}
-                </div>
-                {session.review === "approved" ? (
-                  <button
-                    type="button"
-                    onClick={() => session.sessionId && open.mutate(session.sessionId)}
-                    className="flex shrink-0 items-center gap-1 rounded-full border border-cyan/40 bg-primary/15 px-3 py-1.5 text-[11px] font-semibold text-brand-glow"
-                  >
-                    <PlayCircle className="h-4 w-4" /> Open
-                  </button>
-                ) : locked ? (
-                  <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => session.sessionId && open.mutate(session.sessionId)}
-                    aria-label={`Open ${session.title}`}
-                    className="shrink-0 text-muted-foreground transition-colors hover:text-brand"
-                  >
-                    <PlayCircle className="h-5 w-5" />
-                  </button>
-                )}
-                </div>
-
-              </li>
-            );
-          })}
-          {basic.length === 0 ? (
-            <li className="text-xs text-muted-foreground">
-              Sessions are being prepared. Please check back soon.
-            </li>
-          ) : null}
-        </ul>
       </section>
 
       {/* ---------- final interview guide: stays open until the result is in ---------- */}
@@ -495,13 +431,11 @@ export function TraineeJourney() {
       ) : null}
 
       {data.stage === "ready_for_interview" ? (
-        <section className="raised-panel rounded-[28px] p-5 text-center animate-rise-in">
-          <ShieldCheck className="mx-auto h-8 w-8 text-brand-glow" />
-          <p className="mt-3 font-display text-lg font-semibold">Ready for final interview</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Your senior will take your final interview and share the result here.
-          </p>
-        </section>
+        <InterviewReadyCard
+          requestedAt={(data as any).interviewRequestedAt ?? null}
+          scheduledAt={(data as any).interviewScheduledAt ?? null}
+          onDone={refresh}
+        />
       ) : null}
 
       {/* ---------- session 08 locked preview: no timing, interview gate only ---------- */}
@@ -648,6 +582,102 @@ export function TraineeJourney() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Final interview readiness card: before the request the trainee confirms with
+ * an availability note; afterwards a red premium alert shows the scheduled
+ * time with a live countdown and the high-stakes warning.
+ */
+function InterviewReadyCard({
+  requestedAt,
+  scheduledAt,
+  onDone,
+}: {
+  requestedAt: string | null;
+  scheduledAt: string | null;
+  onDone: () => void;
+}) {
+  const request = useServerFn(requestFinalInterview);
+  const [note, setNote] = useState("");
+  const now = useNow();
+
+  const send = useMutation({
+    mutationFn: () => request({ data: { availabilityNote: note.trim() || null } } as never),
+    onSuccess: () => {
+      toast.success("Request sent — aap ke upline ko notification mil gayi hai");
+      onDone();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  if (!requestedAt) {
+    return (
+      <section className="raised-panel metal-edge rounded-[28px] p-5 animate-rise-in">
+        <ShieldCheck className="mx-auto h-8 w-8 text-brand-glow" />
+        <p className="mt-3 text-center font-display text-lg font-semibold">
+          Final Interview ki tayari complete?
+        </p>
+        <p className="mt-1 text-center text-xs text-muted-foreground">
+          Jab aap poori tarah tayar hon, neeche button dabayen. Aap ke upline ko foran notification
+          jayegi aur wo aap ka interview time set karenge.
+        </p>
+        <textarea
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          rows={2}
+          maxLength={500}
+          placeholder="Optional: aap kab kab available hotay hain? (misal: shaam 6 se 9 tak)"
+          className="mt-4 w-full rounded-2xl border border-hairline bg-surface-2 p-3 text-sm outline-none focus:border-brand"
+        />
+        <Button
+          variant="brand"
+          size="xl"
+          className="mt-3 w-full rounded-2xl"
+          disabled={send.isPending}
+          onClick={() => send.mutate()}
+        >
+          {send.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+          I Have Prepared &amp; I'm Ready for the Final Interview
+        </Button>
+      </section>
+    );
+  }
+
+  const targetMs = scheduledAt ? new Date(scheduledAt).getTime() : null;
+  const left = targetMs !== null ? targetMs - now : null;
+
+  return (
+    <section className="rounded-[28px] border-2 border-red-500/60 bg-red-500/10 p-5 shadow-[0_0_40px_rgba(239,68,68,0.25)] animate-rise-in">
+      <p className="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-red-400">
+        ⚠ Final Interview — Official Notice
+      </p>
+      {targetMs !== null ? (
+        <>
+          <p className="mt-3 text-center font-mono text-3xl font-bold tabular-nums text-red-300">
+            {left !== null && left > 0 ? countdownText(left) : "Interview time!"}
+          </p>
+          <p className="mt-1 text-center text-xs font-semibold text-red-200">
+            {formatDateTime(scheduledAt!)} (Pakistan time)
+          </p>
+        </>
+      ) : (
+        <p className="mt-3 text-center text-sm font-semibold text-red-200">
+          Request received — aap ka upline interview ka time set kar raha hai. Notification ka
+          intezar karein.
+        </p>
+      )}
+      <div className="mt-4 rounded-2xl border border-red-500/40 bg-background/60 p-3">
+        <p className="text-[11px] font-bold text-red-300">Strict Warning</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-red-100/90">
+          Apne interview se 10 minute pehle online aur tayar rahen. Agar aap muqarrara waqt par
+          available nahi hotay ya interview fail ho jata hai, to aap ki training seat revoke ho
+          sakti hai aur aap ko poora 7-day curriculum Day 01 se dobara karna par sakta hai. Ek bar
+          fail hone par dobara chance mumkin nahi bhi ho sakta — poori tayari ke sath aayen.
+        </p>
+      </div>
+    </section>
   );
 }
 

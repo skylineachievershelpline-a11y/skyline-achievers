@@ -50,7 +50,7 @@ export function PaymentClaimForm({
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState(profile.age ? String(profile.age) : "");
-  const [amount, setAmount] = useState(String(defaultAmount));
+  const [amount, setAmount] = useState(purpose === "mentorship" ? "" : String(defaultAmount));
   const [method, setMethod] = useState("");
   const [note, setNote] = useState("");
   const [proof, setProof] = useState<File | null>(null);
@@ -63,6 +63,7 @@ export function PaymentClaimForm({
         if (!age || Number(age) < 18) throw new Error("Enter your age (18 or above).");
         if (phone.replace(/\D/g, "").length < 10) throw new Error("Enter your active phone number.");
         if (!/^\S+@\S+\.\S+$/.test(email.trim())) throw new Error("Enter your active email address.");
+        if (!amount || Number(amount) <= 0) throw new Error("Enter the amount you paid.");
         if (methods.length > 0 && !method) throw new Error("Select the payment method you used.");
       }
       const proofPath = await uploadJourneyFile(slot as never, proof);
@@ -118,11 +119,18 @@ export function PaymentClaimForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Upline ID (added automatically)</Label>
+          <Label className="flex items-center gap-1.5">
+            Upline ID (locked)
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-glow" />
+          </Label>
           <Input
             value={profile.upline ? `${profile.upline.name} (${profile.upline.code})` : "—"}
             readOnly
-            className="h-11 rounded-2xl opacity-80"
+            disabled
+            tabIndex={-1}
+            aria-readonly="true"
+            onChange={() => undefined}
+            className="h-11 cursor-not-allowed rounded-2xl opacity-80"
           />
         </div>
         <div className="space-y-1.5">
@@ -155,6 +163,8 @@ export function PaymentClaimForm({
           <Label>Amount paid (Rs.)</Label>
           <Input
             value={amount}
+            inputMode="numeric"
+            placeholder="Enter the amount you paid"
             onChange={(event) => setAmount(event.target.value.replace(/\D/g, ""))}
             className="h-11 rounded-2xl tabular-nums"
           />

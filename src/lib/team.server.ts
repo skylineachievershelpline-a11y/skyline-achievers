@@ -47,6 +47,8 @@ export async function createTraineeAccount(input: NewTrainee): Promise<TraineeCr
   if (traineeCode.length < 7 || traineeCode.length > 15) {
     throw new Error("Enter a valid mobile number.");
   }
+  const { assertPhoneEmailFree } = await import("./identity-unique.server");
+  await assertPhoneEmailFree({ phone: traineeCode });
   const password = traineePassword(input.fullName, input.phone);
 
   const attempt = await supabaseAdmin.auth.admin.createUser({

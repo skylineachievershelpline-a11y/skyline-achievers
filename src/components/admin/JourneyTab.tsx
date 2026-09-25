@@ -42,6 +42,7 @@ export function JourneyTab() {
   const [form, setForm] = useState({
     mentorshipFeePkr: "",
     mentorshipDays: "",
+    ccDays: "",
     ccTargetFullPayment: "",
     ccTargetPartial: "",
     mentorshipSeats: "",
@@ -64,6 +65,7 @@ export function JourneyTab() {
     setForm({
       mentorshipFeePkr: String(value.mentorshipFeePkr),
       mentorshipDays: String(value.mentorshipDays),
+      ccDays: String((value as any).ccDays ?? 5),
       ccTargetFullPayment: String(value.ccTargetFullPayment),
       ccTargetPartial: String(value.ccTargetPartial),
       mentorshipSeats: String(value.mentorshipSeats),
@@ -77,6 +79,7 @@ export function JourneyTab() {
         data: {
           mentorshipFeePkr: Number(form.mentorshipFeePkr) || 0,
           mentorshipDays: Number(form.mentorshipDays) || 1,
+          ccDays: Number((form as any).ccDays) || 5,
           ccTargetFullPayment: Number(form.ccTargetFullPayment) || 0,
           ccTargetPartial: Number(form.ccTargetPartial) || 0,
           mentorshipSeats: Number(form.mentorshipSeats) || 1,
@@ -145,6 +148,7 @@ export function JourneyTab() {
           {[
             { key: "mentorshipFeePkr", label: "Mentorship fee (Rs.)" },
             { key: "mentorshipDays", label: "Days to complete payment" },
+            { key: "ccDays", label: "Days to complete 2CC (after mentorship)" },
             { key: "ccTargetFullPayment", label: "2CC target — full payment (Rs.)" },
             { key: "ccTargetPartial", label: "2CC target — partial payment (Rs.)" },
             { key: "mentorshipSeats", label: "Mentorship seats" },

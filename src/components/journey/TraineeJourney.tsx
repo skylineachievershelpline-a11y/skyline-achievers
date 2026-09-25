@@ -139,7 +139,6 @@ export function TraineeJourney() {
   const basic = sessions.slice(0, BASIC_SESSION_COUNT);
   const currentNumber = currentSessionNumber(basic);
   const current = basic.find((item) => item.sessionNumber === currentNumber) ?? null;
-  const approvedCount = basic.filter((item) => item.review === "approved").length;
   const action = nextAction({
     stage: data.stage,
     sessions: basic,

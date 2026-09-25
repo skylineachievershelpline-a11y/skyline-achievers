@@ -353,6 +353,18 @@ export function TraineeProgressRecord({
                 Session 08 access given · Final Interview passed
               </p>
             ) : null}
+            {data?.stage === "ready_for_interview" || data?.stage === "reassess" ? (
+              <InterviewScheduler
+                traineeId={traineeId}
+                requestedAt={(data as any)?.interviewRequestedAt ?? null}
+                availabilityNote={(data as any)?.interviewAvailabilityNote ?? null}
+                scheduledAt={(data as any)?.interviewScheduledAt ?? null}
+                onDone={() => {
+                  void queryClient.invalidateQueries({ queryKey: ["trainee-record", traineeId] });
+                  void queryClient.invalidateQueries({ queryKey: ["upline-action-queue"] });
+                }}
+              />
+            ) : null}
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
               {[
                 {

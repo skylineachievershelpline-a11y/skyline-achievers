@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   CalendarClock,
   CheckCircle2,
-  Clock,
   Eye,
   Loader2,
   Lock,
@@ -60,12 +59,6 @@ type Playing = {
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
-
-const REVIEW_BADGE: Record<string, { label: string; className: string }> = {
-  pending: { label: "🟡 Review pending", className: "text-amber-300" },
-  approved: { label: "✅ Approved", className: "text-brand-glow" },
-  rejected: { label: "🔁 Send again", className: "text-destructive" },
-};
 
 /** The complete guided journey shown on the trainee's dashboard. */
 export function TraineeJourney() {

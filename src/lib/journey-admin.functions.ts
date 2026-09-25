@@ -192,10 +192,11 @@ async function graduateTrainee(traineeId: string, email: string | null) {
 
   const { data: existing } = await admin
     .from("trainee_journey")
-    .select("mentorship_account_code")
+    .select("mentorship_account_code, mentorship_account_id")
     .eq("trainee_id", trainee.id)
     .maybeSingle();
   if (existing?.mentorship_account_code) {
+    if (existing.mentorship_account_id) await moveLedgerToMember(trainee.id, existing.mentorship_account_id);
     return { alreadyCode: existing.mentorship_account_code as string, credentials: null };
   }
 
@@ -236,6 +237,8 @@ async function graduateTrainee(traineeId: string, email: string | null) {
     })
     .eq("trainee_id", trainee.id);
 
+  await moveLedgerToMember(trainee.id, credentials.accountId);
+
   try {
     const { pushToUsers } = await import("./push.server");
     await pushToUsers([trainee.id], {
@@ -249,6 +252,37 @@ async function graduateTrainee(traineeId: string, email: string | null) {
   }
 
   return { alreadyCode: null, credentials };
+}
+
+/**
+ * Verified trainee payments belong to the new member account, so the member
+ * dashboard shows the received amount straight away.
+ */
+async function moveLedgerToMember(traineeId: string, accountId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as any;
+  await admin
+    .from("payment_submissions")
+    .update({ payer_id: accountId, payer_kind: "member" })
+    .eq("payer_id", traineeId);
+  const { loadLedger } = await import("./journey.server");
+  const ledger = await loadLedger(accountId);
+  const { data: member } = await admin
+    .from("member_profiles")
+    .select("mentorship_fee_pkr, mentorship_completed_at")
+    .eq("id", accountId)
+    .maybeSingle();
+  if (!member) return;
+  const done = ledger.mentorshipPaid >= Number(member.mentorship_fee_pkr ?? 50000);
+  await admin
+    .from("member_profiles")
+    .update({
+      mentorship_paid_pkr: ledger.mentorshipPaid,
+      mentorship_completed_at: done
+        ? (member.mentorship_completed_at ?? new Date().toISOString())
+        : null,
+    })
+    .eq("id", accountId);
 }
 
 /** 2CC target reached: the rank moves up automatically. */

@@ -793,28 +793,9 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
     const kind = (row.session_kind ?? "basic") as string;
 
-    if (kind === "basic") {
-      const { data: slot } = await admin
-        .from("trainee_session_schedule")
-        .select("scheduled_at")
-        .eq("trainee_id", trainee.id)
-        .eq("session_number", row.session_number)
-        .maybeSingle();
-      if (!slot?.scheduled_at || new Date(slot.scheduled_at).getTime() > Date.now()) {
-        return { status: "locked" as const };
-      }
-      const { sessionWindowEndMs } = await import("./journey");
-      const { data: existingReview } = await admin
-        .from("trainee_session_reviews")
-        .select("id")
-        .eq("trainee_id", trainee.id)
-        .eq("session_number", row.session_number)
-        .limit(1)
-        .maybeSingle();
-      if (!existingReview && Date.now() > sessionWindowEndMs(slot.scheduled_at)) {
-        return { status: "expired" as const };
-      }
-    }
+    // Basic sessions stay open all day: a trainee can watch every session and
+    // send its review at any time; only the Forever Business Plan stays gated.
+
 
     // The Forever Business Plan opens only after the final interview is passed.
     if (kind === "business_plan") {

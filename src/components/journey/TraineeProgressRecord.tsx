@@ -437,7 +437,7 @@ export function TraineeProgressRecord({
                           size="sm"
                           variant="outline"
                           className="rounded-xl text-[12px]"
-                          disabled={whatsapp.isPending || (whatsappScores[session.sessionNumber] ?? "").trim() === ""}
+                          disabled={whatsapp.isPending}
                           onClick={() => {
                             const max = maxScoreForSession(session.sessionNumber);
                             const raw = (whatsappScores[session.sessionNumber] ?? "").trim();

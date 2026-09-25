@@ -63,6 +63,7 @@ export function PaymentClaimForm({
         if (!age || Number(age) < 18) throw new Error("Enter your age (18 or above).");
         if (phone.replace(/\D/g, "").length < 10) throw new Error("Enter your active phone number.");
         if (!/^\S+@\S+\.\S+$/.test(email.trim())) throw new Error("Enter your active email address.");
+        if (!amount || Number(amount) <= 0) throw new Error("Enter the amount you paid.");
         if (methods.length > 0 && !method) throw new Error("Select the payment method you used.");
       }
       const proofPath = await uploadJourneyFile(slot as never, proof);

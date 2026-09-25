@@ -467,7 +467,27 @@ export function TraineeJourney() {
 
           <SeatAlertTag startSeats={seats?.available ?? 3} />
 
-          <section className="raised-panel rounded-[28px] p-5 animate-rise-in">
+          <section className="raised-panel metal-edge overflow-hidden rounded-[28px] animate-rise-in">
+            <button
+              type="button"
+              className="relative block aspect-video w-full bg-media"
+              disabled={!data.businessPlan}
+              onClick={() => data.businessPlan && open.mutate(data.businessPlan.id)}
+            >
+              {data.businessPlan?.thumbnailUrl ? (
+                <img
+                  src={data.businessPlan.thumbnailUrl}
+                  alt={`${data.businessPlan.title} cover`}
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
+              <span className="absolute inset-0 flex items-center justify-center bg-background/25">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full brand-gradient shadow-brand">
+                  <PlayCircle className="h-7 w-7 text-primary-foreground" />
+                </span>
+              </span>
+            </button>
+            <div className="p-5">
             <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">Session 08</p>
             <h2 className="mt-1 font-display text-lg font-semibold">
               {data.businessPlan?.title ?? "Forever Business Plan"}

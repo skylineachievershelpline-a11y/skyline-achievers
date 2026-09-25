@@ -392,13 +392,24 @@ export function TraineeJourney() {
       {data.stage === "interview_guide" ||
       data.stage === "reassess" ||
       data.stage === "ready_for_interview" ? (
-        <section className="raised-panel rounded-[28px] p-5 animate-rise-in">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-brand-glow">
-            Final interview guide
-          </p>
+        <section className="raised-panel overflow-hidden rounded-[28px] animate-rise-in">
+          <div className="relative aspect-video bg-media">
+            <img
+              src={data.interviewGuide?.thumbnailUrl ?? finalInterviewPoster}
+              alt="Final Interview Guide cover"
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+            <span className="absolute left-3 top-3 rounded-full border border-cyan/30 bg-background/80 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-brand-glow backdrop-blur-sm">
+              Final interview guide
+            </span>
+          </div>
+          <div className="p-5">
           <h2 className="mt-1 font-display text-lg font-semibold">
             {data.interviewGuide?.title ?? "Your final interview guide"}
           </h2>
+
           <p className="mt-2 text-xs text-muted-foreground">
             This video explains what the final interview is, why it matters, how to prepare, how to
             communicate and what to expect. It stays open until your result is shared.

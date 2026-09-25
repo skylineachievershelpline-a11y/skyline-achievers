@@ -130,7 +130,16 @@ export function MentorshipFeeCard({
 export function CcAmountCard({
   money,
 }: {
-  money: { total: number; received: number; remaining: number; discounted: boolean };
+  money: {
+    total: number;
+    received: number;
+    remaining: number;
+    discounted: boolean;
+    dueAt?: string | null;
+    ccDays?: number;
+    full?: number;
+    partial?: number;
+  };
 }) {
   const percent = money.total ? Math.min(100, Math.round((money.received / money.total) * 100)) : 0;
   return (
@@ -158,6 +167,34 @@ export function CcAmountCard({
       </div>
 
       <Bar percent={percent} />
+
+      {money.remaining > 0 ? (
+        <Button asChild variant="brand" size="xl" className="w-full rounded-2xl font-display">
+          <Link to="/pay-mentorship">
+            <Wallet className="h-4 w-4" />
+            Pay remaining 2CC amount
+          </Link>
+        </Button>
+      ) : null}
+
+      {money.dueAt && money.remaining > 0 ? (
+        <>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
+            <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Clock className="h-4 w-4" /> 2CC time left
+            </span>
+            <Countdown until={money.dueAt} />
+          </div>
+          <p className="rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5 text-muted-foreground">
+            Apna 2CC <span className="font-bold text-foreground">{money.ccDays} din</span> ke andar
+            complete karein to target sirf{" "}
+            <span className="font-bold text-cyan">{formatPkr(money.full ?? money.total)}</span> hai.
+            Time khatam hone par target{" "}
+            <span className="font-bold text-foreground">{formatPkr(money.partial ?? money.total)}</span>{" "}
+            ho jayega.
+          </p>
+        </>
+      ) : null}
 
       <p className="text-xs leading-5 text-muted-foreground">
         Aap ki Personal Mentorship amount complete ho gayi hai — us ki wajah se aap ka 2CC target{" "}

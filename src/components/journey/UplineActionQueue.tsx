@@ -23,8 +23,13 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
     retry: false,
   });
 
-  // Only trainees who actually sent a review need action here.
-  const rows = ((data?.items ?? []) as any[]).filter((row) => row.pendingReviewSession);
+  // Trainees who sent a review, plus anyone waiting on the Final Interview.
+  const rows = ((data?.items ?? []) as any[]).filter(
+    (row) =>
+      row.pendingReviewSession ||
+      row.stage === "ready_for_interview" ||
+      row.stage === "reassess",
+  );
   if (rows.length === 0) return null;
 
   return (
@@ -51,7 +56,12 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{row.name}</p>
                   <p className="truncate text-[11px] text-muted-foreground">
-                    {row.code} · {row.action?.now ?? "Keep following up"}
+                    {row.code} ·{" "}
+                    {row.pendingReviewSession
+                      ? (row.action?.now ?? "Keep following up")
+                      : row.stage === "reassess"
+                        ? "Final Interview clear nahi hua — naya time set karein"
+                        : "Final Interview ka time set karein"}
                   </p>
                 </div>
                 <Button
@@ -66,7 +76,11 @@ export function UplineActionQueue({ ready }: { ready: boolean }) {
                     })
                   }
                 >
-                  Review now
+                  {row.pendingReviewSession
+                    ? "Review now"
+                    : row.stage === "reassess"
+                      ? "Reschedule"
+                      : "Set interview timing"}
                 </Button>
               </div>
             </li>

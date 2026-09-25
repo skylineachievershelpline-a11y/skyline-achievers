@@ -367,6 +367,26 @@ export function TraineeJourney() {
         </section>
       ) : null}
 
+      {/* ---------- try again: the senior did not pass this attempt ---------- */}
+      {data.stage === "reassess" ? (
+        <section className="raised-panel rounded-[28px] border-2 border-destructive/40 bg-destructive/10 p-5 animate-rise-in">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-destructive">Try again</p>
+          <h2 className="mt-1 font-display text-lg font-semibold">
+            Final Interview is baar clear nahi hua
+          </h2>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Himmat na harein — ye sirf ek qadam hai. Guide video dobara dhyan se dekhein, apne upline
+            se baat karein aur naya interview time lein. Aap taiyar hon to neeche se dobara "I'm
+            ready" bhej sakte hain.
+          </p>
+          {data.interviewMarks != null ? (
+            <p className="mt-3 text-xs font-semibold text-destructive">
+              Aap ke marks: {data.interviewMarks} / {data.interviewMaxMarks ?? 25}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
 
       {/* ---------- final interview guide: stays open until the result is in ---------- */}
       {data.stage === "interview_guide" ||

@@ -13,11 +13,11 @@ import { formatDateTime12 } from "@/lib/format";
 import {
   getReviewUploadUrl,
   getUplineReviewRequests,
-  recordInterviewResult,
   reviewSessionSubmission,
 } from "@/lib/journey.functions";
 import { uploadJourneyFile } from "./journey-upload";
 import { maxScoreForSession } from "@/lib/journey-scoring";
+import { TraineeProgressRecord } from "./TraineeProgressRecord";
 
 /**
  * Requests waiting for the upline, right at the top of the dashboard: every
@@ -29,9 +29,9 @@ export function UplineRequestsPanel() {
   const load = useServerFn(getUplineReviewRequests);
   const slot = useServerFn(getReviewUploadUrl);
   const decide = useServerFn(reviewSessionSubmission);
-  const interview = useServerFn(recordInterviewResult);
 
   const [openId, setOpenId] = useState<string | null>(null);
+  const [openTrainee, setOpenTrainee] = useState<{ id: string; name: string } | null>(null);
   const [note, setNote] = useState("");
   const [voice, setVoice] = useState<File | null>(null);
   const [score, setScore] = useState("");
@@ -71,16 +71,6 @@ export function UplineRequestsPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const result = useMutation({
-    mutationFn: (values: { traineeId: string; result: "pass" | "reassess" }) =>
-      interview({ data: { ...values, note: note.trim() || null } } as never),
-    onSuccess: () => {
-      toast.success("Interview result saved");
-      refresh();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
   const reviews = (data?.reviews ?? []) as any[];
   const interviews = (data?.interviews ?? []) as any[];
   if (reviews.length === 0 && interviews.length === 0) return null;
@@ -95,7 +85,7 @@ export function UplineRequestsPanel() {
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Requests</p>
           <p className="text-[11px] text-muted-foreground">
             {reviews.length} session review{reviews.length === 1 ? "" : "s"} and{" "}
-            {interviews.length} interview decision{interviews.length === 1 ? "" : "s"} waiting
+            {interviews.length} Final Interview{interviews.length === 1 ? "" : "s"} waiting
           </p>
         </div>
       </div>
@@ -207,65 +197,36 @@ export function UplineRequestsPanel() {
           );
         })}
 
-        {interviews.map((row) => {
-          const open = openId === `interview-${row.traineeId}`;
-          return (
-            <li key={row.traineeId} className="glass-panel rounded-2xl p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{row.name}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    Final interview decision waiting
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant={open ? "outline" : "brand"}
-                  className="shrink-0 rounded-xl"
-                  onClick={() => {
-                    setNote("");
-                    setOpenId(open ? null : `interview-${row.traineeId}`);
-                  }}
-                >
-                  <UserCheck className="h-3.5 w-3.5" />
-                  {open ? "Close" : "Decide"}
-                </Button>
+        {interviews.map((row) => (
+          <li key={row.traineeId} className="glass-panel rounded-2xl p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{row.name}</p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  Final Interview — time set karein aur senior ko report link bhejein
+                </p>
               </div>
-              {open ? (
-                <div className="mt-3 space-y-3">
-                  <Textarea
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    rows={3}
-                    placeholder="Interview note (optional)"
-                    className="rounded-2xl"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="brand"
-                      className="flex-1 rounded-2xl"
-                      disabled={result.isPending}
-                      onClick={() => result.mutate({ traineeId: row.traineeId, result: "pass" })}
-                    >
-                      Pass
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-2xl"
-                      disabled={result.isPending}
-                      onClick={() =>
-                        result.mutate({ traineeId: row.traineeId, result: "reassess" })
-                      }
-                    >
-                      Reassess
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </li>
-          );
-        })}
+              <Button
+                size="sm"
+                variant="brand"
+                className="shrink-0 rounded-xl"
+                onClick={() => setOpenTrainee({ id: row.traineeId, name: row.name })}
+              >
+                <UserCheck className="h-3.5 w-3.5" />
+                Set interview
+              </Button>
+            </div>
+          </li>
+        ))}
       </ul>
+
+      {openTrainee ? (
+        <TraineeProgressRecord
+          traineeId={openTrainee.id}
+          traineeName={openTrainee.name}
+          onClose={() => setOpenTrainee(null)}
+        />
+      ) : null}
     </section>
   );
 }

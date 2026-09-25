@@ -346,6 +346,7 @@ export const adminSaveJourneyPolicy = createServerFn({ method: "POST" })
       ccTargetFullPayment: number;
       ccTargetPartial: number;
       mentorshipSeats: number;
+      ccDays?: number;
       paymentMethods?: {
         name: string;
         accountTitle: string;

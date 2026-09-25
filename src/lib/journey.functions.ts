@@ -152,6 +152,9 @@ async function buildJourney(traineeId: string) {
     interviewGuideWatchedAt: (journeyRow?.interview_guide_watched_at ?? null) as string | null,
     interviewResult: (journeyRow?.interview_result ?? null) as string | null,
     interviewNote: (journeyRow?.interview_note ?? null) as string | null,
+    interviewRequestedAt: (journeyRow?.interview_requested_at ?? null) as string | null,
+    interviewAvailabilityNote: (journeyRow?.interview_availability_note ?? null) as string | null,
+    interviewScheduledAt: (journeyRow?.interview_scheduled_at ?? null) as string | null,
     webinarWatchedAt: (journeyRow?.webinar_watched_at ?? null) as string | null,
     mentorshipDueAt: (journeyRow?.mentorship_due_at ?? null) as string | null,
     sessions,
@@ -349,6 +352,81 @@ export const markInterviewGuideWatched = createServerFn({ method: "POST" })
       })
       .eq("trainee_id", trainee.id);
     if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Trainee confirms they are ready for the final interview. The upline gets a
+ * push + dashboard alert and then decides the interview date/time.
+ */
+export const requestFinalInterview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { availabilityNote?: string | null }) =>
+    z
+      .object({ availabilityNote: z.string().trim().max(500).nullish() })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const trainee = await activeTrainee(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ensureJourney } = await import("./journey.server");
+    const journey = await ensureJourney(trainee.id);
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage !== "ready_for_interview" && stage !== "reassess") {
+      throw new Error("Pehle Final Interview Guide poori dekhein — phir ready button milega.");
+    }
+    const { error } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .update({
+        interview_requested_at: new Date().toISOString(),
+        interview_availability_note: data.availabilityNote ?? null,
+      })
+      .eq("trainee_id", trainee.id);
+    if (error) throw new Error(error.message);
+    if (trainee.upline_id) {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([trainee.upline_id], {
+        title: "Final Interview request 🎓",
+        body: `${trainee.full_name} Final Interview ke liye ready hai. Dashboard se interview ka time set karein.`,
+        path: "/dashboard",
+        tag: `interview-request-${trainee.id}`,
+      });
+    }
+    return { ok: true as const };
+  });
+
+/** Upline sets (or changes) the final interview date/time for a trainee. */
+export const scheduleFinalInterview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { traineeId: string; scheduledAt: string }) =>
+    z
+      .object({ traineeId: uuid, scheduledAt: z.string().min(10).max(40) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const member = await activeMember(context.userId);
+    const trainee = await ownTrainee(member.id, data.traineeId);
+    const when = new Date(data.scheduledAt);
+    if (Number.isNaN(when.getTime())) throw new Error("Sahi date aur time choose karein.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { ensureJourney } = await import("./journey.server");
+    const journey = await ensureJourney(trainee.id);
+    const stage = (journey as any)?.stage ?? "sessions";
+    if (stage !== "ready_for_interview" && stage !== "reassess") {
+      throw new Error("Ye person abhi final interview ke liye ready nahi hai.");
+    }
+    const { error } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .update({ interview_scheduled_at: when.toISOString() })
+      .eq("trainee_id", trainee.id);
+    if (error) throw new Error(error.message);
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([trainee.id], {
+      title: "Final Interview scheduled ⏰",
+      body: `Aap ka Final Interview ${when.toLocaleString("en-PK", { timeZone: "Asia/Karachi", dateStyle: "medium", timeStyle: "short" })} (PKT) par hai. 10 minute pehle ready rahen!`,
+      path: "/beginners",
+      tag: `interview-time-${trainee.id}`,
+    });
     return { ok: true as const };
   });
 
@@ -982,7 +1060,14 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
         });
       }
       if (journey.stage === "ready_for_interview" || journey.stage === "reassess") {
-        interviews.push({ ...person, stage: journey.stage, note: journey.interviewNote });
+        interviews.push({
+          ...person,
+          stage: journey.stage,
+          note: journey.interviewNote,
+          requestedAt: journey.interviewRequestedAt ?? null,
+          availabilityNote: journey.interviewAvailabilityNote ?? null,
+          scheduledAt: journey.interviewScheduledAt ?? null,
+        });
       }
     }
     reviews.sort((a, b) => String(b.submittedAt ?? "").localeCompare(String(a.submittedAt ?? "")));

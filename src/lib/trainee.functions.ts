@@ -128,6 +128,32 @@ export const recordTraineeLogin = createServerFn({ method: "POST" })
     return { status: "ok" as const };
   });
 
+/** Sessions this trainee may open: code-unlocked, approved review, or granted Session 08. */
+async function openSessionIds(admin: any, traineeId: string) {
+  const [{ data: unlocks }, { data: approved }, { data: journey }] = await Promise.all([
+    admin.from("trainee_session_unlocks").select("session_id").eq("trainee_id", traineeId),
+    admin
+      .from("trainee_session_reviews")
+      .select("session_id, session_number")
+      .eq("trainee_id", traineeId)
+      .eq("status", "approved"),
+    admin.from("trainee_journey").select("stage").eq("trainee_id", traineeId).maybeSingle(),
+  ]);
+  const ids = new Set<string>(((unlocks ?? []) as any[]).map((r) => r.session_id));
+  const { loadJourneySessions } = await import("./journey.server");
+  const set: any = await loadJourneySessions();
+  for (const r of (approved ?? []) as any[]) {
+    if (r.session_id) ids.add(r.session_id);
+    const row = set.basic[Number(r.session_number) - 1];
+    if (row) ids.add(row.id);
+  }
+  const stage = (journey as any)?.stage;
+  if ((stage === "interview_passed" || stage === "mentorship") && set.businessPlan) {
+    ids.add(set.businessPlan.id);
+  }
+  return ids;
+}
+
 /** The Beginners Training dashboard: profile plus locked / unlocked sessions. */
 export const getTraineeDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -157,7 +183,8 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false })
         .limit(60),
     ]);
-    const unlocked = new Set((unlocks ?? []).map((row) => row.session_id));
+    void unlocks;
+    const unlocked = await openSessionIds(supabaseAdmin, context.userId);
 
     const list = await Promise.all(
       (sessions ?? []).map(async (row) => ({
@@ -326,13 +353,8 @@ export const playTraineeSession = createServerFn({ method: "POST" })
     if (!trainee || trainee.status !== "active") return { status: "blocked" as const };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: unlock } = await supabaseAdmin
-      .from("trainee_session_unlocks")
-      .select("id")
-      .eq("trainee_id", context.userId)
-      .eq("session_id", data.sessionId)
-      .maybeSingle();
-    if (!unlock) return { status: "locked" as const };
+    const allowed = await openSessionIds(supabaseAdmin, context.userId);
+    if (!allowed.has(data.sessionId)) return { status: "locked" as const };
 
     const { signPath, VIDEO_BUCKET, THUMBNAIL_BUCKET } = await import("./storage.server");
     const { data: row } = await (supabaseAdmin as any)

@@ -798,7 +798,9 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
 
     // The Forever Business Plan opens only after the final interview is passed.
-    if (kind === "business_plan") {
+    const { loadJourneySessions: _lss } = await import("./journey.server");
+    const _set: any = await _lss();
+    if (kind === "business_plan" || _set?.businessPlan?.id === row.id) {
       const { ensureJourney } = await import("./journey.server");
       const journey: any = await ensureJourney(trainee.id);
       const stage = journey?.stage ?? "sessions";
@@ -809,7 +811,7 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
     // Remember the first time this session was actually opened, so the progress
     // record can show the exact opening time next to the scheduled time.
-    if (kind === "basic") {
+    if (kind === "basic" && _set?.businessPlan?.id !== row.id) {
       const { data: opened } = await admin
         .from("trainee_session_unlocks")
         .select("id")

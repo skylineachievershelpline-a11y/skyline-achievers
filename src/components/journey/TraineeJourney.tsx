@@ -415,7 +415,13 @@ export function TraineeJourney() {
                   ) : null}
                 </div>
                 {session.review === "approved" ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-glow" />
+                  <button
+                    type="button"
+                    onClick={() => session.sessionId && open.mutate(session.sessionId)}
+                    className="flex shrink-0 items-center gap-1 rounded-full border border-cyan/40 bg-primary/15 px-3 py-1.5 text-[11px] font-semibold text-brand-glow"
+                  >
+                    <PlayCircle className="h-4 w-4" /> Open
+                  </button>
                 ) : locked ? (
                   <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
                 ) : (

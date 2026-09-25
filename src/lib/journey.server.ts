@@ -175,10 +175,16 @@ export async function loadJourneySessions() {
   const basic = rows
     .filter((row) => (row.session_kind ?? "basic") === "basic")
     .sort((a, b) => (a.session_number ?? 99) - (b.session_number ?? 99));
+  let businessPlan = rows.find((row) => row.session_kind === "business_plan") ?? null;
+  // No session marked as the business plan yet: the 8th basic session is Session 08.
+  if (!businessPlan && basic.length > 7) {
+    businessPlan = basic[7];
+    basic.splice(7);
+  }
   return {
     basic,
+    businessPlan,
     interviewGuide: rows.find((row) => row.session_kind === "interview_guide") ?? null,
-    businessPlan: rows.find((row) => row.session_kind === "business_plan") ?? null,
     webinar: rows.find((row) => row.session_kind === "mentorship_webinar") ?? null,
   };
 }

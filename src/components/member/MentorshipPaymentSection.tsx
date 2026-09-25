@@ -71,10 +71,9 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       if (!method.trim()) throw new Error("Choose or write the payment method you used.");
       const value = Number(amount) || 0;
       if (value <= 0) throw new Error("Enter the amount you paid.");
-      if (value > data.mentorship.remaining) {
-        throw new Error(
-          `That is more than your remaining amount of ${formatPkr(data.mentorship.remaining)}.`,
-        );
+      const limit = data.mentorship.complete ? data.cc.remaining : data.mentorship.remaining;
+      if (value > limit) {
+        throw new Error(`That is more than your remaining amount of ${formatPkr(limit)}.`);
       }
       if (!proof) throw new Error("Attach the payment screenshot — it is required.");
       const ready = await compressImageForUpload(proof, 900_000);
@@ -101,7 +100,7 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       }
       await send({
         data: {
-          purpose: "mentorship" as const,
+          purpose: data.mentorship.complete ? ("two_cc" as const) : ("mentorship" as const),
           claimedAmount: value,
           method: method.trim(),
           proofPath,
@@ -140,6 +139,8 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
   const { mentorship, cc, methods, policy, history } = data;
   const pending = history.filter((row) => row.status === "pending");
   const selected = methods.find((entry) => entry.name === method) ?? null;
+  const payingCc = mentorship.complete;
+  const payLimit = payingCc ? cc.remaining : mentorship.remaining;
   const percent = mentorship.required
     ? Math.min(100, Math.round((mentorship.verified / mentorship.required) * 100))
     : 100;
@@ -197,21 +198,27 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
           <BadgeCheck className="h-4 w-4" /> Personal Mentorship payment completed — your 2CC target
           is {formatPkr(cc.target)}.
         </p>
+      ) : null}
+      {payingCc ? (
+        <CcDeadlineNotice cc={cc} />
+      ) : !mentorship.complete ? (
       ) : (
         <p className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-xs font-semibold text-amber-300">
           Complete your Personal Mentorship amount within {policy.mentorshipDays} days to keep the
           lower 2CC target of {formatPkr(policy.ccTargetFullPayment)}. After that the applicable
           target is {formatPkr(policy.ccTargetPartial)}. Your account is never suspended for this.
         </p>
-      )}
+      ) : null}
 
       {/* ---------- where to pay ---------- */}
-      {!mentorship.complete ? (
+      {payLimit > 0 ? (
         <div className="space-y-3">
           <div>
-            <p className="font-display text-sm font-semibold">Complete Personal Mentorship payment</p>
+            <p className="font-display text-sm font-semibold">
+              {payingCc ? "Pay remaining 2CC amount" : "Complete Personal Mentorship payment"}
+            </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Remaining amount: {formatPkr(mentorship.remaining)}
+              Remaining amount: {formatPkr(payLimit)}
             </p>
           </div>
 
@@ -311,12 +318,12 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
               <Input
                 value={amount}
                 inputMode="numeric"
-                placeholder={String(mentorship.remaining)}
+                placeholder={String(payLimit)}
                 onChange={(event) => setAmount(event.target.value.replace(/\D/g, ""))}
                 className="h-11 rounded-2xl tabular-nums"
               />
               <p className="text-[11px] text-muted-foreground">
-                Cannot be more than {formatPkr(mentorship.remaining)}.
+                Cannot be more than {formatPkr(payLimit)}.
               </p>
             </div>
 
@@ -406,7 +413,7 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
               </p>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Submitted {formatDateTime(row.createdAt)} · remaining before verification{" "}
-                {formatPkr(mentorship.remaining)}
+                {formatPkr(payLimit)}
               </p>
               {row.proofUrl ? (
                 <a href={row.proofUrl} target="_blank" rel="noreferrer">
@@ -448,5 +455,52 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
         )}
       </div>
     </section>
+  );
+}
+
+function CcDeadlineNotice({
+  cc,
+}: {
+  cc: { target: number; remaining: number; dueAt: string | null; ccDays: number; full: number; partial: number };
+}) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  if (cc.remaining <= 0) {
+    return (
+      <p className="rounded-2xl border border-cyan/30 bg-primary/10 px-4 py-3 text-sm font-semibold text-cyan">
+        2CC amount complete.
+      </p>
+    );
+  }
+  const left = cc.dueAt ? new Date(cc.dueAt).getTime() - now : null;
+  return (
+    <div className="space-y-2 rounded-2xl border border-cyan/30 bg-cyan/5 p-3 text-xs leading-5">
+      {cc.dueAt ? (
+        <>
+          <p className="text-muted-foreground">
+            Apna 2CC <span className="font-bold text-foreground">{cc.ccDays} din</span> ke andar
+            complete karein to target sirf{" "}
+            <span className="font-bold text-cyan">{formatPkr(cc.full)}</span> hai. Warna target{" "}
+            <span className="font-bold text-foreground">{formatPkr(cc.partial)}</span> ho jayega.
+          </p>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
+            <span className="flex items-center gap-2 font-semibold text-muted-foreground">
+              <Clock className="h-4 w-4" /> 2CC time left
+            </span>
+            <span className="font-display text-xl font-bold tabular-nums text-cyan">
+              {formatCountdown(left)}
+            </span>
+          </div>
+        </>
+      ) : (
+        <p className="text-muted-foreground">
+          Aap ka 2CC target <span className="font-bold text-foreground">{formatPkr(cc.target)}</span>{" "}
+          hai. Remaining amount complete karein.
+        </p>
+      )}
+    </div>
   );
 }

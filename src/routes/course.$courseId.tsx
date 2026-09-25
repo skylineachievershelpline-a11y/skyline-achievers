@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { createProofUploadUrl, getCourseDetail, submitCoursePayment } from "@/lib/courses.functions";
 import { putWithProgress } from "@/lib/upload-progress";

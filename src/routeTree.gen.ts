@@ -27,7 +27,6 @@ import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TodoRouteImport } from './routes/todo'
 import { Route as TrainingRouteImport } from './routes/training'
-import { Route as WalletPreviewRouteImport } from './routes/wallet-preview'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AiIndexRouteImport } from './routes/ai.index'
@@ -133,11 +132,6 @@ const TrainingRoute = TrainingRouteImport.update({
   path: '/training',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WalletPreviewRoute = WalletPreviewRouteImport.update({
-  id: '/wallet-preview',
-  path: '/wallet-preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -228,7 +222,6 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
-  '/wallet-preview': typeof WalletPreviewRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
@@ -263,7 +256,6 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
-  '/wallet-preview': typeof WalletPreviewRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
@@ -299,7 +291,6 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/todo': typeof TodoRoute
   '/training': typeof TrainingRoute
-  '/wallet-preview': typeof WalletPreviewRoute
   '/admin/login': typeof AdminLoginRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
@@ -336,7 +327,6 @@ export interface FileRouteTypes {
     | '/team'
     | '/todo'
     | '/training'
-    | '/wallet-preview'
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
@@ -371,7 +361,6 @@ export interface FileRouteTypes {
     | '/team'
     | '/todo'
     | '/training'
-    | '/wallet-preview'
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
@@ -406,7 +395,6 @@ export interface FileRouteTypes {
     | '/team'
     | '/todo'
     | '/training'
-    | '/wallet-preview'
     | '/admin/login'
     | '/ai/$threadId'
     | '/api/ai'
@@ -442,7 +430,6 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TodoRoute: typeof TodoRoute
   TrainingRoute: typeof TrainingRoute
-  WalletPreviewRoute: typeof WalletPreviewRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AiThreadIdRoute: typeof AiThreadIdRoute
   ApiAiRoute: typeof ApiAiRoute
@@ -587,13 +574,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wallet-preview': {
-      id: '/wallet-preview'
-      path: '/wallet-preview'
-      fullPath: '/wallet-preview'
-      preLoaderRoute: typeof WalletPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -714,7 +694,6 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TodoRoute: TodoRoute,
   TrainingRoute: TrainingRoute,
-  WalletPreviewRoute: WalletPreviewRoute,
   AdminLoginRoute: AdminLoginRoute,
   AiThreadIdRoute: AiThreadIdRoute,
   ApiAiRoute: ApiAiRoute,

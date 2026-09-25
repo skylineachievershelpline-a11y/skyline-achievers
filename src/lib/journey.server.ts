@@ -20,6 +20,7 @@ export async function loadPolicy(): Promise<JourneyPolicy> {
     ccTargetFullPayment: Number(value.ccTargetFullPayment ?? DEFAULT_POLICY.ccTargetFullPayment),
     ccTargetPartial: Number(value.ccTargetPartial ?? DEFAULT_POLICY.ccTargetPartial),
     mentorshipSeats: Number(value.mentorshipSeats ?? DEFAULT_POLICY.mentorshipSeats),
+    ccDays: Number(value.ccDays ?? DEFAULT_POLICY.ccDays),
     paymentMethods: normalizePaymentMethods(value.paymentMethods),
   };
 }

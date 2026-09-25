@@ -41,7 +41,23 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
     const verified = Math.max(ledger.mentorshipPaid, Number(member.mentorship_paid_pkr) || 0);
     const remaining = Math.max(0, required - verified);
     const complete = remaining === 0 && required > 0;
-    const ccTarget = complete ? policy.ccTargetFullPayment : policy.ccTargetPartial;
+    const { computeCcMoney } = await import("./journey");
+    const paidInTime =
+      !member.mentorship_due_at ||
+      (member.mentorship_completed_at
+        ? new Date(member.mentorship_completed_at).getTime() <=
+          new Date(member.mentorship_due_at).getTime()
+        : Date.now() <= new Date(member.mentorship_due_at).getTime());
+    const lastVerify =
+      ledger.rows.find((row) => row.purpose === "mentorship" && row.status === "verified")
+        ?.verifiedAt ?? null;
+    const ccMoney = computeCcMoney({
+      policy,
+      mentorshipVerified: verified,
+      ccPaid: ledger.ccPaid,
+      paidInTime,
+      completedAt: member.mentorship_completed_at ?? lastVerify,
+    });
 
     const history = [] as {
       id: string;
@@ -94,9 +110,13 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
         dueAt: (member.mentorship_due_at ?? null) as string | null,
       },
       cc: {
-        target: ccTarget,
-        verified: ledger.ccPaid,
-        remaining: Math.max(0, ccTarget - ledger.ccPaid),
+        target: ccMoney.total,
+        verified: ccMoney.received,
+        remaining: ccMoney.remaining,
+        dueAt: ccMoney.dueAt,
+        ccDays: ccMoney.ccDays,
+        full: ccMoney.full,
+        partial: ccMoney.partial,
       },
       pendingCount: ledger.pendingCount,
       history,
@@ -166,6 +186,11 @@ export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
       if (data.claimedAmount > remaining) {
         throw new Error("That amount is more than your remaining Personal Mentorship balance.");
       }
+    }
+    if (data.purpose === "two_cc") {
+      const required = Number(member.mentorship_fee_pkr) || policy.mentorshipFeePkr;
+      const paid = Math.max(ledger.mentorshipPaid, Number(member.mentorship_paid_pkr) || 0);
+      if (paid < required) throw new Error("Complete your Personal Mentorship amount first.");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

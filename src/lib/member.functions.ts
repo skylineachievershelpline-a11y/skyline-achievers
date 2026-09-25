@@ -135,8 +135,17 @@ export const getDashboard = createServerFn({ method: "GET" })
         ? new Date(member.mentorship.completedAt).getTime() <=
           new Date(member.mentorship.dueAt).getTime()
         : Date.now() <= new Date(member.mentorship.dueAt).getTime());
-    const ccTotal = paidInTime ? policy.ccTargetFullPayment : policy.ccTargetPartial;
-    const ccReceived = mentorshipVerified + ledger.ccPaid;
+    const { computeCcMoney } = await import("./journey");
+    const lastMentorshipVerify =
+      ledger.rows.find((row) => row.purpose === "mentorship" && row.status === "verified")
+        ?.verifiedAt ?? null;
+    const cc = computeCcMoney({
+      policy,
+      mentorshipVerified,
+      ccPaid: ledger.ccPaid,
+      paidInTime,
+      completedAt: member.mentorship.completedAt ?? lastMentorshipVerify,
+    });
     // Assistant Supervisor and above already completed 2CC: no money card for them.
     const ccAlreadyDone = (member.level?.rank_order ?? 0) >= 2;
 
@@ -152,12 +161,7 @@ export const getDashboard = createServerFn({ method: "GET" })
       },
       ccMoney: ccAlreadyDone
         ? null
-        : {
-            total: ccTotal,
-            received: ccReceived,
-            remaining: Math.max(0, ccTotal - ccReceived),
-            discounted: paidInTime,
-          },
+        : cc,
     };
   });
 

@@ -346,6 +346,7 @@ export const adminSaveJourneyPolicy = createServerFn({ method: "POST" })
       ccTargetFullPayment: number;
       ccTargetPartial: number;
       mentorshipSeats: number;
+      ccDays?: number;
       paymentMethods?: {
         name: string;
         accountTitle: string;
@@ -361,6 +362,7 @@ export const adminSaveJourneyPolicy = createServerFn({ method: "POST" })
           ccTargetFullPayment: z.number().min(0).max(100_000_000),
           ccTargetPartial: z.number().min(0).max(100_000_000),
           mentorshipSeats: z.number().int().min(0).max(1000),
+          ccDays: z.number().int().min(1).max(365).optional(),
           paymentMethods: z
             .array(
               z.object({

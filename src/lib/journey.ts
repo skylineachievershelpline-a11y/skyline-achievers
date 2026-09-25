@@ -32,6 +32,8 @@ export type JourneyPolicy = {
   ccTargetFullPayment: number;
   ccTargetPartial: number;
   mentorshipSeats: number;
+  /** Days to finish 2CC after Personal Mentorship is complete. */
+  ccDays: number;
   paymentMethods: PaymentMethod[];
 };
 
@@ -41,6 +43,7 @@ export const DEFAULT_POLICY: JourneyPolicy = {
   ccTargetFullPayment: 150000,
   ccTargetPartial: 200000,
   mentorshipSeats: 3,
+  ccDays: 5,
   paymentMethods: [],
 };
 
@@ -379,5 +382,38 @@ export function nextAction(input: {
     next: "Assistant Supervisor",
     owner: "trainee",
     dueAt: null,
+  };
+}
+
+/**
+ * 2CC money state. The lower target only holds when Personal Mentorship was
+ * paid on time AND the 2CC is finished within ccDays after that.
+ */
+export function computeCcMoney(input: {
+  policy: Pick<JourneyPolicy, "ccTargetFullPayment" | "ccTargetPartial" | "ccDays">;
+  mentorshipVerified: number;
+  ccPaid: number;
+  paidInTime: boolean;
+  completedAt: string | null;
+  nowMs?: number;
+}) {
+  const now = input.nowMs ?? Date.now();
+  const start = input.completedAt ? new Date(input.completedAt).getTime() : now;
+  const dueAt = new Date(start + input.policy.ccDays * 86_400_000).toISOString();
+  const received = input.mentorshipVerified + input.ccPaid;
+  const full = input.policy.ccTargetFullPayment;
+  const reachedInTime = received >= full;
+  const expired = now > new Date(dueAt).getTime() && !reachedInTime;
+  const discounted = input.paidInTime && !expired;
+  const total = discounted ? full : input.policy.ccTargetPartial;
+  return {
+    total,
+    received,
+    remaining: Math.max(0, total - received),
+    discounted,
+    dueAt: discounted && !reachedInTime ? dueAt : null,
+    ccDays: input.policy.ccDays,
+    full,
+    partial: input.policy.ccTargetPartial,
   };
 }

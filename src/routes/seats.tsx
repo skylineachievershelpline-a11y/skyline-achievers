@@ -64,6 +64,8 @@ function SeatsPage() {
   const { data, isPending } = useQuery({
     queryKey: ["my-team"],
     queryFn: () => load(),
+    staleTime: 0,
+    refetchOnMount: "always" as const,
     enabled: ready,
     retry: false,
   });

@@ -84,6 +84,9 @@ function TeamPage() {
     queryFn: () => load(),
     enabled: ready,
     retry: false,
+    // The tree must always show freshly joined members.
+    staleTime: 0,
+    refetchOnMount: "always" as const,
   });
 
   function refresh() {
@@ -295,6 +298,8 @@ function FboTree({ ready, kind }: { ready: boolean; kind: "fbo" | "mentorship" }
     queryFn: () => load(),
     enabled: ready,
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always" as const,
   });
 
   if (isPending) {

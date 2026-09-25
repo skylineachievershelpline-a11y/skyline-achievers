@@ -531,7 +531,7 @@ export function TraineeJourney() {
           {seats ? (
             <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Users className="h-3.5 w-3.5" />
-              {seats.available} of {seats.total} seats available right now
+              {seats.available} of {Math.max(15, seats.total)} seats available right now
             </p>
           ) : null}
 

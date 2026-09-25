@@ -280,3 +280,11 @@
 - [x] Keep working report details exclusive to FBO records
 - [x] Count upline-approved website and WhatsApp reviews as attended sessions
 - [ ] Verify the signed-in phone flow
+
+## Mentorship application and phone login (Sep 25)
+- [x] Session 08 application form: full name, age, active phone, active email, auto upline ID, payment method, screenshot
+- [x] Admin payment approval creates the 12-digit account automatically (password 00000000)
+- [x] Trainee dashboard closes and shows the new ID
+- [x] All members sign in with Member ID or registered phone number
+- [ ] Welcome email with the ID — needs an email sender domain
+- [ ] Interview readiness request, upline time setting and red countdown tag

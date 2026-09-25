@@ -155,6 +155,10 @@ export function TraineeJourney() {
     webinarWatched: Boolean(data.webinarWatchedAt),
   });
 
+  if ((data as any).mentorshipAccountCode) {
+    return <AccountReady code={(data as any).mentorshipAccountCode as string} />;
+  }
+
   if (playing) {
     return (
       <section className="raised-panel relative mt-4 overflow-hidden rounded-[30px] p-4 animate-scale-in sm:p-6">
@@ -595,39 +599,15 @@ export function TraineeJourney() {
             </p>
           ) : null}
 
-          {data.webinarWatchedAt ? (
-            <>
-              <p className="mt-3 text-xs text-brand-glow">
-                ✅ You have watched the complete webinar
-              </p>
-              <PaymentClaimForm
-                purpose="mentorship"
-                profile={data.profile}
-                defaultAmount={Math.max(0, data.wallet.remaining || data.wallet.required)}
-                onSent={refresh}
-              />
-            </>
-          ) : (
-            <>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Watch the complete webinar first. The reservation form opens right after it.
-              </p>
-              {data.webinar ? (
-                <Button
-                  variant="brand"
-                  size="xl"
-                  className="mt-4 w-full rounded-2xl"
-                  onClick={() => open.mutate(data.webinar!.id)}
-                >
-                  <Eye className="h-4 w-4" /> Watch the mentorship webinar
-                </Button>
-              ) : (
-                <p className="mt-4 text-xs text-muted-foreground">
-                  The webinar video is being prepared by the office.
-                </p>
-              )}
-            </>
-          )}
+          <ReserveSeat>
+            <PaymentClaimForm
+              purpose="mentorship"
+              profile={data.profile}
+              methods={(data as any).paymentMethods ?? []}
+              defaultAmount={Math.max(0, data.wallet.remaining || data.wallet.required)}
+              onSent={refresh}
+            />
+          </ReserveSeat>
         </section>
       ) : null}
 
@@ -668,5 +648,59 @@ export function TraineeJourney() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+function ReserveSeat({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  if (open) return <>{children}</>;
+  return (
+    <div className="mt-4">
+      <p className="text-xs text-muted-foreground">
+        To reserve your Personal Mentorship seat, fill in this official application form with your
+        payment screenshot.
+      </p>
+      <Button variant="brand" size="xl" className="mt-3 w-full rounded-2xl" onClick={() => setOpen(true)}>
+        <Sparkles className="h-4 w-4" /> Personal Mentorship Application Form
+      </Button>
+    </div>
+  );
+}
+
+function AccountReady({ code }: { code: string }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <section className="raised-panel metal-edge rounded-[30px] p-6 text-center animate-scale-in">
+      <PartyPopper className="mx-auto h-10 w-10 text-brand-glow" />
+      <h2 className="mt-3 font-display text-xl font-semibold">Welcome to Personal Mentorship</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Your payment is verified and your new Skyline Achievers account is ready. This training
+        dashboard is now closed — sign in to your new account.
+      </p>
+      <div className="mt-5 rounded-2xl border border-hairline bg-surface-2 p-4 text-left">
+        <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Member ID</p>
+        <p className="font-mono text-lg font-bold tracking-wider text-brand-glow">{code}</p>
+        <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Password</p>
+        <p className="font-mono text-lg font-bold tracking-wider">00000000</p>
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          You can sign in with this Member ID or your registered mobile number.
+        </p>
+      </div>
+      <Button
+        variant="brand"
+        size="xl"
+        className="mt-5 w-full rounded-2xl"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          const { supabase } = await import("@/integrations/supabase/client");
+          await supabase.auth.signOut();
+          window.location.href = "/";
+        }}
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        Sign in to my new account
+      </Button>
+    </section>
   );
 }

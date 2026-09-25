@@ -18,11 +18,29 @@ export const resolveLoginIdentifier = createServerFn({ method: "POST" })
     if (!/^\d{7,15}$/.test(digits)) return { email: memberIdToAuthEmail(normalized) };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Compare the last 10 digits so 03XX…, 923XX… and +92 3XX… all match.
+    const tail = (value: string | null) => (value ?? "").replace(/\D/g, "").slice(-10);
+    const wanted = tail(digits);
+
+    // A 12-digit Member ID typed directly signs in as that member.
+    if (/^76\d{10}$/.test(digits)) return { email: memberIdToAuthEmail(digits) };
+
+    // Members (FBO and Personal Mentorship) first: their registered phone.
+    const { data: members } = await supabaseAdmin
+      .from("member_profiles")
+      .select("member_id, phone, status")
+      .neq("status", "removed")
+      .limit(10000);
+    const memberMatches = (members ?? []).filter((row) => row.phone && tail(row.phone) === wanted);
+    if (memberMatches.length === 1 && memberMatches[0]) {
+      return { email: memberIdToAuthEmail(memberMatches[0].member_id) };
+    }
+
     const { data: rows } = await supabaseAdmin
       .from("trainees")
       .select("trainee_code, phone")
       .limit(5000);
-    const matches = (rows ?? []).filter((row) => (row.phone ?? "").replace(/\D/g, "") === digits);
+    const matches = (rows ?? []).filter((row) => row.phone && tail(row.phone) === wanted);
     const code = matches.length === 1 ? matches[0]?.trainee_code : digits;
     return { email: memberIdToAuthEmail(code ?? digits) };
   });

@@ -167,7 +167,6 @@ export function computeMemberProgress(
   const partialTraining = !feeComplete && feePaid > 0;
 
   const trainingLocked =
-    (!feeComplete && !partialTraining) ||
     input.trainingLocked ||
     (ccExpired && input.ccExtensions >= MAX_CC_EXTENSIONS && (ccRemaining ?? 0) > 0);
 

@@ -117,7 +117,7 @@ if (typeof window !== "undefined") {
     if (!found) return;
     found.refreshToken = session.refresh_token;
     found.accessToken = session.access_token;
-    found.expiresAt = session.expires_at ?? undefined;
+    if (session.expires_at) found.expiresAt = session.expires_at;
     write(list);
   });
 }

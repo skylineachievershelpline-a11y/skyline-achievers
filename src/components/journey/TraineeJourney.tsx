@@ -376,79 +376,21 @@ export function TraineeJourney() {
         </section>
       ) : null}
 
-      {/* ---------- the seven-session track ---------- */}
-      <section className="glass-panel metal-edge rounded-[28px] p-5 animate-rise-in">
-        <div className="flex items-end justify-between gap-3">
+      {/* ---------- progress strip: full session list lives in the side menu ---------- */}
+      <section className="glass-panel metal-edge rounded-[24px] px-5 py-4 animate-rise-in">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Basic training
+              Basic training progress
             </p>
-            <h2 className="mt-1 font-display text-lg font-semibold">7 guided sessions</h2>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Saare sessions side menu (☰) se open hotay hain
+            </p>
           </div>
           <span className="font-display text-2xl font-semibold tabular-nums text-brand-glow">
             {approvedCount}/{BASIC_SESSION_COUNT}
           </span>
         </div>
-
-        <ul className="mt-4 space-y-2">
-          {basic.map((session) => {
-            const badge = REVIEW_BADGE[session.review];
-            const expired = sessionExpired(session, now);
-            const locked = !sessionOpen(session, now);
-            return (
-              <li key={session.sessionNumber} className="glass-panel rounded-2xl p-3">
-                <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 font-display text-sm font-semibold tabular-nums text-brand-glow">
-                  {pad(session.sessionNumber)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{session.title}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    Day {pad(session.dayNumber)} ·{" "}
-                    {session.scheduledAt ? formatDateTime(session.scheduledAt) : "timing not set"}
-                  </p>
-                  {badge ? (
-                    <p className={`mt-0.5 text-[11px] font-semibold ${badge.className}`}>
-                      {badge.label}
-                    </p>
-                  ) : null}
-                  {expired ? (
-                    <p className="mt-0.5 text-[11px] font-semibold text-destructive">
-                      ⏳ Closed — no review inside the {SESSION_WINDOW_HOURS}-hour window
-                    </p>
-                  ) : null}
-                </div>
-                {session.review === "approved" ? (
-                  <button
-                    type="button"
-                    onClick={() => session.sessionId && open.mutate(session.sessionId)}
-                    className="flex shrink-0 items-center gap-1 rounded-full border border-cyan/40 bg-primary/15 px-3 py-1.5 text-[11px] font-semibold text-brand-glow"
-                  >
-                    <PlayCircle className="h-4 w-4" /> Open
-                  </button>
-                ) : locked ? (
-                  <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => session.sessionId && open.mutate(session.sessionId)}
-                    aria-label={`Open ${session.title}`}
-                    className="shrink-0 text-muted-foreground transition-colors hover:text-brand"
-                  >
-                    <PlayCircle className="h-5 w-5" />
-                  </button>
-                )}
-                </div>
-
-              </li>
-            );
-          })}
-          {basic.length === 0 ? (
-            <li className="text-xs text-muted-foreground">
-              Sessions are being prepared. Please check back soon.
-            </li>
-          ) : null}
-        </ul>
       </section>
 
       {/* ---------- final interview guide: stays open until the result is in ---------- */}

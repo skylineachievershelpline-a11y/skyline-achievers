@@ -11,6 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { getReviewUploadUrl, submitPaymentClaim } from "@/lib/journey.functions";
 import { uploadJourneyFile } from "./journey-upload";
 
+export type PayMethod = {
+  id: string;
+  label: string;
+  accountName: string | null;
+  accountNumber: string | null;
+  instructions: string | null;
+};
+
 type Profile = {
   fullName: string;
   phone: string | null;
@@ -27,15 +35,18 @@ export function PaymentClaimForm({
   profile,
   defaultAmount,
   onSent,
+  methods = [],
 }: {
   purpose: "mentorship" | "two_cc";
   profile: Profile;
   defaultAmount: number;
   onSent: () => void;
+  methods?: PayMethod[];
 }) {
   const slot = useServerFn(getReviewUploadUrl);
   const send = useServerFn(submitPaymentClaim);
 
+  const [fullName, setFullName] = useState(profile.fullName);
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState(profile.age ? String(profile.age) : "");
@@ -47,18 +58,25 @@ export function PaymentClaimForm({
   const submit = useMutation({
     mutationFn: async () => {
       if (!proof) throw new Error("Attach the payment screenshot — it is required.");
+      if (purpose === "mentorship") {
+        if (fullName.trim().length < 2) throw new Error("Enter your full name.");
+        if (!age || Number(age) < 18) throw new Error("Enter your age (18 or above).");
+        if (phone.replace(/\D/g, "").length < 10) throw new Error("Enter your active phone number.");
+        if (!/^\S+@\S+\.\S+$/.test(email.trim())) throw new Error("Enter your active email address.");
+        if (methods.length > 0 && !method) throw new Error("Select the payment method you used.");
+      }
       const proofPath = await uploadJourneyFile(slot as never, proof);
       await send({
         data: {
           purpose,
+          fullName: fullName.trim() || null,
+          method: method.trim() || null,
           claimedAmount: Number(amount) || 0,
           proofPath,
           phone: phone.trim() || null,
           email: email.trim() || null,
           age: age ? Number(age) : null,
-          note: [method.trim() ? `Method: ${method.trim()}` : null, note.trim() || null]
-            .filter(Boolean)
-            .join(" · ") || null,
+          note: note.trim() || null,
         },
       } as never);
     },
@@ -92,10 +110,15 @@ export function PaymentClaimForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Full name</Label>
-          <Input value={profile.fullName} readOnly className="h-11 rounded-2xl opacity-80" />
+          <Input
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder="As on your CNIC"
+            className="h-11 rounded-2xl"
+          />
         </div>
         <div className="space-y-1.5">
-          <Label>Upline</Label>
+          <Label>Upline ID (added automatically)</Label>
           <Input
             value={profile.upline ? `${profile.upline.name} (${profile.upline.code})` : "—"}
             readOnly
@@ -103,7 +126,7 @@ export function PaymentClaimForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Phone</Label>
+          <Label>Active phone number</Label>
           <Input
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
@@ -111,8 +134,10 @@ export function PaymentClaimForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Email (optional)</Label>
+          <Label>{purpose === "mentorship" ? "Active email" : "Email (optional)"}</Label>
           <Input
+            type="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="h-11 rounded-2xl"
@@ -138,12 +163,36 @@ export function PaymentClaimForm({
 
       <div className="space-y-1.5">
         <Label>Payment method</Label>
-        <Input
-          value={method}
-          onChange={(event) => setMethod(event.target.value)}
-          placeholder="Easypaisa / JazzCash / bank transfer"
-          className="h-11 rounded-2xl"
-        />
+        {methods.length > 0 ? (
+          <div className="grid gap-2">
+            {methods.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMethod(m.label)}
+                className={`rounded-2xl border p-3 text-left transition-colors ${
+                  method === m.label ? "border-cyan bg-primary/15" : "border-hairline bg-surface-2"
+                }`}
+              >
+                <p className="text-sm font-semibold">{m.label}</p>
+                {m.accountName ? <p className="text-xs text-muted-foreground">{m.accountName}</p> : null}
+                {m.accountNumber ? (
+                  <p className="font-mono text-sm tracking-wider text-brand-glow">{m.accountNumber}</p>
+                ) : null}
+                {m.instructions ? (
+                  <p className="mt-1 whitespace-pre-line text-[11px] text-muted-foreground">{m.instructions}</p>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Input
+            value={method}
+            onChange={(event) => setMethod(event.target.value)}
+            placeholder="Easypaisa / JazzCash / bank transfer"
+            className="h-11 rounded-2xl"
+          />
+        )}
       </div>
 
       {proof ? (

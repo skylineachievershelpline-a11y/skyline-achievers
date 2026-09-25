@@ -40,8 +40,10 @@ import {
   requestFinalInterview,
 } from "@/lib/journey.functions";
 import { VoiceGuide } from "@/components/voice/VoiceGuide";
+import finalInterviewPoster from "@/assets/final-interview-poster.jpg";
 import { PaymentClaimForm } from "./PaymentClaimForm";
 import { PaymentWalletCard } from "./PaymentWalletCard";
+import { InterviewTimeTag } from "./InterviewTimeTag";
 import { SeatAlertTag } from "./SeatAlertTag";
 import { SessionReviewForm } from "./SessionReviewForm";
 import { useNow } from "./useCountdown";
@@ -236,6 +238,7 @@ export function TraineeJourney() {
 
   return (
     <div className="space-y-5">
+      <InterviewTimeTag scheduledAt={(data as any).interviewScheduledAt ?? null} />
 
       <VoiceGuide
         className="justify-center"

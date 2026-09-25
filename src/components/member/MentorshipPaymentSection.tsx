@@ -155,7 +155,9 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-cyan" />
-          <h2 className="font-display text-base font-semibold">Personal Mentorship payment</h2>
+          <h2 className="font-display text-base font-semibold">
+            {payingCc ? "2CC payment" : "Personal Mentorship payment"}
+          </h2>
         </div>
         <VoiceGuide
           label="Listen"
@@ -167,13 +169,15 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       <div className="grid grid-cols-3 gap-3 text-center">
         <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
           <p className="font-display text-sm font-bold tabular-nums">
-            {formatPkr(mentorship.required)}
+            {formatPkr(shownTotal)}
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Total</p>
+          <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">
+            {payingCc ? "2CC total" : "Total"}
+          </p>
         </div>
         <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
           <p className="font-display text-sm font-bold tabular-nums text-cyan">
-            {formatPkr(mentorship.verified)}
+            {formatPkr(shownPaid)}
           </p>
           <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">
             Verified paid
@@ -181,7 +185,7 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
         </div>
         <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
           <p className="font-display text-sm font-bold tabular-nums">
-            {formatPkr(mentorship.remaining)}
+            {formatPkr(shownLeft)}
           </p>
           <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Remaining</p>
         </div>

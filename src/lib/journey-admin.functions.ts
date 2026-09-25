@@ -322,8 +322,8 @@ export async function autoPromoteAfterCc(memberId: string) {
     .update({ level_id: next.id, level_since: new Date().toISOString(), training_locked: false })
     .eq("id", memberId);
   try {
-    const { pushToMember } = (await import("./push.server")) as any;
-    await pushToMember?.(memberId, {
+    const { sendPushToUsers } = await import("./push.server");
+    await sendPushToUsers([memberId], {
       title: "Congratulations! 🎉",
       body: "Aap ka 2CC complete ho gaya — ab aap Assistant Supervisor hain.",
       tag: "rank-up",

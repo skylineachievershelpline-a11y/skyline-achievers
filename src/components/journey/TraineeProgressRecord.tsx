@@ -431,8 +431,13 @@ export function TraineeProgressRecord({
                           size="sm"
                           variant="outline"
                           className="rounded-xl text-[12px]"
-                          disabled={whatsapp.isPending || !(whatsappScores[session.sessionNumber] ?? "")}
-                          onClick={() => whatsapp.mutate({ sessionNumber: session.sessionNumber, score: Number(whatsappScores[session.sessionNumber]) })}
+                          disabled={whatsapp.isPending}
+                          onClick={() => {
+                            const max = maxScoreForSession(session.sessionNumber);
+                            const raw = whatsappScores[session.sessionNumber] ?? "";
+                            const score = raw === "" ? max : Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
+                            whatsapp.mutate({ sessionNumber: session.sessionNumber, score });
+                          }}
                         >
                           {whatsapp.isPending && whatsapp.variables?.sessionNumber === session.sessionNumber ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5" />}
                           Approve WhatsApp review

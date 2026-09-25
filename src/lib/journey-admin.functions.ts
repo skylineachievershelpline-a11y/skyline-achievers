@@ -119,6 +119,24 @@ export const adminVerifyPayment = createServerFn({ method: "POST" })
         .eq("trainee_id", row.payer_id);
     }
 
+    // First verified Personal Mentorship payment from a trainee: the account is
+    // created automatically and the trainee dashboard hands over to it.
+    if (data.decision === "verified" && row.purpose === "mentorship") {
+      const { data: traineeRow } = await admin
+        .from("trainees")
+        .select("id")
+        .eq("id", row.payer_id)
+        .maybeSingle();
+      if (traineeRow) {
+        const { data: claim } = await admin
+          .from("payment_submissions")
+          .select("email")
+          .eq("id", data.id)
+          .maybeSingle();
+        await graduateTrainee(traineeRow.id, (claim?.email ?? null) as string | null);
+      }
+    }
+
     // Members keep their own ledger columns in step with the verified totals.
     const { data: memberRow } = await admin
       .from("member_profiles")
@@ -150,65 +168,88 @@ export const adminCreateMentorshipAccount = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireAdmin } = await import("./admin-session.server");
     await requireAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = supabaseAdmin as any;
-
-    const { data: trainee } = await admin
-      .from("trainees")
-      .select("id, full_name, phone, age, upline_id")
-      .eq("id", data.traineeId)
-      .maybeSingle();
-    if (!trainee) throw new Error("That trainee no longer exists.");
-
-    const { data: existing } = await admin
-      .from("trainee_journey")
-      .select("mentorship_account_code")
-      .eq("trainee_id", trainee.id)
-      .maybeSingle();
-    if (existing?.mentorship_account_code) {
-      throw new Error(
-        `This person already has the account ${existing.mentorship_account_code}.`,
-      );
+    const result = await graduateTrainee(data.traineeId, null);
+    if (result.alreadyCode) {
+      throw new Error(`This person already has the account ${result.alreadyCode}.`);
     }
-
-    const { data: level } = await admin
-      .from("levels")
-      .select("id")
-      .eq("slug", "personal-mentorship")
-      .maybeSingle();
-    if (!level) throw new Error("The Personal Mentorship level is missing.");
-
-    const { ensureOfficialMember, adminCreateMember } = await import("./admin.server");
-    const uplineId = trainee.upline_id ?? (await ensureOfficialMember());
-    const { loadLedger, loadPolicy, ensureJourney } = await import("./journey.server");
-    const [ledger, policy] = await Promise.all([loadLedger(trainee.id), loadPolicy()]);
-
-    const credentials = await adminCreateMember({
-      fullName: trainee.full_name,
-      age: trainee.age ?? null,
-      cnic: null,
-      email: null,
-      phone: trainee.phone ?? null,
-      levelId: level.id as string,
-      uplineId: typeof uplineId === "string" ? uplineId : (uplineId as any)?.id,
-      status: "active",
-      workingEnabled: true,
-      feePkr: policy.mentorshipFeePkr,
-      paidPkr: ledger.mentorshipPaid,
-    });
-
-    await ensureJourney(trainee.id);
-    await admin
-      .from("trainee_journey")
-      .update({
-        mentorship_account_id: credentials.accountId,
-        mentorship_account_code: credentials.memberId,
-        stage: "mentorship",
-      })
-      .eq("trainee_id", trainee.id);
-
-    return credentials;
+    return result.credentials!;
   });
+
+/**
+ * Turns an approved Personal Mentorship trainee into a real member account
+ * with the default password. Safe to call twice — the second call is a no-op.
+ */
+async function graduateTrainee(traineeId: string, email: string | null) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as any;
+
+  const { data: trainee } = await admin
+    .from("trainees")
+    .select("id, full_name, phone, age, upline_id")
+    .eq("id", traineeId)
+    .maybeSingle();
+  if (!trainee) throw new Error("That trainee no longer exists.");
+
+  const { data: existing } = await admin
+    .from("trainee_journey")
+    .select("mentorship_account_code")
+    .eq("trainee_id", trainee.id)
+    .maybeSingle();
+  if (existing?.mentorship_account_code) {
+    return { alreadyCode: existing.mentorship_account_code as string, credentials: null };
+  }
+
+  const { data: level } = await admin
+    .from("levels")
+    .select("id")
+    .eq("slug", "personal-mentorship")
+    .maybeSingle();
+  if (!level) throw new Error("The Personal Mentorship level is missing.");
+
+  const { ensureOfficialMember, adminCreateMember } = await import("./admin.server");
+  const uplineId = trainee.upline_id ?? (await ensureOfficialMember());
+  const { loadLedger, loadPolicy, ensureJourney } = await import("./journey.server");
+  const [ledger, policy] = await Promise.all([loadLedger(trainee.id), loadPolicy()]);
+
+  const credentials = await adminCreateMember({
+    fullName: trainee.full_name,
+    age: trainee.age ?? null,
+    cnic: null,
+    email,
+    phone: trainee.phone ?? null,
+    levelId: level.id as string,
+    uplineId: typeof uplineId === "string" ? uplineId : (uplineId as any)?.id,
+    status: "active",
+    workingEnabled: true,
+    feePkr: policy.mentorshipFeePkr,
+    paidPkr: ledger.mentorshipPaid,
+    password: "00000000",
+  });
+
+  await ensureJourney(trainee.id);
+  await admin
+    .from("trainee_journey")
+    .update({
+      mentorship_account_id: credentials.accountId,
+      mentorship_account_code: credentials.memberId,
+      stage: "mentorship",
+    })
+    .eq("trainee_id", trainee.id);
+
+  try {
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([trainee.id], {
+      title: "🎉 Aap ka Personal Mentorship account tayyar hai",
+      body: `Aap ki ID ${credentials.memberId} hai. Password 00000000 — ID ya mobile number se login karein.`,
+      path: "/beginners",
+      tag: `graduated-${trainee.id}`,
+    });
+  } catch {
+    // push is best-effort
+  }
+
+  return { alreadyCode: null, credentials };
+}
 
 /** 2CC target reached: the rank moves up automatically. */
 export const adminSyncRankUpgrade = createServerFn({ method: "POST" })

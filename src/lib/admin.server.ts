@@ -181,6 +181,8 @@ export async function adminCreateMember(input: {
   /** Personal Mentorship total and any amount already received. */
   feePkr?: number | null;
   paidPkr?: number | null;
+  /** Optional fixed starting password (e.g. the default 00000000). */
+  password?: string;
 }) {
   const { data: level } = await supabaseAdmin
     .from("levels")
@@ -202,7 +204,8 @@ export async function adminCreateMember(input: {
   const { data: generatedId, error: idError } = await supabaseAdmin.rpc("generate_member_id");
   if (idError || !generatedId) throw new Error("Could not generate a Member ID. Please try again.");
   const memberId = generatedId as string;
-  const password = generateTemporaryPassword();
+  const password =
+    input.password && input.password.length >= 6 ? input.password : generateTemporaryPassword();
 
   const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: memberIdToAuthEmail(memberId),

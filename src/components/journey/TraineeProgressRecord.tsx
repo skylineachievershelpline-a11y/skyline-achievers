@@ -161,9 +161,16 @@ function ReviewDetails({
                 </div>
               </div>
             )
-          ) : session.review === "approved" && session.score == null ? (
+          ) : session.review === "approved" ? (
             <div className="inset-panel space-y-2 rounded-xl p-3">
-              <Label htmlFor={`score-${session.reviewId}`}>Add marks (maximum {maximum})</Label>
+              {session.score != null ? (
+                <p className="text-sm font-semibold text-cyan">
+                  Marks: {session.score} / {maximum}
+                </p>
+              ) : null}
+              <Label htmlFor={`score-${session.reviewId}`}>
+                {session.score == null ? "Add marks" : "Edit marks"} (maximum {maximum})
+              </Label>
               <div className="flex gap-2">
                 <Input
                   id={`score-${session.reviewId}`}
@@ -176,12 +183,11 @@ function ReviewDetails({
                   placeholder={`0–${maximum}`}
                 />
                 <Button variant="brand" disabled={mutation.isPending || score === ""} onClick={() => mutation.mutate("approved")}>
+                  {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Save marks
                 </Button>
               </div>
             </div>
-          ) : session.score != null ? (
-            <p className="text-sm font-semibold text-cyan">Marks: {session.score} / {maximum}</p>
           ) : null}
         </div>
       ) : null}
@@ -431,11 +437,15 @@ export function TraineeProgressRecord({
                           size="sm"
                           variant="outline"
                           className="rounded-xl text-[12px]"
-                          disabled={whatsapp.isPending}
+                          disabled={whatsapp.isPending || (whatsappScores[session.sessionNumber] ?? "").trim() === ""}
                           onClick={() => {
                             const max = maxScoreForSession(session.sessionNumber);
-                            const raw = whatsappScores[session.sessionNumber] ?? "";
-                            const score = raw === "" ? max : Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
+                            const raw = (whatsappScores[session.sessionNumber] ?? "").trim();
+                            if (raw === "") {
+                              toast.error("Pehle marks likhein, phir approve karein.");
+                              return;
+                            }
+                            const score = Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
                             whatsapp.mutate({ sessionNumber: session.sessionNumber, score });
                           }}
                         >

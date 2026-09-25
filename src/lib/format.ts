@@ -19,6 +19,7 @@ export function formatDuration(totalSeconds: number | null | undefined): string 
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("en-GB", {
+    timeZone: "Asia/Karachi",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -28,12 +29,14 @@ export function formatDate(value: string | null | undefined): string {
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "Never";
   return new Date(value).toLocaleString("en-GB", {
+    timeZone: "Asia/Karachi",
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  });
+    hour12: true,
+  }).toUpperCase();
 }
 
 /** Same date, but with a 12-hour clock: "23 Sep 2026, 08:00 PM". */
@@ -41,6 +44,7 @@ export function formatDateTime12(value: string | null | undefined): string {
   if (!value) return "Never";
   return new Date(value)
     .toLocaleString("en-GB", {
+    timeZone: "Asia/Karachi",
       day: "2-digit",
       month: "short",
       year: "numeric",

@@ -262,7 +262,7 @@ export const submitSessionReview = createServerFn({ method: "POST" })
 
     // Scheduled sessions: the start time must have arrived. Sessions opened
     // from a session code link can be reviewed at any time.
-    if (!data.anyTime) {
+    if (false) {
       const { data: slot } = await admin
         .from("trainee_session_schedule")
         .select("scheduled_at")

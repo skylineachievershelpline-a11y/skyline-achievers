@@ -2144,13 +2144,17 @@ export type Database = {
       trainee_journey: {
         Row: {
           created_at: string
+          interview_attempts: number
           interview_availability_note: string | null
           interview_guide_watched_at: string | null
+          interview_marks: number | null
+          interview_max_marks: number
           interview_note: string | null
           interview_requested_at: string | null
           interview_result: string | null
           interview_reviewed_at: string | null
           interview_scheduled_at: string | null
+          interview_taken_by: string | null
           mentorship_account_code: string | null
           mentorship_account_id: string | null
           mentorship_due_at: string | null
@@ -2161,13 +2165,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          interview_attempts?: number
           interview_availability_note?: string | null
           interview_guide_watched_at?: string | null
+          interview_marks?: number | null
+          interview_max_marks?: number
           interview_note?: string | null
           interview_requested_at?: string | null
           interview_result?: string | null
           interview_reviewed_at?: string | null
           interview_scheduled_at?: string | null
+          interview_taken_by?: string | null
           mentorship_account_code?: string | null
           mentorship_account_id?: string | null
           mentorship_due_at?: string | null
@@ -2178,13 +2186,17 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          interview_attempts?: number
           interview_availability_note?: string | null
           interview_guide_watched_at?: string | null
+          interview_marks?: number | null
+          interview_max_marks?: number
           interview_note?: string | null
           interview_requested_at?: string | null
           interview_result?: string | null
           interview_reviewed_at?: string | null
           interview_scheduled_at?: string | null
+          interview_taken_by?: string | null
           mentorship_account_code?: string | null
           mentorship_account_id?: string | null
           mentorship_due_at?: string | null

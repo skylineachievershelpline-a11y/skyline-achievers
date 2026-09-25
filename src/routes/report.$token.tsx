@@ -1,16 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDateTime12 as formatDateTime } from "@/lib/format";
-import { getSharedTraineeReport } from "@/lib/journey.functions";
+import { getSharedTraineeReport, submitSharedInterviewResult } from "@/lib/journey.functions";
 import {
   JOURNEY_MAX_SCORE,
   attendanceCategory,
   maxScoreForSession,
   performanceCategory,
 } from "@/lib/journey-scoring";
+
 
 export const Route = createFileRoute("/report/$token")({
   head: () => ({
@@ -189,11 +197,172 @@ function SharedReportPage() {
             ))}
           </section>
 
+          <FinalInterviewPanel
+            token={token}
+            interview={data.interview}
+            result={data.interviewResult}
+            note={data.interviewNote}
+            onSaved={() => void report.refetch()}
+          />
+
           <p className="mt-4 text-center text-[10px] text-muted-foreground">
             Read-only training record. No personal contact details are shared.
           </p>
         </>
       )}
     </main>
+  );
+}
+
+/**
+ * The senior who conducts the Final Interview marks the candidate pass or fail
+ * right here, with marks and remarks. The result updates the candidate's record
+ * and, on a pass, opens Session 08 for them automatically.
+ */
+function FinalInterviewPanel({
+  token,
+  interview,
+  result,
+  note,
+  onSaved,
+}: {
+  token: string;
+  interview: {
+    marks: number | null;
+    maxMarks: number;
+    takenBy: string | null;
+    decidedAt: string | null;
+    scheduledAt: string | null;
+    attempts: number;
+    canEvaluate: boolean;
+  };
+  result: string | null;
+  note: string | null;
+  onSaved: () => void;
+}) {
+  const submit = useServerFn(submitSharedInterviewResult);
+  const [seniorName, setSeniorName] = useState("");
+  const [marks, setMarks] = useState("");
+  const [remarks, setRemarks] = useState("");
+
+  const save = useMutation({
+    mutationFn: (decision: "pass" | "fail") => {
+      if (seniorName.trim().length < 3) throw new Error("Please write your name or member ID.");
+      if (marks.trim() === "") throw new Error("Please enter the interview marks.");
+      return submit({
+        data: {
+          token,
+          seniorName: seniorName.trim(),
+          result: decision,
+          marks: Math.max(0, Math.min(interview.maxMarks, Math.round(Number(marks) || 0))),
+          note: remarks.trim() || null,
+        },
+      } as never);
+    },
+    onSuccess: (_r, decision) => {
+      toast.success(
+        decision === "pass"
+          ? "Result saved — the candidate has passed and Session 08 is now open."
+          : "Result saved — the candidate has been asked to try again.",
+      );
+      onSaved();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const decided = Boolean(interview.decidedAt);
+
+  return (
+    <section className="mt-4 rounded-3xl border-2 border-primary/40 bg-primary/10 p-5">
+      <p className="flex items-center gap-2 font-display text-base font-semibold">
+        <ShieldCheck className="h-4 w-4 text-primary" /> Final Interview
+      </p>
+
+      <div className="mt-3">
+        <Row
+          label="Interview time"
+          value={interview.scheduledAt ? formatDateTime(interview.scheduledAt) : "not set yet"}
+        />
+        <Row label="Attempts" value={String(interview.attempts)} />
+        <Row label="Result" value={result ?? "not taken yet"} />
+        <Row
+          label="Interview marks"
+          value={interview.marks == null ? "not marked" : `${interview.marks} / ${interview.maxMarks}`}
+        />
+        {interview.takenBy ? <Row label="Taken by" value={interview.takenBy} /> : null}
+        {interview.decidedAt ? <Row label="Decided on" value={formatDateTime(interview.decidedAt)} /> : null}
+        {note ? <Row label="Remarks" value={note} /> : null}
+      </div>
+
+      {interview.canEvaluate ? (
+        <div className="mt-4 space-y-3 rounded-2xl border border-border bg-background/60 p-4">
+          <p className="text-xs font-semibold">
+            {decided ? "Record the new interview result" : "Record the interview result"}
+          </p>
+          <div>
+            <Label htmlFor="senior-name">Your name or member ID</Label>
+            <Input
+              id="senior-name"
+              value={seniorName}
+              onChange={(event) => setSeniorName(event.target.value)}
+              placeholder="Senior who took the interview"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="interview-marks">Interview marks (maximum {interview.maxMarks})</Label>
+            <Input
+              id="interview-marks"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={interview.maxMarks}
+              value={marks}
+              onChange={(event) => setMarks(event.target.value)}
+              placeholder={`0–${interview.maxMarks}`}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="interview-remarks">Remarks (optional)</Label>
+            <Textarea
+              id="interview-remarks"
+              value={remarks}
+              onChange={(event) => setRemarks(event.target.value)}
+              rows={3}
+              placeholder="How was the candidate? Anything to improve?"
+              className="mt-1"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="brand"
+              className="rounded-2xl"
+              disabled={save.isPending}
+              onClick={() => save.mutate("pass")}
+            >
+              {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              Pass
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-2xl"
+              disabled={save.isPending}
+              onClick={() => save.mutate("fail")}
+            >
+              <XCircle className="h-4 w-4" /> Fail
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            A pass opens Session 08 for the candidate at once. A fail asks the candidate to try
+            again and lets the upline set a new interview time.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          The interview panel opens once the candidate is at the Final Interview step.
+        </p>
+      )}
+    </section>
   );
 }

@@ -152,6 +152,9 @@ async function buildJourney(traineeId: string) {
     interviewGuideWatchedAt: (journeyRow?.interview_guide_watched_at ?? null) as string | null,
     interviewResult: (journeyRow?.interview_result ?? null) as string | null,
     interviewNote: (journeyRow?.interview_note ?? null) as string | null,
+    interviewMarks: ((journeyRow as any)?.interview_marks ?? null) as number | null,
+    interviewMaxMarks: Number((journeyRow as any)?.interview_max_marks ?? 25),
+    interviewTakenBy: ((journeyRow as any)?.interview_taken_by ?? null) as string | null,
     interviewRequestedAt: (journeyRow?.interview_requested_at ?? null) as string | null,
     interviewAvailabilityNote: (journeyRow?.interview_availability_note ?? null) as string | null,
     interviewScheduledAt: (journeyRow?.interview_scheduled_at ?? null) as string | null,
@@ -1171,6 +1174,13 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
 
     const journey = await buildJourney(trainee.id);
     const { sessionWindowEndMs } = await import("./journey");
+    const { data: jrow } = await admin
+      .from("trainee_journey")
+      .select(
+        "interview_marks, interview_max_marks, interview_taken_by, interview_reviewed_at, interview_scheduled_at, interview_requested_at, interview_attempts",
+      )
+      .eq("trainee_id", trainee.id)
+      .maybeSingle();
 
     return {
       status: "ok" as const,
@@ -1187,6 +1197,16 @@ export const getSharedTraineeReport = createServerFn({ method: "POST" })
       stage: journey.stage,
       interviewResult: journey.interviewResult,
       interviewNote: journey.interviewNote,
+      interview: {
+        marks: (jrow?.interview_marks ?? null) as number | null,
+        maxMarks: Number(jrow?.interview_max_marks ?? 25),
+        takenBy: (jrow?.interview_taken_by ?? null) as string | null,
+        decidedAt: (jrow?.interview_reviewed_at ?? null) as string | null,
+        scheduledAt: (jrow?.interview_scheduled_at ?? null) as string | null,
+        requestedAt: (jrow?.interview_requested_at ?? null) as string | null,
+        attempts: Number(jrow?.interview_attempts ?? 0),
+        canEvaluate: journey.stage === "ready_for_interview" || journey.stage === "reassess",
+      },
       wallet: {
         required: journey.wallet.required,
         verified: journey.wallet.verified,
@@ -1272,4 +1292,105 @@ export const grantForeverAccess = createServerFn({ method: "POST" })
       tag: `interview-${trainee.id}`,
     });
     return { ok: true as const };
+  });
+
+/**
+ * The senior conducting the Final Interview submits the result from the private
+ * report link: pass or fail, marks and remarks, stamped with the senior's name.
+ * A pass unlocks Session 08 straight away; a fail sends the trainee back to
+ * "try again" and lets the upline schedule a fresh interview time.
+ */
+export const submitSharedInterviewResult = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      token: string;
+      seniorName: string;
+      result: "pass" | "fail";
+      marks: number;
+      note?: string | null;
+    }) =>
+      z
+        .object({
+          token: z.string().trim().min(10).max(64),
+          seniorName: z.string().trim().min(3).max(120),
+          result: z.enum(["pass", "fail"]),
+          marks: z.number().int().min(0).max(100),
+          note: z.string().trim().max(2000).nullish(),
+        })
+        .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const { data: link } = await admin
+      .from("trainee_report_links")
+      .select("trainee_id, revoked")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (!link || link.revoked === true) throw new Error("This report link is closed.");
+
+    const { ensureJourney } = await import("./journey.server");
+    const journey: any = await ensureJourney(link.trainee_id);
+    const stage = journey?.stage ?? "sessions";
+    if (stage !== "ready_for_interview" && stage !== "reassess") {
+      throw new Error("This person is not at the Final Interview step right now.");
+    }
+    const maximum = Number(journey?.interview_max_marks ?? 25);
+    if (data.marks > maximum) throw new Error(`Interview marks can be at most ${maximum}.`);
+
+    const now = new Date().toISOString();
+    const passed = data.result === "pass";
+    const { error } = await admin
+      .from("trainee_journey")
+      .update({
+        interview_result: passed ? "pass" : "fail",
+        interview_marks: data.marks,
+        interview_taken_by: data.seniorName,
+        interview_note: data.note ?? null,
+        interview_reviewed_at: now,
+        interview_attempts: Number(journey?.interview_attempts ?? 0) + 1,
+        interview_guide_watched_at: journey?.interview_guide_watched_at ?? now,
+        stage: passed ? "interview_passed" : "reassess",
+        // A fail clears the old request/time so the upline can set a new one.
+        interview_requested_at: passed ? journey?.interview_requested_at ?? now : null,
+        interview_scheduled_at: null,
+      })
+      .eq("trainee_id", link.trainee_id);
+    if (error) throw new Error(error.message);
+
+    try {
+      const { pushToUsers } = await import("./push.server");
+      await pushToUsers([link.trainee_id], {
+        title: passed ? "Congratulations! 🎉 Final Interview pass" : "Final Interview: try again",
+        body: passed
+          ? `Aap ne Final Interview pass kar liya (${data.marks}/${maximum}). Session 08 — Forever Business Plan ab open hai!`
+          : "Is bar interview clear nahi hua. Apne upline se rabta karein, tayari karein — naya interview time set kiya jayega.",
+        path: "/beginners",
+        tag: `interview-${link.trainee_id}`,
+      });
+    } catch {
+      // push is best-effort
+    }
+
+    // The upline also needs to know, so they can unlock or reschedule.
+    try {
+      const { data: trainee } = await admin
+        .from("trainees")
+        .select("full_name, upline_id")
+        .eq("id", link.trainee_id)
+        .maybeSingle();
+      if (trainee?.upline_id) {
+        const { pushToUsers } = await import("./push.server");
+        await pushToUsers([trainee.upline_id], {
+          title: passed ? "Final Interview passed ✅" : "Final Interview failed ❌",
+          body: `${trainee.full_name}: ${data.marks}/${maximum} — ${data.seniorName} ne interview liya.${passed ? " Session 08 unlock ho gaya." : " Naya interview time set karein."}`,
+          path: "/seats",
+          tag: `interview-result-${link.trainee_id}`,
+        });
+      }
+    } catch {
+      // push is best-effort
+    }
+
+    return { ok: true as const, result: passed ? ("pass" as const) : ("fail" as const) };
   });

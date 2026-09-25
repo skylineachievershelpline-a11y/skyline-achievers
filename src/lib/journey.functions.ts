@@ -208,6 +208,7 @@ export const getTraineeJourney = createServerFn({ method: "GET" })
         accountName: (m.account_name ?? null) as string | null,
         accountNumber: (m.account_number ?? null) as string | null,
         instructions: (m.instructions ?? null) as string | null,
+        qrUrl: (m.qr_url ?? null) as string | null,
       })),
       profile: {
         id: trainee.id as string,

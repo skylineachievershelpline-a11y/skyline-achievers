@@ -274,6 +274,13 @@
       "when": 1790345153349,
       "tag": "0038_final_interview_evaluation_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790354071122,
+      "tag": "0039_add_qr_url_to_course_payment_methods",
+      "breakpoints": true
     }
   ]
 }

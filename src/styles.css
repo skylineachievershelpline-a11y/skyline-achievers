@@ -1800,6 +1800,18 @@ body > div > :not(.liquid-atmosphere) {
   animation: ska-rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* A payment card sliding out of the leather wallet. */
+@keyframes ska-card-slide {
+  0% { transform: translateY(46px) scale(0.92) rotate(-2.5deg); opacity: 0; }
+  60% { transform: translateY(-6px) scale(1.01) rotate(0.6deg); opacity: 1; }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+}
+
+@utility animate-card-slide {
+  animation: ska-card-slide 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+
 @utility animate-glow {
   animation: ska-glow 6s ease-in-out infinite;
 }

@@ -141,9 +141,10 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
   const selected = methods.find((entry) => entry.name === method) ?? null;
   const payingCc = mentorship.complete;
   const payLimit = payingCc ? cc.remaining : mentorship.remaining;
-  const percent = mentorship.required
-    ? Math.min(100, Math.round((mentorship.verified / mentorship.required) * 100))
-    : 100;
+  const shownTotal = payingCc ? cc.target : mentorship.required;
+  const shownPaid = payingCc ? cc.verified : mentorship.verified;
+  const shownLeft = payingCc ? cc.remaining : mentorship.remaining;
+  const percent = shownTotal ? Math.min(100, Math.round((shownPaid / shownTotal) * 100)) : 100;
 
   return (
     <section
@@ -353,10 +354,22 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
                   className="hidden"
-                  onChange={(event) => {
+                  onChange={async (event) => {
                     const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (file) setProof(file);
+                    if (!file) return;
+                    try {
+                      // Copy into memory so the phone gallery link can't expire before upload.
+                      const bytes = await file.arrayBuffer();
+                      const type = file.type || "image/jpeg";
+                      const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg";
+                      setProof(new File([bytes], `payment.${ext}`, { type }));
+                    } catch {
+                      toast.error(
+                        "Yeh screenshot phone se read nahi ho saka. Gallery se dobara chunein ya pehle download kar ke lagayein.",
+                      );
+                    } finally {
+                      event.target.value = "";
+                    }
                   }}
                 />
               </label>

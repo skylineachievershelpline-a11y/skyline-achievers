@@ -12,8 +12,8 @@ export type DeviceAccount = {
   kind: "member" | "trainee";
   refreshToken: string;
   /** Kept so switching can restore the session instantly, without a refresh. */
-  accessToken?: string;
-  expiresAt?: number;
+  accessToken?: string | undefined;
+  expiresAt?: number | undefined;
 };
 
 const KEY = "skyline-device-accounts";

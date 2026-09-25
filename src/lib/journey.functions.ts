@@ -190,7 +190,7 @@ export const getTraineeJourney = createServerFn({ method: "GET" })
     const [{ data: methods }, { data: jrow }] = await Promise.all([
       (supabaseAdmin as any)
         .from("course_payment_methods")
-        .select("id, label, account_name, account_number, instructions")
+        .select("id, label, account_name, account_number, instructions, qr_url")
         .eq("is_active", true)
         .order("sort_order"),
       (supabaseAdmin as any)

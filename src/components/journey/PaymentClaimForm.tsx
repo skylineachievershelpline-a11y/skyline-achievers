@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getReviewUploadUrl, submitPaymentClaim } from "@/lib/journey.functions";
+import { PaymentMethodWallet } from "./PaymentMethodWallet";
 import { uploadJourneyFile } from "./journey-upload";
 
 export type PayMethod = {
@@ -17,7 +18,9 @@ export type PayMethod = {
   accountName: string | null;
   accountNumber: string | null;
   instructions: string | null;
+  qrUrl?: string | null;
 };
+
 
 type Profile = {
   fullName: string;
@@ -174,27 +177,18 @@ export function PaymentClaimForm({
       <div className="space-y-1.5">
         <Label>Payment method</Label>
         {methods.length > 0 ? (
-          <div className="grid gap-2">
-            {methods.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setMethod(m.label)}
-                className={`rounded-2xl border p-3 text-left transition-colors ${
-                  method === m.label ? "border-cyan bg-primary/15" : "border-hairline bg-surface-2"
-                }`}
-              >
-                <p className="text-sm font-semibold">{m.label}</p>
-                {m.accountName ? <p className="text-xs text-muted-foreground">{m.accountName}</p> : null}
-                {m.accountNumber ? (
-                  <p className="font-mono text-sm tracking-wider text-brand-glow">{m.accountNumber}</p>
-                ) : null}
-                {m.instructions ? (
-                  <p className="mt-1 whitespace-pre-line text-[11px] text-muted-foreground">{m.instructions}</p>
-                ) : null}
-              </button>
-            ))}
-          </div>
+          <PaymentMethodWallet
+            methods={methods.map((m) => ({
+              name: m.label,
+              accountTitle: m.accountName ?? "",
+              accountNumber: m.accountNumber ?? "",
+              instructions: m.instructions ?? "",
+              qrUrl: m.qrUrl ?? "",
+            }))}
+            selectedName={method}
+            onSelect={(name) => setMethod(name)}
+          />
+
         ) : (
           <Input
             value={method}

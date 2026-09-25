@@ -152,6 +152,7 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
         accountName: optional(120),
         accountNumber: optional(120),
         instructions: optional(600),
+        qrUrl: optional(500),
         isActive: z.boolean(),
         sortOrder: z.number().int().min(0).max(999),
       })
@@ -164,9 +165,11 @@ export const adminSavePaymentMethod = createServerFn({ method: "POST" })
       account_name: data.accountName,
       account_number: data.accountNumber,
       instructions: data.instructions,
+      qr_url: data.qrUrl ?? null,
       is_active: data.isActive,
       sort_order: data.sortOrder,
     };
+
     if (data.id) await db.from("course_payment_methods").update(row as never).eq("id", data.id);
     else await db.from("course_payment_methods").insert(row as never);
     return { ok: true as const };

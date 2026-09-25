@@ -183,6 +183,8 @@ export async function adminCreateMember(input: {
   paidPkr?: number | null;
   /** Optional fixed starting password (e.g. the default 00000000). */
   password?: string;
+  /** The trainee this account continues, whose phone/email may be reused. */
+  allowTraineeId?: string | null;
 }) {
   const { data: level } = await supabaseAdmin
     .from("levels")
@@ -200,6 +202,13 @@ export async function adminCreateMember(input: {
     throw new Error("Select a valid upline account.");
   }
 
+
+  // One phone / one email: never open a second account for the same person.
+  const { assertPhoneEmailFree } = await import("./identity-unique.server");
+  await assertPhoneEmailFree(
+    { phone: input.phone, email: input.email },
+    { allowTraineeId: input.allowTraineeId ?? null },
+  );
 
   const { data: generatedId, error: idError } = await supabaseAdmin.rpc("generate_member_id");
   if (idError || !generatedId) throw new Error("Could not generate a Member ID. Please try again.");

@@ -51,19 +51,21 @@ function InterviewScheduler({
   const schedule = useServerFn(scheduleFinalInterview);
   const [value, setValue] = useState(() => {
     if (!scheduledAt) return "";
-    const date = new Date(scheduledAt);
-    const pkt = new Date(date.getTime() + 5 * 3_600_000);
+    // Show the stored moment as Pakistan wall-clock time in the picker.
+    const pkt = new Date(new Date(scheduledAt).getTime() + 5 * 3_600_000);
     return pkt.toISOString().slice(0, 16);
   });
   const save = useMutation({
     mutationFn: () => {
       if (!value) throw new Error("Pehle date aur time choose karein.");
-      // The picker value is Pakistan time; convert it back to a real moment.
-      const pktMs = new Date(`${value}:00`).getTime();
+      // The picker value is always read as Pakistan time, whatever the phone's timezone is.
+      const moment = new Date(`${value}:00+05:00`);
+      if (Number.isNaN(moment.getTime())) throw new Error("Time theek nahi hai — dobara choose karein.");
       return schedule({
-        data: { traineeId, scheduledAt: new Date(pktMs - 5 * 3_600_000).toISOString() },
+        data: { traineeId, scheduledAt: moment.toISOString() },
       } as never);
     },
+
     onSuccess: () => {
       toast.success("Interview time set — trainee ko notification chali gayi");
       onDone();

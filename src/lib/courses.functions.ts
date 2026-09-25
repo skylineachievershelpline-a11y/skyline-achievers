@@ -128,7 +128,7 @@ export const getCourseDetail = createServerFn({ method: "POST" })
           .maybeSingle(),
         supabaseAdmin
           .from("course_payment_methods")
-          .select("id, label, account_name, account_number, instructions")
+          .select("id, label, account_name, account_number, instructions, qr_url")
           .eq("is_active", true)
           .order("sort_order"),
         supabaseAdmin

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
 import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { createProofUploadUrl, getCourseDetail, submitCoursePayment } from "@/lib/courses.functions";
 import { putWithProgress } from "@/lib/upload-progress";
@@ -322,40 +323,19 @@ function CourseDetailPage() {
                   No payment account is available yet. Please check again later.
                 </p>
               ) : (
-                methods.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setMethod(item.label)}
-                    className={cn(
-                      "w-full rounded-2xl border p-4 text-left transition-colors",
-                      method === item.label
-                        ? "border-cyan/40 bg-primary/10 shadow-glass"
-                        : "border-hairline bg-surface hover:border-cyan/25",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-display text-sm font-semibold">{item.label}</p>
-                      {method === item.label ? (
-                        <span className="text-[10px] uppercase tracking-[0.14em] text-brand-glow">
-                          Selected
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      {item.account_name ? <CopyLine label="Account name" value={item.account_name} /> : null}
-                      {item.account_number ? (
-                        <CopyLine label="Account number" value={item.account_number} />
-                      ) : null}
-                    </div>
-                    {item.instructions ? (
-                      <p className="mt-2 whitespace-pre-line text-xs text-muted-foreground">
-                        {item.instructions}
-                      </p>
-                    ) : null}
-                  </button>
-                ))
+                <PaymentMethodWallet
+                  methods={methods.map((item) => ({
+                    name: item.label,
+                    accountTitle: item.account_name ?? "",
+                    accountNumber: item.account_number ?? "",
+                    instructions: item.instructions ?? "",
+                    qrUrl: (item as { qr_url?: string | null }).qr_url ?? "",
+                  }))}
+                  selectedName={method}
+                  onSelect={(name) => setMethod(name)}
+                />
               )}
+
             </div>
 
             {/* form */}

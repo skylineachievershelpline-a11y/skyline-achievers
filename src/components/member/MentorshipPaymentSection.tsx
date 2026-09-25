@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   BadgeCheck,
   Clock,
-  Copy,
   ImagePlus,
   Loader2,
   ShieldCheck,
@@ -15,6 +14,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
+
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,7 +139,6 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
 
   const { mentorship, cc, methods, policy, history } = data;
   const pending = history.filter((row) => row.status === "pending");
-  const selected = methods.find((entry) => entry.name === method) ?? null;
   const payingCc = mentorship.complete;
   const payLimit = payingCc ? cc.remaining : mentorship.remaining;
   const shownTotal = payingCc ? cc.target : mentorship.required;
@@ -242,72 +242,14 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
                 />
               </>
             ) : (
-
-              <div className="grid gap-2 sm:grid-cols-2">
-                {methods.map((entry) => (
-                  <button
-                    key={entry.name}
-                    type="button"
-                    onClick={() => setMethod(entry.name)}
-                    className={`rounded-2xl border p-3 text-left transition-colors ${
-                      method === entry.name
-                        ? "border-cyan/60 bg-primary/10"
-                        : "border-hairline bg-surface-2 hover:border-cyan/30"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold">{entry.name}</p>
-                    {entry.accountTitle ? (
-                      <p className="text-[11px] text-muted-foreground">{entry.accountTitle}</p>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
+              <PaymentMethodWallet
+                methods={methods}
+                selectedName={method}
+                onSelect={(name) => setMethod(name)}
+              />
             )}
           </div>
 
-          {selected ? (
-            <div className="space-y-2 rounded-2xl border border-hairline bg-surface p-3">
-              {selected.accountTitle ? (
-                <p className="text-xs">
-                  <span className="text-muted-foreground">Account title: </span>
-                  <span className="font-semibold">{selected.accountTitle}</span>
-                </p>
-              ) : null}
-              {selected.accountNumber ? (
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs">
-                    <span className="text-muted-foreground">Account number: </span>
-                    <span className="font-semibold tabular-nums">{selected.accountNumber}</span>
-                  </p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    aria-label="Copy account number"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(selected.accountNumber);
-                      toast.success("Account number copied");
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ) : null}
-              {selected.instructions ? (
-                <p className="whitespace-pre-wrap text-[11px] text-muted-foreground">
-                  {selected.instructions}
-                </p>
-              ) : null}
-              {selected.qrUrl ? (
-                <img
-                  src={selected.qrUrl}
-                  alt={`${selected.name} QR code`}
-                  className="h-40 w-40 rounded-2xl border border-hairline object-contain"
-                />
-              ) : null}
-            </div>
-          ) : null}
 
           {/* ---------- claim form ---------- */}
           <form

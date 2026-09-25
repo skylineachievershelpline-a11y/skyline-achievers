@@ -190,7 +190,7 @@ export const getTraineeJourney = createServerFn({ method: "GET" })
     const [{ data: methods }, { data: jrow }] = await Promise.all([
       (supabaseAdmin as any)
         .from("course_payment_methods")
-        .select("id, label, account_name, account_number, instructions")
+        .select("id, label, account_name, account_number, instructions, qr_url")
         .eq("is_active", true)
         .order("sort_order"),
       (supabaseAdmin as any)
@@ -208,6 +208,7 @@ export const getTraineeJourney = createServerFn({ method: "GET" })
         accountName: (m.account_name ?? null) as string | null,
         accountNumber: (m.account_number ?? null) as string | null,
         instructions: (m.instructions ?? null) as string | null,
+        qrUrl: (m.qr_url ?? null) as string | null,
       })),
       profile: {
         id: trainee.id as string,
@@ -488,11 +489,18 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Keep the trainee record in step so the new account gets the right details.
     if (data.purpose === "mentorship") {
+      // The trainee's own number/email is fine; somebody else's is not.
+      const { assertPhoneEmailFree } = await import("./identity-unique.server");
+      await assertPhoneEmailFree(
+        { phone: data.phone ?? null, email: data.email ?? null },
+        { allowTraineeId: trainee.id },
+      );
       await (supabaseAdmin as any)
         .from("trainees")
         .update({ full_name: data.fullName, age: data.age, phone: data.phone })
         .eq("id", trainee.id);
     }
+
     const { error } = await (supabaseAdmin as any).from("payment_submissions").insert({
       payer_id: trainee.id,
       payer_kind: "trainee",

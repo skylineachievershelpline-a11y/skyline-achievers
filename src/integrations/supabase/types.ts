@@ -442,6 +442,7 @@ export type Database = {
           instructions: string | null
           is_active: boolean
           label: string
+          qr_url: string | null
           sort_order: number
           updated_at: string
         }
@@ -453,6 +454,7 @@ export type Database = {
           instructions?: string | null
           is_active?: boolean
           label: string
+          qr_url?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -464,6 +466,7 @@ export type Database = {
           instructions?: string | null
           is_active?: boolean
           label?: string
+          qr_url?: string | null
           sort_order?: number
           updated_at?: string
         }

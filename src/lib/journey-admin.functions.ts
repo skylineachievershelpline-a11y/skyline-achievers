@@ -226,6 +226,8 @@ async function graduateTrainee(traineeId: string, email: string | null) {
     feePkr: policy.mentorshipFeePkr,
     paidPkr: ledger.mentorshipPaid,
     password: "00000000",
+    // Same person continuing from training: their own phone/email is allowed.
+    allowTraineeId: trainee.id,
   });
 
   await ensureJourney(trainee.id);

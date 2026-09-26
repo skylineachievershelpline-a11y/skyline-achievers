@@ -240,8 +240,6 @@ export function DailyReportPanel() {
 
   return (
     <div className="space-y-4">
-      <MissedReportWarning level={data.warning.level} />
-
       <section className="raised-panel metal-edge overflow-hidden rounded-3xl p-5 animate-rise-in">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

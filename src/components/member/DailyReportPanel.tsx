@@ -494,28 +494,6 @@ export function DailyReportPanel() {
   );
 }
 
-/** Red warning shown when yesterday's report was not shared. */
-function MissedReportWarning({ level }: { level: number }) {
-  if (level < 1) return null;
-  const message =
-    level === 1
-      ? "You did not share yesterday's report. If you stay inactive next, your account can be blocked."
-      : level === 2
-        ? "Last warning: two days without a report. One more missed day and your account will be blocked automatically."
-        : "Your account has been blocked automatically after three days without a report. Please contact your administrator.";
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-destructive/50 bg-destructive/12 px-4 py-3 text-destructive">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">
-          {level === 1 ? "Warning" : level === 2 ? "Last warning" : "Account blocked"}
-        </p>
-        <p className="mt-0.5 text-xs leading-relaxed">{message}</p>
-      </div>
-    </div>
-  );
-}
-
 /** Premium multi-line tracking graph (blue / green / red). */
 function TrendChart({ days }: { days: ReportDay[] }) {
   const width = 560;

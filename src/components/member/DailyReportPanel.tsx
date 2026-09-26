@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  AlertTriangle,
   CheckCircle2,
   Clock,
   Download,
@@ -240,8 +239,6 @@ export function DailyReportPanel() {
 
   return (
     <div className="space-y-4">
-      <MissedReportWarning level={data.warning.level} />
-
       <section className="raised-panel metal-edge overflow-hidden rounded-3xl p-5 animate-rise-in">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -490,28 +487,6 @@ export function DailyReportPanel() {
         </section>
       </div>
       <PaymentSlip open={reportSlip !== null} data={reportSlip} onClose={() => setReportSlip(null)} />
-    </div>
-  );
-}
-
-/** Red warning shown when yesterday's report was not shared. */
-function MissedReportWarning({ level }: { level: number }) {
-  if (level < 1) return null;
-  const message =
-    level === 1
-      ? "You did not share yesterday's report. If you stay inactive next, your account can be blocked."
-      : level === 2
-        ? "Last warning: two days without a report. One more missed day and your account will be blocked automatically."
-        : "Your account has been blocked automatically after three days without a report. Please contact your administrator.";
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-destructive/50 bg-destructive/12 px-4 py-3 text-destructive">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">
-          {level === 1 ? "Warning" : level === 2 ? "Last warning" : "Account blocked"}
-        </p>
-        <p className="mt-0.5 text-xs leading-relaxed">{message}</p>
-      </div>
     </div>
   );
 }

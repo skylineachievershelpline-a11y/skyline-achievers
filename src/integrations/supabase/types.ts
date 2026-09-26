@@ -753,6 +753,59 @@ export type Database = {
           },
         ]
       }
+      job_assistants: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string
+          daily_lead_limit: number
+          email: string | null
+          fbo_id: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string
+          daily_lead_limit?: number
+          email?: string | null
+          fbo_id: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string
+          daily_lead_limit?: number
+          email?: string | null
+          fbo_id?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_assistants_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landing_intro: {
         Row: {
           aspect_ratio: string

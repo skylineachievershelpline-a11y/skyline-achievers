@@ -281,6 +281,13 @@
       "when": 1790354071122,
       "tag": "0039_add_qr_url_to_course_payment_methods",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790413937796,
+      "tag": "0040_job_assistants",
+      "breakpoints": true
     }
   ]
 }

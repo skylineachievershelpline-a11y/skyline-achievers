@@ -302,6 +302,13 @@
       "when": 1790414401795,
       "tag": "0042_assistant_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790414592867,
+      "tag": "0043_lead_verification",
+      "breakpoints": true
     }
   ]
 }

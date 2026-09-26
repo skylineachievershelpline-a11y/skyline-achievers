@@ -10,6 +10,7 @@ import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/M
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LeadsManager } from "@/components/assistants/LeadsManager";
 import { addAssistant, getMyAssistants, updateAssistant } from "@/lib/assistants.functions";
 
 export const Route = createFileRoute("/assistants")({
@@ -150,6 +151,8 @@ function AssistantsPage() {
               </div>
             ))}
           </section>
+
+          <LeadsManager assistants={(data?.assistants ?? []) as any} />
         </div>
       )}
     </MemberShell>

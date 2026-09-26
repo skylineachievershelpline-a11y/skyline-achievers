@@ -291,7 +291,7 @@
 
 ## Job Assistant System
 - [x] Step 1: assistants table, FBO manage page, admin commission settings
-- [ ] Step 2: lead CSV upload, dedupe, distribution
+- [x] Step 2: lead CSV upload, dedupe, distribution
 - [ ] Step 3: assistant portal & calling workflow
 - [ ] Step 4: commission ledger & payouts
 - [ ] Step 5: FBO 3-way reports & settlements

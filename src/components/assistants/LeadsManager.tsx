@@ -104,7 +104,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
               if (!f) return;
               try {
                 const parsed = await parseFile(f);
-                if (!parsed.length) return toast.error("File mein phone number wala column nahi mila.");
+                if (!parsed.length) { toast.error("File mein phone number wala column nahi mila."); return; }
                 setRows(parsed.slice(0, 5000));
                 setFileName(f.name);
               } catch {

@@ -91,7 +91,7 @@ function WorkPage() {
   return (
     <main className="mx-auto min-h-screen max-w-xl space-y-4 p-4">
       <header className="glass-panel flex items-center gap-3 rounded-2xl p-4">
-        <BrandLogo className="size-10" />
+        <BrandLogo size="sm" withWordmark={false} />
         <div className="flex-1">
           <p className="font-semibold">{a.name}</p>
           <p className="text-xs text-muted-foreground">

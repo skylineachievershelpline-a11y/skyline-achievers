@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Pause, Play, Trash2, UserPlus } from "lucide-react";
+import { Link2, Loader2, Pause, Play, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LeadsManager } from "@/components/assistants/LeadsManager";
+import { getAssistantLink } from "@/lib/assistant-portal.functions";
 import { addAssistant, getMyAssistants, updateAssistant } from "@/lib/assistants.functions";
 
 export const Route = createFileRoute("/assistants")({
@@ -51,6 +52,16 @@ function AssistantsPage() {
     retry: false,
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ["my-assistants"] });
+  const linkFn = useServerFn(getAssistantLink);
+  async function copyLink(id: string) {
+    try {
+      const { token } = await linkFn({ data: { id } });
+      await navigator.clipboard.writeText(`${window.location.origin}/work/${token}`);
+      toast.success("Assistant ka private link copy ho gaya — WhatsApp par bhej dein");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const create = useMutation({
     mutationFn: () =>
@@ -137,7 +148,10 @@ function AssistantsPage() {
                     {a.status === "active" ? "Active" : "Paused"}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => void copyLink(a.id)}>
+                    <Link2 className="size-4" /> Link
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => change.mutate({ id: a.id, role: a.role === "calling" ? "full_funnel" : "calling" })}>
                     Role badlein
                   </Button>

@@ -288,3 +288,10 @@
 - [x] All members sign in with Member ID or registered phone number
 - [ ] Welcome email with the ID — needs an email sender domain
 - [ ] Interview readiness request, upline time setting and red countdown tag
+
+## Job Assistant System
+- [x] Step 1: assistants table, FBO manage page, admin commission settings
+- [ ] Step 2: lead CSV upload, dedupe, distribution
+- [ ] Step 3: assistant portal & calling workflow
+- [ ] Step 4: commission ledger & payouts
+- [ ] Step 5: FBO 3-way reports & settlements

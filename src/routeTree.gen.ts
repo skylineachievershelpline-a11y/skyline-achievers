@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssistantsRouteImport } from './routes/assistants'
 import { Route as BeginnersRouteImport } from './routes/beginners'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CoursesRouteImport } from './routes/courses'
@@ -45,6 +46,11 @@ import { Route as ApiPublicCronNotifyRouteImport } from './routes/api.public.cro
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantsRoute = AssistantsRouteImport.update({
+  id: '/assistants',
+  path: '/assistants',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BeginnersRoute = BeginnersRouteImport.update({
@@ -205,6 +211,7 @@ const ApiPublicCronNotifyRoute = ApiPublicCronNotifyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assistants': typeof AssistantsRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/courses': typeof CoursesRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assistants': typeof AssistantsRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/courses': typeof CoursesRoute
@@ -274,6 +282,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assistants': typeof AssistantsRoute
   '/beginners': typeof BeginnersRoute
   '/chat': typeof ChatRoute
   '/courses': typeof CoursesRoute
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/assistants'
     | '/beginners'
     | '/chat'
     | '/courses'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/assistants'
     | '/beginners'
     | '/chat'
     | '/courses'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/assistants'
     | '/beginners'
     | '/chat'
     | '/courses'
@@ -413,6 +425,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssistantsRoute: typeof AssistantsRoute
   BeginnersRoute: typeof BeginnersRoute
   ChatRoute: typeof ChatRoute
   CoursesRoute: typeof CoursesRoute
@@ -453,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistants': {
+      id: '/assistants'
+      path: '/assistants'
+      fullPath: '/assistants'
+      preLoaderRoute: typeof AssistantsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beginners': {
@@ -677,6 +697,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssistantsRoute: AssistantsRoute,
   BeginnersRoute: BeginnersRoute,
   ChatRoute: ChatRoute,
   CoursesRoute: CoursesRoute,

@@ -53,9 +53,9 @@ function AssistantsPage() {
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ["my-assistants"] });
   const linkFn = useServerFn(getAssistantLink);
-  async function copyLink(id: string) {
+  async function copyLink(id: string, reset = false) {
     try {
-      const { token } = await linkFn({ data: { id } });
+      const { token } = await linkFn({ data: { id, reset } });
       await navigator.clipboard.writeText(`${window.location.origin}/work/${token}`);
       toast.success("Assistant ka private link copy ho gaya — WhatsApp par bhej dein");
     } catch (e) {
@@ -147,10 +147,23 @@ function AssistantsPage() {
                   <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] ${a.status === "active" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {a.status === "active" ? "Active" : "Paused"}
                   </span>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Kaam: {a.earnings.worked}/{a.earnings.assigned} leads · 249 verified: {a.earnings.verifiedEnrollments} ({a.earnings.conversionRate}%)
+                    {a.role === "full_funnel" ? ` · 2CC: ${a.earnings.verifiedCc} (${a.earnings.ccRate}%)` : ""}
+                  </p>
+                  <p className="text-sm font-semibold text-primary">
+                    Commission Rs. {a.earnings.total.toLocaleString()} + fee Rs. {a.earnings.serviceFee.toLocaleString()} = Rs. {a.earnings.fboPays.toLocaleString()}
+                  </p>
+                  {!a.earnings.sampleReached && (
+                    <p className="text-[11px] text-muted-foreground">Kam az kam {data?.settings.minSampleLeads} leads work hone tak lowest rate lagega.</p>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => void copyLink(a.id)}>
                     <Link2 className="size-4" /> Link
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => confirm("Purana link band karke naya banayein?") && void copyLink(a.id, true)}>
+                    Naya link
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => change.mutate({ id: a.id, role: a.role === "calling" ? "full_funnel" : "calling" })}>
                     Role badlein

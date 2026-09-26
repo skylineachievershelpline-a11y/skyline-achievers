@@ -114,7 +114,7 @@ export const getMyLeads = createServerFn({ method: "POST" })
     const admin = await requireFbo(context.userId);
     let q = admin
       .from("job_leads")
-      .select("id, full_name, phone, city, status, assistant_id, batch_label, created_at")
+      .select("id, full_name, phone, city, status, assistant_id, batch_label, created_at, enroll_verified_at, cc_verified_at")
       .eq("fbo_id", context.userId)
       .order("created_at", { ascending: false })
       .limit(300);
@@ -168,6 +168,31 @@ export const reassignLeads = createServerFn({ method: "POST" })
     if (data.fromUnassigned) q = q.is("assistant_id", null);
     else q = q.in("id", data.leadIds ?? []);
     const { error } = await q;
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** FBO confirms a Rs. 249 enrollment or a 2CC. Only verified results earn commission. */
+export const verifyLead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; kind: "enroll" | "cc"; verified: boolean }) =>
+    z.object({ id: z.string().uuid(), kind: z.enum(["enroll", "cc"]), verified: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await requireFbo(context.userId);
+    const { data: lead } = await admin
+      .from("job_leads")
+      .select("id, enroll_verified_at")
+      .eq("id", data.id)
+      .eq("fbo_id", context.userId)
+      .maybeSingle();
+    if (!lead) throw new Error("Lead nahi mili.");
+    const at = data.verified ? new Date().toISOString() : null;
+    const patch: Record<string, unknown> =
+      data.kind === "enroll"
+        ? { enroll_verified_at: at, ...(data.verified ? { status: "enrolled" } : { cc_verified_at: null }) }
+        : { cc_verified_at: at, ...(data.verified ? { status: "cc_done", enroll_verified_at: lead.enroll_verified_at ?? at } : {}) };
+    const { error } = await admin.from("job_leads").update(patch as any).eq("id", lead.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });

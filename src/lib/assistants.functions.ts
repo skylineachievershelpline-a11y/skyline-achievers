@@ -115,7 +115,20 @@ export const getMyAssistants = createServerFn({ method: "GET" })
       .neq("status", "removed")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return { assistants: data ?? [], settings };
+    const { computeEarnings } = await import("./commission.server");
+    const ids = (data ?? []).map((a) => a.id);
+    const { data: leads } = ids.length
+      ? await admin
+          .from("job_leads")
+          .select("assistant_id, call_count, enroll_verified_at, cc_verified_at")
+          .in("assistant_id", ids)
+          .limit(20000)
+      : { data: [] as any[] };
+    const assistants = (data ?? []).map((a) => ({
+      ...a,
+      earnings: computeEarnings((leads ?? []).filter((l: any) => l.assistant_id === a.id), a.role, settings),
+    }));
+    return { assistants, settings };
   });
 
 const addSchema = z.object({

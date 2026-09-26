@@ -9,3 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Job Assistant system: job_assistants table is service-role only (no RLS policies); all access via src/lib/assistants.functions.ts with FBO (rank_order>=2) or admin checks. Commission tiers live in platform_settings key job_assistant_settings. Why: strict FBO isolation.
+- Job leads: job_leads table service-role only, unique (fbo_id, phone_tail = last 10 digits); Excel/CSV parsed in browser with xlsx, sent as rows to src/lib/leads.functions.ts. Why: FBO isolation + dedupe.

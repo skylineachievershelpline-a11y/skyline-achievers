@@ -288,6 +288,13 @@
       "when": 1790413937796,
       "tag": "0040_job_assistants",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790414213795,
+      "tag": "0041_job_leads",
+      "breakpoints": true
     }
   ]
 }

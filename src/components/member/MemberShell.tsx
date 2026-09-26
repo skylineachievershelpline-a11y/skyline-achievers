@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AccountSettings } from "@/components/member/AccountSettings";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
-import { Settings } from "lucide-react";
+import { Briefcase, Settings } from "lucide-react";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {

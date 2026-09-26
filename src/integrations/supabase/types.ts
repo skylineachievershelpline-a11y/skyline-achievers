@@ -755,6 +755,7 @@ export type Database = {
       }
       job_assistants: {
         Row: {
+          access_token: string
           auth_user_id: string | null
           created_at: string
           daily_lead_limit: number
@@ -769,6 +770,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_token?: string
           auth_user_id?: string | null
           created_at?: string
           daily_lead_limit?: number
@@ -783,6 +785,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_token?: string
           auth_user_id?: string | null
           created_at?: string
           daily_lead_limit?: number
@@ -806,16 +809,64 @@ export type Database = {
           },
         ]
       }
+      job_lead_activities: {
+        Row: {
+          assistant_id: string
+          created_at: string
+          fbo_id: string
+          id: string
+          lead_id: string
+          note: string | null
+          outcome: string
+        }
+        Insert: {
+          assistant_id: string
+          created_at?: string
+          fbo_id: string
+          id?: string
+          lead_id: string
+          note?: string | null
+          outcome: string
+        }
+        Update: {
+          assistant_id?: string
+          created_at?: string
+          fbo_id?: string
+          id?: string
+          lead_id?: string
+          note?: string | null
+          outcome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_lead_activities_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "job_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_leads: {
         Row: {
           assigned_at: string | null
           assistant_id: string | null
           batch_label: string | null
+          call_count: number
           city: string | null
           created_at: string
           fbo_id: string
+          follow_up_at: string | null
           full_name: string | null
           id: string
+          last_called_at: string | null
           notes: string | null
           phone: string
           phone_tail: string
@@ -826,11 +877,14 @@ export type Database = {
           assigned_at?: string | null
           assistant_id?: string | null
           batch_label?: string | null
+          call_count?: number
           city?: string | null
           created_at?: string
           fbo_id: string
+          follow_up_at?: string | null
           full_name?: string | null
           id?: string
+          last_called_at?: string | null
           notes?: string | null
           phone: string
           phone_tail: string
@@ -841,11 +895,14 @@ export type Database = {
           assigned_at?: string | null
           assistant_id?: string | null
           batch_label?: string | null
+          call_count?: number
           city?: string | null
           created_at?: string
           fbo_id?: string
+          follow_up_at?: string | null
           full_name?: string | null
           id?: string
+          last_called_at?: string | null
           notes?: string | null
           phone?: string
           phone_tail?: string

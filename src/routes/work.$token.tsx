@@ -104,13 +104,6 @@ function WorkPage() {
         </div>
       </header>
 
-      <section className="glass-panel grid grid-cols-3 gap-2 rounded-2xl p-4 text-center">
-        <div><p className="text-lg font-bold">{data.earnings.verifiedEnrollments}</p><p className="text-[10px] text-muted-foreground">249 verified ({data.earnings.conversionRate}%)</p></div>
-        <div><p className="text-lg font-bold">{a.role === "full_funnel" ? data.earnings.verifiedCc : "—"}</p><p className="text-[10px] text-muted-foreground">2CC verified</p></div>
-        <div><p className="text-lg font-bold text-primary">Rs. {data.earnings.total.toLocaleString()}</p><p className="text-[10px] text-muted-foreground">Meri commission</p></div>
-        <p className="col-span-3 text-[11px] text-muted-foreground">Rs. {data.earnings.perEnrollment} har verified enrollment{a.role === "full_funnel" ? ` · Rs. ${data.earnings.perCc} har verified 2CC` : ""}. Sirf FBO ki verify ki hui results par commission milti hai.</p>
-      </section>
-
       <div className="grid grid-cols-5 gap-1">
         {TABS.map(([k, l]) => (
           <Button key={k} size="sm" variant={tab === k ? "default" : "outline"} className="flex-col h-auto py-1.5 text-[11px]" onClick={() => setTab(k)}>

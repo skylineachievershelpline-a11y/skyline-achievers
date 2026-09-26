@@ -860,10 +860,8 @@ export type Database = {
           assistant_id: string | null
           batch_label: string | null
           call_count: number
-          cc_verified_at: string | null
           city: string | null
           created_at: string
-          enroll_verified_at: string | null
           fbo_id: string
           follow_up_at: string | null
           full_name: string | null
@@ -880,10 +878,8 @@ export type Database = {
           assistant_id?: string | null
           batch_label?: string | null
           call_count?: number
-          cc_verified_at?: string | null
           city?: string | null
           created_at?: string
-          enroll_verified_at?: string | null
           fbo_id: string
           follow_up_at?: string | null
           full_name?: string | null
@@ -900,10 +896,8 @@ export type Database = {
           assistant_id?: string | null
           batch_label?: string | null
           call_count?: number
-          cc_verified_at?: string | null
           city?: string | null
           created_at?: string
-          enroll_verified_at?: string | null
           fbo_id?: string
           follow_up_at?: string | null
           full_name?: string | null

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { SectionTitle } from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMyLeads, reassignLeads, uploadLeads, verifyLead } from "@/lib/leads.functions";
+import { getMyLeads, reassignLeads, uploadLeads } from "@/lib/leads.functions";
 
 type Row = { name: string | null; phone: string; city: string | null };
 type Assistant = { id: string; full_name: string; status: string };
@@ -86,12 +86,6 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const verifyFn = useServerFn(verifyLead);
-  const verify = useMutation({
-    mutationFn: (v: { id: string; kind: "enroll" | "cc"; verified: boolean }) => verifyFn({ data: v }),
-    onSuccess: () => { refresh(); void qc.invalidateQueries({ queryKey: ["my-assistants"] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
   const customTotal = Object.values(custom).reduce((s, v) => s + (Number(v) || 0), 0);
 
   return (
@@ -182,19 +176,6 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
                 <p className="font-medium">{l.full_name ?? "—"} <span className="text-muted-foreground">· {l.phone}</span></p>
                 <p className="text-xs text-muted-foreground">{l.city ?? ""} {STATUS[l.status]} · {nameOf(l.assistant_id)}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-1">
-              {(["enrolled", "cc_done"].includes(l.status) || l.enroll_verified_at) && (
-                <Button size="sm" variant={l.enroll_verified_at ? "default" : "outline"} className="h-7 text-[11px]"
-                  onClick={() => verify.mutate({ id: l.id, kind: "enroll", verified: !l.enroll_verified_at })}>
-                  {l.enroll_verified_at ? "✓ 249 verified" : "Verify 249"}
-                </Button>
-              )}
-              {(l.status === "cc_done" || l.cc_verified_at) && (
-                <Button size="sm" variant={l.cc_verified_at ? "default" : "outline"} className="h-7 text-[11px]"
-                  onClick={() => verify.mutate({ id: l.id, kind: "cc", verified: !l.cc_verified_at })}>
-                  {l.cc_verified_at ? "✓ 2CC verified" : "Verify 2CC"}
-                </Button>
-              )}
               <select
                 className="rounded-md border border-border bg-background px-2 py-1 text-xs"
                 value={l.assistant_id ?? ""}
@@ -203,7 +184,6 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
                 <option value="">Unassigned</option>
                 {active.map((a) => <option key={a.id} value={a.id}>{a.full_name}</option>)}
               </select>
-              </div>
             </div>
           ))}
           {(data?.leads ?? []).length === 0 && <p className="py-3 text-muted-foreground">Koi lead nahi.</p>}

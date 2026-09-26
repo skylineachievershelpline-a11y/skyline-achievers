@@ -1,1 +1,0 @@
-ALTER TABLE public.job_leads ADD COLUMN enroll_verified_at timestamptz, ADD COLUMN cc_verified_at timestamptz;

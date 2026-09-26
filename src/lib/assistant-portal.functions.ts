@@ -23,7 +23,7 @@ export const getAssistantPortal = createServerFn({ method: "POST" })
     const { admin, assistant } = await assistantByToken(data.token);
     const { data: leads } = await admin
       .from("job_leads")
-      .select("id, full_name, phone, city, status, follow_up_at, last_called_at, call_count, notes, enroll_verified_at, cc_verified_at")
+      .select("id, full_name, phone, city, status, follow_up_at, last_called_at, call_count, notes")
       .eq("assistant_id", assistant.id)
       .order("created_at")
       .limit(2000);
@@ -44,10 +44,6 @@ export const getAssistantPortal = createServerFn({ method: "POST" })
         fboCode: assistant.fbo?.member_id ?? "",
       },
       todayCalls: todayCalls ?? 0,
-      earnings: await (async () => {
-        const { computeEarnings, readAssistantSettings } = await import("./commission.server");
-        return computeEarnings((leads ?? []) as any, assistant.role, await readAssistantSettings());
-      })(),
       leads: leads ?? [],
     };
   });

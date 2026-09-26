@@ -77,7 +77,7 @@ function AssistantsPage() {
       ) : (
         <div className="space-y-6">
           <section className="glass-panel rounded-2xl p-5">
-            <SectionTitle title="Naya Assistant add karein" />
+            <SectionTitle>Naya Assistant add karein</SectionTitle>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>Full name</Label>
@@ -121,7 +121,7 @@ function AssistantsPage() {
           </section>
 
           <section className="space-y-3">
-            <SectionTitle title={`Mere Assistants (${data?.assistants.length ?? 0})`} />
+            <SectionTitle>{`Mere Assistants (${data?.assistants.length ?? 0})`}</SectionTitle>
             {(data?.assistants ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">Abhi koi assistant nahi.</p>
             )}

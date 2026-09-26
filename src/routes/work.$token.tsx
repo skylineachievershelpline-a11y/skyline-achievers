@@ -56,7 +56,7 @@ function WorkPage() {
           token,
           leadId: v.leadId,
           outcome: v.outcome,
-          note: note || undefined,
+          ...(note ? { note } : {}),
           followUpAt: follow ? new Date(`${follow}:00+05:00`).toISOString() : null,
         },
       }),

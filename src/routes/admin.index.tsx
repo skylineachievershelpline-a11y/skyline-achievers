@@ -19,6 +19,7 @@ import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
 import { StoriesTab } from "@/components/admin/StoriesTab";
 import { CoursesTab } from "@/components/admin/CoursesTab";
+import { AssistantsTab } from "@/components/admin/AssistantsTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -181,6 +182,9 @@ function AdminPage() {
             <TabsTrigger value="courses" className="rounded-xl">
               Paid Courses
             </TabsTrigger>
+            <TabsTrigger value="assistants" className="rounded-xl">
+              Job Assistants
+            </TabsTrigger>
             <TabsTrigger value="ai-questions" className="rounded-xl">
               AI Questions
             </TabsTrigger>
@@ -221,6 +225,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="courses" className="mt-5">
             <CoursesTab />
+          </TabsContent>
+          <TabsContent value="assistants" className="mt-5">
+            <AssistantsTab />
           </TabsContent>
           <TabsContent value="ai-questions" className="mt-5">
             <AiQuestionsTab />

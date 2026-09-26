@@ -83,13 +83,14 @@ const NAV = [
   { to: "/seats", label: "Seat Reservation", icon: UserPlus },
   { to: "/leave", label: "Leave Application", icon: FileText },
   { to: "/team", label: "Team Tree", icon: Users },
+  { to: "/assistants", label: "Job Assistants", icon: Briefcase },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
 ] as const;
 
 /** Areas that belong to working, not training. Locked for training-only accounts. */
-const WORKING_ROUTES: string[] = ["/team", "/seats", "/chat", "/leave"];
+const WORKING_ROUTES: string[] = ["/team", "/seats", "/chat", "/leave", "/assistants"];
 
 /**
  * true when the admin gave this account training access only, so every

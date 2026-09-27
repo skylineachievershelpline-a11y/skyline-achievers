@@ -300,6 +300,10 @@ function BeginnersPage() {
   const openSession = useMutation({
     mutationFn: (sessionId: string) => play({ data: { sessionId } } as never),
     onSuccess: (result: any) => {
+      if (result.status === "locked" && result.opensAt) {
+        toast.error(`Ye session ${formatDateTime12(result.opensAt)} (PKT) par khulega.`);
+        return;
+      }
       if (result.status !== "ok") {
         toast.error("Enter the session code to open this session first.");
         return;

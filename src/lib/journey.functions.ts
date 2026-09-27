@@ -964,24 +964,6 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
       }
     }
 
-    // Remember the first time this session was actually opened, so the progress
-    // record can show the exact opening time next to the scheduled time.
-    if (kind === "basic" && _set?.businessPlan?.id !== row.id) {
-      const { data: opened } = await admin
-        .from("trainee_session_unlocks")
-        .select("id")
-        .eq("trainee_id", trainee.id)
-        .eq("session_id", row.id)
-        .limit(1)
-        .maybeSingle();
-      if (!opened) {
-        await admin
-          .from("trainee_session_unlocks")
-          .insert({ trainee_id: trainee.id, session_id: row.id });
-      }
-    }
-
-
     const videoUrl =
       row.video_source === "external" && row.video_url
         ? row.video_url

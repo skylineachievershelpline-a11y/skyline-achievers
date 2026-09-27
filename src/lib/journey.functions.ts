@@ -919,8 +919,8 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
     const kind = (row.session_kind ?? "basic") as string;
 
     // A basic session opens at its scheduled time (PKT), not before. Once its
-    // review is approved it stays open permanently. Sessions with no schedule
-    // stay open, and the trainee can still watch every session the same day.
+    // review is approved it stays open permanently. A missing or invalid
+    // schedule remains locked instead of silently granting early access.
     if (kind === "basic") {
       const sessionNumber = Number(row.session_number ?? 0);
       if (sessionNumber > 0) {
@@ -939,9 +939,12 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
             .eq("status", "approved")
             .maybeSingle(),
         ]);
-        const opensAt = slot?.scheduled_at ? new Date(slot.scheduled_at).getTime() : null;
-        if (!approvedReview && opensAt && Date.now() < opensAt) {
-          return { status: "locked" as const, opensAt: slot.scheduled_at as string };
+        const opensAt = slot?.scheduled_at ? new Date(slot.scheduled_at).getTime() : Number.NaN;
+        if (!approvedReview && (!Number.isFinite(opensAt) || Date.now() < opensAt)) {
+          return {
+            status: "locked" as const,
+            opensAt: (slot?.scheduled_at ?? null) as string | null,
+          };
         }
       }
     }

@@ -222,9 +222,12 @@ export function sessionExpired(_session: JourneySession, _nowMs = Date.now()): b
   return false;
 }
 
-/** Every session stays open: all sessions can be watched and reviewed any day. */
-export function sessionOpen(_session: JourneySession, _nowMs = Date.now()): boolean {
-  return true;
+/** A scheduled session opens only when its start time arrives; approved sessions stay open. */
+export function sessionOpen(session: JourneySession, nowMs = Date.now()): boolean {
+  if (session.review === "approved") return true;
+  if (!session.scheduledAt) return false;
+  const opensAt = new Date(session.scheduledAt).getTime();
+  return Number.isFinite(opensAt) && nowMs >= opensAt;
 }
 
 /** Milliseconds left in the live 3-hour window, or null when not running. */

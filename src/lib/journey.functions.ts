@@ -918,8 +918,35 @@ export const playJourneyVideo = createServerFn({ method: "POST" })
 
     const kind = (row.session_kind ?? "basic") as string;
 
-    // Basic sessions stay open all day: a trainee can watch every session and
-    // send its review at any time; only the Forever Business Plan stays gated.
+    // A basic session opens at its scheduled time (PKT), not before. Once its
+    // review is approved it stays open permanently. Sessions with no schedule
+    // stay open, and the trainee can still watch every session the same day.
+    if (kind === "basic") {
+      const sessionNumber = Number(row.session_number ?? 0);
+      if (sessionNumber > 0) {
+        const [{ data: slot }, { data: approvedReview }] = await Promise.all([
+          admin
+            .from("trainee_session_schedule")
+            .select("scheduled_at")
+            .eq("trainee_id", trainee.id)
+            .eq("session_number", sessionNumber)
+            .maybeSingle(),
+          admin
+            .from("trainee_session_reviews")
+            .select("id")
+            .eq("trainee_id", trainee.id)
+            .eq("session_number", sessionNumber)
+            .eq("status", "approved")
+            .maybeSingle(),
+        ]);
+        const opensAt = slot?.scheduled_at ? new Date(slot.scheduled_at).getTime() : null;
+        if (!approvedReview && opensAt && Date.now() < opensAt) {
+          return { status: "locked" as const, opensAt: slot.scheduled_at as string };
+        }
+      }
+    }
+
+
 
 
     // The Forever Business Plan opens only after the final interview is passed.

@@ -146,8 +146,8 @@ export const recordTraineeLogin = createServerFn({ method: "POST" })
     return { status: "ok" as const };
   });
 
-/** Sessions this trainee may open: code-unlocked, approved review, or granted Session 08. */
-async function openSessionIds(admin: any, traineeId: string) {
+/** Sessions this trainee may open: approved review, granted Session 08, and optionally code access. */
+async function openSessionIds(admin: any, traineeId: string, includeCodeUnlocks = true) {
   const [{ data: unlocks }, { data: approved }, { data: journey }] = await Promise.all([
     admin.from("trainee_session_unlocks").select("session_id").eq("trainee_id", traineeId),
     admin
@@ -157,7 +157,9 @@ async function openSessionIds(admin: any, traineeId: string) {
       .eq("status", "approved"),
     admin.from("trainee_journey").select("stage").eq("trainee_id", traineeId).maybeSingle(),
   ]);
-  const ids = new Set<string>(((unlocks ?? []) as any[]).map((r) => r.session_id));
+  const ids = new Set<string>(
+    includeCodeUnlocks ? ((unlocks ?? []) as any[]).map((r) => r.session_id) : [],
+  );
   const { loadJourneySessions } = await import("./journey.server");
   const set: any = await loadJourneySessions();
   for (const r of (approved ?? []) as any[]) {
@@ -202,7 +204,10 @@ export const getTraineeDashboard = createServerFn({ method: "GET" })
         .limit(60),
     ]);
     void unlocks;
-    const unlocked = await openSessionIds(supabaseAdmin, context.userId);
+    // The sidebar is progress-based: only approved sessions (and Session 08
+    // after interview) stay open. A one-time code still opens its session
+    // immediately, but does not make a future scheduled session look complete.
+    const unlocked = await openSessionIds(supabaseAdmin, context.userId, false);
 
     const list = await Promise.all(
       (sessions ?? []).map(async (row) => ({

@@ -1,12 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
-import {
-  generateAuthenticationOptions,
-  generateRegistrationOptions,
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
-} from "@simplewebauthn/server";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -122,6 +116,7 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { origin: string }) => z.object({ origin: originSchema }).parse(data))
   .handler(async ({ data, context }) => {
+    const { generateRegistrationOptions } = await import("@simplewebauthn/server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ count }, { data: existing }, { data: member }, { data: trainee }] = await Promise.all([
       supabaseAdmin.from("biometric_credentials").select("id", { count: "exact", head: true }).eq("user_id", context.userId),
@@ -151,6 +146,7 @@ export const finishPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { challengeId: string; deviceName: string; origin: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, origin: originSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data, context }) => {
+    const { verifyRegistrationResponse } = await import("@simplewebauthn/server");
     const challenge = await getChallenge(data.challengeId, "register", context.userId);
     const { origin, rpID } = trustedRelyingParty(data.origin);
     let response: RegistrationResponseJSON;
@@ -204,6 +200,7 @@ export const removePasskey = createServerFn({ method: "POST" })
 export const beginPasskeyLogin = createServerFn({ method: "POST" })
   .inputValidator((data: { origin: string }) => z.object({ origin: originSchema }).parse(data))
   .handler(async ({ data }) => {
+  const { generateAuthenticationOptions } = await import("@simplewebauthn/server");
   const { rpID } = trustedRelyingParty(data.origin);
   const options = await generateAuthenticationOptions({ rpID, userVerification: "required" });
   return { optionsJson: JSON.stringify(options), challengeId: await createChallenge(null, "authenticate", options.challenge) };
@@ -212,6 +209,7 @@ export const beginPasskeyLogin = createServerFn({ method: "POST" })
 export const finishPasskeyLogin = createServerFn({ method: "POST" })
   .inputValidator((data: { challengeId: string; origin: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), origin: originSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data }) => {
+    const { verifyAuthenticationResponse } = await import("@simplewebauthn/server");
     const challenge = await getChallenge(data.challengeId, "authenticate");
     const response = JSON.parse(data.responseJson) as AuthenticationResponseJSON;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -12,6 +12,7 @@ import {
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const deviceNameSchema = z.string().trim().min(1).max(60);
+const originSchema = z.string().trim().url().max(300);
 
 const FALLBACK_ORIGIN = "https://skyline-achievers.lovable.app";
 
@@ -60,6 +61,22 @@ function relyingParty() {
   const fromUrl = parseAbsolute(request?.url);
   if (fromUrl) return fromUrl;
   return parseAbsolute(FALLBACK_ORIGIN)!;
+}
+
+function trustedRelyingParty(clientOrigin: string): { origin: string; rpID: string } {
+  const parsed = parseAbsolute(clientOrigin);
+  if (!parsed) throw new Error("This website address cannot use secure device login.");
+  const hostname = parsed.rpID.toLowerCase();
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+  const isSkyline = hostname === "skyline-achievers.lovable.app";
+  const isLovablePreview = hostname.endsWith(".lovable.app") || hostname.endsWith(".lovableproject.com");
+  if (!isLocal && !isSkyline && !isLovablePreview) {
+    throw new Error("Secure device login is only available inside the Skyline Achievers app.");
+  }
+  if (!isLocal && !clientOrigin.startsWith("https://")) {
+    throw new Error("A secure connection is required for Fingerprint or Face ID.");
+  }
+  return parsed;
 }
 
 
@@ -128,7 +145,8 @@ export const listPasskeys = createServerFn({ method: "GET" })
 
 export const beginPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: { origin: string }) => z.object({ origin: originSchema }).parse(data))
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ count }, { data: existing }, { data: member }, { data: trainee }] = await Promise.all([
       supabaseAdmin.from("biometric_credentials").select("id", { count: "exact", head: true }).eq("user_id", context.userId),
@@ -139,7 +157,7 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
     if ((count ?? 0) >= 3) throw new Error("Maximum 3 secure devices are allowed. Remove one first.");
     const identity = member ? { code: member.member_id, name: member.full_name } : trainee ? { code: trainee.trainee_code, name: trainee.full_name } : null;
     if (!identity) throw new Error("No Skyline profile is linked to this account.");
-    const { rpID } = relyingParty();
+    const { rpID } = trustedRelyingParty(data.origin);
     const options = await generateRegistrationOptions({
       rpName: "Skyline Achievers",
       rpID,
@@ -156,19 +174,30 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
 
 export const finishPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { challengeId: string; deviceName: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
+  .inputValidator((data: { challengeId: string; deviceName: string; origin: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, origin: originSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data, context }) => {
     const challenge = await getChallenge(data.challengeId, "register", context.userId);
-    const { origin, rpID } = relyingParty();
-    const verification = await verifyRegistrationResponse({
-      response: JSON.parse(data.responseJson) as RegistrationResponseJSON,
-      expectedChallenge: challenge.challenge,
-      expectedOrigin: origin,
-      expectedRPID: rpID,
-      requireUserVerification: true,
-    });
+    const { origin, rpID } = trustedRelyingParty(data.origin);
+    let response: RegistrationResponseJSON;
+    try {
+      response = JSON.parse(data.responseJson) as RegistrationResponseJSON;
+    } catch {
+      throw new Error("Your phone returned an invalid secure-device response. Please try again.");
+    }
+    let verification;
+    try {
+      verification = await verifyRegistrationResponse({
+        response,
+        expectedChallenge: challenge.challenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        requireUserVerification: true,
+      });
+    } catch (error) {
+      console.error("[Passkey registration verification]", error);
+      throw new Error("Your phone could not verify Fingerprint or Face ID. Unlock your phone and try again.");
+    }
     if (!verification.verified || !verification.registrationInfo) throw new Error("Fingerprint or Face ID could not be verified.");
-    await consumeChallenge(data.challengeId);
     const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin.from("biometric_credentials").select("id", { count: "exact", head: true }).eq("user_id", context.userId);
@@ -184,6 +213,7 @@ export const finishPasskeyRegistration = createServerFn({ method: "POST" })
       device_name: data.deviceName,
     });
     if (error) throw new Error(error.code === "23505" ? "This device is already registered." : "Could not save this secure device.");
+    await consumeChallenge(data.challengeId);
     return { ok: true as const };
   });
 

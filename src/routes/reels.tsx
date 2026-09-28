@@ -13,6 +13,9 @@ import {
   Plus,
   Send,
   Trash2,
+  UploadCloud,
+  Video,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -633,20 +636,23 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
         <Label>Caption</Label>
         <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} className="rounded-2xl" />
       </div>
-      <div className="space-y-1.5">
-        <Label>Upload vertical video</Label>
+      <label className="group flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-cyan/35 bg-surface-2 p-6 text-center transition-colors hover:border-cyan/70">
+        <span className="grid h-20 w-20 place-items-center rounded-full border border-cyan/30 bg-primary/10 shadow-brand"><UploadCloud className="h-9 w-9 text-brand-glow" /></span>
+        <span className="mt-4 font-display text-base font-semibold">Drop your video here</span>
+        <span className="mt-2 text-xs text-muted-foreground">Vertical MP4 video gives the best result</span>
         <input
           type="file"
           accept="video/*"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="text-xs text-muted-foreground"
+          className="sr-only"
         />
-      </div>
+      </label>
+      {file ? <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10"><Video className="text-brand-glow" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{file.name}</p><p className="text-xs text-muted-foreground">MP4 · {(file.size / 1024 / 1024).toFixed(1)} MB</p></div><Button type="button" size="icon" variant="ghost" aria-label="Remove selected video" onClick={() => setFile(null)}><X /></Button></div> : null}
       <UploadProgress state={uploadProgress.state} />
-      <Button type="submit" variant="brand" size="xl" className="w-full" disabled={busy}>
+      <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" size="xl" onClick={onDone}>Cancel</Button><Button type="submit" variant="brand" size="xl" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Post reel
-      </Button>
+        Upload
+      </Button></div>
     </form>
   );
 }

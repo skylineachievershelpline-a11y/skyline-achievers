@@ -1,5 +1,7 @@
 import { Settings as SettingsIcon } from "lucide-react";
 import { AccountSettings } from "@/components/member/AccountSettings";
+import { PasskeyManager } from "@/components/security/PasskeyManager";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -119,7 +121,7 @@ type FocusedSession = {
   sections: { id: string; name: string; thumbnailUrl: string | null }[];
 };
 
-type BeginnerView = "home" | "training" | "reels" | "search" | "password";
+type BeginnerView = "home" | "training" | "reels" | "search" | "profile";
 
 type FeedReel = {
   id: string;
@@ -184,7 +186,7 @@ const BEGINNER_NAV = [
   { id: "training", label: "Training", icon: GraduationCap },
   { id: "reels", label: "Reels", icon: Clapperboard },
   { id: "search", label: "Search", icon: Search },
-  { id: "password", label: "Change password", icon: ShieldCheck },
+  { id: "profile", label: "Profile settings", icon: ShieldCheck },
 ] as const;
 
 function ProgressRing({ done, total }: { done: number; total: number }) {
@@ -504,6 +506,7 @@ function BeginnersPage() {
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>
             <p className="truncate text-[11px] text-muted-foreground">{BRAND.tagline}</p>
           </div>
+          <ThemeSwitch />
           <Link
             to="/chat"
             aria-label="Chat with your trainer"
@@ -1031,7 +1034,7 @@ function BeginnersPage() {
           </section>
         ) : null}
 
-        {view === "password" ? <TraineePasswordCard traineeCode={trainee.traineeCode} /> : null}
+        {view === "profile" ? <section className="space-y-4"><div className="raised-panel rounded-[28px] p-6"><div className="flex items-center gap-4"><div className="h-16 w-16 overflow-hidden rounded-2xl border border-hairline bg-primary/15">{trainee.avatarUrl ? <img src={trainee.avatarUrl} alt="Profile" className="h-full w-full object-cover" /> : <span className="grid h-full place-items-center text-xl font-semibold">{trainee.fullName.charAt(0)}</span>}</div><div><p className="font-display text-lg font-semibold">{trainee.fullName}</p><p className="text-xs text-muted-foreground">Name is managed by Skyline Achievers</p></div></div></div><TraineePasswordCard traineeCode={trainee.traineeCode} /><PasskeyManager /></section> : null}
       </main>
     </div>
   );

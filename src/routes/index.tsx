@@ -21,6 +21,7 @@ import { PublicSkylineAi } from "@/components/ai/PublicSkylineAi";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { IntroductionSection } from "@/components/landing/IntroductionSection";
 import { HangingInstallTag } from "@/components/landing/HangingInstallTag";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { Button } from "@/components/ui/button";
@@ -201,6 +202,7 @@ function LandingPage() {
             <HangingInstallTag />
           </div>
           <div className="flex items-center gap-2">
+            <ThemeSwitch />
             <Button
               variant="outline"
               className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"

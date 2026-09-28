@@ -36,6 +36,7 @@ import { fastSignOut } from "@/lib/sign-out";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AccountSettings } from "@/components/member/AccountSettings";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { Briefcase, Settings } from "lucide-react";
 
@@ -277,6 +278,8 @@ export function MemberShell({
               `This is the ${title ?? BRAND.name} screen. Use the menu button at the top to move between sections, and ask Skyline Achievers AI if you need help.`
             }
           />
+
+          <ThemeSwitch />
 
           <Link
             to="/notifications"

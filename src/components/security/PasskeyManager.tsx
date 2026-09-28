@@ -5,6 +5,7 @@ import { Fingerprint, Loader2, Plus, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { beginPasskeyRegistration, finishPasskeyRegistration, listPasskeys, removePasskey } from "@/lib/passkeys.functions";
+import { friendlyErrorMessage, isCancelledBiometric } from "@/lib/friendly-error";
 import { formatDateTime } from "@/lib/format";
 
 function detectDeviceName(): string {

@@ -55,7 +55,10 @@ export function LiquidAtmosphere() {
           else context.lineTo(x, y);
         }
         const mix = strand / Math.max(strands - 1, 1);
-        context.strokeStyle = `rgba(${Math.round(48 + mix * 40)}, ${Math.round(105 + mix * 90)}, 255, ${opacity * (0.35 + mix * 0.65)})`;
+        const alpha = opacity * (0.35 + mix * 0.65) * (light ? 0.42 : 1);
+        context.strokeStyle = light
+          ? `rgba(${Math.round(96 + mix * 40)}, ${Math.round(140 + mix * 70)}, 235, ${alpha})`
+          : `rgba(${Math.round(48 + mix * 40)}, ${Math.round(105 + mix * 90)}, 255, ${alpha})`;
         context.lineWidth = strand === strands - 1 ? 1.25 : 0.7;
         context.stroke();
       }

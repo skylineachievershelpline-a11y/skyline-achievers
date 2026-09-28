@@ -344,42 +344,17 @@ html.theme-light .cinematic-nav {
   transition: background-color 420ms ease, color 420ms ease;
 }
 
-/* ---------- Curved glass appearance switch ---------- */
+/* ---------- Reference-style illuminated ON/OFF appearance switch ---------- */
 .theme-curve-switch {
   position: fixed;
-  top: max(calc(env(safe-area-inset-top) + 5.5rem), 5.5rem);
-  right: 0.35rem;
+  top: max(calc(env(safe-area-inset-top) + 0.55rem), 0.55rem);
+  right: 0.65rem;
   z-index: 120;
-  width: 7.75rem;
-  height: 7.8rem;
+  width: 4.7rem;
+  height: 7.65rem;
   pointer-events: none;
   touch-action: none;
-  filter: drop-shadow(0 1rem 1.35rem oklch(0 0 0 / 22%));
-}
-
-.theme-curve-rail {
-  position: absolute;
-  top: 0.45rem;
-  left: 0;
-  width: 5.3rem;
-  height: 5.35rem;
-  border-top: 1px solid color-mix(in oklab, var(--foreground) 28%, transparent);
-  border-right: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
-  border-radius: 0 3.1rem 0 0;
-  box-shadow: 0 -1px 0 color-mix(in oklab, var(--foreground) 9%, transparent);
-}
-
-.theme-curve-trail {
-  position: absolute;
-  top: -0.1rem;
-  right: 0.55rem;
-  width: 4.65rem;
-  height: 5.3rem;
-  border-radius: 58% 46% 52% 48%;
-  border-top: 0.48rem solid color-mix(in oklab, var(--brand) 28%, transparent);
-  border-right: 0.36rem solid color-mix(in oklab, var(--cyan) 13%, transparent);
-  filter: blur(0.5rem);
-  opacity: 0.72;
+  filter: drop-shadow(0 0.8rem 1.1rem oklch(0 0 0 / 28%));
 }
 
 .theme-curve-knob {
@@ -387,78 +362,120 @@ html.theme-light .cinematic-nav {
   top: 0;
   left: 0;
   pointer-events: auto;
-  display: flex;
-  height: 3.25rem;
-  width: 2.75rem;
-  align-items: center;
-  justify-content: center;
+  height: 7.25rem;
+  width: 3.55rem;
   overflow: hidden;
-  border-radius: 1.55rem;
-  border: 1px solid color-mix(in oklab, var(--foreground) 26%, transparent);
+  border-radius: 1.85rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 24%, transparent);
   background:
-    radial-gradient(circle at 30% 18%, color-mix(in oklab, var(--foreground) 35%, transparent), transparent 34%),
-    linear-gradient(165deg, color-mix(in oklab, var(--glass-strong) 96%, transparent) 4%, color-mix(in oklab, var(--brand) 32%, var(--surface)) 56%, color-mix(in oklab, var(--cyan) 55%, var(--brand)) 122%);
+    radial-gradient(circle at 28% 12%, color-mix(in oklab, var(--foreground) 20%, transparent), transparent 32%),
+    linear-gradient(155deg, color-mix(in oklab, var(--glass-strong) 96%, transparent), color-mix(in oklab, var(--surface) 94%, var(--brand)));
   color: var(--foreground);
   box-shadow:
-    0 1px 0 color-mix(in oklab, var(--foreground) 45%, transparent) inset,
-    -0.35rem -0.25rem 0.8rem color-mix(in oklab, var(--foreground) 12%, transparent) inset,
-    0.4rem 0.65rem 1rem oklch(0 0 0 / 30%),
-    0 0 1.1rem color-mix(in oklab, var(--brand) 35%, transparent);
+    0 1px 0 color-mix(in oklab, var(--foreground) 40%, transparent) inset,
+    -0.3rem -0.2rem 0.7rem color-mix(in oklab, var(--foreground) 8%, transparent) inset,
+    0.45rem 0.6rem 1rem oklch(0 0 0 / 32%);
   cursor: grab;
-  will-change: transform;
-  transition: transform 620ms cubic-bezier(0.2, 1.45, 0.35, 1), border-color 300ms ease, box-shadow 300ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.theme-light .theme-curve-knob {
-  border-color: oklch(1 0 0 / 86%);
+  border-color: oklch(1 0 0 / 78%);
   background:
-    radial-gradient(circle at 26% 16%, oklch(1 0 0 / 98%), transparent 34%),
-    linear-gradient(150deg, oklch(0.99 0.004 254) 8%, oklch(0.94 0.035 22) 72%, oklch(0.86 0.1 25) 135%);
+    radial-gradient(circle at 28% 10%, oklch(1 0 0 / 98%), transparent 34%),
+    linear-gradient(150deg, oklch(0.97 0.004 254), oklch(0.82 0.008 254));
   color: oklch(0.25 0.035 260);
   box-shadow:
     0 1px 0 oklch(1 0 0 / 100%) inset,
-    -0.35rem -0.25rem 0.8rem oklch(1 0 0 / 78%) inset,
-    0.48rem 0.7rem 1rem oklch(0.38 0.03 255 / 25%),
-    0 0 1rem oklch(0.98 0.025 30 / 52%);
+    -0.35rem -0.25rem 0.8rem oklch(1 0 0 / 58%) inset,
+    0.48rem 0.7rem 1rem oklch(0.38 0.03 255 / 27%);
 }
 
-html.theme-light .theme-curve-knob::after {
-  background: oklch(0.86 0.11 25 / 62%);
-}
-
-html.theme-light .theme-curve-trail {
-  border-top-color: oklch(0.82 0.04 24 / 17%);
-  border-right-color: oklch(0.48 0.03 255 / 10%);
-}
-
-.theme-curve-knob::after {
-  content: "";
+.theme-switch-label {
   position: absolute;
-  inset: 48% -18% -28%;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--brand) 68%, var(--cyan));
-  filter: blur(0.5rem);
-  opacity: 0.8;
+  z-index: 3;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  transition: color 260ms ease, text-shadow 260ms ease, opacity 260ms ease;
 }
 
-.theme-curve-glint {
+.theme-switch-label-off { top: 1.15rem; }
+.theme-switch-label-on { bottom: 1.15rem; }
+
+.theme-switch-label-off {
+  opacity: calc(0.42 + (1 - var(--theme-switch-progress)) * 0.58);
+}
+
+.theme-switch-label-on {
+  color: color-mix(in oklab, var(--cyan) 72%, var(--foreground));
+  opacity: calc(0.42 + var(--theme-switch-progress) * 0.58);
+  text-shadow: 0 0 0.7rem color-mix(in oklab, var(--cyan) 65%, transparent);
+}
+
+.theme-switch-thumb {
   position: absolute;
-  top: 0.32rem;
-  left: 0.4rem;
-  width: 0.9rem;
-  height: 0.34rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--foreground) 62%, transparent);
-  filter: blur(0.12rem);
-  transform: rotate(-18deg);
+  z-index: 2;
+  top: 0.28rem;
+  left: 0.27rem;
+  width: 3rem;
+  height: 3.18rem;
+  border-radius: 1.62rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 32%, transparent);
+  background: linear-gradient(155deg, color-mix(in oklab, var(--foreground) 18%, var(--glass-strong)), color-mix(in oklab, var(--surface) 92%, var(--brand)));
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--foreground) 38%, transparent) inset,
+    0 0.55rem 0.75rem oklch(0 0 0 / 34%),
+    0 0 1.15rem color-mix(in oklab, var(--brand) 80%, transparent),
+    0 0 0.22rem color-mix(in oklab, var(--cyan) 55%, transparent);
+  transform: translateY(calc(var(--theme-switch-progress) * 3.49rem));
+  transition: transform 520ms cubic-bezier(0.2, 1.35, 0.35, 1), box-shadow 280ms ease;
+  will-change: transform;
 }
 
-.theme-curve-icon {
-  position: relative;
-  z-index: 1;
-  width: 1rem;
-  height: 1rem;
-  filter: drop-shadow(0 1px 3px oklch(0 0 0 / 34%));
+html.theme-light .theme-switch-thumb {
+  background: linear-gradient(150deg, oklch(1 0 0), oklch(0.75 0.012 258));
+  box-shadow:
+    0 1px 0 oklch(1 0 0) inset,
+    0 0.55rem 0.75rem oklch(0.34 0.03 258 / 30%),
+    0 0 0.7rem oklch(0.72 0.19 307 / 42%);
+}
+
+.theme-switch-thumb-glint {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.48rem;
+  width: 1.15rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 55%, transparent);
+  filter: blur(0.1rem);
+  transform: rotate(-12deg);
+}
+
+.theme-switch-dots {
+  position: absolute;
+  top: 1.1rem;
+  right: 0.08rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 5.15rem;
+}
+
+.theme-switch-dots i {
+  display: block;
+  width: 0.22rem;
+  height: 0.22rem;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--cyan) 72%, var(--foreground));
+  box-shadow: 0 0 0.45rem color-mix(in oklab, var(--brand) 80%, transparent);
+  opacity: 0.72;
 }
 
 .theme-curve-knob:focus-visible {
@@ -468,9 +485,12 @@ html.theme-light .theme-curve-trail {
 
 .theme-curve-knob.is-dragging {
   cursor: grabbing;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
   border-color: color-mix(in oklab, var(--cyan) 70%, transparent);
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 48%, transparent) inset, 0.65rem 0.9rem 1.2rem oklch(0 0 0 / 34%), 0 0 1.8rem color-mix(in oklab, var(--brand) 58%, transparent);
+}
+
+.theme-curve-knob.is-dragging .theme-switch-thumb {
+  transition: box-shadow 180ms ease;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 48%, transparent) inset, 0 0.7rem 0.9rem oklch(0 0 0 / 36%), 0 0 1.8rem color-mix(in oklab, var(--brand) 72%, transparent);
 }
 
 @media print {

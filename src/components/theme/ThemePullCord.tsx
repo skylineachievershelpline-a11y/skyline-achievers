@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import themeOffVoice from "@/assets/theme-off.mp3.asset.json";
 import themeOnVoice from "@/assets/theme-on.mp3.asset.json";
@@ -110,7 +110,7 @@ export function ThemePullCord() {
           if (moved.current) event.preventDefault();
         }}
         className={`theme-curve-knob${dragging ? " is-dragging" : ""}`}
-        style={{ "--theme-switch-progress": progress } as React.CSSProperties}
+        style={{ "--theme-switch-progress": progress } as CSSProperties}
         aria-pressed={theme === "dark"}
         aria-label={
           theme === "light"

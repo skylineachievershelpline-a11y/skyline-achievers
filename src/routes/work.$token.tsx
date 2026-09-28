@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAssistantPortal, logLeadCall } from "@/lib/assistant-portal.functions";
@@ -98,6 +99,7 @@ function WorkPage() {
             {a.role === "calling" ? "Calling Assistant" : "Full Funnel Assistant"} · FBO {a.fboName}
           </p>
         </div>
+        <ThemeSwitch />
         <div className="text-right">
           <p className="text-lg font-bold text-primary">{data.todayCalls}/{a.dailyLimit}</p>
           <p className="text-[10px] text-muted-foreground">Aaj ki calls</p>

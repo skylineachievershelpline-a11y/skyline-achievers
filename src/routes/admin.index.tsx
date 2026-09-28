@@ -23,6 +23,7 @@ import { AssistantsTab } from "@/components/admin/AssistantsTab";
 import { WhatsappTab } from "@/components/admin/WhatsappTab";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
 
@@ -105,7 +106,7 @@ function AdminPage() {
               <p className="text-[11px] text-muted-foreground">Skyline Achievers control room</p>
             </div>
           </div>
-          <Button
+          <div className="flex items-center gap-2"><ThemeSwitch /><Button
             variant="outline"
             className="rounded-2xl"
             disabled={signingOut}
@@ -121,7 +122,7 @@ function AdminPage() {
           >
             {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
             {signingOut ? "Signing out…" : "Sign out"}
-          </Button>
+          </Button></div>
         </header>
 
         <AdminAppCard />

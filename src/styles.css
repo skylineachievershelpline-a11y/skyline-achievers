@@ -497,6 +497,24 @@ html.theme-light .theme-switch-thumb {
   .theme-curve-switch { display: none; }
 }
 
+.theme-header-switch {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.28rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  padding: 0.25rem 0.35rem;
+  color: var(--muted-foreground);
+  box-shadow: var(--shadow-glass);
+}
+.theme-header-switch > svg { width: 0.82rem; height: 0.82rem; }
+.theme-header-switch > span { position: relative; width: 2rem; height: 1.1rem; border-radius: 999px; background: color-mix(in oklab, var(--metal) 30%, transparent); }
+.theme-header-switch i { position: absolute; top: 0.14rem; left: 0.14rem; width: 0.82rem; height: 0.82rem; border-radius: 50%; background: var(--foreground); box-shadow: 0 0 0.55rem color-mix(in oklab, var(--brand) 65%, transparent); transition: transform 320ms cubic-bezier(.2,1.4,.4,1); }
+.theme-header-switch.is-dark i { transform: translateX(0.9rem); }
+.theme-header-switch.is-dark { color: var(--cyan); }
+
 /* ---------- Circular wave when the look changes ---------- */
 
 ::view-transition-old(root),

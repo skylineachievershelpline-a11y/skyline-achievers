@@ -295,3 +295,10 @@
 - [x] Step 3: assistant portal & calling workflow
 - [ ] Step 4: commission ledger & payouts
 - [ ] Step 5: FBO 3-way reports & settlements
+
+## Secure login and refreshed controls
+- [x] Add up to 3 fingerprint/Face ID device credentials with secure login
+- [x] Add profile security management for members and Beginners Training
+- [x] Add reference-style FBO reel upload
+- [x] Replace floating theme control with compact header switches
+- [ ] Verify signed-in profile and FBO reel screens (no preview session available)

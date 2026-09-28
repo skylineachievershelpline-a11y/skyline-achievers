@@ -2,12 +2,13 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, KeyRound, Loader2, Pencil, ShieldCheck } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { InstallApp } from "@/components/member/InstallApp";
 import { AvatarPicker } from "@/components/member/AvatarPicker";
+import { PasskeyManager } from "@/components/security/PasskeyManager";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { formatRankName } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getMemberSession, saveMemberBio, saveMemberName } from "@/lib/member.functions";
+import { getMemberSession, saveMemberBio } from "@/lib/member.functions";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/profile")({
@@ -74,10 +75,7 @@ function ProfilePage() {
               </div>
             ) : null}
             <dl className="space-y-2.5 text-sm">
-              {member ? <NameEditor initialName={member.fullName} onSaved={() => {
-                void queryClient.invalidateQueries({ queryKey: ["member-session"] });
-                void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-              }} /> : null}
+              <Row label="Full name" value={member?.fullName ?? "—"} />
               <CopyableId value={member?.memberId ?? ""} />
               <Row label="Level" value={formatRankName(member?.level?.name)} />
               <Row label="Phone" value={member?.phone ?? "—"} />
@@ -92,52 +90,12 @@ function ProfilePage() {
 
           <div className="space-y-4">
             <PasswordCard memberId={member?.memberId ?? ""} />
+            <PasskeyManager />
             <InstallApp />
           </div>
         </div>
       )}
     </MemberShell>
-  );
-}
-
-function NameEditor({ initialName, onSaved }: { initialName: string; onSaved: () => void }) {
-  const save = useServerFn(saveMemberName);
-  const [name, setName] = useState(initialName);
-  const mutation = useMutation({
-    mutationFn: () => save({ data: { fullName: name } }),
-    onSuccess: () => {
-      toast.success("Name updated");
-      onSaved();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  return (
-    <div className="space-y-2 border-b border-hairline/60 pb-3">
-      <Label htmlFor="profile-name" className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-        Full name
-      </Label>
-      <div className="flex items-center gap-2">
-        <Input
-          id="profile-name"
-          value={name}
-          minLength={2}
-          maxLength={80}
-          onChange={(event) => setName(event.target.value)}
-          className="h-11 font-display text-base font-semibold"
-        />
-        <Button
-          type="button"
-          size="icon"
-          variant="brand"
-          aria-label="Save name"
-          disabled={mutation.isPending || name.trim().length < 2 || name.trim() === initialName}
-          onClick={() => mutation.mutate()}
-        >
-          {mutation.isPending ? <Loader2 className="animate-spin" /> : <Pencil />}
-        </Button>
-      </div>
-    </div>
   );
 }
 

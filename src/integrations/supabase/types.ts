@@ -229,6 +229,75 @@ export type Database = {
         }
         Relationships: []
       }
+      biometric_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      biometric_credentials: {
+        Row: {
+          backed_up: boolean
+          counter: number
+          created_at: string
+          credential_id: string
+          device_name: string
+          device_type: string
+          id: string
+          last_used_at: string | null
+          public_key: string
+          transports: string[]
+          user_id: string
+        }
+        Insert: {
+          backed_up?: boolean
+          counter?: number
+          created_at?: string
+          credential_id: string
+          device_name?: string
+          device_type?: string
+          id?: string
+          last_used_at?: string | null
+          public_key: string
+          transports?: string[]
+          user_id: string
+        }
+        Update: {
+          backed_up?: boolean
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          device_name?: string
+          device_type?: string
+          id?: string
+          last_used_at?: string | null
+          public_key?: string
+          transports?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           body: string | null

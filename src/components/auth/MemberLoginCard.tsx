@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { VoiceGuide } from "@/components/voice/VoiceGuide";
+import { PasskeyLoginButton } from "@/components/security/PasskeyLoginButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -154,6 +155,8 @@ export function MemberLoginCard() {
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {pending ? "Signing you in" : "Sign in"}
       </Button>
+      <div className="my-3 flex items-center gap-3 text-[10px] uppercase text-muted-foreground"><span className="h-px flex-1 bg-hairline" />or<span className="h-px flex-1 bg-hairline" /></div>
+      <PasskeyLoginButton />
 
       <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />

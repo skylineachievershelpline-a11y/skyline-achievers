@@ -18,7 +18,6 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { isPreviewContext } from "../lib/pwa-install";
 import { MotionController } from "../components/motion/MotionController";
 import { LiquidAtmosphere } from "../components/motion/LiquidAtmosphere";
-import { ThemePullCord } from "../components/theme/ThemePullCord";
 import { THEME_BOOTSTRAP_SCRIPT } from "../lib/theme";
 
 function NotFoundComponent() {
@@ -132,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
         {/* Applies the saved look before the first paint so nothing flashes. */}
@@ -186,7 +185,6 @@ function RootComponent() {
       <MotionController />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <ThemePullCord />
       <UploadDock />
       <OfflineSupport />
       <Toaster />

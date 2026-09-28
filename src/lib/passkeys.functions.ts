@@ -38,30 +38,6 @@ function parseHost(value: string | null | undefined, scheme: string): { origin: 
   return parseAbsolute(`${scheme}://${host}`);
 }
 
-// The phone's own address must be used, otherwise the fingerprint credential is
-// rejected. Every candidate is parsed defensively: a malformed or relative value
-// must never throw and take the whole request down.
-function relyingParty() {
-  let request: ReturnType<typeof getRequest> | undefined;
-  try {
-    request = getRequest();
-  } catch {
-    request = undefined;
-  }
-  const headers = request?.headers;
-  const scheme = (headers?.get("x-forwarded-proto") ?? "").split(",")[0]?.trim() || "https";
-  const fromOrigin = parseAbsolute(headers?.get("origin"));
-  if (fromOrigin) return fromOrigin;
-  const fromReferer = parseAbsolute(headers?.get("referer"));
-  if (fromReferer) return fromReferer;
-  const fromForwarded = parseHost(headers?.get("x-forwarded-host"), scheme);
-  if (fromForwarded) return fromForwarded;
-  const fromHost = parseHost(headers?.get("host"), scheme);
-  if (fromHost) return fromHost;
-  const fromUrl = parseAbsolute(request?.url);
-  if (fromUrl) return fromUrl;
-  return parseAbsolute(FALLBACK_ORIGIN)!;
-}
 
 function trustedRelyingParty(clientOrigin: string): { origin: string; rpID: string } {
   const parsed = parseAbsolute(clientOrigin);

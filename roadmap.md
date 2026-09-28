@@ -297,7 +297,8 @@
 - [ ] Step 5: FBO 3-way reports & settlements
 
 ## Secure login and refreshed controls
-- [ ] Add up to 3 fingerprint/Face ID device credentials with secure login
-- [ ] Add profile security management for members and Beginners Training
-- [ ] Add reference-style FBO reel upload
-- [ ] Replace floating theme control with compact header switches
+- [x] Add up to 3 fingerprint/Face ID device credentials with secure login
+- [x] Add profile security management for members and Beginners Training
+- [x] Add reference-style FBO reel upload
+- [x] Replace floating theme control with compact header switches
+- [ ] Verify signed-in profile and FBO reel screens (no preview session available)

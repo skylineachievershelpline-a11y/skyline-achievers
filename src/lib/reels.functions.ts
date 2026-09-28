@@ -290,7 +290,9 @@ export const createReel = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = context.supabase as any;
-    // Row level security additionally enforces the rank requirement.
+    const { data: allowed } = await db.rpc("can_post_reels");
+    if (allowed !== true) throw new Error("Only FBO members can post reels.");
+    // Row level security additionally enforces the same FBO rank requirement.
     const { error } = await db.from("reels").insert({
       title: data.title,
       caption: data.caption ?? null,
@@ -303,7 +305,7 @@ export const createReel = createServerFn({ method: "POST" })
       // Member reels always wait for admin approval before anyone can see them.
       is_published: false,
     });
-    if (error) throw new Error("Assistant Supervisor rank and above can post reels.");
+    if (error) throw new Error("Only FBO members can post reels.");
     return { ok: true as const };
   });
 

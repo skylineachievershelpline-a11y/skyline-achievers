@@ -11,5 +11,5 @@
 - Job Assistant system: job_assistants table is service-role only (no RLS policies); all access via src/lib/assistants.functions.ts with FBO (rank_order>=2) or admin checks. Commission tiers live in platform_settings key job_assistant_settings. Why: strict FBO isolation.
 - Job leads: job_leads table service-role only, unique (fbo_id, phone_tail = last 10 digits); Excel/CSV parsed in browser with xlsx, sent as rows to src/lib/leads.functions.ts. Why: FBO isolation + dedupe.
 - Assistant portal: assistants have no login; they open /work/$token (48-hex access_token on job_assistants, resettable by FBO). Why: assistants are not platform members.
-- Appearance: the global curved glass rail switch persists light/dark choice and controls semantic theme tokens everywhere. Why: one consistent theme across landing, member, assistant, and admin screens.
+- Appearance: compact horizontal header switches persist light/dark choice and control semantic theme tokens everywhere. Why: one consistent, unobtrusive theme control across landing, member, assistant, and admin screens.
 - Biometric login uses discoverable WebAuthn passkeys with server-verified challenges; only public keys are stored and successful assertions exchange for the existing account session. Why: biometric material stays on-device while accounts remain tied to current dashboards.

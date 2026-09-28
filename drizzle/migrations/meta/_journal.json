@@ -309,6 +309,13 @@
       "when": 1790634273009,
       "tag": "0043_add_biometric_device_credentials",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790634551957,
+      "tag": "0044_enforce_three_biometric_devices",
+      "breakpoints": true
     }
   ]
 }

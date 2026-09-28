@@ -38,7 +38,7 @@ async function createChallenge(userId: string | null, purpose: "register" | "aut
   return data.id;
 }
 
-async function takeChallenge(id: string, purpose: "register" | "authenticate", userId?: string) {
+async function getChallenge(id: string, purpose: "register" | "authenticate", userId?: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   let query = supabaseAdmin
     .from("biometric_challenges")
@@ -48,8 +48,12 @@ async function takeChallenge(id: string, purpose: "register" | "authenticate", u
   if (userId) query = query.eq("user_id", userId);
   const { data } = await query.maybeSingle();
   if (!data || new Date(data.expires_at).getTime() <= Date.now()) throw new Error("This secure login request expired. Please try again.");
-  await supabaseAdmin.from("biometric_challenges").delete().eq("id", id);
   return data;
+}
+
+async function consumeChallenge(id: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("biometric_challenges").delete().eq("id", id);
 }
 
 export const listPasskeys = createServerFn({ method: "GET" })
@@ -96,7 +100,7 @@ export const finishPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { challengeId: string; deviceName: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data, context }) => {
-    const challenge = await takeChallenge(data.challengeId, "register", context.userId);
+    const challenge = await getChallenge(data.challengeId, "register", context.userId);
     const { origin, rpID } = relyingParty();
     const verification = await verifyRegistrationResponse({
       response: JSON.parse(data.responseJson) as RegistrationResponseJSON,
@@ -106,6 +110,7 @@ export const finishPasskeyRegistration = createServerFn({ method: "POST" })
       requireUserVerification: true,
     });
     if (!verification.verified || !verification.registrationInfo) throw new Error("Fingerprint or Face ID could not be verified.");
+    await consumeChallenge(data.challengeId);
     const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin.from("biometric_credentials").select("id", { count: "exact", head: true }).eq("user_id", context.userId);
@@ -142,7 +147,7 @@ export const beginPasskeyLogin = createServerFn({ method: "POST" }).handler(asyn
 export const finishPasskeyLogin = createServerFn({ method: "POST" })
   .inputValidator((data: { challengeId: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data }) => {
-    const challenge = await takeChallenge(data.challengeId, "authenticate");
+    const challenge = await getChallenge(data.challengeId, "authenticate");
     const response = JSON.parse(data.responseJson) as AuthenticationResponseJSON;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: stored } = await supabaseAdmin.from("biometric_credentials").select("*").eq("credential_id", response.id).maybeSingle();
@@ -162,6 +167,7 @@ export const finishPasskeyLogin = createServerFn({ method: "POST" })
       requireUserVerification: true,
     });
     if (!verification.verified) throw new Error("Fingerprint or Face ID could not be verified.");
+    await consumeChallenge(data.challengeId);
     await supabaseAdmin.from("biometric_credentials").update({ counter: verification.authenticationInfo.newCounter, last_used_at: new Date().toISOString() }).eq("id", stored.id);
     const { data: authUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(stored.user_id);
     const email = authUser.user?.email;

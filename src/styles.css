@@ -347,7 +347,7 @@ html.theme-light .cinematic-nav {
 /* ---------- Curved glass appearance switch ---------- */
 .theme-curve-switch {
   position: fixed;
-  top: max(calc(env(safe-area-inset-top) + 3.75rem), 3.75rem);
+  top: max(calc(env(safe-area-inset-top) + 5.5rem), 5.5rem);
   right: 0.35rem;
   z-index: 120;
   width: 7.75rem;
@@ -363,8 +363,8 @@ html.theme-light .cinematic-nav {
   left: 0;
   width: 5.3rem;
   height: 5.35rem;
-  border-top: 1px solid color-mix(in oklab, var(--metal) 42%, transparent);
-  border-right: 1px solid color-mix(in oklab, var(--metal) 32%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--foreground) 28%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
   border-radius: 0 3.1rem 0 0;
   box-shadow: 0 -1px 0 color-mix(in oklab, var(--foreground) 9%, transparent);
 }
@@ -407,6 +407,28 @@ html.theme-light .cinematic-nav {
   cursor: grab;
   will-change: transform;
   transition: transform 620ms cubic-bezier(0.2, 1.45, 0.35, 1), border-color 300ms ease, box-shadow 300ms ease;
+}
+
+html.theme-light .theme-curve-knob {
+  border-color: oklch(1 0 0 / 86%);
+  background:
+    radial-gradient(circle at 26% 16%, oklch(1 0 0 / 98%), transparent 34%),
+    linear-gradient(150deg, oklch(0.99 0.004 254) 8%, oklch(0.94 0.035 22) 72%, oklch(0.86 0.1 25) 135%);
+  color: oklch(0.25 0.035 260);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 100%) inset,
+    -0.35rem -0.25rem 0.8rem oklch(1 0 0 / 78%) inset,
+    0.48rem 0.7rem 1rem oklch(0.38 0.03 255 / 25%),
+    0 0 1rem oklch(0.98 0.025 30 / 52%);
+}
+
+html.theme-light .theme-curve-knob::after {
+  background: oklch(0.86 0.11 25 / 62%);
+}
+
+html.theme-light .theme-curve-trail {
+  border-top-color: oklch(0.82 0.04 24 / 17%);
+  border-right-color: oklch(0.48 0.03 255 / 10%);
 }
 
 .theme-curve-knob::after {

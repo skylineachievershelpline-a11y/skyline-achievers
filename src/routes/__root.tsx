@@ -18,6 +18,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { isPreviewContext } from "../lib/pwa-install";
 import { MotionController } from "../components/motion/MotionController";
 import { LiquidAtmosphere } from "../components/motion/LiquidAtmosphere";
+import { ThemePullCord } from "../components/theme/ThemePullCord";
+import { THEME_BOOTSTRAP_SCRIPT } from "../lib/theme";
 
 function NotFoundComponent() {
   return (

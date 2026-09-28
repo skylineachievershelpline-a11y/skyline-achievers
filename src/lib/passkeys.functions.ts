@@ -52,6 +52,19 @@ function relyingParty() {
 }
 
 
+const KNOWN_TRANSPORTS = ["ble", "cable", "hybrid", "internal", "nfc", "smart-card", "usb"] as const;
+type KnownTransport = (typeof KNOWN_TRANSPORTS)[number];
+
+// An unexpected transport value saved by an older phone must not break the next
+// device registration, so keep only values the standard recognises.
+function sanitizeTransports(value: unknown): KnownTransport[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const kept = value.filter((entry): entry is KnownTransport =>
+    typeof entry === "string" && (KNOWN_TRANSPORTS as readonly string[]).includes(entry),
+  );
+  return kept.length > 0 ? kept : undefined;
+}
+
 function toBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString("base64url");
 }

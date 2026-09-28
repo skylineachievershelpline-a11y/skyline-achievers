@@ -122,7 +122,7 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
       userDisplayName: identity.name,
       userID: new TextEncoder().encode(context.userId),
       attestationType: "none",
-      excludeCredentials: (existing ?? []).map((row) => ({ id: row.credential_id, transports: row.transports })),
+      excludeCredentials: (existing ?? []).map((row) => ({ id: row.credential_id, transports: sanitizeTransports(row.transports) })),
       authenticatorSelection: { residentKey: "required", userVerification: "required" },
       preferredAuthenticatorType: "localDevice",
     });

@@ -11,7 +11,6 @@ import {
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const responseSchema = z.unknown();
 const deviceNameSchema = z.string().trim().min(1).max(60);
 
 function relyingParty() {
@@ -26,10 +25,6 @@ function toBase64(bytes: Uint8Array): string {
 
 function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(Buffer.from(value, "base64url")) as Uint8Array<ArrayBuffer>;
-}
-
-function serializable<T>(value: T): unknown {
-  return JSON.parse(JSON.stringify(value)) as unknown;
 }
 
 async function createChallenge(userId: string | null, purpose: "register" | "authenticate", challenge: string) {
@@ -94,17 +89,17 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
       authenticatorSelection: { residentKey: "required", userVerification: "required" },
       preferredAuthenticatorType: "localDevice",
     });
-    return { options: serializable(options), challengeId: await createChallenge(context.userId, "register", options.challenge) };
+    return { optionsJson: JSON.stringify(options), challengeId: await createChallenge(context.userId, "register", options.challenge) };
   });
 
 export const finishPasskeyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { challengeId: string; deviceName: string; response: Record<string, unknown> }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, response: responseSchema }).parse(data))
+  .inputValidator((data: { challengeId: string; deviceName: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), deviceName: deviceNameSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data, context }) => {
     const challenge = await takeChallenge(data.challengeId, "register", context.userId);
     const { origin, rpID } = relyingParty();
     const verification = await verifyRegistrationResponse({
-      response: data.response as unknown as RegistrationResponseJSON,
+      response: JSON.parse(data.responseJson) as RegistrationResponseJSON,
       expectedChallenge: challenge.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
@@ -141,14 +136,14 @@ export const removePasskey = createServerFn({ method: "POST" })
 export const beginPasskeyLogin = createServerFn({ method: "POST" }).handler(async () => {
   const { rpID } = relyingParty();
   const options = await generateAuthenticationOptions({ rpID, userVerification: "required" });
-  return { options: serializable(options), challengeId: await createChallenge(null, "authenticate", options.challenge) };
+  return { optionsJson: JSON.stringify(options), challengeId: await createChallenge(null, "authenticate", options.challenge) };
 });
 
 export const finishPasskeyLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: { challengeId: string; response: Record<string, unknown> }) => z.object({ challengeId: z.string().uuid(), response: responseSchema }).parse(data))
+  .inputValidator((data: { challengeId: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data }) => {
     const challenge = await takeChallenge(data.challengeId, "authenticate");
-    const response = data.response as unknown as AuthenticationResponseJSON;
+    const response = JSON.parse(data.responseJson) as AuthenticationResponseJSON;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: stored } = await supabaseAdmin.from("biometric_credentials").select("*").eq("credential_id", response.id).maybeSingle();
     if (!stored) throw new Error("This device is not registered with Skyline Achievers.");

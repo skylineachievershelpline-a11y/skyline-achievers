@@ -1,17 +1,10 @@
-import { Moon, Sun } from "lucide-react";
+import { Sun } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import cardSlideSound from "@/assets/card-slide.mp3.asset.json";
 import { useTheme } from "@/hooks/useTheme";
 import { setTheme, themeHaptic, type Theme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
-
-/** Rest length of the cord, and how far it may stretch either way. */
-const REST = 30;
-const MAX_DOWN = 52;
-const MAX_UP = 26;
-/** How far you must move before the pull counts as a decision. */
-const COMMIT = 16;
+const DRAG_DISTANCE = 92;
 
 function playClick() {
   try {
@@ -27,17 +20,22 @@ function playClick() {
 }
 
 /**
- * A hanging glass bead on the right edge of every screen.
- * Pull it down for the midnight look, lift it up for the porcelain look,
- * or simply tap it to swap. The new look floods out from the bead.
+ * Curved glass appearance switch matching the supplied reference: the
+ * capsule rests at the top of its rail in light mode and travels around the
+ * rounded corner into the lower position for dark mode.
  */
 export function ThemePullCord() {
   const { theme } = useTheme();
   const beadRef = useRef<HTMLButtonElement>(null);
   const dragStart = useRef<number | null>(null);
+  const progressStart = useRef(0);
   const moved = useRef(false);
-  const [offset, setOffset] = useState(0);
+  const [progress, setProgress] = useState(theme === "dark" ? 1 : 0);
   const [dragging, setDragging] = useState(false);
+
+  useEffect(() => {
+    if (!dragging) setProgress(theme === "dark" ? 1 : 0);
+  }, [dragging, theme]);
 
   const apply = useCallback((next: Theme) => {
     const rect = beadRef.current?.getBoundingClientRect();
@@ -49,24 +47,20 @@ export function ThemePullCord() {
     playClick();
   }, []);
 
-  const finish = useCallback(
-    (distance: number) => {
-      const current: Theme = document.documentElement.classList.contains("theme-light")
-        ? "light"
-        : "dark";
-      if (distance > COMMIT) {
-        if (current !== "dark") apply("dark");
-      } else if (distance < -COMMIT) {
-        if (current !== "light") apply("light");
-      } else if (!moved.current) {
-        apply(current === "light" ? "dark" : "light");
-      }
-      setOffset(0);
-      setDragging(false);
-      dragStart.current = null;
-    },
-    [apply],
-  );
+  const finish = useCallback(() => {
+    const next: Theme = moved.current
+      ? progress >= 0.5
+        ? "dark"
+        : "light"
+      : theme === "light"
+        ? "dark"
+        : "light";
+    const nextProgress = next === "dark" ? 1 : 0;
+    setProgress(nextProgress);
+    setDragging(false);
+    dragStart.current = null;
+    if (next !== theme) apply(next);
+  }, [apply, progress, theme]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -75,13 +69,14 @@ export function ThemePullCord() {
       if (dragStart.current === null) return;
       const delta = event.clientY - dragStart.current;
       if (Math.abs(delta) > 4) moved.current = true;
-      setOffset(Math.max(-MAX_UP, Math.min(MAX_DOWN, delta)));
+      setProgress(Math.max(0, Math.min(1, progressStart.current + delta / DRAG_DISTANCE)));
     };
-    const onUp = (event: PointerEvent) => {
-      const delta = dragStart.current === null ? 0 : event.clientY - dragStart.current;
-      finish(Math.max(-MAX_UP, Math.min(MAX_DOWN, delta)));
+    const onUp = () => finish();
+    const onCancel = () => {
+      setProgress(theme === "dark" ? 1 : 0);
+      setDragging(false);
+      dragStart.current = null;
     };
-    const onCancel = () => finish(0);
 
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerup", onUp);
@@ -91,24 +86,23 @@ export function ThemePullCord() {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
     };
-  }, [dragging, finish]);
+  }, [dragging, finish, theme]);
 
-  const hint = offset > COMMIT ? "Dark" : offset < -COMMIT ? "Light" : null;
+  const angle = -Math.PI / 2 + progress * (Math.PI / 2);
+  const x = 42 + 42 * Math.cos(angle) - 22;
+  const y = 48 + 42 * Math.sin(angle) - 26;
 
   return (
-    <div className="theme-cord" aria-hidden={false}>
-      <span className="theme-cord-anchor" aria-hidden />
-      <span
-        className="theme-cord-line"
-        style={{ height: `${REST + offset}px` }}
-        aria-hidden
-      />
+    <div className="theme-curve-switch" aria-hidden={false}>
+      <span className="theme-curve-rail" aria-hidden />
+      <span className="theme-curve-trail" aria-hidden />
       <button
         ref={beadRef}
         type="button"
         onPointerDown={(event) => {
           if (event.button !== 0 && event.pointerType === "mouse") return;
           dragStart.current = event.clientY;
+          progressStart.current = progress;
           moved.current = false;
           setDragging(true);
         }}
@@ -123,25 +117,20 @@ export function ThemePullCord() {
           }
         }}
         onClick={(event) => {
-          // A real drag already decided; a plain click still toggles.
           if (moved.current) event.preventDefault();
         }}
-        className={cn("theme-cord-bead", dragging && "is-dragging")}
-        style={{ transform: `translateY(${offset}px)` }}
+        className={`theme-curve-knob${dragging ? " is-dragging" : ""}`}
+        style={{ transform: `translate3d(${x}px, ${y}px, 0) rotate(${progress * 8}deg)` }}
         aria-label={
           theme === "light"
-            ? "Appearance: light. Pull down for the dark look."
-            : "Appearance: dark. Lift up for the light look."
+            ? "Light appearance. Drag down for dark."
+            : "Dark appearance. Drag up for light."
         }
-        title="Pull down for dark, lift up for light"
+        title="Drag down for dark, up for light"
       >
-        {theme === "light" ? (
-          <Sun className="h-4 w-4" strokeWidth={2.4} />
-        ) : (
-          <Moon className="h-4 w-4" strokeWidth={2.4} />
-        )}
+        <span className="theme-curve-glint" aria-hidden />
+        <Sun className="theme-curve-icon" strokeWidth={2.2} aria-hidden />
       </button>
-      {hint ? <span className="theme-cord-hint">{hint}</span> : null}
     </div>
   );
 }

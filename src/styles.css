@@ -344,95 +344,137 @@ html.theme-light .cinematic-nav {
   transition: background-color 420ms ease, color 420ms ease;
 }
 
-/*
- * ---------- Hanging appearance bead ----------
- * A glass bead on a cord at the right edge of every screen.
- * Pull down = midnight look, lift up = porcelain look, tap = swap.
- */
-.theme-cord {
+/* ---------- Curved glass appearance switch ---------- */
+.theme-curve-switch {
   position: fixed;
-  top: max(env(safe-area-inset-top), 0px);
-  right: 0.65rem;
+  top: max(calc(env(safe-area-inset-top) + 5.5rem), 5.5rem);
+  right: 0.35rem;
   z-index: 120;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 7.75rem;
+  height: 7.8rem;
   pointer-events: none;
   touch-action: none;
+  filter: drop-shadow(0 1rem 1.35rem oklch(0 0 0 / 22%));
 }
 
-.theme-cord-anchor {
-  width: 1.15rem;
-  height: 0.3rem;
-  border-radius: 0 0 999px 999px;
-  background: linear-gradient(180deg, var(--metal), color-mix(in oklab, var(--metal) 40%, transparent));
-  box-shadow: 0 1px 3px oklch(0 0 0 / 30%);
+.theme-curve-rail {
+  position: absolute;
+  top: 0.45rem;
+  left: 0;
+  width: 5.3rem;
+  height: 5.35rem;
+  border-top: 1px solid color-mix(in oklab, var(--foreground) 28%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
+  border-radius: 0 3.1rem 0 0;
+  box-shadow: 0 -1px 0 color-mix(in oklab, var(--foreground) 9%, transparent);
 }
 
-.theme-cord-line {
-  width: 2px;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--metal) 78%, transparent),
-    color-mix(in oklab, var(--cyan) 62%, transparent)
-  );
-  transition: height 520ms cubic-bezier(0.18, 1.5, 0.34, 1);
+.theme-curve-trail {
+  position: absolute;
+  top: -0.1rem;
+  right: 0.55rem;
+  width: 4.65rem;
+  height: 5.3rem;
+  border-radius: 58% 46% 52% 48%;
+  border-top: 0.48rem solid color-mix(in oklab, var(--brand) 28%, transparent);
+  border-right: 0.36rem solid color-mix(in oklab, var(--cyan) 13%, transparent);
+  filter: blur(0.5rem);
+  opacity: 0.72;
 }
 
-.theme-cord-bead {
+.theme-curve-knob {
+  position: absolute;
+  top: 0;
+  left: 0;
   pointer-events: auto;
   display: flex;
-  height: 2.35rem;
-  width: 2.35rem;
+  height: 3.25rem;
+  width: 2.75rem;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--metal) 40%, transparent);
-  background: var(--gradient-surface), var(--surface);
+  overflow: hidden;
+  border-radius: 1.55rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 26%, transparent);
+  background:
+    radial-gradient(circle at 30% 18%, color-mix(in oklab, var(--foreground) 35%, transparent), transparent 34%),
+    linear-gradient(165deg, color-mix(in oklab, var(--glass-strong) 96%, transparent) 4%, color-mix(in oklab, var(--brand) 32%, var(--surface)) 56%, color-mix(in oklab, var(--cyan) 55%, var(--brand)) 122%);
   color: var(--foreground);
-  box-shadow: var(--shadow-glass);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--foreground) 45%, transparent) inset,
+    -0.35rem -0.25rem 0.8rem color-mix(in oklab, var(--foreground) 12%, transparent) inset,
+    0.4rem 0.65rem 1rem oklch(0 0 0 / 30%),
+    0 0 1.1rem color-mix(in oklab, var(--brand) 35%, transparent);
   cursor: grab;
-  transition:
-    transform 520ms cubic-bezier(0.18, 1.5, 0.34, 1),
-    box-shadow 300ms ease,
-    border-color 300ms ease,
-    color 300ms ease;
+  will-change: transform;
+  transition: transform 620ms cubic-bezier(0.2, 1.45, 0.35, 1), border-color 300ms ease, box-shadow 300ms ease;
 }
 
-.theme-cord-bead:hover {
-  border-color: color-mix(in oklab, var(--cyan) 55%, transparent);
-  color: var(--cyan);
+html.theme-light .theme-curve-knob {
+  border-color: oklch(1 0 0 / 86%);
+  background:
+    radial-gradient(circle at 26% 16%, oklch(1 0 0 / 98%), transparent 34%),
+    linear-gradient(150deg, oklch(0.99 0.004 254) 8%, oklch(0.94 0.035 22) 72%, oklch(0.86 0.1 25) 135%);
+  color: oklch(0.25 0.035 260);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 100%) inset,
+    -0.35rem -0.25rem 0.8rem oklch(1 0 0 / 78%) inset,
+    0.48rem 0.7rem 1rem oklch(0.38 0.03 255 / 25%),
+    0 0 1rem oklch(0.98 0.025 30 / 52%);
 }
 
-.theme-cord-bead:focus-visible {
+html.theme-light .theme-curve-knob::after {
+  background: oklch(0.86 0.11 25 / 62%);
+}
+
+html.theme-light .theme-curve-trail {
+  border-top-color: oklch(0.82 0.04 24 / 17%);
+  border-right-color: oklch(0.48 0.03 255 / 10%);
+}
+
+.theme-curve-knob::after {
+  content: "";
+  position: absolute;
+  inset: 48% -18% -28%;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--brand) 68%, var(--cyan));
+  filter: blur(0.5rem);
+  opacity: 0.8;
+}
+
+.theme-curve-glint {
+  position: absolute;
+  top: 0.32rem;
+  left: 0.4rem;
+  width: 0.9rem;
+  height: 0.34rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 62%, transparent);
+  filter: blur(0.12rem);
+  transform: rotate(-18deg);
+}
+
+.theme-curve-icon {
+  position: relative;
+  z-index: 1;
+  width: 1rem;
+  height: 1rem;
+  filter: drop-shadow(0 1px 3px oklch(0 0 0 / 34%));
+}
+
+.theme-curve-knob:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
 
-.theme-cord-bead.is-dragging {
+.theme-curve-knob.is-dragging {
   cursor: grabbing;
-  transition: box-shadow 300ms ease, border-color 300ms ease;
-  box-shadow: var(--shadow-lift);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
   border-color: color-mix(in oklab, var(--cyan) 70%, transparent);
-}
-
-.theme-cord-hint {
-  margin-top: 0.4rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--metal) 32%, transparent);
-  background: var(--glass-strong);
-  padding: 0.1rem 0.5rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--foreground);
-  box-shadow: var(--shadow-glass);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 48%, transparent) inset, 0.65rem 0.9rem 1.2rem oklch(0 0 0 / 34%), 0 0 1.8rem color-mix(in oklab, var(--brand) 58%, transparent);
 }
 
 @media print {
-  .theme-cord { display: none; }
+  .theme-curve-switch { display: none; }
 }
 
 /* ---------- Circular wave when the look changes ---------- */
@@ -462,8 +504,7 @@ html.theme-switching::view-transition-new(root) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .theme-cord-line,
-  .theme-cord-bead {
+  .theme-curve-knob {
     transition: none;
   }
   html.theme-switching::view-transition-new(root) {

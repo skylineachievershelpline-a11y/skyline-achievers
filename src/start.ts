@@ -6,9 +6,10 @@ import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 function isServerFnRequest(url: string | undefined): boolean {
   if (!url) return false;
   try {
-    return new URL(url, "http://localhost").pathname.includes("/_serverFn");
+    const pathname = new URL(url, "http://localhost").pathname;
+    return pathname.includes("/_serverFn") || pathname.includes("/_server/");
   } catch {
-    return url.includes("/_serverFn");
+    return url.includes("/_serverFn") || url.includes("/_server/");
   }
 }
 

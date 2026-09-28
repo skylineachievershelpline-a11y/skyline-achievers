@@ -15,7 +15,15 @@ const deviceNameSchema = z.string().trim().min(1).max(60);
 
 function relyingParty() {
   const request = getRequest();
-  const url = new URL(request?.url ?? "https://skyline-achievers.lovable.app");
+  const headerOrigin = request?.headers.get("origin");
+  const forwardedHost = request?.headers.get("x-forwarded-host");
+  const url = new URL(
+    headerOrigin && headerOrigin !== "null"
+      ? headerOrigin
+      : forwardedHost
+        ? `https://${forwardedHost.split(",")[0].trim()}`
+        : (request?.url ?? "https://skyline-achievers.lovable.app"),
+  );
   return { origin: url.origin, rpID: url.hostname };
 }
 

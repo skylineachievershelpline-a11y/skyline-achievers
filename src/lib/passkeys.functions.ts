@@ -209,7 +209,7 @@ export const finishPasskeyLogin = createServerFn({ method: "POST" })
       expectedChallenge: challenge.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
-      credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: stored.transports },
+      credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: sanitizeTransports(stored.transports) },
       requireUserVerification: true,
     });
     if (!verification.verified) throw new Error("Fingerprint or Face ID could not be verified.");

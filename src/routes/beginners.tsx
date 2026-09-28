@@ -1,3 +1,4 @@
+import { changeMyPassword } from "@/lib/password.functions";
 import { Settings as SettingsIcon } from "lucide-react";
 import { AccountSettings } from "@/components/member/AccountSettings";
 import { PasskeyManager } from "@/components/security/PasskeyManager";

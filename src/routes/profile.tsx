@@ -1,3 +1,4 @@
+import { changeMyPassword } from "@/lib/password.functions";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

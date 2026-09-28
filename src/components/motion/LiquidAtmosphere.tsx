@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 
+import { THEME_EVENT } from "@/lib/theme";
+
 export function LiquidAtmosphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -10,6 +12,8 @@ export function LiquidAtmosphere() {
     if (!context) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // On the porcelain look the ribbons stay pale so text never loses contrast.
+    let light = document.documentElement.classList.contains("theme-light");
     let width = 0;
     let height = 0;
     let ratio = 1;

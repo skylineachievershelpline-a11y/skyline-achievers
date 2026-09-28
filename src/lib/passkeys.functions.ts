@@ -13,19 +13,44 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const deviceNameSchema = z.string().trim().min(1).max(60);
 
-function relyingParty() {
-  const request = getRequest();
-  const headerOrigin = request?.headers.get("origin");
-  const forwardedHost = request?.headers.get("x-forwarded-host");
-  const url = new URL(
-    headerOrigin && headerOrigin !== "null"
-      ? headerOrigin
-      : forwardedHost
-        ? `https://${(forwardedHost.split(",")[0] ?? "").trim()}`
-        : (request?.url ?? "https://skyline-achievers.lovable.app"),
-  );
-  return { origin: url.origin, rpID: url.hostname };
+const FALLBACK_ORIGIN = "https://skyline-achievers.lovable.app";
+
+function safeOrigin(value: string | null | undefined): { origin: string; rpID: string } | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "null") return null;
+  try {
+    const url = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    if (!url.hostname) return null;
+    return { origin: url.origin, rpID: url.hostname };
+  } catch {
+    return null;
+  }
 }
+
+// The phone's own address must be used, otherwise WebAuthn rejects the credential.
+// Every candidate is parsed defensively: a bad header must not crash the request.
+function relyingParty() {
+  let request: ReturnType<typeof getRequest> | undefined;
+  try {
+    request = getRequest();
+  } catch {
+    request = undefined;
+  }
+  const headers = request?.headers;
+  const candidates = [
+    headers?.get("origin"),
+    (headers?.get("x-forwarded-host") ?? "").split(",")[0],
+    headers?.get("host"),
+    request?.url,
+  ];
+  for (const candidate of candidates) {
+    const parsed = safeOrigin(candidate);
+    if (parsed) return parsed;
+  }
+  return safeOrigin(FALLBACK_ORIGIN)!;
+}
+
 
 function toBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString("base64url");

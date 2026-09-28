@@ -21,7 +21,7 @@ function relyingParty() {
     headerOrigin && headerOrigin !== "null"
       ? headerOrigin
       : forwardedHost
-        ? `https://${forwardedHost.split(",")[0].trim()}`
+        ? `https://${(forwardedHost.split(",")[0] ?? "").trim()}`
         : (request?.url ?? "https://skyline-achievers.lovable.app"),
   );
   return { origin: url.origin, rpID: url.hostname };

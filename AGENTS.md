@@ -13,3 +13,4 @@
 - Assistant portal: assistants have no login; they open /work/$token (48-hex access_token on job_assistants, resettable by FBO). Why: assistants are not platform members.
 - Appearance: compact horizontal header switches persist light/dark choice and control semantic theme tokens everywhere. Why: one consistent, unobtrusive theme control across landing, member, assistant, and admin screens.
 - Biometric login uses discoverable WebAuthn passkeys with server-verified challenges; only public keys are stored and successful assertions exchange for the existing account session. Why: biometric material stays on-device while accounts remain tied to current dashboards.
+- Resolve `tslib` to its ESM build in Vite config. Why: Vite 8/Rolldown otherwise breaks the WebAuthn server dependency graph with undefined TypeScript helpers.

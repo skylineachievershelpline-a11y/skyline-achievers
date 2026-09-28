@@ -226,14 +226,16 @@ export const removePasskey = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-export const beginPasskeyLogin = createServerFn({ method: "POST" }).handler(async () => {
-  const { rpID } = relyingParty();
+export const beginPasskeyLogin = createServerFn({ method: "POST" })
+  .inputValidator((data: { origin: string }) => z.object({ origin: originSchema }).parse(data))
+  .handler(async ({ data }) => {
+  const { rpID } = trustedRelyingParty(data.origin);
   const options = await generateAuthenticationOptions({ rpID, userVerification: "required" });
   return { optionsJson: JSON.stringify(options), challengeId: await createChallenge(null, "authenticate", options.challenge) };
 });
 
 export const finishPasskeyLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: { challengeId: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), responseJson: z.string().min(10).max(100000) }).parse(data))
+  .inputValidator((data: { challengeId: string; origin: string; responseJson: string }) => z.object({ challengeId: z.string().uuid(), origin: originSchema, responseJson: z.string().min(10).max(100000) }).parse(data))
   .handler(async ({ data }) => {
     const challenge = await getChallenge(data.challengeId, "authenticate");
     const response = JSON.parse(data.responseJson) as AuthenticationResponseJSON;
@@ -245,15 +247,21 @@ export const finishPasskeyLogin = createServerFn({ method: "POST" })
       supabaseAdmin.from("trainees").select("status").eq("id", stored.user_id).maybeSingle(),
     ]);
     if ((member && member.status !== "active") || (trainee && trainee.status !== "active") || (!member && !trainee)) throw new Error("This Skyline account is not active.");
-    const { origin, rpID } = relyingParty();
-    const verification = await verifyAuthenticationResponse({
-      response,
-      expectedChallenge: challenge.challenge,
-      expectedOrigin: origin,
-      expectedRPID: rpID,
-      credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: sanitizeTransports(stored.transports) ?? [] },
-      requireUserVerification: true,
-    });
+    const { origin, rpID } = trustedRelyingParty(data.origin);
+    let verification;
+    try {
+      verification = await verifyAuthenticationResponse({
+        response,
+        expectedChallenge: challenge.challenge,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+        credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: sanitizeTransports(stored.transports) ?? [] },
+        requireUserVerification: true,
+      });
+    } catch (error) {
+      console.error("[Passkey login verification]", error);
+      throw new Error("Your phone could not verify Fingerprint or Face ID. Please try again.");
+    }
     if (!verification.verified) throw new Error("Fingerprint or Face ID could not be verified.");
     await consumeChallenge(data.challengeId);
     await supabaseAdmin.from("biometric_credentials").update({ counter: verification.authenticationInfo.newCounter, last_used_at: new Date().toISOString() }).eq("id", stored.id);

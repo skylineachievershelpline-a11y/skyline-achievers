@@ -13,18 +13,68 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const deviceNameSchema = z.string().trim().min(1).max(60);
 
+const FALLBACK_ORIGIN = "https://skyline-achievers.lovable.app";
+
+function parseAbsolute(value: string | null | undefined): { origin: string; rpID: string } | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "null" || !trimmed.includes("://")) return null;
+  try {
+    const url = new URL(trimmed);
+    if (!url.hostname) return null;
+    return { origin: url.origin, rpID: url.hostname };
+  } catch {
+    return null;
+  }
+}
+
+// A bare host header like "phone.example.com" or "localhost:8080" carries no scheme,
+// so pair it with the scheme the proxy reports before parsing.
+function parseHost(value: string | null | undefined, scheme: string): { origin: string; rpID: string } | null {
+  if (!value) return null;
+  const host = (value.split(",")[0] ?? "").trim();
+  if (!host || host.includes("/") || host.includes(" ")) return null;
+  return parseAbsolute(`${scheme}://${host}`);
+}
+
+// The phone's own address must be used, otherwise the fingerprint credential is
+// rejected. Every candidate is parsed defensively: a malformed or relative value
+// must never throw and take the whole request down.
 function relyingParty() {
-  const request = getRequest();
-  const headerOrigin = request?.headers.get("origin");
-  const forwardedHost = request?.headers.get("x-forwarded-host");
-  const url = new URL(
-    headerOrigin && headerOrigin !== "null"
-      ? headerOrigin
-      : forwardedHost
-        ? `https://${(forwardedHost.split(",")[0] ?? "").trim()}`
-        : (request?.url ?? "https://skyline-achievers.lovable.app"),
+  let request: ReturnType<typeof getRequest> | undefined;
+  try {
+    request = getRequest();
+  } catch {
+    request = undefined;
+  }
+  const headers = request?.headers;
+  const scheme = (headers?.get("x-forwarded-proto") ?? "").split(",")[0]?.trim() || "https";
+  const fromOrigin = parseAbsolute(headers?.get("origin"));
+  if (fromOrigin) return fromOrigin;
+  const fromReferer = parseAbsolute(headers?.get("referer"));
+  if (fromReferer) return fromReferer;
+  const fromForwarded = parseHost(headers?.get("x-forwarded-host"), scheme);
+  if (fromForwarded) return fromForwarded;
+  const fromHost = parseHost(headers?.get("host"), scheme);
+  if (fromHost) return fromHost;
+  const fromUrl = parseAbsolute(request?.url);
+  if (fromUrl) return fromUrl;
+  return parseAbsolute(FALLBACK_ORIGIN)!;
+}
+
+
+
+const KNOWN_TRANSPORTS = ["ble", "cable", "hybrid", "internal", "nfc", "smart-card", "usb"] as const;
+type KnownTransport = (typeof KNOWN_TRANSPORTS)[number];
+
+// An unexpected transport value saved by an older phone must not break the next
+// device registration, so keep only values the standard recognises.
+function sanitizeTransports(value: unknown): KnownTransport[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const kept = value.filter((entry): entry is KnownTransport =>
+    typeof entry === "string" && (KNOWN_TRANSPORTS as readonly string[]).includes(entry),
   );
-  return { origin: url.origin, rpID: url.hostname };
+  return kept.length > 0 ? kept : undefined;
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -97,7 +147,7 @@ export const beginPasskeyRegistration = createServerFn({ method: "POST" })
       userDisplayName: identity.name,
       userID: new TextEncoder().encode(context.userId),
       attestationType: "none",
-      excludeCredentials: (existing ?? []).map((row) => ({ id: row.credential_id, transports: row.transports })),
+      excludeCredentials: (existing ?? []).map((row) => ({ id: row.credential_id, transports: sanitizeTransports(row.transports) ?? [] })),
       authenticatorSelection: { residentKey: "required", userVerification: "required" },
       preferredAuthenticatorType: "localDevice",
     });
@@ -171,7 +221,7 @@ export const finishPasskeyLogin = createServerFn({ method: "POST" })
       expectedChallenge: challenge.challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
-      credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: stored.transports },
+      credential: { id: stored.credential_id, publicKey: fromBase64(stored.public_key), counter: Number(stored.counter), transports: sanitizeTransports(stored.transports) ?? [] },
       requireUserVerification: true,
     });
     if (!verification.verified) throw new Error("Fingerprint or Face ID could not be verified.");

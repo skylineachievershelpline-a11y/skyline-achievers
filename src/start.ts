@@ -3,6 +3,15 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+function isServerFnRequest(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    return new URL(url, "http://localhost").pathname.includes("/_serverFn");
+  } catch {
+    return url.includes("/_serverFn");
+  }
+}
+
 const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   try {
     return await next();
@@ -11,7 +20,7 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
       throw error;
     }
     // Server function calls must surface their readable error message, not an HTML page.
-    if (new URL(request.url).pathname.includes("/_serverFn")) throw error;
+    if (isServerFnRequest(request?.url)) throw error;
     console.error(error);
     return new Response(renderErrorPage(), {
       status: 500,
@@ -19,6 +28,7 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     });
   }
 });
+
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected

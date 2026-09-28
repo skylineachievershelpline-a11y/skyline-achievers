@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, KeyRound, Loader2, Pencil, ShieldCheck } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { memberIdToAuthEmail } from "@/lib/brand";
 import { formatDate } from "@/lib/format";
-import { getMemberSession, saveMemberBio, saveMemberName } from "@/lib/member.functions";
+import { getMemberSession, saveMemberBio } from "@/lib/member.functions";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/profile")({

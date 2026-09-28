@@ -1,15 +1,15 @@
-import { Sun } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
-import cardSlideSound from "@/assets/card-slide.mp3.asset.json";
+import themeOffVoice from "@/assets/theme-off.mp3.asset.json";
+import themeOnVoice from "@/assets/theme-on.mp3.asset.json";
 import { useTheme } from "@/hooks/useTheme";
 import { setTheme, themeHaptic, type Theme } from "@/lib/theme";
-const DRAG_DISTANCE = 92;
+const DRAG_DISTANCE = 48;
 
-function playClick() {
+function playThemeVoice(next: Theme) {
   try {
-    const audio = new Audio(cardSlideSound.url);
-    audio.volume = 0.32;
+    const audio = new Audio(next === "dark" ? themeOnVoice.url : themeOffVoice.url);
+    audio.volume = 0.82;
     audio.currentTime = 0;
     void audio.play().catch(() => {
       /* browsers may block sound until the first tap; silence is fine */
@@ -19,11 +19,7 @@ function playClick() {
   }
 }
 
-/**
- * Curved glass appearance switch matching the supplied reference: the
- * capsule rests at the top of its rail in light mode and travels around the
- * rounded corner into the lower position for dark mode.
- */
+/** Reference-style ON/OFF switch: down turns the dark look on; up turns it off. */
 export function ThemePullCord() {
   const { theme } = useTheme();
   const beadRef = useRef<HTMLButtonElement>(null);
@@ -44,7 +40,7 @@ export function ThemePullCord() {
       : undefined;
     setTheme(next, origin);
     themeHaptic();
-    playClick();
+    playThemeVoice(next);
   }, []);
 
   const finish = useCallback(() => {
@@ -88,14 +84,8 @@ export function ThemePullCord() {
     };
   }, [dragging, finish, theme]);
 
-  const angle = -Math.PI / 2 + progress * (Math.PI / 2);
-  const x = 42 + 42 * Math.cos(angle) - 22;
-  const y = 48 + 42 * Math.sin(angle) - 26;
-
   return (
     <div className="theme-curve-switch" aria-hidden={false}>
-      <span className="theme-curve-rail" aria-hidden />
-      <span className="theme-curve-trail" aria-hidden />
       <button
         ref={beadRef}
         type="button"
@@ -120,17 +110,24 @@ export function ThemePullCord() {
           if (moved.current) event.preventDefault();
         }}
         className={`theme-curve-knob${dragging ? " is-dragging" : ""}`}
-        style={{ transform: `translate3d(${x}px, ${y}px, 0) rotate(${progress * 8}deg)` }}
+        style={{ "--theme-switch-progress": progress } as CSSProperties}
+        aria-pressed={theme === "dark"}
         aria-label={
           theme === "light"
-            ? "Light appearance. Drag down for dark."
-            : "Dark appearance. Drag up for light."
+            ? "Light appearance. Slide down to turn dark mode on."
+            : "Dark appearance. Slide up to turn dark mode off."
         }
-        title="Drag down for dark, up for light"
+        title="Slide down for dark, up for light"
       >
-        <span className="theme-curve-glint" aria-hidden />
-        <Sun className="theme-curve-icon" strokeWidth={2.2} aria-hidden />
+        <span className="theme-switch-label theme-switch-label-off" aria-hidden>OFF</span>
+        <span className="theme-switch-label theme-switch-label-on" aria-hidden>ON</span>
+        <span className="theme-switch-thumb" aria-hidden>
+          <span className="theme-switch-thumb-glint" />
+        </span>
       </button>
+      <span className="theme-switch-dots" aria-hidden>
+        {Array.from({ length: 8 }, (_, index) => <i key={index} />)}
+      </span>
     </div>
   );
 }

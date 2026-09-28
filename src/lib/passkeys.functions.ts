@@ -15,12 +15,12 @@ const deviceNameSchema = z.string().trim().min(1).max(60);
 
 const FALLBACK_ORIGIN = "https://skyline-achievers.lovable.app";
 
-function safeOrigin(value: string | null | undefined): { origin: string; rpID: string } | null {
+function parseAbsolute(value: string | null | undefined): { origin: string; rpID: string } | null {
   if (!value) return null;
   const trimmed = value.trim();
-  if (!trimmed || trimmed === "null") return null;
+  if (!trimmed || trimmed === "null" || !trimmed.includes("://")) return null;
   try {
-    const url = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
+    const url = new URL(trimmed);
     if (!url.hostname) return null;
     return { origin: url.origin, rpID: url.hostname };
   } catch {
@@ -28,8 +28,18 @@ function safeOrigin(value: string | null | undefined): { origin: string; rpID: s
   }
 }
 
-// The phone's own address must be used, otherwise WebAuthn rejects the credential.
-// Every candidate is parsed defensively: a bad header must not crash the request.
+// A bare host header like "phone.example.com" or "localhost:8080" carries no scheme,
+// so pair it with the scheme the proxy reports before parsing.
+function parseHost(value: string | null | undefined, scheme: string): { origin: string; rpID: string } | null {
+  if (!value) return null;
+  const host = (value.split(",")[0] ?? "").trim();
+  if (!host || host.includes("/") || host.includes(" ")) return null;
+  return parseAbsolute(`${scheme}://${host}`);
+}
+
+// The phone's own address must be used, otherwise the fingerprint credential is
+// rejected. Every candidate is parsed defensively: a malformed or relative value
+// must never throw and take the whole request down.
 function relyingParty() {
   let request: ReturnType<typeof getRequest> | undefined;
   try {
@@ -38,18 +48,20 @@ function relyingParty() {
     request = undefined;
   }
   const headers = request?.headers;
-  const candidates = [
-    headers?.get("origin"),
-    (headers?.get("x-forwarded-host") ?? "").split(",")[0],
-    headers?.get("host"),
-    request?.url,
-  ];
-  for (const candidate of candidates) {
-    const parsed = safeOrigin(candidate);
-    if (parsed) return parsed;
-  }
-  return safeOrigin(FALLBACK_ORIGIN)!;
+  const scheme = (headers?.get("x-forwarded-proto") ?? "").split(",")[0]?.trim() || "https";
+  const fromOrigin = parseAbsolute(headers?.get("origin"));
+  if (fromOrigin) return fromOrigin;
+  const fromReferer = parseAbsolute(headers?.get("referer"));
+  if (fromReferer) return fromReferer;
+  const fromForwarded = parseHost(headers?.get("x-forwarded-host"), scheme);
+  if (fromForwarded) return fromForwarded;
+  const fromHost = parseHost(headers?.get("host"), scheme);
+  if (fromHost) return fromHost;
+  const fromUrl = parseAbsolute(request?.url);
+  if (fromUrl) return fromUrl;
+  return parseAbsolute(FALLBACK_ORIGIN)!;
 }
+
 
 
 const KNOWN_TRANSPORTS = ["ble", "cable", "hybrid", "internal", "nfc", "smart-card", "usb"] as const;

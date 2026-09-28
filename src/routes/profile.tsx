@@ -176,18 +176,13 @@ function PasswordCard({ memberId }: { memberId: string }) {
     }
     setBusy(true);
     try {
-      // Re-check the current password before changing it.
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: memberIdToAuthEmail(memberId),
-        password: current,
-      });
-      if (signInError) {
-        toast.error("Your current password is incorrect.");
-        return;
-      }
-      const { error } = await supabase.auth.updateUser({ password: next });
-      if (error) {
-        toast.error(error.message);
+      void memberId;
+      const res = await changeMyPassword({ data: { current, next } }).catch(() => ({
+        ok: false as const,
+        message: "Something went wrong. Please try again.",
+      }));
+      if (!res.ok) {
+        toast.error(res.message);
         return;
       }
       toast.success("Password updated. Use it the next time you sign in.");

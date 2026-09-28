@@ -1059,17 +1059,13 @@ function TraineePasswordCard({ traineeCode }: { traineeCode: string }) {
     }
     setBusy(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: memberIdToAuthEmail(traineeCode),
-        password: current,
-      });
-      if (signInError) {
-        toast.error("Your current password is incorrect.");
-        return;
-      }
-      const { error } = await supabase.auth.updateUser({ password: next });
-      if (error) {
-        toast.error(error.message);
+      void traineeCode;
+      const res = await changeMyPassword({ data: { current, next } }).catch(() => ({
+        ok: false as const,
+        message: "Something went wrong. Please try again.",
+      }));
+      if (!res.ok) {
+        toast.error(res.message);
         return;
       }
       setCurrent("");

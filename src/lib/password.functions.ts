@@ -12,8 +12,8 @@ export const changeMyPassword = createServerFn({ method: "POST" })
     try {
       const email = (context.claims as { email?: string }).email;
       if (!email) return { ok: false as const, message: "Account email not found." };
-      const url = process.env.SUPABASE_URL!;
-      const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+      const url = process.env['SUPABASE_URL']!;
+      const key = process.env['SUPABASE_PUBLISHABLE_KEY']!;
       const verifier = createClient(url, key, {
         auth: { persistSession: false, autoRefreshToken: false },
       });

@@ -125,8 +125,14 @@ export function LiquidAtmosphere() {
       draw(0);
     };
 
+    const onTheme = () => {
+      light = document.documentElement.classList.contains("theme-light");
+      if (reduceMotion) draw(0);
+    };
+
     resize();
     draw(0);
+    window.addEventListener(THEME_EVENT, onTheme);
     window.addEventListener("resize", resize, { passive: true });
     window.addEventListener("focus", onRestore);
     window.addEventListener("pageshow", onRestore);
@@ -136,6 +142,7 @@ export function LiquidAtmosphere() {
       running = false;
       cancelFrame();
       window.removeEventListener("resize", resize);
+      window.removeEventListener(THEME_EVENT, onTheme);
       window.removeEventListener("focus", onRestore);
       window.removeEventListener("pageshow", onRestore);
       window.removeEventListener("orientationchange", onRestore);

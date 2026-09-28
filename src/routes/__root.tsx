@@ -186,6 +186,7 @@ function RootComponent() {
       <MotionController />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <ThemePullCord />
       <UploadDock />
       <OfflineSupport />
       <Toaster />

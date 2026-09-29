@@ -38,7 +38,7 @@ export const Route = createFileRoute("/assistants")({
 });
 
 
-const ROLE_LABEL = { calling: "Calling Assistant", full_funnel: "Full Funnel Assistant" } as const;
+const ROLE_LABEL = { calling: "Calling Executive", full_funnel: "Full Funnel Executive" } as const;
 
 function AssistantsPage() {
   const ready = useMemberGuard();

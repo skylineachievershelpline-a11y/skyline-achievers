@@ -4,6 +4,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { GrowthTab } from "@/components/admin/GrowthTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,8 +38,10 @@ export function AssistantsTab() {
 
   return (
     <div className="space-y-6">
+      <GrowthTab />
+
       <section className="glass-panel space-y-4 rounded-2xl p-5">
-        <h3 className="font-semibold">Job Assistant rules</h3>
+        <h3 className="font-semibold">Growth Executive lead rules</h3>
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
             <Label>Minimum sample leads</Label>

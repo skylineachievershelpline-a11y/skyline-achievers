@@ -11,17 +11,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LeadsManager } from "@/components/assistants/LeadsManager";
+import { GrowthCyclePanel } from "@/components/growth/GrowthCyclePanel";
+import { GrowthUnlockCard } from "@/components/growth/GrowthUnlockCard";
 import { getAssistantLink } from "@/lib/assistant-portal.functions";
 import { addAssistant, getMyAssistants, updateAssistant } from "@/lib/assistants.functions";
+import { getGrowthStatus } from "@/lib/growth.functions";
+
 
 export const Route = createFileRoute("/assistants")({
   head: () => ({
     meta: [
-      { title: "Job Assistants — Skyline Achievers" },
-      { name: "description", content: "Hire and manage Calling and Full Funnel Job Assistants for your FBO work." },
+      { title: "Skyline Growth Executive — Skyline Achievers" },
+      {
+        name: "description",
+        content:
+          "Hire Calling and Full Funnel Growth Executives, assign leads and track 10-day cycle commissions.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Job Assistants — Skyline Achievers" },
-      { property: "og:description", content: "Manage your Job Assistants and their roles." },
+      { property: "og:title", content: "Skyline Growth Executive — Skyline Achievers" },
+      { property: "og:description", content: "Leads, calling and performance commissions in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -29,7 +37,8 @@ export const Route = createFileRoute("/assistants")({
   component: AssistantsPage,
 });
 
-const ROLE_LABEL = { calling: "Calling Assistant", full_funnel: "Full Funnel Assistant" } as const;
+
+const ROLE_LABEL = { calling: "Calling Executive", full_funnel: "Full Funnel Executive" } as const;
 
 function AssistantsPage() {
   const ready = useMemberGuard();
@@ -45,10 +54,19 @@ function AssistantsPage() {
     dailyLeadLimit: "50",
   });
 
+  const statusFn = useServerFn(getGrowthStatus);
+  const growth = useQuery({
+    queryKey: ["growth-status"],
+    queryFn: () => statusFn(),
+    enabled: ready,
+    retry: false,
+  });
+  const unlocked = growth.data?.state === "active";
+
   const { data, isPending, error } = useQuery({
     queryKey: ["my-assistants"],
     queryFn: () => load(),
-    enabled: ready,
+    enabled: ready && unlocked,
     retry: false,
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ["my-assistants"] });
@@ -80,16 +98,43 @@ function AssistantsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!ready || isPending) return <SkylineLoader />;
+  if (!ready || growth.isPending) return <SkylineLoader />;
+
+  if (growth.error) {
+    return (
+      <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
+        <div className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">
+          {(growth.error as Error).message}
+        </div>
+      </MemberShell>
+    );
+  }
+
+  if (!unlocked) {
+    return (
+      <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
+        <GrowthUnlockCard
+          state={(growth.data?.state ?? "locked") as "locked" | "pending" | "expired" | "rejected"}
+          unlockFee={growth.data?.unlockFee ?? 0}
+          methods={(growth.data?.methods ?? []) as any}
+          note={growth.data?.access?.note ?? null}
+        />
+      </MemberShell>
+    );
+  }
+
+  if (isPending) return <SkylineLoader />;
 
   return (
-    <MemberShell title="Job Assistants" subtitle="Apna time leverage karein" executive>
+    <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
       {error ? (
         <div className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">{(error as Error).message}</div>
       ) : (
         <div className="space-y-6">
+          <GrowthCyclePanel />
+
           <section className="glass-panel rounded-2xl p-5">
-            <SectionTitle>Naya Assistant add karein</SectionTitle>
+            <SectionTitle>Naya Growth Executive add karein</SectionTitle>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>Full name</Label>
@@ -125,7 +170,7 @@ function AssistantsPage() {
             </div>
             <Button className="mt-4 w-full" disabled={create.isPending || !form.fullName || !form.phone} onClick={() => create.mutate()}>
               {create.isPending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
-              Add assistant
+              Add Growth Executive
             </Button>
             <p className="mt-2 text-xs text-muted-foreground">
               Limit: {data?.settings.maxAssistantsPerFbo} assistants. Ek number sirf ek assistant par.
@@ -133,7 +178,7 @@ function AssistantsPage() {
           </section>
 
           <section className="space-y-3">
-            <SectionTitle>{`Mere Assistants (${data?.assistants.length ?? 0})`}</SectionTitle>
+            <SectionTitle>{`Mere Growth Executives (${data?.assistants.length ?? 0})`}</SectionTitle>
             {(data?.assistants ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">Abhi koi assistant nahi.</p>
             )}

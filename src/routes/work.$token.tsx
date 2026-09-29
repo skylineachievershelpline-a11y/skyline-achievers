@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { AssistantEarningsCard } from "@/components/growth/AssistantEarningsCard";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +16,10 @@ export const Route = createFileRoute("/work/$token")({
   head: () => ({
     meta: [
       { title: "Assistant Workspace — Skyline Achievers" },
-      { name: "description", content: "Private calling workspace for Skyline Achievers Job Assistants." },
+      { name: "description", content: "Private calling workspace for Skyline Growth Executives." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Assistant Workspace — Skyline Achievers" },
-      { property: "og:description", content: "Private calling workspace for Job Assistants." },
+      { property: "og:description", content: "Private calling workspace for Growth Executives." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -96,7 +97,7 @@ function WorkPage() {
         <div className="flex-1">
           <p className="font-semibold">{a.name}</p>
           <p className="text-xs text-muted-foreground">
-            {a.role === "calling" ? "Calling Assistant" : "Full Funnel Assistant"} · FBO {a.fboName}
+            {a.role === "calling" ? "Calling Executive" : "Full Funnel Executive"} · FBO {a.fboName}
           </p>
         </div>
         <ThemeSwitch />
@@ -105,6 +106,8 @@ function WorkPage() {
           <p className="text-[10px] text-muted-foreground">Aaj ki calls</p>
         </div>
       </header>
+
+      <AssistantEarningsCard token={token} />
 
       <div className="grid grid-cols-5 gap-1">
         {TABS.map(([k, l]) => (

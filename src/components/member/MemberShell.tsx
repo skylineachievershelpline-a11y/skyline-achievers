@@ -84,7 +84,7 @@ const NAV = [
   { to: "/seats", label: "Seat Reservation", icon: UserPlus },
   { to: "/leave", label: "Leave Application", icon: FileText },
   { to: "/team", label: "Team Tree", icon: Users },
-  { to: "/assistants", label: "Job Assistants", icon: Briefcase },
+  { to: "/assistants", label: "Skyline Growth Executive", icon: Briefcase },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },

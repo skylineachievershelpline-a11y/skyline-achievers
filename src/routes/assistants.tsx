@@ -11,8 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LeadsManager } from "@/components/assistants/LeadsManager";
+import { GrowthCyclePanel } from "@/components/growth/GrowthCyclePanel";
+import { GrowthUnlockCard } from "@/components/growth/GrowthUnlockCard";
 import { getAssistantLink } from "@/lib/assistant-portal.functions";
 import { addAssistant, getMyAssistants, updateAssistant } from "@/lib/assistants.functions";
+import { getGrowthStatus } from "@/lib/growth.functions";
+
 
 export const Route = createFileRoute("/assistants")({
   head: () => ({

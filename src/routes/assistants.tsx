@@ -54,10 +54,19 @@ function AssistantsPage() {
     dailyLeadLimit: "50",
   });
 
+  const statusFn = useServerFn(getGrowthStatus);
+  const growth = useQuery({
+    queryKey: ["growth-status"],
+    queryFn: () => statusFn(),
+    enabled: ready,
+    retry: false,
+  });
+  const unlocked = growth.data?.state === "active";
+
   const { data, isPending, error } = useQuery({
     queryKey: ["my-assistants"],
     queryFn: () => load(),
-    enabled: ready,
+    enabled: ready && unlocked,
     retry: false,
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ["my-assistants"] });

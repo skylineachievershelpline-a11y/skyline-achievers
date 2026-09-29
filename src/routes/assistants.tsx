@@ -98,14 +98,41 @@ function AssistantsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!ready || isPending) return <SkylineLoader />;
+  if (!ready || growth.isPending) return <SkylineLoader />;
+
+  if (growth.error) {
+    return (
+      <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
+        <div className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">
+          {(growth.error as Error).message}
+        </div>
+      </MemberShell>
+    );
+  }
+
+  if (!unlocked) {
+    return (
+      <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
+        <GrowthUnlockCard
+          state={(growth.data?.state ?? "locked") as "locked" | "pending" | "expired" | "rejected"}
+          unlockFee={growth.data?.unlockFee ?? 0}
+          methods={(growth.data?.methods ?? []) as any}
+          note={growth.data?.access?.note ?? null}
+        />
+      </MemberShell>
+    );
+  }
+
+  if (isPending) return <SkylineLoader />;
 
   return (
-    <MemberShell title="Job Assistants" subtitle="Apna time leverage karein" executive>
+    <MemberShell title="Skyline Growth Executive" subtitle="Apna time leverage karein" executive>
       {error ? (
         <div className="glass-panel rounded-2xl p-6 text-sm text-muted-foreground">{(error as Error).message}</div>
       ) : (
         <div className="space-y-6">
+          <GrowthCyclePanel />
+
           <section className="glass-panel rounded-2xl p-5">
             <SectionTitle>Naya Assistant add karein</SectionTitle>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">

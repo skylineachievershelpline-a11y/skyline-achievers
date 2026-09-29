@@ -16,10 +16,10 @@ export const Route = createFileRoute("/work/$token")({
   head: () => ({
     meta: [
       { title: "Assistant Workspace — Skyline Achievers" },
-      { name: "description", content: "Private calling workspace for Skyline Achievers Job Assistants." },
+      { name: "description", content: "Private calling workspace for Skyline Growth Executives." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Assistant Workspace — Skyline Achievers" },
-      { property: "og:description", content: "Private calling workspace for Job Assistants." },
+      { property: "og:description", content: "Private calling workspace for Growth Executives." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

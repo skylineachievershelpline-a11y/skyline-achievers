@@ -184,7 +184,7 @@ function AdminPage() {
               Paid Courses
             </TabsTrigger>
             <TabsTrigger value="assistants" className="rounded-xl">
-              Job Assistants
+              Growth Executive
             </TabsTrigger>
             <TabsTrigger value="ai-questions" className="rounded-xl">
               AI Questions

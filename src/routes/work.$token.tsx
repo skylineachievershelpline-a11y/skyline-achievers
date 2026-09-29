@@ -96,7 +96,7 @@ function WorkPage() {
         <div className="flex-1">
           <p className="font-semibold">{a.name}</p>
           <p className="text-xs text-muted-foreground">
-            {a.role === "calling" ? "Calling Assistant" : "Full Funnel Assistant"} · FBO {a.fboName}
+            {a.role === "calling" ? "Calling Executive" : "Full Funnel Executive"} · FBO {a.fboName}
           </p>
         </div>
         <ThemeSwitch />
@@ -105,6 +105,8 @@ function WorkPage() {
           <p className="text-[10px] text-muted-foreground">Aaj ki calls</p>
         </div>
       </header>
+
+      <AssistantEarningsCard token={token} />
 
       <div className="grid grid-cols-5 gap-1">
         {TABS.map(([k, l]) => (

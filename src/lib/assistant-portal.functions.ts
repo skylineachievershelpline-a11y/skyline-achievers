@@ -83,8 +83,11 @@ export const logLeadCall = createServerFn({ method: "POST" })
         last_called_at: now,
         call_count: (lead.call_count ?? 0) + 1,
         follow_up_at: status === "follow_up" ? data.followUpAt ?? null : null,
+        // The 10-day cycle maths needs the exact moment of conversion.
+        ...(status === "enrolled" ? { enrolled_at: now } : {}),
+        ...(status === "cc_done" ? { cc_done_at: now } : {}),
         ...(data.note ? { notes: data.note } : {}),
-      })
+      } as any)
       .eq("id", lead.id);
     if (error) throw new Error(error.message);
     await admin.from("job_lead_activities").insert({

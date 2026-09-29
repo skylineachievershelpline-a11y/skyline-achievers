@@ -134,7 +134,7 @@ function AssistantsPage() {
           <GrowthCyclePanel />
 
           <section className="glass-panel rounded-2xl p-5">
-            <SectionTitle>Naya Assistant add karein</SectionTitle>
+            <SectionTitle>Naya Growth Executive add karein</SectionTitle>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>Full name</Label>
@@ -170,7 +170,7 @@ function AssistantsPage() {
             </div>
             <Button className="mt-4 w-full" disabled={create.isPending || !form.fullName || !form.phone} onClick={() => create.mutate()}>
               {create.isPending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
-              Add assistant
+              Add Growth Executive
             </Button>
             <p className="mt-2 text-xs text-muted-foreground">
               Limit: {data?.settings.maxAssistantsPerFbo} assistants. Ek number sirf ek assistant par.
@@ -178,7 +178,7 @@ function AssistantsPage() {
           </section>
 
           <section className="space-y-3">
-            <SectionTitle>{`Mere Assistants (${data?.assistants.length ?? 0})`}</SectionTitle>
+            <SectionTitle>{`Mere Growth Executives (${data?.assistants.length ?? 0})`}</SectionTitle>
             {(data?.assistants ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">Abhi koi assistant nahi.</p>
             )}

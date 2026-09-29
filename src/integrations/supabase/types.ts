@@ -822,6 +822,132 @@ export type Database = {
           },
         ]
       }
+      growth_access: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          expires_at: string | null
+          fbo_id: string
+          id: string
+          method: string | null
+          note: string | null
+          proof_path: string | null
+          reference_no: string | null
+          requested_at: string
+          sender_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          fbo_id: string
+          id?: string
+          method?: string | null
+          note?: string | null
+          proof_path?: string | null
+          reference_no?: string | null
+          requested_at?: string
+          sender_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          fbo_id?: string
+          id?: string
+          method?: string | null
+          note?: string | null
+          proof_path?: string | null
+          reference_no?: string | null
+          requested_at?: string
+          sender_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      growth_commissions: {
+        Row: {
+          amount: number
+          assistant_id: string
+          created_at: string
+          cycle_end: string
+          cycle_start: string
+          fbo_id: string
+          id: string
+          kind: string
+          lead_id: string | null
+          note: string | null
+          paid_at: string | null
+          rate: number
+          status: string
+          units: number
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount?: number
+          assistant_id: string
+          created_at?: string
+          cycle_end: string
+          cycle_start: string
+          fbo_id: string
+          id?: string
+          kind: string
+          lead_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          rate?: number
+          status?: string
+          units?: number
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          assistant_id?: string
+          created_at?: string
+          cycle_end?: string
+          cycle_start?: string
+          fbo_id?: string
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          note?: string | null
+          paid_at?: string | null
+          rate?: number
+          status?: string
+          units?: number
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_commissions_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_commissions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "job_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_assistants: {
         Row: {
           access_token: string
@@ -929,10 +1055,12 @@ export type Database = {
           assistant_id: string | null
           batch_label: string | null
           call_count: number
+          cc_done_at: string | null
           cc_verified_at: string | null
           city: string | null
           created_at: string
           enroll_verified_at: string | null
+          enrolled_at: string | null
           fbo_id: string
           follow_up_at: string | null
           full_name: string | null
@@ -949,10 +1077,12 @@ export type Database = {
           assistant_id?: string | null
           batch_label?: string | null
           call_count?: number
+          cc_done_at?: string | null
           cc_verified_at?: string | null
           city?: string | null
           created_at?: string
           enroll_verified_at?: string | null
+          enrolled_at?: string | null
           fbo_id: string
           follow_up_at?: string | null
           full_name?: string | null
@@ -969,10 +1099,12 @@ export type Database = {
           assistant_id?: string | null
           batch_label?: string | null
           call_count?: number
+          cc_done_at?: string | null
           cc_verified_at?: string | null
           city?: string | null
           created_at?: string
           enroll_verified_at?: string | null
+          enrolled_at?: string | null
           fbo_id?: string
           follow_up_at?: string | null
           full_name?: string | null

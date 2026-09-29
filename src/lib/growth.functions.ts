@@ -355,15 +355,15 @@ export const adminDecideGrowthAccess = createServerFn({ method: "POST" })
       })
       .eq("fbo_id", data.fboId);
     if (error) throw new Error(error.message);
-    const { pushToMember } = await import("./push.server");
-    await pushToMember({
-      memberId: data.fboId,
+    const { pushToUsers } = await import("./push.server");
+    await pushToUsers([data.fboId], {
       title: data.decision === "approve" ? "Growth Executive unlocked" : "Growth Executive request",
       body:
         data.decision === "approve"
           ? "Mubarak ho! Skyline Growth Executive aapke dashboard par unlock ho gaya hai."
           : `Aapki request confirm nahi ho saki. ${data.note ?? "Office se rabta karein."}`,
       tag: "growth-access",
+      path: "/assistants",
     });
     return { ok: true as const };
   });

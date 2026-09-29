@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { AssistantEarningsCard } from "@/components/growth/AssistantEarningsCard";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

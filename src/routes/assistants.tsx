@@ -17,17 +17,22 @@ import { addAssistant, getMyAssistants, updateAssistant } from "@/lib/assistants
 export const Route = createFileRoute("/assistants")({
   head: () => ({
     meta: [
-      { title: "Job Assistants — Skyline Achievers" },
-      { name: "description", content: "Hire and manage Calling and Full Funnel Job Assistants for your FBO work." },
+      { title: "Skyline Growth Executive — Skyline Achievers" },
+      {
+        name: "description",
+        content:
+          "Hire Calling and Full Funnel Growth Executives, assign leads and track 10-day cycle commissions.",
+      },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Job Assistants — Skyline Achievers" },
-      { property: "og:description", content: "Manage your Job Assistants and their roles." },
+      { property: "og:title", content: "Skyline Growth Executive — Skyline Achievers" },
+      { property: "og:description", content: "Leads, calling and performance commissions in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AssistantsPage,
 });
+
 
 const ROLE_LABEL = { calling: "Calling Assistant", full_funnel: "Full Funnel Assistant" } as const;
 

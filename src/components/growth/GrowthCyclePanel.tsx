@@ -54,7 +54,7 @@ export function GrowthCyclePanel() {
       <section className="space-y-3">
         <SectionTitle>Is cycle ki performance</SectionTitle>
         {(data.rows ?? []).length === 0 && <p className="text-sm text-muted-foreground">Abhi koi assistant nahi.</p>}
-        {data.rows.map((r) => (
+        {(data.rows ?? []).map((r) => (
           <div key={r.id} className="glass-panel rounded-2xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>

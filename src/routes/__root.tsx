@@ -141,8 +141,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const WEB_FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Screens paint instantly with the built-in fallback fonts; the designed
+  // fonts arrive right after, so a slow connection never blanks the page.
+  useEffect(() => {
+    if (document.querySelector(`link[href="${WEB_FONTS_HREF}"]`)) return;
+    const load = () => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = WEB_FONTS_HREF;
+      document.head.appendChild(link);
+    };
+    const id = window.setTimeout(load, 0);
+    return () => window.clearTimeout(id);
+  }, []);
+
 
   // Register the service worker so the site can be installed as an app.
   // Never in the editor preview / iframe: browsers block install there and

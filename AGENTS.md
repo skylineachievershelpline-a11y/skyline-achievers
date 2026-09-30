@@ -15,3 +15,4 @@
 - Biometric login uses discoverable WebAuthn passkeys with server-verified challenges; only public keys are stored and successful assertions exchange for the existing account session. Why: biometric material stays on-device while accounts remain tied to current dashboards.
 - Resolve `tslib` to its ESM build in Vite config. Why: Vite 8/Rolldown otherwise breaks the WebAuthn server dependency graph with undefined TypeScript helpers.
 - Skyline Growth Executive uses one effective-dated settings source and server-owned verification ledger; enrollment money is per 10-lead batch and 2CC money per PKT cycle. Why: reported outcomes cannot directly create payable money.
+- Growth Executive commissions become payable only after the owning FBO funds an office-approved settlement linked to those ledger rows. Why: commissions and Skyline fees must reconcile without cross-FBO leakage.

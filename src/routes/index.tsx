@@ -106,7 +106,9 @@ function LandingPage() {
 
   useEffect(() => {
     let active = true;
+    if (!hasStoredSession()) document.documentElement.removeAttribute("data-signed-in");
     if (consumeOpenLoginFlag()) {
+      document.documentElement.removeAttribute("data-signed-in");
       setLoginOpen(true);
       return;
     }
@@ -115,9 +117,11 @@ function LandingPage() {
       // Opened like a chat app: go straight to the screen this person was last
       // using, without waiting for the internet to confirm anything.
       const saved = listDeviceAccounts()[0];
-      const home = saved?.kind === "trainee" ? "/beginners" : "/dashboard";
+      const home = saved?.kind === "trainee" ? "/beginners" : saved?.kind === "executive" ? "/executive" : "/dashboard";
       const remembered = lastScreen();
-      void navigate({ to: (remembered ?? home) as typeof home });
+      void navigate({ to: (remembered ?? home) as typeof home, replace: true }).finally(() =>
+        document.documentElement.removeAttribute("data-signed-in"),
+      );
       return;
     }
     void getAccessToken().then(async (token) => {

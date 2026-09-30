@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";

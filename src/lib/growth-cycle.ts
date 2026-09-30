@@ -96,15 +96,19 @@ export function inCycle(cycle: GrowthCycle, when: string | null | undefined) {
   return day >= cycle.start && day <= cycle.end;
 }
 
-export const enrollmentRateForCount = (count: number, tiers: EnrollmentTier[] = DEFAULT_GROWTH_SETTINGS.enrollmentTiers) =>
-  [...tiers]
+export const enrollmentRateForCount = (count: number, tiers: EnrollmentTier[] = DEFAULT_GROWTH_SETTINGS.enrollmentTiers) => {
+  if (count > 4) return Math.min(200, 120 + (count - 4) * 30);
+  return [...tiers]
     .sort((a, b) => a.count - b.count)
-    .reduce((best, tier) => (count >= tier.count ? tier.perEnrollment : best), count > 4 ? Math.min(200, 120 + (count - 4) * 30) : 0);
+    .reduce((best, tier) => (count >= tier.count ? tier.perEnrollment : best), 0);
+};
 
-export const ccRateForCount = (count: number, tiers: CcTier[] = DEFAULT_GROWTH_SETTINGS.ccTiers) =>
-  [...tiers]
+export const ccRateForCount = (count: number, tiers: CcTier[] = DEFAULT_GROWTH_SETTINGS.ccTiers) => {
+  if (count > 3) return 7000 + (count - 3) * 2000;
+  return [...tiers]
     .sort((a, b) => a.minCount - b.minCount)
-    .reduce((best, tier) => (count >= tier.minCount ? tier.perCc : best), count > 3 ? 7000 + (count - 3) * 2000 : 0);
+    .reduce((best, tier) => (count >= tier.minCount ? tier.perCc : best), 0);
+};
 
 export type CycleInput = { leads: number; enrolled: number; ccDone: number };
 

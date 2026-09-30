@@ -79,7 +79,7 @@ export const uploadLeads = createServerFn({ method: "POST" })
     const activeIds = (team ?? []).map((a) => a.id);
     const plan: (string | null)[] = [];
     if (data.mode === "equal" && activeIds.length > 0) {
-      const complete = Math.floor(fresh.length / (activeIds.length * 10)) * activeIds.length * 10;
+      const complete = Math.floor(fresh.length / 10) * 10;
       for (let i = 0; i < complete; i += 1) plan.push(activeIds[Math.floor(i / 10) % activeIds.length] ?? null);
     } else if (data.mode === "custom") {
       for (const c of data.custom ?? []) {
@@ -177,13 +177,16 @@ export const reassignLeads = createServerFn({ method: "POST" })
         .maybeSingle();
       if (!a) throw new Error("Assistant active nahi hai.");
     }
-    let q = admin
-      .from("job_leads")
-      .update({ assistant_id: data.assistantId, assigned_at: data.assistantId ? new Date().toISOString() : null })
-      .eq("fbo_id", context.userId);
-    if (data.fromUnassigned) q = q.is("assistant_id", null);
-    else q = q.in("id", data.leadIds ?? []);
-    const { error } = await q;
+    let ids = data.leadIds ?? [];
+    if (data.fromUnassigned) {
+      const { data: unassigned } = await admin.from("job_leads").select("id").eq("fbo_id", context.userId).is("assistant_id", null).order("created_at").limit(1000);
+      const complete = Math.floor((unassigned?.length ?? 0) / 10) * 10;
+      if (complete === 0) throw new Error("At least 10 unassigned leads are required for a complete batch.");
+      ids = (unassigned ?? []).slice(0, complete).map((row) => row.id);
+    }
+    if (ids.length === 0) throw new Error("Select at least one lead.");
+    const { error } = await admin.from("job_leads").update({ assistant_id: data.assistantId, assigned_at: data.assistantId ? new Date().toISOString() : null }).eq("fbo_id", context.userId).in("id", ids);
     if (error) throw new Error(error.message);
+    if (data.assistantId) await admin.from("job_leads").update({ attribution_assistant_id: data.assistantId }).eq("fbo_id", context.userId).in("id", ids).is("attribution_assistant_id", null);
     return { ok: true as const };
   });

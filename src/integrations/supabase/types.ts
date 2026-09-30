@@ -895,6 +895,7 @@ export type Database = {
           rate: number
           reference: string | null
           service_fee: number
+          settlement_id: string | null
           status: string
           units: number
           updated_at: string
@@ -919,6 +920,7 @@ export type Database = {
           rate?: number
           reference?: string | null
           service_fee?: number
+          settlement_id?: string | null
           status?: string
           units?: number
           updated_at?: string
@@ -943,6 +945,7 @@ export type Database = {
           rate?: number
           reference?: string | null
           service_fee?: number
+          settlement_id?: string | null
           status?: string
           units?: number
           updated_at?: string
@@ -976,6 +979,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "job_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_commissions_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "growth_settlements"
             referencedColumns: ["id"]
           },
           {

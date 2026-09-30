@@ -186,12 +186,14 @@ type LeadRow = {
   cc_done_at: string | null;
   enroll_verified_at: string | null;
   cc_verified_at: string | null;
+  enrollment_verification_status?: string;
+  cc_verification_status?: string;
 };
 
 function statsFor(rows: LeadRow[], cycle: ReturnType<typeof cycleOf>) {
   const worked = rows.filter((r) => inCycle(cycle, r.assigned_at ?? r.created_at));
-  const enrolled = rows.filter((r) => inCycle(cycle, r.enrolled_at ?? r.enroll_verified_at)).length;
-  const ccDone = rows.filter((r) => inCycle(cycle, r.cc_done_at ?? r.cc_verified_at)).length;
+  const enrolled = rows.filter((r) => r.enrollment_verification_status === "verified" && inCycle(cycle, r.enroll_verified_at)).length;
+  const ccDone = rows.filter((r) => r.cc_verification_status === "verified" && inCycle(cycle, r.cc_verified_at)).length;
   return { leads: worked.length, enrolled, ccDone };
 }
 
@@ -202,7 +204,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
     const { admin, member } = await fboRow(context.userId);
     const settings = await readSettings();
     const cycle = cycleOf();
-    const [{ data: assistants }, { data: leads }] = await Promise.all([
+    const [{ data: assistants }, { data: leads }, { data: ledger }] = await Promise.all([
       (admin as any)
         .from("job_assistants")
         .select("id, full_name, role, status")
@@ -212,15 +214,21 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
       (admin as any)
         .from("job_leads")
         .select(
-          "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at",
+          "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at, enrollment_verification_status, cc_verification_status",
         )
         .eq("fbo_id", member.id)
         .limit(20000),
+      (admin as any)
+        .from("growth_commissions")
+        .select("assistant_id, amount")
+        .eq("fbo_id", member.id),
     ]);
     const all = (leads ?? []) as LeadRow[];
+    const ledgerRows = (ledger ?? []) as any[];
     const rows = ((assistants ?? []) as any[]).map((a) => {
       const mine = all.filter((l) => l.assistant_id === a.id);
       const earn = cycleEarnings(statsFor(mine, cycle), settings);
+      const ledgerAmount = ledgerRows.filter((entry) => entry.assistant_id === a.id).reduce((sum, entry) => sum + Number(entry.amount), 0);
       return {
         id: a.id as string,
         name: a.full_name as string,
@@ -228,6 +236,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         status: a.status as string,
         totalLeads: mine.length,
         ...earn,
+        total: ledgerAmount,
       };
     });
     return {
@@ -238,49 +247,9 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         leads: rows.reduce((s, r) => s + r.leads, 0),
         enrolled: rows.reduce((s, r) => s + r.enrolled, 0),
         ccDone: rows.reduce((s, r) => s + r.ccDone, 0),
-        amount: rows.reduce((s, r) => s + r.total, 0),
+        amount: ledgerRows.reduce((sum, entry) => sum + Number(entry.amount), 0),
       },
       unassigned: all.filter((l) => !l.assistant_id).length,
-    };
-  });
-
-/* ---------- Assistant portal ---------- */
-
-/** One assistant's own earnings, opened with their private link. */
-export const getAssistantEarnings = createServerFn({ method: "POST" })
-  .inputValidator((d: { token: string }) =>
-    z.object({ token: z.string().regex(/^[a-f0-9]{48}$/) }).parse(d),
-  )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: assistant } = await (supabaseAdmin as any)
-      .from("job_assistants")
-      .select("id, fbo_id, status")
-      .eq("access_token", data.token)
-      .maybeSingle();
-    if (!assistant || assistant.status === "removed") throw new Error("Ye link ab valid nahi hai.");
-    const settings = await readSettings();
-    const cycle = cycleOf();
-    const { data: leads } = await (supabaseAdmin as any)
-      .from("job_leads")
-      .select(
-        "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at",
-      )
-      .eq("assistant_id", assistant.id)
-      .limit(20000);
-    const mine = (leads ?? []) as LeadRow[];
-    const { data: paidRows } = await (supabaseAdmin as any)
-      .from("growth_commissions")
-      .select("amount, status")
-      .eq("assistant_id", assistant.id);
-    const sum = (s: string) =>
-      ((paidRows ?? []) as any[]).filter((r) => r.status === s).reduce((t, r) => t + Number(r.amount), 0);
-    return {
-      cycle,
-      settings,
-      earnings: cycleEarnings(statsFor(mine, cycle), settings),
-      totalLeads: mine.length,
-      ledger: { verified: sum("verified"), payable: sum("payable"), paid: sum("paid") },
     };
   });
 
@@ -322,10 +291,12 @@ export const adminSaveGrowthSettings = createServerFn({ method: "POST" })
       enrollmentTiers: [...data.enrollmentTiers].sort((a, b) => a.count - b.count),
       ccTiers: [...data.ccTiers].sort((a, b) => a.minCount - b.minCount),
     };
+    const effectiveFrom = new Date().toISOString();
     const { error } = await (supabaseAdmin as any)
       .from("platform_settings")
       .upsert({ key: SETTINGS_KEY, value: sorted, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
+    await (supabaseAdmin as any).from("growth_rate_cards").insert({ effective_from: effectiveFrom, settings: sorted, created_by: "admin" });
     return { ok: true as const };
   });
 

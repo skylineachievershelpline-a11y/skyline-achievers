@@ -9,7 +9,7 @@ export type DeviceAccount = {
   userId: string;
   name: string;
   code: string;
-  kind: "member" | "trainee";
+  kind: "member" | "trainee" | "executive";
   refreshToken: string;
   /** Kept so switching can restore the session instantly, without a refresh. */
   accessToken?: string | undefined;
@@ -37,7 +37,7 @@ function write(list: DeviceAccount[]) {
 export async function rememberCurrentAccount(info: {
   name?: string;
   code?: string;
-  kind?: "member" | "trainee";
+  kind?: "member" | "trainee" | "executive";
 }) {
   if (typeof window === "undefined") return;
   const { data } = await supabase.auth.getSession();
@@ -62,12 +62,12 @@ export function forgetAccount(userId: string) {
 }
 
 /** Switch to another saved account. Returns where to go, or null if it expired. */
-export async function switchToAccount(userId: string): Promise<"/dashboard" | "/beginners" | null> {
+export async function switchToAccount(userId: string): Promise<"/dashboard" | "/beginners" | "/executive" | null> {
   const target = listDeviceAccounts().find((a) => a.userId === userId);
   if (!target) return null;
   // Save the account we are leaving so we can come back to it in one tap.
   await rememberCurrentAccount({});
-  const destination = target.kind === "trainee" ? "/beginners" : "/dashboard";
+  const destination = target.kind === "trainee" ? "/beginners" : target.kind === "executive" ? "/executive" : "/dashboard";
 
   // 1) Fastest path: put the stored session back without spending the
   //    one-time refresh token. Works while the access token is still valid.

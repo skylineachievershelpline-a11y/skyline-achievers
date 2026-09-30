@@ -16,6 +16,7 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
+import { Route as ExecutiveRouteImport } from './routes/executive'
 import { Route as LeaveRouteImport } from './routes/leave'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PayMentorshipRouteImport } from './routes/pay-mentorship'
@@ -39,9 +40,9 @@ import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureI
 import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
-import { Route as WorkTokenRouteImport } from './routes/work.$token'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
 import { Route as ApiPublicAiRouteImport } from './routes/api.public.ai'
+import { Route as ApplyGrowthTokenRouteImport } from './routes/apply.growth.$token'
 import { Route as ApiPublicCronNotifyRouteImport } from './routes/api.public.cron.notify'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +78,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const EnrollmentVideoRoute = EnrollmentVideoRouteImport.update({
   id: '/enrollment-video',
   path: '/enrollment-video',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutiveRoute = ExecutiveRouteImport.update({
+  id: '/executive',
+  path: '/executive',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaveRoute = LeaveRouteImport.update({
@@ -194,11 +200,6 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
   path: '/session/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkTokenRoute = WorkTokenRouteImport.update({
-  id: '/work/$token',
-  path: '/work/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminMemberMemberIdRoute = AdminMemberMemberIdRouteImport.update({
   id: '/admin/member/$memberId',
   path: '/admin/member/$memberId',
@@ -207,6 +208,11 @@ const AdminMemberMemberIdRoute = AdminMemberMemberIdRouteImport.update({
 const ApiPublicAiRoute = ApiPublicAiRouteImport.update({
   id: '/api/public/ai',
   path: '/api/public/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplyGrowthTokenRoute = ApplyGrowthTokenRouteImport.update({
+  id: '/apply/growth/$token',
+  path: '/apply/growth/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCronNotifyRoute = ApiPublicCronNotifyRouteImport.update({
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -244,11 +251,11 @@ export interface FileRoutesByFullPath {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesByTo {
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -280,11 +288,11 @@ export interface FileRoutesByTo {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin': typeof AdminIndexRoute
   '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesById {
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -317,11 +326,11 @@ export interface FileRoutesById {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRouteTypes {
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -355,11 +365,11 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -391,11 +402,11 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin'
     | '/ai'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   id:
     | '__root__'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -427,11 +439,11 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   fileRoutesById: FileRoutesById
 }
@@ -443,6 +455,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   EnrollmentVideoRoute: typeof EnrollmentVideoRoute
+  ExecutiveRoute: typeof ExecutiveRoute
   LeaveRoute: typeof LeaveRoute
   NotificationsRoute: typeof NotificationsRoute
   PayMentorshipRoute: typeof PayMentorshipRoute
@@ -464,11 +477,11 @@ export interface RootRouteChildren {
   ReportTokenRoute: typeof ReportTokenRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
-  WorkTokenRoute: typeof WorkTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
   ApiPublicAiRoute: typeof ApiPublicAiRoute
+  ApplyGrowthTokenRoute: typeof ApplyGrowthTokenRoute
   ApiPublicCronNotifyRoute: typeof ApiPublicCronNotifyRoute
 }
 
@@ -521,6 +534,13 @@ declare module '@tanstack/react-router' {
       path: '/enrollment-video'
       fullPath: '/enrollment-video'
       preLoaderRoute: typeof EnrollmentVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executive': {
+      id: '/executive'
+      path: '/executive'
+      fullPath: '/executive'
+      preLoaderRoute: typeof ExecutiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leave': {
@@ -684,13 +704,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/work/$token': {
-      id: '/work/$token'
-      path: '/work/$token'
-      fullPath: '/work/$token'
-      preLoaderRoute: typeof WorkTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/member/$memberId': {
       id: '/admin/member/$memberId'
       path: '/admin/member/$memberId'
@@ -703,6 +716,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ai'
       fullPath: '/api/public/ai'
       preLoaderRoute: typeof ApiPublicAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply/growth/$token': {
+      id: '/apply/growth/$token'
+      path: '/apply/growth/$token'
+      fullPath: '/apply/growth/$token'
+      preLoaderRoute: typeof ApplyGrowthTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/notify': {
@@ -723,6 +743,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   EnrollmentVideoRoute: EnrollmentVideoRoute,
+  ExecutiveRoute: ExecutiveRoute,
   LeaveRoute: LeaveRoute,
   NotificationsRoute: NotificationsRoute,
   PayMentorshipRoute: PayMentorshipRoute,
@@ -744,11 +765,11 @@ const rootRouteChildren: RootRouteChildren = {
   ReportTokenRoute: ReportTokenRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
-  WorkTokenRoute: WorkTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
   ApiPublicAiRoute: ApiPublicAiRoute,
+  ApplyGrowthTokenRoute: ApplyGrowthTokenRoute,
   ApiPublicCronNotifyRoute: ApiPublicCronNotifyRoute,
 }
 export const routeTree = rootRouteImport

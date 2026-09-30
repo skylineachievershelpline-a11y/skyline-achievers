@@ -299,33 +299,33 @@ export function MemberShell({
 
       <nav
         aria-label="Main navigation"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-metal/25 bg-background/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-lift backdrop-blur-xl"
+        className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]"
       >
-        <div className="bottom-nav-scroll mx-auto flex max-w-6xl items-end gap-1 overflow-x-auto px-2 pb-1">
+        <div className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2">
           {visibleNav.map((item) => {
             const locked = lockReason(item.to);
             const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`));
             const content = (
               <>
-                <span className={cn("grid h-9 w-9 place-items-center rounded-full transition-all", active && "-translate-y-3 bg-primary text-primary-foreground shadow-brand")}>
+                <span className={cn("app-bottom-nav-icon", active && "is-active")}>
                   {locked ? <Lock className="h-4.5 w-4.5" /> : <item.icon className="h-4.5 w-4.5" />}
                 </span>
-                <span className={cn("max-w-16 truncate text-[9px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
+                <span className={cn("app-bottom-nav-label", active && "is-active")}>{item.label}</span>
               </>
             );
             return locked ? (
-              <button key={item.to} type="button" title={item.label} onClick={() => toast.info(locked)} className="flex w-16 shrink-0 flex-col items-center gap-0.5 py-1">
+              <button key={item.to} type="button" title={item.label} onClick={() => toast.info(locked)} className="app-bottom-nav-item">
                 {content}
               </button>
             ) : (
-              <Link key={item.to} to={item.to} title={item.label} aria-current={active ? "page" : undefined} className="flex w-16 shrink-0 flex-col items-center gap-0.5 py-1">
+              <Link key={item.to} to={item.to} title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
                 {content}
               </Link>
             );
           })}
-          <button type="button" title="Settings" onClick={() => setSettingsOpen(true)} className="flex w-16 shrink-0 flex-col items-center gap-0.5 py-1">
-            <span className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground"><Settings className="h-4.5 w-4.5" /></span>
-            <span className="max-w-16 truncate text-[9px] font-medium text-muted-foreground">Settings</span>
+          <button type="button" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item">
+            <span className="app-bottom-nav-icon"><Settings className="h-4.5 w-4.5" /></span>
+            <span className="app-bottom-nav-label">Settings</span>
           </button>
         </div>
       </nav>

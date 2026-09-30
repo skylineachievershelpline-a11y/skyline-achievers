@@ -115,6 +115,95 @@
   scroll-snap-align: center;
 }
 
+.app-bottom-nav-track {
+  height: 4.65rem;
+  border: 1px solid color-mix(in oklab, var(--metal) 30%, transparent);
+  border-radius: 2.35rem;
+  background: color-mix(in oklab, var(--background) 91%, transparent);
+  box-shadow: var(--shadow-lift), 0 1px 0 color-mix(in oklab, var(--foreground) 12%, transparent) inset;
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.app-bottom-nav-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 20%;
+  min-width: 4.25rem;
+  height: 4.65rem;
+  flex: 0 0 20%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.45rem 0.15rem 0.25rem;
+  color: var(--muted-foreground);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-bottom-nav-icon {
+  position: relative;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  transition: color 220ms ease, transform 480ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 280ms ease, box-shadow 280ms ease;
+}
+
+.app-bottom-nav-icon.is-active {
+  z-index: 2;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  box-shadow: var(--shadow-brand);
+  transform: translateY(-1.45rem) scale(1.18);
+  animation: bottom-nav-bubble-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.app-bottom-nav-icon.is-active::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -0.38rem;
+  border: 0.28rem solid color-mix(in oklab, var(--background) 92%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--background) 92%, transparent);
+  box-shadow: -0.75rem 0.75rem 0 -0.55rem color-mix(in oklab, var(--background) 92%, transparent), 0.75rem 0.75rem 0 -0.55rem color-mix(in oklab, var(--background) 92%, transparent);
+}
+
+.app-bottom-nav-label {
+  max-width: 4rem;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.56rem;
+  font-weight: 600;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 240ms ease, transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 240ms ease;
+}
+
+.app-bottom-nav-label.is-active {
+  color: var(--brand-glow);
+  transform: translateY(-0.3rem);
+}
+
+@keyframes bottom-nav-bubble-in {
+  0% { transform: translateY(0) scale(0.82); }
+  58% { transform: translateY(-1.62rem) scale(1.24); }
+  100% { transform: translateY(-1.45rem) scale(1.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bottom-nav-icon,
+  .app-bottom-nav-label {
+    animation: none;
+    transition-duration: 1ms;
+  }
+}
+
 :root {
   --radius: 1rem;
 

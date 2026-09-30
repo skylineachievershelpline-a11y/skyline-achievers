@@ -337,6 +337,13 @@
       "when": 1790728669434,
       "tag": "0047_link_growth_executive_auth_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790729064365,
+      "tag": "0048_secure_growth_executive_auth_link",
+      "breakpoints": true
     }
   ]
 }

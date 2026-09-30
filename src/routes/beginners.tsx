@@ -24,6 +24,7 @@ import {
   Loader2,
   Lock,
   LogOut,
+  Menu,
   MessageCircle,
   PlayCircle,
   Search,
@@ -31,9 +32,10 @@ import {
   ShieldCheck,
   Unlock,
   Camera,
+  X,
 } from "lucide-react";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
@@ -242,6 +244,7 @@ function BeginnersPage() {
   const [code, setCode] = useState("");
   const [focused, setFocused] = useState<FocusedSession | null>(null);
   const [view, setView] = useState<BeginnerView>("home");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [commentsFor, setCommentsFor] = useState<FeedReel | null>(null);
@@ -250,6 +253,15 @@ function BeginnersPage() {
   useEffect(() => {
     setPortalReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     let active = true;
@@ -458,15 +470,26 @@ function BeginnersPage() {
   function selectView(next: BeginnerView) {
     setFocused(null);
     setView(next);
+    setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
-    <div className="infographic-grid relative min-h-screen pb-28">
+    <div className="infographic-grid relative min-h-screen pb-14">
       <div className="spotlight pointer-events-none fixed inset-0" aria-hidden />
 
       <header className="sticky top-0 z-30 border-b border-hairline/60 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            className="shrink-0 rounded-xl"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
           {focused || view !== "home" ? (
             <Button
               type="button"
@@ -515,44 +538,91 @@ function BeginnersPage() {
         </div>
       ) : null}
 
-      {portalReady && typeof document !== "undefined" ? createPortal(
-      <nav aria-label="Beginners navigation" className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
-        <div
-          className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-4xl items-end overflow-x-auto px-2"
-          style={{
-            "--bottom-nav-index": settingsOpen
-              ? BEGINNER_NAV.length + 3
-              : Math.max(0, BEGINNER_NAV.findIndex((item) => item.id === view)),
-          } as CSSProperties}
-        >
-          <span className="app-bottom-nav-selection" aria-hidden="true" />
-          {BEGINNER_NAV.map((item) => {
-            const active = view === item.id;
-            return (
-              <Button key={item.id} type="button" variant="ghost" title={item.label} onClick={() => selectView(item.id)} className="app-bottom-nav-item h-auto rounded-none px-0">
-                <span className={cn("app-bottom-nav-icon", active && "is-active")}><item.icon className="h-4.5 w-4.5" /></span>
-                <span className={cn("app-bottom-nav-label", active && "is-active")}>{item.label}</span>
+      {portalReady && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className={cn(
+                "fixed inset-0 z-[200] transition-opacity duration-300",
+                menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
+            >
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+                className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+              />
+              <aside
+                className={cn(
+                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[84vw] max-w-xs flex-col rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  menuOpen ? "translate-x-0" : "-translate-x-full",
+                )}
+              >
+          <div className="flex items-center justify-between gap-2">
+            <BrandLogo size="sm" />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="rounded-full"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="mt-5 rounded-2xl border border-cyan/20 bg-primary/10 p-3">
+            <p className="truncate font-display text-sm font-semibold">{trainee.fullName}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              Beginners Training
+            </p>
+          </div>
+          <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto">
+            {BEGINNER_NAV.map((item) => (
+              <Button
+                key={item.id}
+                type="button"
+                variant="ghost"
+                onClick={() => selectView(item.id)}
+                className={cn(
+                  "h-11 w-full justify-start rounded-xl px-3 text-muted-foreground",
+                  view === item.id && "border border-cyan/30 bg-primary/15 text-foreground shadow-glass",
+                )}
+              >
+                <item.icon className="h-4 w-4 text-brand-glow" />
+                {item.label}
               </Button>
-            );
-          })}
-          {[
-            { to: "/courses" as const, label: "Premium Courses", icon: Crown },
-            { to: "/chat" as const, label: "Chat with Upline", icon: MessageCircle },
-            { to: "/ai" as const, label: "Skyline AI", icon: Bot },
-          ].map((item) => (
-            <Link key={item.to} to={item.to} viewTransition title={item.label} className="app-bottom-nav-item">
-              <span className="app-bottom-nav-icon"><item.icon className="h-4.5 w-4.5" /></span>
-              <span className="app-bottom-nav-label">{item.label}</span>
-            </Link>
-          ))}
-          <Button type="button" variant="ghost" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item h-auto rounded-none px-0">
-            <span className={cn("app-bottom-nav-icon", settingsOpen && "is-active")}><SettingsIcon className="h-4.5 w-4.5" /></span>
-            <span className={cn("app-bottom-nav-label", settingsOpen && "is-active")}>Settings</span>
-          </Button>
-        </div>
-      </nav>,
-        document.body,
-      ) : null}
+            ))}
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/courses">
+                <Crown className="h-4 w-4 text-brand-glow" />
+                Premium Courses
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/chat">
+                <MessageCircle className="h-4 w-4 text-brand-glow" />
+                Chat with Upline
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground">
+              <Link to="/ai">
+                <Bot className="h-4 w-4 text-brand-glow" />
+                Skyline Achievers AI
+              </Link>
+            </Button>
+          </nav>
+          <button type="button" onClick={() => void signOut()} className="logout-button mt-4 w-full">
+            <LogOut className="h-4 w-4" /> Logout
+          </button>
+          <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {BRAND.tagline}
+          </p>
+              </aside>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <main className="relative mx-auto max-w-4xl px-4 py-5">
         {/* ---------- profile + tracking ---------- */}

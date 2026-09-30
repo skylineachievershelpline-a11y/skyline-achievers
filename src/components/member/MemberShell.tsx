@@ -10,17 +10,21 @@ import {
   FileText,
   Home,
   Link2,
+  Menu,
   Lock,
   MessageCircle,
+  LogOut,
   Search,
   FolderOpen,
   User,
   UserPlus,
   Users,
+  X,
 } from "lucide-react";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { BackButton } from "@/components/member/BackButton";
 import { VoiceGuideButton } from "@/components/voice/VoiceGuide";
 import { StoryLogo } from "@/components/story/StoryLogo";
@@ -37,7 +41,6 @@ import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { hasStoredSession } from "@/lib/offline-cache";
 import { Briefcase, Settings } from "lucide-react";
 
-
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
   const navigate = useNavigate();
@@ -45,8 +48,7 @@ export function useMemberGuard() {
 
   useEffect(() => {
     let active = true;
-    // An account already saved on this phone opens its screens immediately —
-    // the sign-in check keeps running behind the screen, like a chat app.
+    // Open saved accounts immediately while the live sign-in check continues.
     if (hasStoredSession()) setReady(true);
     void getAccessToken().then((token) => {
       if (!active) return;
@@ -56,7 +58,6 @@ export function useMemberGuard() {
       }
       setReady(true);
     });
-
 
     // Only a real sign-out sends a person back. Early "no session yet" events
     // fired while the stored session is still loading used to bounce the app
@@ -161,6 +162,7 @@ export function MemberShell({
 }) {
   const navigate = useNavigate();
   const loadNotifications = useServerFn(getNotifications);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const trainingOnly = useTrainingOnly();
@@ -188,6 +190,11 @@ export function MemberShell({
     }
     return null;
   }
+
+  // Close the side menu whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     setPortalReady(true);
@@ -217,14 +224,6 @@ export function MemberShell({
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const selectedNavIndex = settingsOpen
-    ? visibleNav.length
-    : Math.max(
-        0,
-        visibleNav.findIndex(
-          (item) => pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`)),
-        ),
-      );
   const memberAccess = useMemberAccess();
   useEffect(() => {
     const m = memberAccess?.member as any;
@@ -243,11 +242,20 @@ export function MemberShell({
   }
 
   return (
-    <div className={cn("motion-scope cinematic-shell infographic-grid relative min-h-screen bg-background pb-28 text-foreground", executive && "member-workspace")}> 
+    <div className={cn("motion-scope cinematic-shell infographic-grid relative min-h-screen bg-background pb-10 text-foreground", executive && "member-workspace")}> 
       <div className="cinematic-ambient pointer-events-none fixed inset-0" aria-hidden />
 
       <header className="cinematic-nav sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-metal/30 bg-surface text-foreground shadow-glass transition-colors hover:border-cyan/40 hover:bg-surface-2"
+          >
+            <Menu className="h-4.5 w-4.5" />
+          </button>
+
           {pathname !== "/dashboard" ? <BackButton fallback="/dashboard" /> : null}
 
           <StoryLogo size={34} />
@@ -289,61 +297,106 @@ export function MemberShell({
         </div>
       </header>
 
-      {portalReady && settingsOpen && typeof document !== "undefined"
+      {/* Render outside animated page layers so the menu always stays visible. */}
+      {portalReady && typeof document !== "undefined"
         ? createPortal(
-            <div className="fixed inset-0 z-[220] bg-background/70 backdrop-blur-sm">
-              <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-hidden border-l border-hairline bg-background shadow-lift">
-                <AccountSettings
-                  currentName={(memberAccess?.member as any)?.fullName ?? title ?? "Account"}
-                  currentCode={(memberAccess?.member as any)?.accountId ?? ""}
-                  onClose={() => setSettingsOpen(false)}
-                  onSignOut={signOut}
-                />
-              </div>
+            <div
+              className={cn(
+                "fixed inset-0 z-[200] transition-opacity duration-300",
+                menuOpen ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
+              onPointerDown={(event) => {
+                if (!(event.target as HTMLElement).closest("aside")) setMenuOpen(false);
+              }}
+              onTouchStart={(event) => {
+                (event.currentTarget as any)._sx = event.touches[0]?.clientX ?? 0;
+              }}
+              onTouchEnd={(event) => {
+                const sx = (event.currentTarget as any)._sx ?? 0;
+                if (sx - (event.changedTouches[0]?.clientX ?? sx) > 60) setMenuOpen(false);
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+                className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+              />
+              <aside
+                className={cn(
+                   "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex max-h-[100dvh] w-[82vw] max-w-xs flex-col overflow-hidden rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  menuOpen ? "translate-x-0" : "-translate-x-full",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <BrandLogo size="sm" />
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-glass text-muted-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
+                  {visibleNav.map((item) =>
+                    lockReason(item.to) ? (
+                      <button
+                        key={item.to}
+                        type="button"
+                        onClick={() => toast.info(lockReason(item.to) as string)}
+                        className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
+                      >
+                        <Lock className="h-4.5 w-4.5 text-muted-foreground/60" />
+                        {item.label}
+                        <span className="ml-auto text-[10px] uppercase tracking-[0.14em]">Locked</span>
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                        activeProps={{
+                          className:
+                            "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
+                        }}
+                      >
+                        <item.icon className="h-4.5 w-4.5 text-brand-glow" />
+                        {item.label}
+                      </Link>
+                    ),
+                  )}
+                </nav>
+
+                <div className="shrink-0 border-t border-hairline pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setSettingsOpen(true)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold shadow-glass hover:border-cyan/40"
+                  >
+                    <Settings className="h-4.5 w-4.5 text-brand-glow" />
+                    Settings
+                  </button>
+                  <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {BRAND.tagline}
+                  </p>
+                </div>
+                {settingsOpen ? (
+                  <AccountSettings
+                    currentName={(memberAccess?.member as any)?.fullName ?? title ?? "Account"}
+                    currentCode={(memberAccess?.member as any)?.accountId ?? ""}
+                    onClose={() => setSettingsOpen(false)}
+                    onSignOut={signOut}
+                  />
+                ) : null}
+              </aside>
             </div>,
             document.body,
           )
         : null}
-
-      {portalReady && typeof document !== "undefined" ? createPortal(
-      <nav
-        aria-label="Main navigation"
-        className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]"
-      >
-        <div
-          className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2"
-          style={{ "--bottom-nav-index": selectedNavIndex } as CSSProperties}
-        >
-          <span className="app-bottom-nav-selection" aria-hidden="true" />
-          {visibleNav.map((item) => {
-            const locked = lockReason(item.to);
-            const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`));
-            const content = (
-              <>
-                <span className={cn("app-bottom-nav-icon", active && "is-active")}>
-                  {locked ? <Lock className="h-4.5 w-4.5" /> : <item.icon className="h-4.5 w-4.5" />}
-                </span>
-                <span className={cn("app-bottom-nav-label", active && "is-active")}>{item.label}</span>
-              </>
-            );
-            return locked ? (
-              <button key={item.to} type="button" title={item.label} onClick={() => toast.info(locked)} className="app-bottom-nav-item">
-                {content}
-              </button>
-            ) : (
-              <Link key={item.to} to={item.to} viewTransition title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
-                {content}
-              </Link>
-            );
-          })}
-          <button type="button" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item">
-            <span className={cn("app-bottom-nav-icon", settingsOpen && "is-active")}><Settings className="h-4.5 w-4.5" /></span>
-            <span className={cn("app-bottom-nav-label", settingsOpen && "is-active")}>Settings</span>
-          </button>
-        </div>
-      </nav>,
-        document.body,
-      ) : null}
 
       <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">
         {lockReason(pathname) && pathname !== "/notifications" ? (

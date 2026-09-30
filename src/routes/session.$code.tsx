@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { ReviewShareNotice } from "@/components/journey/ReviewShareNotice";
 import { SessionReviewForm } from "@/components/journey/SessionReviewForm";
 import { SessionGate } from "@/components/media/SessionGate";
@@ -90,11 +91,7 @@ function SessionPage() {
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-4xl">
         <header className="mb-6 flex items-center gap-3 animate-rise-in">
-          <Link to="/" aria-label="Back to landing page">
-            <Button variant="outline" size="icon" className="rounded-2xl">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <BackButton fallback="/" className="h-10 w-10 rounded-2xl" />
           <BrandLogo size="sm" withWordmark={false} />
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

@@ -40,7 +40,6 @@ import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureI
 import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
-import { Route as WorkTokenRouteImport } from './routes/work.$token'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
 import { Route as ApiPublicAiRouteImport } from './routes/api.public.ai'
 import { Route as ApplyGrowthTokenRouteImport } from './routes/apply.growth.$token'
@@ -201,11 +200,6 @@ const SessionCodeRoute = SessionCodeRouteImport.update({
   path: '/session/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkTokenRoute = WorkTokenRouteImport.update({
-  id: '/work/$token',
-  path: '/work/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminMemberMemberIdRoute = AdminMemberMemberIdRouteImport.update({
   id: '/admin/member/$memberId',
   path: '/admin/member/$memberId',
@@ -257,7 +251,6 @@ export interface FileRoutesByFullPath {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
@@ -295,7 +288,6 @@ export interface FileRoutesByTo {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin': typeof AdminIndexRoute
   '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
@@ -334,7 +326,6 @@ export interface FileRoutesById {
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
-  '/work/$token': typeof WorkTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
@@ -374,7 +365,6 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
@@ -412,7 +402,6 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin'
     | '/ai'
     | '/admin/member/$memberId'
@@ -450,7 +439,6 @@ export interface FileRouteTypes {
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
-    | '/work/$token'
     | '/admin/'
     | '/ai/'
     | '/admin/member/$memberId'
@@ -489,7 +477,6 @@ export interface RootRouteChildren {
   ReportTokenRoute: typeof ReportTokenRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
-  WorkTokenRoute: typeof WorkTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
@@ -717,13 +704,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/work/$token': {
-      id: '/work/$token'
-      path: '/work/$token'
-      fullPath: '/work/$token'
-      preLoaderRoute: typeof WorkTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/member/$memberId': {
       id: '/admin/member/$memberId'
       path: '/admin/member/$memberId'
@@ -785,7 +765,6 @@ const rootRouteChildren: RootRouteChildren = {
   ReportTokenRoute: ReportTokenRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,
-  WorkTokenRoute: WorkTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,

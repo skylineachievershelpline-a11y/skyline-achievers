@@ -40,7 +40,7 @@ export function AssistantEarningsCard({ token }: { token: string }) {
       </div>
       {e.nextEnrollmentTier ? (
         <p className="mt-2 text-[11px] text-muted-foreground">
-          {e.nextEnrollmentTier.minRate}% conversion par har enrollment {money(e.nextEnrollmentTier.perEnrollment)} ka ho jayega.
+          Batch mein {e.nextEnrollmentTier.count} verified enrollments par har enrollment {money(e.nextEnrollmentTier.perEnrollment)} ka ho jayega.
         </p>
       ) : null}
       {e.nextCcTier ? (

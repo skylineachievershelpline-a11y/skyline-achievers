@@ -73,7 +73,7 @@ export function GrowthCyclePanel() {
             </div>
             {r.nextEnrollmentTier ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                {r.nextEnrollmentTier.minRate}% conversion par per enrollment {money(r.nextEnrollmentTier.perEnrollment)} ho jayega.
+                Batch mein {r.nextEnrollmentTier.count} verified enrollments par per enrollment {money(r.nextEnrollmentTier.perEnrollment)} ho jayega.
               </p>
             ) : null}
             {r.nextCcTier ? (

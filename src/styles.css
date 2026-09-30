@@ -1882,20 +1882,38 @@ body > div > :not(.liquid-atmosphere) {
 
 .install-app-dialog {
   background:
-    linear-gradient(145deg, color-mix(in oklab, var(--card) 96%, var(--brand) 4%), var(--card));
-  box-shadow: var(--shadow-lift), 0 0 4rem color-mix(in oklab, var(--brand) 18%, transparent);
+    linear-gradient(145deg, color-mix(in oklab, var(--glass-strong) 94%, var(--brand) 6%), var(--card));
+  box-shadow: var(--shadow-lift), 0 2.5rem 7rem color-mix(in oklab, var(--brand) 24%, transparent);
+  backdrop-filter: blur(22px) saturate(132%);
 }
 
-.install-app-dropzone {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-height: 7.5rem;
-  border: 1px solid color-mix(in oklab, var(--metal) 20%, transparent);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  background: color-mix(in oklab, var(--background) 76%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
+.install-app-logo-stage {
+  width: clamp(4.8rem, 18vw, 6.25rem);
+  aspect-ratio: 1;
+  border-radius: 1.25rem;
+  padding: .22rem;
+  background: linear-gradient(145deg, color-mix(in oklab, var(--cyan) 26%, var(--surface-2)), color-mix(in oklab, var(--brand) 62%, var(--background)));
+  box-shadow: var(--shadow-brand), 0 1.4rem 3rem color-mix(in oklab, var(--brand) 32%, transparent);
+}
+
+.install-app-zone {
+  border: 1px solid color-mix(in oklab, var(--metal) 18%, transparent);
+  border-radius: 1.15rem;
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 7%, transparent), inset 0 1.2rem 3rem color-mix(in oklab, black 26%, transparent);
+}
+
+.install-app-status-icon {
+  color: var(--brand-glow);
+  background: color-mix(in oklab, var(--surface-2) 84%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.install-app-action:hover { transform: translateY(-2px) scale(1.02); }
+.install-app-action:active { transform: translateY(1px) scale(.985); }
+
+@media (prefers-reduced-motion: reduce) {
+  .install-app-action { transition: none; }
 }
 
 .hero-scanline { overflow: hidden; background: var(--hairline); }

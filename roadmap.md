@@ -319,3 +319,11 @@
 - [x] Add reference-style FBO reel upload
 - [x] Replace floating theme control with compact header switches
 - [ ] Verify signed-in profile and FBO reel screens (no preview session available)
+
+## Premium app installation and dashboard Settings
+- [x] Reuse one native PWA install window on landing, Member/FBO, Beginners and Executive dashboards
+- [x] Match the supplied dark glass installation-card composition with the existing Skyline logo
+- [x] Show real installed state and browser-menu guidance without fake progress
+- [x] Keep Appearance and Log out inside each dashboard Settings area
+- [x] Remove Add account and Switch account from Beginners Training Settings
+- [ ] Verify every signed-in dashboard Settings window with a real account

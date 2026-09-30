@@ -1,8 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Loader2, LogOut, Plus, Repeat, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, LogOut, Plus, Repeat, UserCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
+import { AppInstallDialog } from "@/components/pwa/AppInstallDialog";
+import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,11 +20,13 @@ export function AccountSettings({
   currentCode,
   onClose,
   onSignOut,
+  allowAccountManagement = true,
 }: {
   currentName: string;
   currentCode: string;
   onClose: () => void;
   onSignOut: () => void;
+  allowAccountManagement?: boolean;
 }) {
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState<DeviceAccount[]>([]);
@@ -84,7 +88,14 @@ export function AccountSettings({
         <ThemeSwitch />
       </div>
 
-      <p className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <AppInstallDialog>
+        <Button variant="outline" className="mt-3 h-auto w-full justify-start rounded-2xl p-3 text-left">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-brand-glow"><Download /></span>
+          <span><span className="block text-sm font-semibold">Install Skyline Achievers</span><span className="block text-[11px] font-normal text-muted-foreground">Faster access from your home screen</span></span>
+        </Button>
+      </AppInstallDialog>
+
+      {allowAccountManagement ? <><p className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         <Repeat className="h-3.5 w-3.5" /> Switch account
       </p>
       <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto">
@@ -112,16 +123,16 @@ export function AccountSettings({
             </button>
           ))
         )}
-      </div>
+      </div></> : <div className="min-h-4 flex-1" />}
 
       <div className="shrink-0 space-y-2 border-t border-hairline pt-3">
-        <button
+        {allowAccountManagement ? <button
           type="button"
           onClick={() => void addAccount()}
           className="flex w-full items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold hover:border-cyan/40"
         >
           <Plus className="h-4.5 w-4.5 text-brand-glow" /> Add account
-        </button>
+        </button> : null}
         <button type="button" onClick={onSignOut} className="logout-button w-full font-display text-sm">
           <LogOut className="h-4 w-4" /> Log out
         </button>

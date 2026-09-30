@@ -104,7 +104,7 @@ async function parseFile(file: File): Promise<Row[]> {
     .filter((r) => r.phone);
 }
 
-export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
+export function LeadsManager({ assistants = [] }: { assistants?: Assistant[] }) {
   const qc = useQueryClient();
   const load = useServerFn(getMyLeads);
   const upload = useServerFn(uploadLeads);

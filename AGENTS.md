@@ -8,10 +8,10 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
-- Job Assistant system: job_assistants table is service-role only (no RLS policies); all access via src/lib/assistants.functions.ts with FBO (rank_order>=2) or admin checks. Commission tiers live in platform_settings key job_assistant_settings. Why: strict FBO isolation.
+- Skyline Growth Executive records are service-role only; authenticated FBO and Executive server functions scope every read/write by immutable FBO and Executive ownership. Why: strict cross-FBO and financial isolation.
 - Job leads: job_leads table service-role only, unique (fbo_id, phone_tail = last 10 digits); Excel/CSV parsed in browser with xlsx, sent as rows to src/lib/leads.functions.ts. Why: FBO isolation + dedupe.
-- Assistant portal: assistants have no login; they open /work/$token (48-hex access_token on job_assistants, resettable by FBO). Why: assistants are not platform members.
+- Growth Executives use separate 12-digit `22` accounts linked by `job_assistants.auth_user_id`; legacy `/work/$token` links are retired. Why: secure pauseable accounts and an independent mobile dashboard.
 - Appearance: compact horizontal header switches persist light/dark choice and control semantic theme tokens everywhere. Why: one consistent, unobtrusive theme control across landing, member, assistant, and admin screens.
 - Biometric login uses discoverable WebAuthn passkeys with server-verified challenges; only public keys are stored and successful assertions exchange for the existing account session. Why: biometric material stays on-device while accounts remain tied to current dashboards.
 - Resolve `tslib` to its ESM build in Vite config. Why: Vite 8/Rolldown otherwise breaks the WebAuthn server dependency graph with undefined TypeScript helpers.
-- Skyline Growth Executive: paid per-FBO unlock in growth_access (service-role only, verified by admin), commission rates in platform_settings key growth_executive_settings, money computed per 10-day PKT cycle by src/lib/growth-cycle.ts and served from src/lib/growth.functions.ts. Why: one shared cycle engine for FBO, assistant portal and admin.
+- Skyline Growth Executive uses one effective-dated settings source and server-owned verification ledger; enrollment money is per 10-lead batch and 2CC money per PKT cycle. Why: reported outcomes cannot directly create payable money.

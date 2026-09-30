@@ -23,8 +23,12 @@ const PROOF_BUCKET = "payment-proofs";
 const settingsSchema = z.object({
   unlockFee: z.number().min(0).max(1_000_000),
   unlockDays: z.number().int().min(0).max(3650),
+  maxExecutivesPerFbo: z.number().int().min(1).max(200),
+  dailyLeadTarget: z.number().int().min(10).max(500),
+  enrollmentServiceFee: z.number().min(0).max(100_000),
+  ccServiceFee: z.number().min(0).max(1_000_000),
   enrollmentTiers: z
-    .array(z.object({ minRate: z.number().min(0).max(100), perEnrollment: z.number().min(0).max(100_000) }))
+    .array(z.object({ count: z.number().int().min(1).max(1000), perEnrollment: z.number().min(0).max(100_000) }))
     .min(1)
     .max(20),
   ccTiers: z
@@ -315,7 +319,7 @@ export const adminSaveGrowthSettings = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const sorted = {
       ...data,
-      enrollmentTiers: [...data.enrollmentTiers].sort((a, b) => a.minRate - b.minRate),
+      enrollmentTiers: [...data.enrollmentTiers].sort((a, b) => a.count - b.count),
       ccTiers: [...data.ccTiers].sort((a, b) => a.minCount - b.minCount),
     };
     const { error } = await (supabaseAdmin as any)

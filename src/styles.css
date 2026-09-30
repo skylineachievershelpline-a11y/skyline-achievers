@@ -140,9 +140,15 @@
   width: var(--bottom-nav-item-width);
   height: 3.7rem;
   pointer-events: none;
+  view-transition-name: bottom-nav-selection;
   transform: translate3d(calc(var(--bottom-nav-index, 0) * 100%), 0, 0);
   transition: transform 460ms cubic-bezier(0.22, 0.8, 0.26, 1);
   will-change: transform;
+}
+
+::view-transition-group(bottom-nav-selection) {
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.22, 0.8, 0.26, 1);
 }
 
 .app-bottom-nav-selection::before {

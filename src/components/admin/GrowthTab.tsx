@@ -19,7 +19,7 @@ import {
   adminGrantGrowthAccess,
   adminSaveGrowthSettings,
 } from "@/lib/growth.functions";
-import { adminDecideExecutiveApplication, adminDecideSettlement, adminDecideVerification, adminDecideWithdrawal, adminGetExecutiveOperations } from "@/lib/growth-executive.functions";
+import { adminDecideExecutiveApplication, adminDecideSettlement, adminDecideVerification, adminDecideWithdrawal, adminGetExecutiveOperations, adminSetExecutiveStatus } from "@/lib/growth-executive.functions";
 
 export function GrowthTab() {
   const qc = useQueryClient();
@@ -33,6 +33,7 @@ export function GrowthTab() {
   const decideVerificationFn = useServerFn(adminDecideVerification);
   const decideWithdrawalFn = useServerFn(adminDecideWithdrawal);
   const decideSettlementFn = useServerFn(adminDecideSettlement);
+  const setExecutiveStatusFn = useServerFn(adminSetExecutiveStatus);
   const ops = useQuery({ queryKey: ["admin-growth-operations"], queryFn: () => opsFn() });
   const [s, setS] = useState<GrowthSettings | null>(null);
   const [code, setCode] = useState("");
@@ -70,6 +71,7 @@ export function GrowthTab() {
   const verification = useMutation({ mutationFn: (v: { id: string; decision: "verify" | "reject" }) => decideVerificationFn({ data: v }), onSuccess: () => { toast.success("Result reviewed"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
   const withdrawal = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" | "paid"; reference?: string }) => decideWithdrawalFn({ data: v }), onSuccess: () => { toast.success("Withdrawal updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
   const settlement = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" }) => decideSettlementFn({ data: v }), onSuccess: () => { toast.success("Settlement updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
+  const executiveStatus = useMutation({ mutationFn: (v: { id: string; status: "active" | "paused" | "removed" }) => setExecutiveStatusFn({ data: v }), onSuccess: () => { toast.success("Executive access updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
 
   if (isPending || !s) return <Loader2 className="mx-auto size-6 animate-spin" />;
   const num = (v: string) => Number(v) || 0;
@@ -102,6 +104,11 @@ export function GrowthTab() {
         <Button className="w-full" disabled={saving.isPending} onClick={() => saving.mutate()}>
           {saving.isPending && <Loader2 className="size-4 animate-spin" />} Save settings
         </Button>
+      </section>
+
+      <section className="glass-panel space-y-3 rounded-2xl p-5">
+        <h3 className="font-semibold">Growth Executive accounts ({ops.data?.executives.length ?? 0})</h3>
+        {(ops.data?.executives ?? []).map((r: any) => <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 p-3 text-sm"><div><strong>{r.full_name} · {r.executive_id}</strong><p className="text-xs text-muted-foreground">{r.role === "calling" ? "Calling" : "Full Funnel"} · {r.status} · FBO {r.fbo?.full_name} ({r.fbo?.member_id})</p></div><div className="flex gap-2">{r.status !== "active" && <Button size="sm" disabled={executiveStatus.isPending} onClick={() => executiveStatus.mutate({ id: r.id, status: "active" })}>Activate</Button>}{r.status === "active" && <Button size="sm" variant="outline" onClick={() => executiveStatus.mutate({ id: r.id, status: "paused" })}>Pause</Button>}{r.status !== "removed" && <Button size="sm" variant="destructive" onClick={() => executiveStatus.mutate({ id: r.id, status: "removed" })}>Remove</Button>}</div></div>)}
       </section>
 
       <section className="glass-panel space-y-3 rounded-2xl p-5">

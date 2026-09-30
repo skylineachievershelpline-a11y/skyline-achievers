@@ -204,7 +204,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
     const { admin, member } = await fboRow(context.userId);
     const settings = await readSettings();
     const cycle = cycleOf();
-    const [{ data: assistants }, { data: leads }] = await Promise.all([
+    const [{ data: assistants }, { data: leads }, { data: ledger }] = await Promise.all([
       (admin as any)
         .from("job_assistants")
         .select("id, full_name, role, status")
@@ -218,12 +218,17 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         )
         .eq("fbo_id", member.id)
         .limit(20000),
+      (admin as any)
+        .from("growth_commissions")
+        .select("assistant_id, amount")
+        .eq("fbo_id", member.id),
     ]);
     const all = (leads ?? []) as LeadRow[];
+    const ledgerRows = (ledger ?? []) as any[];
     const rows = ((assistants ?? []) as any[]).map((a) => {
       const mine = all.filter((l) => l.assistant_id === a.id);
       const earn = cycleEarnings(statsFor(mine, cycle), settings);
-      const ledgerAmount = ((ledger ?? []) as any[]).filter((entry) => entry.assistant_id === a.id).reduce((sum, entry) => sum + Number(entry.amount), 0);
+      const ledgerAmount = ledgerRows.filter((entry) => entry.assistant_id === a.id).reduce((sum, entry) => sum + Number(entry.amount), 0);
       return {
         id: a.id as string,
         name: a.full_name as string,
@@ -242,7 +247,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         leads: rows.reduce((s, r) => s + r.leads, 0),
         enrolled: rows.reduce((s, r) => s + r.enrolled, 0),
         ccDone: rows.reduce((s, r) => s + r.ccDone, 0),
-        amount: ledgerAmount,
+        amount: ledgerRows.reduce((sum, entry) => sum + Number(entry.amount), 0),
       },
       unassigned: all.filter((l) => !l.assistant_id).length,
     };

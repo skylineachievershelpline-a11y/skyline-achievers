@@ -19,7 +19,7 @@ import {
   adminGrantGrowthAccess,
   adminSaveGrowthSettings,
 } from "@/lib/growth.functions";
-import { adminDecideExecutiveApplication, adminDecideVerification, adminDecideWithdrawal, adminGetExecutiveOperations } from "@/lib/growth-executive.functions";
+import { adminDecideExecutiveApplication, adminDecideSettlement, adminDecideVerification, adminDecideWithdrawal, adminGetExecutiveOperations } from "@/lib/growth-executive.functions";
 
 export function GrowthTab() {
   const qc = useQueryClient();
@@ -32,6 +32,7 @@ export function GrowthTab() {
   const decideAppFn = useServerFn(adminDecideExecutiveApplication);
   const decideVerificationFn = useServerFn(adminDecideVerification);
   const decideWithdrawalFn = useServerFn(adminDecideWithdrawal);
+  const decideSettlementFn = useServerFn(adminDecideSettlement);
   const ops = useQuery({ queryKey: ["admin-growth-operations"], queryFn: () => opsFn() });
   const [s, setS] = useState<GrowthSettings | null>(null);
   const [code, setCode] = useState("");
@@ -68,6 +69,7 @@ export function GrowthTab() {
   const application = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" | "changes_requested"; note?: string }) => decideAppFn({ data: v }), onSuccess: (result) => { if (result.executiveId) toast.success(`Created ${result.executiveId} / ${result.password}`); else toast.success("Application updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
   const verification = useMutation({ mutationFn: (v: { id: string; decision: "verify" | "reject" }) => decideVerificationFn({ data: v }), onSuccess: () => { toast.success("Result reviewed"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
   const withdrawal = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" | "paid"; reference?: string }) => decideWithdrawalFn({ data: v }), onSuccess: () => { toast.success("Withdrawal updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
+  const settlement = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" }) => decideSettlementFn({ data: v }), onSuccess: () => { toast.success("Settlement updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
 
   if (isPending || !s) return <Loader2 className="mx-auto size-6 animate-spin" />;
   const num = (v: string) => Number(v) || 0;
@@ -110,6 +112,11 @@ export function GrowthTab() {
       <section className="glass-panel space-y-3 rounded-2xl p-5">
         <h3 className="font-semibold">Result verification ({ops.data?.verification.length ?? 0})</h3>
         {(ops.data?.verification ?? []).map((r: any) => <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 p-3 text-sm"><div><strong>{r.kind === "enrollment" ? "Rs. 249 enrollment" : "2CC completion"}</strong><p className="text-xs text-muted-foreground">{r.lead?.full_name} · {r.lead?.phone} · {r.assistant?.full_name} ({r.assistant?.executive_id})</p></div><div className="flex gap-2"><Button size="sm" onClick={() => verification.mutate({ id: r.id, decision: "verify" })}>Verify & ledger</Button><Button size="sm" variant="outline" onClick={() => verification.mutate({ id: r.id, decision: "reject" })}>Reject</Button></div></div>)}
+      </section>
+
+      <section className="glass-panel space-y-3 rounded-2xl p-5">
+        <h3 className="font-semibold">FBO settlements ({ops.data?.settlements.length ?? 0})</h3>
+        {(ops.data?.settlements ?? []).map((r: any) => <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 p-3 text-sm"><div><strong>{r.fbo?.full_name} · Rs. {Number(r.total_due).toLocaleString("en-PK")}</strong><p className="text-xs text-muted-foreground">{r.kind === "enrollment" ? "Enrollment" : "2CC"} · {r.status} · Commission Rs. {Number(r.commission_amount).toLocaleString("en-PK")} + fee Rs. {Number(r.service_fee).toLocaleString("en-PK")}</p>{r.proofUrl && <a className="text-xs text-primary underline" href={r.proofUrl} target="_blank" rel="noreferrer">View payment proof</a>}</div>{r.status === "submitted" && <div className="flex gap-2"><Button size="sm" disabled={settlement.isPending} onClick={() => settlement.mutate({ id: r.id, decision: "approve" })}>Approve & make payable</Button><Button size="sm" variant="outline" onClick={() => settlement.mutate({ id: r.id, decision: "reject" })}>Reject</Button></div>}</div>)}
       </section>
 
       <section className="glass-panel space-y-3 rounded-2xl p-5">

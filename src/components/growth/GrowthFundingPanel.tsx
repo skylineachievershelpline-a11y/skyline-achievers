@@ -1,0 +1,27 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { ImagePlus, Loader2, WalletCards } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
+import { SectionTitle } from "@/components/member/MemberShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createGrowthSettlementUploadUrl, getFboGrowthFunding, submitGrowthSettlement } from "@/lib/growth-executive.functions";
+import { money } from "@/lib/growth-cycle";
+import { putWithProgress } from "@/lib/upload-progress";
+
+export function GrowthFundingPanel() {
+  const qc = useQueryClient(); const load = useServerFn(getFboGrowthFunding); const upload = useServerFn(createGrowthSettlementUploadUrl); const submit = useServerFn(submitGrowthSettlement);
+  const { data } = useQuery({ queryKey: ["growth-funding"], queryFn: () => load(), retry: false });
+  const [kind, setKind] = useState<"enrollment" | "two_cc">("enrollment"); const [method, setMethod] = useState(""); const [senderName, setSenderName] = useState(""); const [referenceNo, setReferenceNo] = useState(""); const [file, setFile] = useState<File | null>(null); const [progress, setProgress] = useState(0);
+  const selected = data?.summary.find((row: any) => row.kind === kind); const walletMethods = (data?.methods ?? []).map((row: any) => ({ name: row.label, accountTitle: row.account_name ?? "", accountNumber: row.account_number ?? "", instructions: row.instructions ?? "", qrUrl: row.qr_url ?? "" }));
+  const send = useMutation({ mutationFn: async () => { if (!file) throw new Error("Attach the payment screenshot."); const ready = await compressImageForUpload(file, 900_000); const slot = await upload({ data: { fileName: ready.name } }); await putWithProgress(slot.signedUrl, ready, setProgress); return submit({ data: { kind, method: method || "Bank", senderName, ...(referenceNo ? { referenceNo } : {}), proofPath: slot.path } }); }, onSuccess: () => { toast.success("Settlement sent for office verification"); setFile(null); setProgress(0); void qc.invalidateQueries({ queryKey: ["growth-funding"] }); }, onError: (e: Error) => toast.error(e.message) });
+  if (!data) return null;
+  return <section className="glass-panel space-y-4 rounded-2xl p-5"><div className="flex items-center gap-2"><WalletCards className="size-5 text-primary" /><SectionTitle>Team commission funding</SectionTitle></div><p className="text-sm text-muted-foreground">Fund verified results so Executive earnings become payable. Enrollment settlements are handled on the 1st/15th; 2CC funding is handled from the 5th–10th.</p><div className="grid grid-cols-2 gap-2">{data.summary.map((row: any) => <Button key={row.kind} variant={kind === row.kind ? "default" : "outline"} className="h-auto flex-col py-3" onClick={() => setKind(row.kind)}><span>{row.kind === "enrollment" ? "Enrollments" : "2CC"}</span><small>{row.count} verified · {money(row.total)}</small></Button>)}</div>{selected?.count > 0 ? <><div className="grid grid-cols-3 gap-2 text-center text-xs"><Box label="Commission" value={money(selected.commission)} /><Box label="Service fee" value={money(selected.serviceFee)} /><Box label="Total due" value={money(selected.total)} /></div>{walletMethods.length > 0 && <PaymentMethodWallet methods={walletMethods} selectedName={method} onSelect={setMethod} />}<div className="grid gap-3 sm:grid-cols-2"><div><Label>Sender name</Label><Input value={senderName} onChange={(e) => setSenderName(e.target.value)} /></div><div><Label>Reference number</Label><Input value={referenceNo} onChange={(e) => setReferenceNo(e.target.value)} /></div></div><label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border p-4 text-sm"><ImagePlus className="size-4 text-primary" />{file?.name ?? "Attach payment screenshot"}<input className="hidden" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label><Button className="w-full" disabled={send.isPending || !file || senderName.trim().length < 2} onClick={() => send.mutate()}>{send.isPending ? <Loader2 className="animate-spin" /> : null}{progress > 0 && progress < 100 ? `Uploading ${progress}%` : `Submit ${money(selected.total)}`}</Button></> : <p className="rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">No verified unfunded {kind === "enrollment" ? "enrollment" : "2CC"} commission.</p>}<div className="space-y-2">{data.settlements.map((row: any) => <div key={row.id} className="flex justify-between rounded-xl border border-border/50 p-3 text-sm"><span>{row.kind === "enrollment" ? "Enrollment" : "2CC"}<small className="block capitalize text-muted-foreground">{row.status}</small></span><strong>{money(Number(row.total_due))}</strong></div>)}</div></section>;
+}
+
+function Box({ label, value }: { label: string; value: string }) { return <div className="rounded-xl bg-card/60 p-3"><p className="text-muted-foreground">{label}</p><strong className="mt-1 block">{value}</strong></div>; }

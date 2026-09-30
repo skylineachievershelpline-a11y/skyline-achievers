@@ -79,7 +79,7 @@ export const uploadLeads = createServerFn({ method: "POST" })
     const activeIds = (team ?? []).map((a) => a.id);
     const plan: (string | null)[] = [];
     if (data.mode === "equal" && activeIds.length > 0) {
-      const complete = Math.floor(fresh.length / (activeIds.length * 10)) * activeIds.length * 10;
+      const complete = Math.floor(fresh.length / 10) * 10;
       for (let i = 0; i < complete; i += 1) plan.push(activeIds[Math.floor(i / 10) % activeIds.length] ?? null);
     } else if (data.mode === "custom") {
       for (const c of data.custom ?? []) {

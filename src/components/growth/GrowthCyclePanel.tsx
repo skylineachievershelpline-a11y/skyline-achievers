@@ -68,19 +68,10 @@ export function GrowthCyclePanel() {
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
               <Cell label="Cycle leads" value={String(r.leads)} />
               <Cell label="Enrolled" value={`${r.enrolled} (${r.conversionRate}%)`} />
-              <Cell label="Per enrollment" value={money(r.enrollmentRate)} />
-              <Cell label="2CC" value={`${r.ccDone} × ${money(r.ccRate)}`} />
+              <Cell label="Verified enrollment" value={String(r.enrolled)} />
+              <Cell label="Verified 2CC" value={String(r.ccDone)} />
             </div>
-            {r.nextEnrollmentTier ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Batch mein {r.nextEnrollmentTier.count} verified enrollments par per enrollment {money(r.nextEnrollmentTier.perEnrollment)} ho jayega.
-              </p>
-            ) : null}
-            {r.nextCcTier ? (
-              <p className="text-xs text-muted-foreground">
-                Is cycle mein {r.nextCcTier.minCount} 2CC par per 2CC {money(r.nextCcTier.perCc)} milega.
-              </p>
-            ) : null}
+            <p className="mt-2 text-xs text-muted-foreground">Commission is added only after office verification.</p>
           </div>
         ))}
       </section>

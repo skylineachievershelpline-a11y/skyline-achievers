@@ -186,12 +186,14 @@ type LeadRow = {
   cc_done_at: string | null;
   enroll_verified_at: string | null;
   cc_verified_at: string | null;
+  enrollment_verification_status?: string;
+  cc_verification_status?: string;
 };
 
 function statsFor(rows: LeadRow[], cycle: ReturnType<typeof cycleOf>) {
   const worked = rows.filter((r) => inCycle(cycle, r.assigned_at ?? r.created_at));
-  const enrolled = rows.filter((r) => inCycle(cycle, r.enrolled_at ?? r.enroll_verified_at)).length;
-  const ccDone = rows.filter((r) => inCycle(cycle, r.cc_done_at ?? r.cc_verified_at)).length;
+  const enrolled = rows.filter((r) => r.enrollment_verification_status === "verified" && inCycle(cycle, r.enroll_verified_at)).length;
+  const ccDone = rows.filter((r) => r.cc_verification_status === "verified" && inCycle(cycle, r.cc_verified_at)).length;
   return { leads: worked.length, enrolled, ccDone };
 }
 
@@ -212,7 +214,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
       (admin as any)
         .from("job_leads")
         .select(
-          "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at",
+          "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at, enrollment_verification_status, cc_verification_status",
         )
         .eq("fbo_id", member.id)
         .limit(20000),
@@ -221,6 +223,7 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
     const rows = ((assistants ?? []) as any[]).map((a) => {
       const mine = all.filter((l) => l.assistant_id === a.id);
       const earn = cycleEarnings(statsFor(mine, cycle), settings);
+      const ledgerAmount = ((ledger ?? []) as any[]).filter((entry) => entry.assistant_id === a.id).reduce((sum, entry) => sum + Number(entry.amount), 0);
       return {
         id: a.id as string,
         name: a.full_name as string,
@@ -228,10 +231,9 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         status: a.status as string,
         totalLeads: mine.length,
         ...earn,
+        total: ledgerAmount,
       };
     });
-    const { data: ledger } = await (admin as any).from("growth_commissions").select("assistant_id,kind,amount,status").eq("fbo_id", member.id);
-    const ledgerAmount = ((ledger ?? []) as any[]).reduce((sum, row) => sum + Number(row.amount), 0);
     return {
       cycle,
       settings,

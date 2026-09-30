@@ -515,6 +515,7 @@ function BeginnersPage() {
         </div>
       ) : null}
 
+      {portalReady && typeof document !== "undefined" ? createPortal(
       <nav aria-label="Beginners navigation" className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
         <div className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-4xl items-end overflow-x-auto px-2">
           {BEGINNER_NAV.map((item) => {
@@ -541,7 +542,9 @@ function BeginnersPage() {
             <span className="app-bottom-nav-label">Settings</span>
           </Button>
         </div>
-      </nav>
+      </nav>,
+        document.body,
+      ) : null}
 
       <main className="relative mx-auto max-w-4xl px-4 py-5">
         {/* ---------- profile + tracking ---------- */}

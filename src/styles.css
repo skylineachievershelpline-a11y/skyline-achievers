@@ -101,6 +101,20 @@
   font-family: var(--font-achiever-display);
 }
 
+.bottom-nav-scroll {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+
+.bottom-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bottom-nav-scroll > * {
+  scroll-snap-align: center;
+}
+
 :root {
   --radius: 1rem;
 

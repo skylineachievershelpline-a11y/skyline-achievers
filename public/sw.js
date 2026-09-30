@@ -1,7 +1,7 @@
 // Service worker: makes the site installable, keeps the app working offline
 // (saved screens + app files), and shows push notifications while the app is
 // closed. Training media is never cached.
-const CACHE = "skyline-shell-v3";
+const CACHE = "skyline-shell-v4";
 const SHELL = ["/", "/dashboard", "/beginners", "/manifest.webmanifest", "/app-icon-192.png", "/app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -23,11 +23,35 @@ self.addEventListener("activate", (event) => {
 });
 
 const MEDIA = /\.(mp4|webm|mov|m4a|mp3|ogg|wav)$/i;
+const FONT_HOSTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com$/;
+const PAGE_NETWORK_TIMEOUT = 1500;
+
+function saveCopy(key, response) {
+  const copy = response.clone();
+  void caches.open(CACHE).then((cache) => cache.put(key, copy));
+}
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
+
+  // Designed fonts: served instantly from storage after the first visit.
+  if (FONT_HOSTS.test(url.origin)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const fresh = fetch(request)
+          .then((response) => {
+            if (response.ok || response.type === "opaque") saveCopy(request, response);
+            return response;
+          })
+          .catch(() => cached);
+        return cached || fresh;
+      }),
+    );
+    return;
+  }
+
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/_serverFn") || url.pathname.startsWith("/api")) return;
   if (MEDIA.test(url.pathname) || request.headers.has("range")) return;
@@ -42,10 +66,7 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            if (response.ok) {
-              const copy = response.clone();
-              void caches.open(CACHE).then((cache) => cache.put(request, copy));
-            }
+            if (response.ok) saveCopy(request, response);
             return response;
           }),
       ),
@@ -53,26 +74,48 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pages: fresh from the network, the last saved copy when offline.
+  // Screens: the saved copy opens instantly, a fresh copy is saved in the
+  // background. With no saved copy, the network gets 1.5 seconds before we
+  // fall back to the saved home screen instead of spinning.
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok && request.mode === "navigate") {
-          const copy = response.clone();
-          void caches.open(CACHE).then((cache) => cache.put(url.pathname, copy));
-        }
-        return response;
-      })
-      .catch(async () => {
-        const cached = (await caches.match(url.pathname)) || (await caches.match(request));
-        if (cached) return cached;
-        const shell = (await caches.match("/dashboard")) || (await caches.match("/"));
-        if (shell) return shell;
-        return new Response("You are offline.", {
-          status: 503,
-          headers: { "content-type": "text/plain" },
-        });
-      }),
+    (async () => {
+      const cached = (await caches.match(url.pathname)) || (await caches.match(request));
+
+      const fromNetwork = fetch(request)
+        .then((response) => {
+          if (response.ok && request.mode === "navigate") saveCopy(url.pathname, response);
+          return response;
+        })
+        .catch(() => undefined);
+
+      if (cached) {
+        // Fresh copy if the network answers fast, otherwise the saved screen.
+        const quick = await Promise.race([
+          fromNetwork,
+          new Promise((resolve) => setTimeout(() => resolve(undefined), PAGE_NETWORK_TIMEOUT)),
+        ]);
+        if (quick) return quick;
+        event.waitUntil(fromNetwork);
+        return cached;
+      }
+
+      const guarded = await Promise.race([
+        fromNetwork,
+        new Promise((resolve) => setTimeout(() => resolve(undefined), PAGE_NETWORK_TIMEOUT)),
+      ]);
+      if (guarded) return guarded;
+
+      const shell =
+        (await caches.match("/dashboard")) || (await caches.match("/beginners")) || (await caches.match("/"));
+      if (shell) return shell;
+
+      const late = await fromNetwork;
+      if (late) return late;
+      return new Response("You are offline.", {
+        status: 503,
+        headers: { "content-type": "text/plain" },
+      });
+    })(),
   );
 });
 

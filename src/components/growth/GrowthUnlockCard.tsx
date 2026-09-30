@@ -7,15 +7,18 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Clock, Copy, Loader2, Lock, Rocket, Upload } from "lucide-react";
+import { CheckCircle2, Clock, ImagePlus, Loader2, Lock, Rocket, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { compressImageForUpload } from "@/components/admin/upload";
+import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createGrowthProofUploadUrl, requestGrowthAccess } from "@/lib/growth.functions";
 import { money } from "@/lib/growth-cycle";
+import { putWithProgress } from "@/lib/upload-progress";
 
 type Method = {
   id: string;
@@ -27,11 +30,11 @@ type Method = {
 };
 
 const BENEFITS = [
-  "Aapka calling aur follow-up ka 70% time bach jata hai.",
-  "Assistants ko leads Excel se seedha assign karein.",
-  "Har enrollment aur 2CC ka commission khud hisaab hota hai.",
-  "Salary nahi — sirf performance par payment.",
-  "Har 10 din ka cycle target live nazar aata hai.",
+  "Save up to 70% of your calling and follow-up time.",
+  "Assign spreadsheet leads directly to your executives.",
+  "Track every enrollment and 2CC commission automatically.",
+  "No fixed salary — pay only for verified performance.",
+  "Monitor every 10-day target cycle live.",
 ];
 
 export function GrowthUnlockCard({
@@ -51,43 +54,69 @@ export function GrowthUnlockCard({
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ method: methods[0]?.label ?? "", senderName: "", referenceNo: "" });
   const [file, setFile] = useState<File | null>(null);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
+
+  const walletMethods = methods.map((method) => ({
+    name: method.label,
+    accountTitle: method.account_name ?? "",
+    accountNumber: method.account_number ?? "",
+    instructions: method.instructions ?? "",
+    qrUrl: method.qr_url ?? "",
+  }));
 
   const submit = useMutation({
     mutationFn: async () => {
-      if (!file) throw new Error("Payment ka screenshot lagayein.");
-      const slot = await makeUrl({ data: { fileName: file.name } });
-      const res = await fetch(slot.signedUrl, {
-        method: "PUT",
-        headers: { "content-type": file.type || "image/jpeg" },
-        body: file,
-      });
-      if (!res.ok) throw new Error("Screenshot upload nahi ho saka. Dobara koshish karein.");
+      if (!file) throw new Error("Attach the payment screenshot.");
+      const ready = await compressImageForUpload(file, 900_000);
+      let proofPath = "";
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const slot = await makeUrl({ data: { fileName: ready.name } });
+          await putWithProgress(slot.signedUrl, ready, (percent) => setUploadPercent(percent));
+          proofPath = slot.path;
+          break;
+        } catch (error) {
+          lastError = error;
+          setUploadPercent(0);
+          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+      }
+      if (!proofPath) {
+        throw lastError instanceof Error
+          ? lastError
+          : new Error("Screenshot upload failed. Check your connection and try again.");
+      }
       return send({
         data: {
           method: form.method || "Bank",
           senderName: form.senderName,
           referenceNo: form.referenceNo || null,
           amount: unlockFee,
-          proofPath: slot.path,
+          proofPath,
         },
       });
     },
     onSuccess: () => {
-      toast.success("Request bhej di gayi — office verify karte hi feature khul jayega.");
+      toast.success("Request sent. Access will open after office verification.");
       setFile(null);
+      setUploadPercent(null);
       void qc.invalidateQueries({ queryKey: ["growth-status"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      setUploadPercent(null);
+      toast.error(e.message);
+    },
   });
 
   if (state === "pending") {
     return (
       <div className="glass-panel rounded-2xl p-6 text-center">
         <Clock className="mx-auto size-10 text-primary" />
-        <h2 className="mt-3 text-lg font-semibold">Payment verification chal rahi hai</h2>
+        <h2 className="mt-3 text-lg font-semibold">Payment verification in progress</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Office aapki payment check kar raha hai. Confirm hote hi Skyline Growth Executive khud khul jayega aur
-          aapko alert milega.
+          The office is checking your payment. Skyline Growth Executive will unlock automatically after approval,
+          and you will receive an alert.
         </p>
       </div>
     );
@@ -103,7 +132,7 @@ export function GrowthUnlockCard({
           </span>
           <div>
             <h2 className="text-lg font-semibold">Skyline Growth Executive</h2>
-            <p className="text-xs text-muted-foreground">Aapki team ka calling aur follow-up engine</p>
+            <p className="text-xs text-muted-foreground">Your team's calling and follow-up engine</p>
           </div>
         </div>
         <ul className="mt-4 space-y-2 text-sm">
@@ -130,41 +159,24 @@ export function GrowthUnlockCard({
 
       {methods.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold">Payment kahan karein</h3>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {methods.map((m) => (
-              <div key={m.id} className="glass-panel rounded-2xl p-4">
-                <p className="font-semibold">{m.label}</p>
-                {m.account_name ? <p className="text-xs text-muted-foreground">{m.account_name}</p> : null}
-                {m.account_number ? (
-                  <button
-                    type="button"
-                    className="mt-2 flex w-full items-center justify-between rounded-lg bg-card/60 px-3 py-2 text-sm"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(m.account_number ?? "");
-                      toast.success("Number copy ho gaya");
-                    }}
-                  >
-                    <span className="font-mono">{m.account_number}</span>
-                    <Copy className="size-4 text-muted-foreground" />
-                  </button>
-                ) : null}
-                {m.instructions ? <p className="mt-2 text-xs text-muted-foreground">{m.instructions}</p> : null}
-              </div>
-            ))}
-          </div>
+          <h3 className="text-sm font-semibold">Choose a payment account</h3>
+          <PaymentMethodWallet
+            methods={walletMethods}
+            selectedName={form.method}
+            onSelect={(method) => setForm((current) => ({ ...current, method }))}
+          />
         </section>
       )}
 
       <section className="glass-panel rounded-2xl p-5">
-        <h3 className="text-sm font-semibold">Payment ki tasdeeq bhejein</h3>
+        <h3 className="text-sm font-semibold">Send payment confirmation</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <Label>Payment method</Label>
             <Input value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })} placeholder="JazzCash / EasyPaisa / Bank" />
           </div>
           <div>
-            <Label>Bhejne wale ka naam</Label>
+            <Label>Sender name</Label>
             <Input value={form.senderName} onChange={(e) => setForm({ ...form, senderName: e.target.value })} />
           </div>
           <div className="sm:col-span-2">
@@ -177,21 +189,48 @@ export function GrowthUnlockCard({
           type="file"
           accept="image/png,image/jpeg,image/webp"
           className="hidden"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          onChange={async (event) => {
+            const selected = event.target.files?.[0];
+            if (!selected) return;
+            try {
+              const bytes = await selected.arrayBuffer();
+              const type = selected.type || "image/jpeg";
+              const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : "jpg";
+              setFile(new File([bytes], `growth-payment.${ext}`, { type }));
+            } catch {
+              toast.error("This screenshot could not be read. Please choose it from your gallery again.");
+            } finally {
+              event.target.value = "";
+            }
+          }}
         />
-        <Button type="button" variant="outline" className="mt-3 w-full" onClick={() => fileRef.current?.click()}>
-          <Upload className="size-4" /> {file ? file.name.slice(0, 28) : "Screenshot chunein"}
-        </Button>
+        {file ? (
+          <div className="mt-3 flex h-11 items-center justify-between rounded-xl border border-border/60 bg-card/50 px-3 text-sm">
+            <span className="flex min-w-0 items-center gap-2">
+              <ImagePlus className="size-4 shrink-0 text-primary" />
+              <span className="truncate">{file.name}</span>
+            </span>
+            <Button type="button" size="icon" variant="ghost" aria-label="Remove screenshot" onClick={() => setFile(null)}>
+              <X className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button type="button" variant="outline" className="mt-3 w-full" onClick={() => fileRef.current?.click()}>
+            <ImagePlus className="size-4" /> Upload payment screenshot
+          </Button>
+        )}
         <Button
           className="mt-3 w-full"
           disabled={submit.isPending || !file || form.senderName.trim().length < 2}
           onClick={() => submit.mutate()}
         >
           {submit.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-          {money(unlockFee)} bhej diya — unlock karein
+          {uploadPercent !== null && uploadPercent < 100
+            ? `Uploading ${uploadPercent}%`
+            : `I paid ${money(unlockFee)} — Request access`}
         </Button>
         <p className="mt-2 text-xs text-muted-foreground">
-          Office verify karne ke baad feature khud khul jayega. Screenshot sirf tasdeeq ke liye hai.
+          Access opens automatically after office verification. Your screenshot is used only as payment proof.
         </p>
       </section>
     </div>

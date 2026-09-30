@@ -135,6 +135,70 @@ const requestSchema = z.object({
   proofPath: z.string().trim().min(3).max(300),
 });
 
+const paymentSubmissionSchema = requestSchema.omit({ proofPath: true }).extend({
+  fileName: z.string().trim().min(1).max(120),
+  mimeType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  fileBase64: z.string().min(20).max(1_600_000),
+});
+
+/**
+ * Saves the proof and payment request together on the server. This avoids a
+ * mobile browser's cross-origin signed upload failing before the admin row is
+ * created.
+ */
+export const submitGrowthAccessPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof paymentSubmissionSchema>) => paymentSubmissionSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { admin, member } = await fboRow(context.userId);
+    const { data: existing } = await (admin as any)
+      .from("growth_access")
+      .select("status, expires_at")
+      .eq("fbo_id", member.id)
+      .maybeSingle();
+    if (existing && liveAccess(existing as AccessRow).state === "active") {
+      throw new Error("Skyline Growth Executive is already active on this account.");
+    }
+
+    const bytes = Uint8Array.from(atob(data.fileBase64), (character) => character.charCodeAt(0));
+    if (bytes.byteLength > 1_200_000) throw new Error("Screenshot must be smaller than 1.2 MB.");
+    const ext = data.mimeType === "image/png" ? "png" : data.mimeType === "image/webp" ? "webp" : "jpg";
+    const proofPath = `${member.id}/growth-${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await admin.storage.from(PROOF_BUCKET).upload(proofPath, bytes, {
+      contentType: data.mimeType,
+      upsert: false,
+    });
+    if (uploadError) throw new Error(`Payment screenshot could not be saved: ${uploadError.message}`);
+
+    const { error } = await (admin as any).from("growth_access").upsert(
+      {
+        fbo_id: member.id,
+        status: "pending",
+        amount: data.amount,
+        method: data.method,
+        sender_name: data.senderName,
+        reference_no: data.referenceNo || null,
+        proof_path: proofPath,
+        requested_at: new Date().toISOString(),
+        approved_at: null,
+        expires_at: null,
+        note: null,
+      },
+      { onConflict: "fbo_id" },
+    );
+    if (error) {
+      await admin.storage.from(PROOF_BUCKET).remove([proofPath]);
+      throw new Error(`Payment request could not be saved: ${error.message}`);
+    }
+    const { pushToAdmin } = await import("./push.server");
+    await pushToAdmin({
+      title: "Growth Executive payment",
+      body: `${member.full_name} (${member.member_id}) sent an unlock payment for verification.`,
+      tag: "admin-growth",
+    });
+    return { ok: true as const };
+  });
+
 /** FBO asks for the feature; stays pending until the office verifies. */
 export const requestGrowthAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

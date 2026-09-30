@@ -16,9 +16,8 @@ import { PaymentMethodWallet } from "@/components/journey/PaymentMethodWallet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createGrowthProofUploadUrl, requestGrowthAccess } from "@/lib/growth.functions";
+import { submitGrowthAccessPayment } from "@/lib/growth.functions";
 import { money } from "@/lib/growth-cycle";
-import { putWithProgress } from "@/lib/upload-progress";
 
 type Method = {
   id: string;
@@ -49,8 +48,7 @@ export function GrowthUnlockCard({
   note?: string | null;
 }) {
   const qc = useQueryClient();
-  const makeUrl = useServerFn(createGrowthProofUploadUrl);
-  const send = useServerFn(requestGrowthAccess);
+  const send = useServerFn(submitGrowthAccessPayment);
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ method: methods[0]?.label ?? "", senderName: "", referenceNo: "" });
   const [file, setFile] = useState<File | null>(null);
@@ -67,33 +65,29 @@ export function GrowthUnlockCard({
   const submit = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error("Attach the payment screenshot.");
-      const ready = await compressImageForUpload(file, 900_000);
-      let proofPath = "";
-      let lastError: unknown = null;
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          const slot = await makeUrl({ data: { fileName: ready.name } });
-          await putWithProgress(slot.signedUrl, ready, (percent) => setUploadPercent(percent));
-          proofPath = slot.path;
-          break;
-        } catch (error) {
-          lastError = error;
-          setUploadPercent(0);
-          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
-        }
-      }
-      if (!proofPath) {
-        throw lastError instanceof Error
-          ? lastError
-          : new Error("Screenshot upload failed. Check your connection and try again.");
-      }
+      const ready = await compressImageForUpload(file, 700_000);
+      setUploadPercent(35);
+      const fileBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("This screenshot could not be read."));
+        reader.onload = () => {
+          const result = typeof reader.result === "string" ? reader.result : "";
+          const comma = result.indexOf(",");
+          if (comma < 0) reject(new Error("This screenshot could not be read."));
+          else resolve(result.slice(comma + 1));
+        };
+        reader.readAsDataURL(ready);
+      });
+      setUploadPercent(70);
       return send({
         data: {
           method: form.method || "Bank",
           senderName: form.senderName,
           referenceNo: form.referenceNo || null,
           amount: unlockFee,
-          proofPath,
+          fileName: ready.name,
+          mimeType: ready.type as "image/png" | "image/jpeg" | "image/webp",
+          fileBase64,
         },
       });
     },

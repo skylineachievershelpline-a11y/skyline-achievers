@@ -297,6 +297,7 @@ export function MemberShell({
           )
         : null}
 
+      {portalReady && typeof document !== "undefined" ? createPortal(
       <nav
         aria-label="Main navigation"
         className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]"
@@ -328,7 +329,9 @@ export function MemberShell({
             <span className="app-bottom-nav-label">Settings</span>
           </button>
         </div>
-      </nav>
+      </nav>,
+        document.body,
+      ) : null}
 
       <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">
         {lockReason(pathname) && pathname !== "/notifications" ? (

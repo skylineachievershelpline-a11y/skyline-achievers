@@ -133,12 +133,16 @@ export const adminDecideExecutiveApplication = createServerFn({ method: "POST" }
       await admin.from("growth_executive_applications").update({ status: data.decision, admin_note: data.note || null, reviewed_at: new Date().toISOString(), reviewed_by: "admin" }).eq("id", app.id);
       return { ok: true as const, executiveId: null, password: null };
     }
+    const { data: settingRow } = await admin.from("platform_settings").select("value").eq("key", "growth_executive_settings").maybeSingle();
+    const maxExecutives = Math.max(1, Number(settingRow?.value?.maxExecutivesPerFbo ?? 10));
+    const { count: executiveCount } = await admin.from("job_assistants").select("id", { count: "exact", head: true }).eq("fbo_id", app.fbo_id).neq("status", "removed");
+    if (Number(executiveCount ?? 0) >= maxExecutives) throw new Error(`This FBO already has the maximum ${maxExecutives} Growth Executives.`);
     const { data: executiveId, error: idError } = await admin.rpc("generate_growth_executive_id");
     if (idError || !executiveId) throw new Error("Executive ID could not be generated.");
     const { executiveIdToAuthEmail } = await import("./brand");
     const { data: auth, error: authError } = await admin.auth.admin.createUser({ email: executiveIdToAuthEmail(executiveId), password: DEFAULT_PASSWORD, email_confirm: true, user_metadata: { executive_id: executiveId, full_name: app.full_name, account_kind: "growth_executive" } });
     if (authError || !auth.user) throw new Error(authError?.message ?? "Executive login could not be created.");
-    const { data: executive, error } = await admin.from("job_assistants").insert({ fbo_id: app.fbo_id, auth_user_id: auth.user.id, executive_id: executiveId, full_name: app.full_name, phone: app.phone, email: app.email, role: app.requested_role, status: "active", daily_lead_limit: 10, cnic: app.cnic, cnic_front_path: app.cnic_front_path, avatar_path: app.avatar_path, experience: app.experience, qualification: app.qualification, city: app.city, payout_method: app.payout_method, payout_account_title: app.payout_account_title, payout_account_number: app.payout_account_number, approved_at: new Date().toISOString(), approved_by: "admin" }).select("id").single();
+    const { data: executive, error } = await admin.from("job_assistants").insert({ fbo_id: app.fbo_id, auth_user_id: auth.user.id, executive_id: executiveId, full_name: app.full_name, phone: app.phone, email: app.email, role: app.requested_role, status: "active", daily_lead_limit: Math.max(10, Number(settingRow?.value?.dailyLeadTarget ?? 10)), cnic: app.cnic, cnic_front_path: app.cnic_front_path, avatar_path: app.avatar_path, experience: app.experience, qualification: app.qualification, city: app.city, payout_method: app.payout_method, payout_account_title: app.payout_account_title, payout_account_number: app.payout_account_number, approved_at: new Date().toISOString(), approved_by: "admin" }).select("id").single();
     if (error || !executive) { await admin.auth.admin.deleteUser(auth.user.id); throw new Error(error?.message ?? "Executive profile could not be created."); }
     await admin.from("growth_executive_applications").update({ status: "approved", assistant_id: executive.id, reviewed_at: new Date().toISOString(), reviewed_by: "admin", admin_note: data.note || null }).eq("id", app.id);
     return { ok: true as const, executiveId: executiveId as string, password: DEFAULT_PASSWORD };

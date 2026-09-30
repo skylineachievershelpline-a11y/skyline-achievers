@@ -52,6 +52,13 @@ export function MemberLoginCard() {
       if (/^22\d{10}$/.test(id)) {
         resolved = await resolveExecutive({ data: { identifier: id } });
         accountKind = "executive";
+      } else if (/^\d{10,15}$/.test(id)) {
+        try {
+          resolved = await resolveExecutive({ data: { identifier: id } });
+          accountKind = "executive";
+        } catch {
+          resolved = await resolveIdentifier({ data: { identifier: id } });
+        }
       } else {
         resolved = /^\d{7,15}$/.test(id)
           ? await resolveIdentifier({ data: { identifier: id } })
@@ -73,7 +80,7 @@ export function MemberLoginCard() {
     }
 
     if (accountKind === "executive") {
-      await rememberCurrentAccount({ code: id, kind: "member", name: id });
+      await rememberCurrentAccount({ code: id, kind: "executive", name: id });
       await navigate({ to: "/executive" });
       return;
     }

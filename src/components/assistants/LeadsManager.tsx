@@ -69,7 +69,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
         },
       }),
     onSuccess: (r) => {
-      toast.success(`${r.added} leads add, ${r.assigned} assign. Duplicate: ${r.duplicates}, galat number: ${r.invalid}`);
+      toast.success(`${r.added} leads added, ${r.assigned} assigned. Duplicates: ${r.duplicates}, invalid: ${r.invalid}`);
       setRows([]);
       setFileName("");
       refresh();
@@ -78,7 +78,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
   });
   const distribute = useMutation({
     mutationFn: (assistantId: string) => move({ data: { fromUnassigned: true, assistantId } }),
-    onSuccess: () => { toast.success("Unassigned leads de di gayi"); refresh(); },
+    onSuccess: () => { toast.success("Unassigned leads assigned"); refresh(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const moveOne = useMutation({
@@ -106,7 +106,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
               if (!f) return;
               try {
                 const parsed = await parseFile(f);
-                if (!parsed.length) { toast.error("File mein phone number wala column nahi mila."); return; }
+                if (!parsed.length) { toast.error("No phone-number column was found in this file."); return; }
                 setRows(parsed.slice(0, 5000));
                 setFileName(f.name);
               } catch {

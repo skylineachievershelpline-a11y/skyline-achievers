@@ -128,6 +128,8 @@ function AssistantsPage() {
             ))}
           </section>
 
+          <section className="space-y-3"><SectionTitle>{`Applications (${data?.applications.length ?? 0})`}</SectionTitle>{(data?.applications ?? []).length === 0 && <p className="text-sm text-muted-foreground">No applications submitted yet.</p>}{(data?.applications ?? []).map((application: any) => <div key={application.id} className="glass-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"><div><p className="font-semibold">{application.full_name}</p><p className="text-xs text-muted-foreground">{application.phone} · {ROLE_LABEL[application.requested_role as keyof typeof ROLE_LABEL]}</p></div><span className="rounded-full bg-muted px-2 py-1 text-xs capitalize text-muted-foreground">{application.status.replaceAll("_", " ")}</span></div>)}</section>
+
           <LeadsManager assistants={(data?.executives ?? []) as any} />
         </div>
       )}

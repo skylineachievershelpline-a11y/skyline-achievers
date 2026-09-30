@@ -22,23 +22,85 @@ const STATUS: Record<string, string> = {
   invalid: "Invalid",
 };
 
+const HEADER_KEYS = {
+  name: ["name"],
+  phone: ["phone", "mobile", "number", "contact", "whatsapp", "cell"],
+  city: ["city", "location", "shehar", "address"],
+  age: ["age", "umar"],
+  qualification: ["qualification", "education", "degree", "taleem"],
+} as const;
+type Field = keyof typeof HEADER_KEYS;
+
+const CITIES = /karachi|lahore|islamabad|rawalpindi|faisalabad|multan|peshawar|quetta|sialkot|gujranwala|hyderabad|sargodha|bahawalpur|sukkur|sadiqabad|rahim|chitral|abbottabad|mardan|gujrat|jhelum|sahiwal|okara|kasur|sheikhupura|larkana|nawabshah|dera|mirpur|muzaffarabad|swat|mansehra|khanewal|vehari|jhang|chiniot|attock|chakwal|mianwali|bhakkar|layyah|lodhran|pakpattan|narowal|hafizabad|mandi|toba|kohat|bannu|gilgit|skardu|taxila|wah|murree|haripur|nowshera|charsadda|swabi|thatta|badin|jacobabad|shikarpur|khairpur|dadu|turbat|gwadar|kotli|bhimber|burewala|kamalia|arifwala|shorkot|daska|wazirabad|kharian|chichawatni/i;
+const QUAL = /student|matric|inter|fsc|fa\b|f\.a|ba\b|b\.a|bs|bsc|bscs|ma\b|m\.a|msc|mba|mphil|phd|university|college|semester|graduat|master|bachelor|degree|school|class|middle|primary|dae|diploma|icom|i\.com|bcom|b\.com|ics|hafiz|uneducated|none|nil/i;
+const phoneLike = (v: string) => /^\+?\d[\d\s-]{9,15}$/.test(v) && v.replace(/\D/g, "").length >= 10;
+
 async function parseFile(file: File): Promise<Row[]> {
   const XLSX = await import("xlsx");
-  const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+  const wb = XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
   const sheet = wb.Sheets[wb.SheetNames[0]!]!;
-  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
-  const pick = (r: Record<string, unknown>, keys: string[]) => {
-    const k = Object.keys(r).find((x) => keys.some((w) => x.toLowerCase().includes(w)));
-    return k ? String(r[k] ?? "").trim() : "";
-  };
-  return raw
-    .map((r) => ({
-      name: pick(r, ["name"]) || null,
-      phone: pick(r, ["phone", "mobile", "number", "contact", "whatsapp"]),
-      city: pick(r, ["city", "location"]) || null,
-      age: Number(pick(r, ["age"])) || null,
-      qualification: pick(r, ["qualification", "education"]) || null,
-    }))
+  const grid = XLSX.utils
+    .sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: false })
+    .map((r) => r.map((c) => String(c ?? "").trim()))
+    .filter((r) => r.some(Boolean));
+  if (!grid.length) return [];
+
+  // 1) Header row present?
+  const first = grid[0]!;
+  const cols: { [K in Field]?: number | undefined } = {};
+  const firstHasPhone = first.some(phoneLike);
+  if (!firstHasPhone) {
+    (Object.keys(HEADER_KEYS) as Field[]).forEach((f) => {
+      const i = first.findIndex((h) => HEADER_KEYS[f].some((k) => h.toLowerCase().includes(k)));
+      if (i >= 0 && !Object.values(cols).includes(i)) cols[f] = i;
+    });
+  }
+  const hasHeader = cols.phone !== undefined;
+  const body = hasHeader ? grid.slice(1) : grid;
+
+  // 2) No header: detect each column by its content.
+  if (!hasHeader) {
+    const width = Math.max(...body.map((r) => r.length));
+    const sample = body.slice(0, 50);
+    const share = (i: number, test: (v: string) => boolean) => {
+      const vals = sample.map((r) => r[i] ?? "").filter(Boolean);
+      return vals.length ? vals.filter(test).length / vals.length : 0;
+    };
+    const used = new Set<number>();
+    const best = (test: (v: string) => boolean, min = 0.6) => {
+      let pick = -1, score = min;
+      for (let i = 0; i < width; i++) {
+        if (used.has(i)) continue;
+        const s = share(i, test);
+        if (s >= score) { score = s; pick = i; }
+      }
+      if (pick >= 0) used.add(pick);
+      return pick >= 0 ? pick : undefined;
+    };
+    // Skip date/time, gender and yes/no answer columns.
+    best((v) => /\d{4}-\d{2}-\d{2}|\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{1,2}:\d{2}/.test(v));
+    best((v) => /^(male|female|m|f)$/i.test(v));
+    best((v) => /^(yes|no|haan|nahi)\b/i.test(v));
+    cols.phone = best(phoneLike, 0.5);
+    cols.age = best((v) => /^\d{1,3}$/.test(v) && +v >= 12 && +v <= 100);
+    cols.city = best((v) => CITIES.test(v), 0.4);
+    cols.qualification = best((v) => QUAL.test(v), 0.4);
+    cols.name = best((v) => /^[\p{L} .'-]{2,}$/u.test(v), 0.5);
+  }
+
+  const get = (r: string[], f: Field) => (cols[f] !== undefined ? (r[cols[f]!] ?? "").trim() : "");
+  return body
+    .map((r) => {
+      let phone = get(r, "phone");
+      if (!phoneLike(phone)) phone = r.find(phoneLike) ?? "";
+      return {
+        name: get(r, "name").slice(0, 100) || null,
+        phone,
+        city: get(r, "city").slice(0, 60) || null,
+        age: (() => { const n = Number(get(r, "age")); return n >= 12 && n <= 100 ? Math.round(n) : null; })(),
+        qualification: get(r, "qualification").slice(0, 100) || null,
+      };
+    })
     .filter((r) => r.phone);
 }
 

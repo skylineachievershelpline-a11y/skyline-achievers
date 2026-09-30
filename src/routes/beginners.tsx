@@ -33,7 +33,7 @@ import {
   Camera,
 } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
@@ -517,7 +517,15 @@ function BeginnersPage() {
 
       {portalReady && typeof document !== "undefined" ? createPortal(
       <nav aria-label="Beginners navigation" className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
-        <div className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-4xl items-end overflow-x-auto px-2">
+        <div
+          className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-4xl items-end overflow-x-auto px-2"
+          style={{
+            "--bottom-nav-index": settingsOpen
+              ? BEGINNER_NAV.length + 3
+              : Math.max(0, BEGINNER_NAV.findIndex((item) => item.id === view)),
+          } as CSSProperties}
+        >
+          <span className="app-bottom-nav-selection" aria-hidden="true" />
           {BEGINNER_NAV.map((item) => {
             const active = view === item.id;
             return (
@@ -532,14 +540,14 @@ function BeginnersPage() {
             { to: "/chat" as const, label: "Chat with Upline", icon: MessageCircle },
             { to: "/ai" as const, label: "Skyline AI", icon: Bot },
           ].map((item) => (
-            <Link key={item.to} to={item.to} title={item.label} className="app-bottom-nav-item">
+            <Link key={item.to} to={item.to} viewTransition title={item.label} className="app-bottom-nav-item">
               <span className="app-bottom-nav-icon"><item.icon className="h-4.5 w-4.5" /></span>
               <span className="app-bottom-nav-label">{item.label}</span>
             </Link>
           ))}
           <Button type="button" variant="ghost" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item h-auto rounded-none px-0">
-            <span className="app-bottom-nav-icon"><SettingsIcon className="h-4.5 w-4.5" /></span>
-            <span className="app-bottom-nav-label">Settings</span>
+            <span className={cn("app-bottom-nav-icon", settingsOpen && "is-active")}><SettingsIcon className="h-4.5 w-4.5" /></span>
+            <span className={cn("app-bottom-nav-label", settingsOpen && "is-active")}>Settings</span>
           </Button>
         </div>
       </nav>,

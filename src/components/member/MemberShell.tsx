@@ -18,7 +18,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { BackButton } from "@/components/member/BackButton";
@@ -217,6 +217,14 @@ export function MemberShell({
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const selectedNavIndex = settingsOpen
+    ? visibleNav.length
+    : Math.max(
+        0,
+        visibleNav.findIndex(
+          (item) => pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`)),
+        ),
+      );
   const memberAccess = useMemberAccess();
   useEffect(() => {
     const m = memberAccess?.member as any;
@@ -302,7 +310,11 @@ export function MemberShell({
         aria-label="Main navigation"
         className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]"
       >
-        <div className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2">
+        <div
+          className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2"
+          style={{ "--bottom-nav-index": selectedNavIndex } as CSSProperties}
+        >
+          <span className="app-bottom-nav-selection" aria-hidden="true" />
           {visibleNav.map((item) => {
             const locked = lockReason(item.to);
             const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`));
@@ -319,14 +331,14 @@ export function MemberShell({
                 {content}
               </button>
             ) : (
-              <Link key={item.to} to={item.to} title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
+              <Link key={item.to} to={item.to} viewTransition title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
                 {content}
               </Link>
             );
           })}
           <button type="button" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item">
-            <span className="app-bottom-nav-icon"><Settings className="h-4.5 w-4.5" /></span>
-            <span className="app-bottom-nav-label">Settings</span>
+            <span className={cn("app-bottom-nav-icon", settingsOpen && "is-active")}><Settings className="h-4.5 w-4.5" /></span>
+            <span className={cn("app-bottom-nav-label", settingsOpen && "is-active")}>Settings</span>
           </button>
         </div>
       </nav>,

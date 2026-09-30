@@ -21,7 +21,6 @@ import { PublicSkylineAi } from "@/components/ai/PublicSkylineAi";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { IntroductionSection } from "@/components/landing/IntroductionSection";
 import { HangingInstallTag } from "@/components/landing/HangingInstallTag";
-import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { Button } from "@/components/ui/button";
@@ -202,12 +201,11 @@ function LandingPage() {
         <div className="hero-orbit absolute right-[8%] top-[22%] hidden h-72 w-72 rounded-full lg:block" aria-hidden />
 
         <nav className={`cinematic-nav fixed inset-x-0 top-0 z-40 mx-auto flex w-full items-center justify-between px-5 sm:px-8 lg:px-12 ${scrolled ? "is-compact" : ""}`}>
-          <div className="flex items-center gap-1.5">
+          <div className="min-w-0 flex-1">
             <BrandLogo size="md" secretGesture />
-            <HangingInstallTag />
           </div>
           <div className="flex items-center gap-2">
-            <ThemeSwitch />
+            <HangingInstallTag />
             <Button
               variant="outline"
               className="h-10 border-metal/30 bg-background/80 shadow-lift backdrop-blur-md"

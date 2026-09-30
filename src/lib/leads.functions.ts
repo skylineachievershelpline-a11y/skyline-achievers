@@ -185,8 +185,7 @@ export const reassignLeads = createServerFn({ method: "POST" })
       ids = (unassigned ?? []).slice(0, complete).map((row) => row.id);
     }
     if (ids.length === 0) throw new Error("Select at least one lead.");
-    const patch: Record<string, unknown> = { assistant_id: data.assistantId, assigned_at: data.assistantId ? new Date().toISOString() : null };
-    const { error } = await admin.from("job_leads").update(patch).eq("fbo_id", context.userId).in("id", ids);
+    const { error } = await admin.from("job_leads").update({ assistant_id: data.assistantId, assigned_at: data.assistantId ? new Date().toISOString() : null }).eq("fbo_id", context.userId).in("id", ids);
     if (error) throw new Error(error.message);
     if (data.assistantId) await admin.from("job_leads").update({ attribution_assistant_id: data.assistantId }).eq("fbo_id", context.userId).in("id", ids).is("attribution_assistant_id", null);
     return { ok: true as const };

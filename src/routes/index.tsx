@@ -32,7 +32,9 @@ import { BRAND } from "@/lib/brand";
 import { getSessionRole } from "@/lib/member.functions";
 import { getAccessToken } from "@/lib/session-token";
 import { consumeOpenLoginFlag, listDeviceAccounts } from "@/lib/device-accounts";
+import { hasStoredSession, lastScreen } from "@/lib/offline-cache";
 import { Loader2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -108,18 +110,19 @@ function LandingPage() {
       setLoginOpen(true);
       return;
     }
-    const hasStored = Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
-    if (hasStored) setLaunching(true);
+    const hasStored = hasStoredSession();
+    if (hasStored) {
+      // Opened like a chat app: go straight to the screen this person was last
+      // using, without waiting for the internet to confirm anything.
+      const saved = listDeviceAccounts()[0];
+      const home = saved?.kind === "trainee" ? "/beginners" : "/dashboard";
+      const remembered = lastScreen();
+      void navigate({ to: (remembered ?? home) as typeof home });
+      return;
+    }
     void getAccessToken().then(async (token) => {
-      // No live token means the stored session is dead: never ask the server.
       if (!active) return;
       if (!token) {
-        // Offline with a saved account: open the saved dashboard copy.
-        if (hasStored && !navigator.onLine) {
-          const saved = listDeviceAccounts()[0];
-          void navigate({ to: saved?.kind === "trainee" ? "/beginners" : "/dashboard" });
-          return;
-        }
         setLaunching(false);
         return;
       }
@@ -127,10 +130,7 @@ function LandingPage() {
       const role = await resolveRole().catch(() => null);
       if (!active) return;
       if (!role) {
-        if (!navigator.onLine) {
-          const saved = listDeviceAccounts()[0];
-          void navigate({ to: saved?.kind === "trainee" ? "/beginners" : "/dashboard" });
-        } else setLaunching(false);
+        setLaunching(false);
         return;
       }
       if (role.role === "member") void navigate({ to: "/dashboard" });
@@ -144,6 +144,7 @@ function LandingPage() {
       active = false;
     };
   }, [navigate, resolveRole]);
+
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 36);

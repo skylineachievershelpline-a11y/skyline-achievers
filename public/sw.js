@@ -1,7 +1,7 @@
 // Service worker: makes the site installable, keeps the app working offline
 // (saved screens + app files), and shows push notifications while the app is
 // closed. Training media is never cached.
-const CACHE = "skyline-shell-v4";
+const CACHE = "skyline-shell-v5";
 const SHELL = ["/", "/dashboard", "/beginners", "/manifest.webmanifest", "/app-icon-192.png", "/app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -74,9 +74,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Screens: the saved copy opens instantly, a fresh copy is saved in the
-  // background. With no saved copy, the network gets 1.5 seconds before we
-  // fall back to the saved home screen instead of spinning.
+  // Screens: the saved copy opens instantly — no waiting for the internet at
+  // all — and a fresh copy is saved quietly in the background for next time.
   event.respondWith(
     (async () => {
       const cached = (await caches.match(url.pathname)) || (await caches.match(request));
@@ -89,15 +88,10 @@ self.addEventListener("fetch", (event) => {
         .catch(() => undefined);
 
       if (cached) {
-        // Fresh copy if the network answers fast, otherwise the saved screen.
-        const quick = await Promise.race([
-          fromNetwork,
-          new Promise((resolve) => setTimeout(() => resolve(undefined), PAGE_NETWORK_TIMEOUT)),
-        ]);
-        if (quick) return quick;
         event.waitUntil(fromNetwork);
         return cached;
       }
+
 
       const guarded = await Promise.race([
         fromNetwork,

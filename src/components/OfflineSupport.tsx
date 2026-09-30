@@ -1,18 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { useRouterState } from "@tanstack/react-router";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
-function currentUserId(): string {
-  try {
-    const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
-    const parsed = key ? JSON.parse(localStorage.getItem(key) ?? "null") : null;
-    return parsed?.user?.id ?? "guest";
-  } catch {
-    return "guest";
-  }
-}
+import { OFFLINE_CACHE_KEY, cacheOwnerId, rememberLastScreen } from "@/lib/offline-cache";
 
 /**
  * Keeps a saved copy of every screen's data on the phone so the app opens and
@@ -22,19 +15,25 @@ function currentUserId(): string {
 export function OfflineSupport() {
   const queryClient = useQueryClient();
   const [offline, setOffline] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  // Reopening the app returns to the screen the person was last using.
+  useEffect(() => {
+    rememberLastScreen(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     const persister = createSyncStoragePersister({
       storage: window.localStorage,
-      key: "skyline-offline-cache",
-      throttleTime: 2000,
+      key: OFFLINE_CACHE_KEY,
+      throttleTime: 800,
     });
     const [unsubscribe] = persistQueryClient({
       queryClient: queryClient as never,
       persister,
       maxAge: 7 * 24 * 3_600_000,
       // A different account on this device never sees another account's saved data.
-      buster: currentUserId(),
+      buster: cacheOwnerId(),
       dehydrateOptions: {
         shouldDehydrateQuery: (query) =>
           query.state.status === "success" &&
@@ -43,6 +42,7 @@ export function OfflineSupport() {
     });
     return () => unsubscribe();
   }, [queryClient]);
+
 
   useEffect(() => {
     const update = () => setOffline(!navigator.onLine);

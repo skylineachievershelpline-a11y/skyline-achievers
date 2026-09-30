@@ -96,7 +96,7 @@ export function AccountSettings({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{account.name}</p>
                 <p className="truncate font-mono text-[11px] text-muted-foreground">
-                  {account.code} · {account.kind === "trainee" ? "Beginners Training" : "Member"}
+                  {account.code} · {account.kind === "trainee" ? "Beginners Training" : account.kind === "executive" ? "Growth Executive" : "Member"}
                 </p>
               </div>
               {busy === account.userId ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

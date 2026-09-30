@@ -289,12 +289,15 @@
 - [ ] Welcome email with the ID — needs an email sender domain
 - [ ] Interview readiness request, upline time setting and red countdown tag
 
-## Job Assistant System
-- [x] Step 1: assistants table, FBO manage page, admin commission settings
-- [x] Step 2: lead CSV upload, dedupe, distribution
-- [x] Step 3: assistant portal & calling workflow
-- [ ] Step 4: commission ledger & payouts
-- [ ] Step 5: FBO 3-way reports & settlements
+## Skyline Growth Executive rebuild
+- [x] Remove legacy assistant records and duplicate admin controls
+- [x] Private application link, complete application, office approval and 22-prefixed account
+- [x] Authenticated mobile Executive dashboard with Calling and Full Funnel permissions
+- [x] Excel/CSV validation, FBO dedupe, complete 10-lead batches and permanent attribution
+- [x] Server-owned enrollment/2CC verification and immutable effective-dated rate cards
+- [x] Executive earnings, payable balance and withdrawal request/approval screens
+- [ ] FBO settlement funding screen and scheduled payable transition
+- [ ] Signed-in live test with a real FBO, office approval and new Executive account
 
 ## Secure login and refreshed controls
 - [x] Add up to 3 fingerprint/Face ID device credentials with secure login

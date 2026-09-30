@@ -230,6 +230,8 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         ...earn,
       };
     });
+    const { data: ledger } = await (admin as any).from("growth_commissions").select("assistant_id,kind,amount,status").eq("fbo_id", member.id);
+    const ledgerAmount = ((ledger ?? []) as any[]).reduce((sum, row) => sum + Number(row.amount), 0);
     return {
       cycle,
       settings,
@@ -238,49 +240,9 @@ export const getGrowthOverview = createServerFn({ method: "GET" })
         leads: rows.reduce((s, r) => s + r.leads, 0),
         enrolled: rows.reduce((s, r) => s + r.enrolled, 0),
         ccDone: rows.reduce((s, r) => s + r.ccDone, 0),
-        amount: rows.reduce((s, r) => s + r.total, 0),
+        amount: ledgerAmount,
       },
       unassigned: all.filter((l) => !l.assistant_id).length,
-    };
-  });
-
-/* ---------- Assistant portal ---------- */
-
-/** One assistant's own earnings, opened with their private link. */
-export const getAssistantEarnings = createServerFn({ method: "POST" })
-  .inputValidator((d: { token: string }) =>
-    z.object({ token: z.string().regex(/^[a-f0-9]{48}$/) }).parse(d),
-  )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: assistant } = await (supabaseAdmin as any)
-      .from("job_assistants")
-      .select("id, fbo_id, status")
-      .eq("access_token", data.token)
-      .maybeSingle();
-    if (!assistant || assistant.status === "removed") throw new Error("Ye link ab valid nahi hai.");
-    const settings = await readSettings();
-    const cycle = cycleOf();
-    const { data: leads } = await (supabaseAdmin as any)
-      .from("job_leads")
-      .select(
-        "id, assistant_id, status, created_at, assigned_at, enrolled_at, cc_done_at, enroll_verified_at, cc_verified_at",
-      )
-      .eq("assistant_id", assistant.id)
-      .limit(20000);
-    const mine = (leads ?? []) as LeadRow[];
-    const { data: paidRows } = await (supabaseAdmin as any)
-      .from("growth_commissions")
-      .select("amount, status")
-      .eq("assistant_id", assistant.id);
-    const sum = (s: string) =>
-      ((paidRows ?? []) as any[]).filter((r) => r.status === s).reduce((t, r) => t + Number(r.amount), 0);
-    return {
-      cycle,
-      settings,
-      earnings: cycleEarnings(statsFor(mine, cycle), settings),
-      totalLeads: mine.length,
-      ledger: { verified: sum("verified"), payable: sum("payable"), paid: sum("paid") },
     };
   });
 
@@ -322,10 +284,12 @@ export const adminSaveGrowthSettings = createServerFn({ method: "POST" })
       enrollmentTiers: [...data.enrollmentTiers].sort((a, b) => a.count - b.count),
       ccTiers: [...data.ccTiers].sort((a, b) => a.minCount - b.minCount),
     };
+    const effectiveFrom = new Date().toISOString();
     const { error } = await (supabaseAdmin as any)
       .from("platform_settings")
       .upsert({ key: SETTINGS_KEY, value: sorted, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
+    await (supabaseAdmin as any).from("growth_rate_cards").insert({ effective_from: effectiveFrom, settings: sorted, created_by: "admin" });
     return { ok: true as const };
   });
 

@@ -125,7 +125,6 @@ export function GrowthUnlockCard({
   return (
     <div className="space-y-5">
       <section className="glass-panel relative overflow-hidden rounded-2xl p-6">
-        <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-primary/20 blur-3xl" />
         <div className="flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-xl bg-primary/15 text-primary">
             <Rocket className="size-6" />

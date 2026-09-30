@@ -38,7 +38,9 @@ import { toast } from "sonner";
 import { AccountSettings } from "@/components/member/AccountSettings";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
+import { hasStoredSession } from "@/lib/offline-cache";
 import { Briefcase, Settings } from "lucide-react";
+
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -47,8 +49,9 @@ export function useMemberGuard() {
 
   useEffect(() => {
     let active = true;
-    // A stored session is not enough: only a live, refreshed access token gets
-    // attached to server calls, so wait for that before loading any page data.
+    // An account already saved on this phone opens its screens immediately —
+    // the sign-in check keeps running behind the screen, like a chat app.
+    if (hasStoredSession()) setReady(true);
     void getAccessToken().then((token) => {
       if (!active) return;
       if (!token) {
@@ -57,6 +60,7 @@ export function useMemberGuard() {
       }
       setReady(true);
     });
+
 
     // Only a real sign-out sends a person back. Early "no session yet" events
     // fired while the stored session is still loading used to bounce the app

@@ -5,7 +5,8 @@
 - [x] Show honest browser-confirmed install status and the official Skyline app identity
 - [x] Remove the appearance switch from landing and member dashboard headers
 - [x] Put light/dark appearance inside Member and Beginners Settings
-- [ ] Add Growth Executive Settings and verify landing plus signed-in phone layouts
+- [x] Add Growth Executive Settings
+- [ ] Verify landing plus signed-in phone layouts
 
 ## Member and Beginners navigation
 - [x] Remove the rejected bottom navigation and its animation

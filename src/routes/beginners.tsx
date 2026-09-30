@@ -2,7 +2,6 @@ import { changeMyPassword } from "@/lib/password.functions";
 import { Settings as SettingsIcon } from "lucide-react";
 import { AccountSettings } from "@/components/member/AccountSettings";
 import { PasskeyManager } from "@/components/security/PasskeyManager";
-import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -507,7 +506,6 @@ function BeginnersPage() {
             <p className="truncate font-display text-sm font-semibold">Beginners Training</p>
             <p className="truncate text-[11px] text-muted-foreground">{BRAND.tagline}</p>
           </div>
-          <ThemeSwitch />
           <Link
             to="/chat"
             aria-label="Chat with your trainer"

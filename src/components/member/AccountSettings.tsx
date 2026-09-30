@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Check, Loader2, LogOut, Plus, Repeat, UserCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -73,6 +74,14 @@ export function AccountSettings({
           ) : null}
         </div>
         <Check className="h-4 w-4 text-cyan" />
+      </div>
+
+      <div className="mt-3 flex items-center justify-between rounded-2xl border border-hairline bg-surface p-3">
+        <div>
+          <p className="text-sm font-semibold">Appearance</p>
+          <p className="text-[11px] text-muted-foreground">Light or dark mode</p>
+        </div>
+        <ThemeSwitch />
       </div>
 
       <p className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">

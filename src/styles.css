@@ -1866,69 +1866,36 @@ body > div > :not(.liquid-atmosphere) {
     linear-gradient(180deg, transparent 55%, color-mix(in oklab, var(--brand) 12%, transparent));
 }
 
-/* Premium hanging install tag attached to the landing-page logo. */
-.install-hanging-tag {
-  position: relative;
-  align-self: flex-start;
-  transform-origin: 50% 0;
+/* Compact landing install control and reference-inspired install window. */
+.landing-install-trigger {
+  border: 1px solid color-mix(in oklab, var(--metal) 34%, transparent);
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  color: var(--brand-glow);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(12px);
 }
 
-.install-tag-cord {
-  position: absolute;
-  left: 50%;
-  top: -.15rem;
-  width: .12rem;
-  height: 1.5rem;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: linear-gradient(90deg, color-mix(in oklab, var(--metal) 34%, transparent), var(--silver), color-mix(in oklab, var(--metal) 42%, transparent));
-  box-shadow: .14rem 0 0 color-mix(in oklab, var(--background) 72%, transparent);
+.landing-install-trigger:hover {
+  border-color: color-mix(in oklab, var(--cyan) 52%, transparent);
+  background: color-mix(in oklab, var(--surface-2) 92%, transparent);
 }
 
-.install-tag-body {
-  position: absolute;
-  left: 50%;
-  top: 1.15rem;
+.install-app-dialog {
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--card) 96%, var(--brand) 4%), var(--card));
+  box-shadow: var(--shadow-lift), 0 0 4rem color-mix(in oklab, var(--brand) 18%, transparent);
+}
+
+.install-app-dropzone {
   display: flex;
-  width: 2.9rem;
-  height: 3.35rem;
-  transform: translateX(-50%);
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: .18rem;
-  overflow: hidden;
-  clip-path: polygon(24% 0, 76% 0, 100% 21%, 100% 100%, 0 100%, 0 21%);
-  border: 1px solid color-mix(in oklab, var(--cyan) 42%, transparent);
-  background: linear-gradient(150deg, var(--brand), color-mix(in oklab, var(--surface-2) 84%, var(--brand)), var(--background));
-  color: var(--brand-foreground);
-  box-shadow: var(--shadow-brand);
-}
-
-.install-tag-body::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-130%) skewX(-18deg);
-  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--foreground) 30%, transparent), transparent);
-  transition: transform .65s ease;
-}
-
-.install-hanging-tag:hover .install-tag-body::after {
-  transform: translateX(140%) skewX(-18deg);
-}
-
-.install-tag-eyelet {
-  position: absolute;
-  left: 50%;
-  top: .28rem;
-  width: .48rem;
-  height: .48rem;
-  transform: translateX(-50%);
-  border: 2px solid var(--metal);
-  border-radius: 999px;
-  background: var(--background);
-  box-shadow: 0 0 .45rem color-mix(in oklab, var(--cyan) 45%, transparent);
+  gap: 1rem;
+  min-height: 7.5rem;
+  border: 1px solid color-mix(in oklab, var(--metal) 20%, transparent);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: color-mix(in oklab, var(--background) 76%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent);
 }
 
 .hero-scanline { overflow: hidden; background: var(--hairline); }

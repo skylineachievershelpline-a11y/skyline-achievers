@@ -1,5 +1,14 @@
 # Roadmap
 
+## Install window and dashboard appearance controls
+- [x] Replace the landing hanging tag with a compact icon that opens a premium install window
+- [x] Show honest browser-confirmed install status and the official Skyline app identity
+- [x] Remove the appearance switch from landing and member dashboard headers
+- [x] Put light/dark appearance inside Member and Beginners Settings
+- [x] Add Growth Executive Settings
+- [x] Verify landing install layout on phone and desktop
+- [ ] Verify signed-in Settings placement on a real phone
+
 ## Member and Beginners navigation
 - [x] Remove the rejected bottom navigation and its animation
 - [x] Restore the original slide-out sidebars with every section

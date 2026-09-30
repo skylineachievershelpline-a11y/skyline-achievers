@@ -1,5 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Clock, Copy, ExternalLink, Loader2, PlayCircle, Share2 } from "lucide-react";
@@ -59,6 +59,7 @@ function SessionLinksPage() {
   const ready = useMemberGuard();
   const load = useServerFn(getBeginnerSessionLinks);
   const loadIntroduction = useServerFn(getLandingIntroduction);
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -191,7 +192,7 @@ function SessionLinksPage() {
                   <Button variant="outline" className="min-w-fit rounded-2xl px-4" onClick={() => void shareLink(enrollmentVideo)}>
                     <Share2 /> Share
                   </Button>
-                  <Button variant="outline" className="min-w-fit rounded-2xl px-4" onClick={() => window.open(linkFor(enrollmentVideo), "_blank", "noopener")}>
+                  <Button variant="outline" className="min-w-fit rounded-2xl px-4" onClick={() => router.history.push(enrollmentVideo.path)}>
                     <ExternalLink /> Open
                   </Button>
                 </div>
@@ -296,7 +297,7 @@ function SessionLinksPage() {
                     <Button
                       variant="outline"
                       className="min-w-fit rounded-2xl px-4"
-                      onClick={() => window.open(linkFor(shareable), "_blank", "noopener")}
+                      onClick={() => router.history.push(shareable.path)}
                     >
                       <ExternalLink className="h-4 w-4" />
                       Open

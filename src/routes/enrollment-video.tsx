@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { SessionVideo } from "@/components/media/SessionVideo";
 import { Button } from "@/components/ui/button";
 import { getLandingIntroduction } from "@/lib/landing.functions";
@@ -43,11 +44,7 @@ function EnrollmentVideoPage() {
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-4xl">
         <header className="mb-6 flex items-center gap-3 animate-rise-in">
-          <Link to="/" aria-label="Back to landing page">
-            <Button variant="outline" size="icon" className="rounded-2xl">
-              <ArrowLeft />
-            </Button>
-          </Link>
+          <BackButton fallback="/" className="h-10 w-10 rounded-2xl" />
           <BrandLogo size="sm" withWordmark={false} />
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

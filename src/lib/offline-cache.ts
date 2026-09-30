@@ -64,7 +64,14 @@ export function hydrateSavedScreens(queryClient: QueryClient) {
 /** Remembers the last screen the person was on so the app reopens right there. */
 export function rememberLastScreen(path: string) {
   if (typeof window === "undefined") return;
-  if (!path || path === "/" || path.startsWith("/admin")) return;
+  if (
+    !path ||
+    path === "/" ||
+    path.startsWith("/admin") ||
+    path.startsWith("/session/") ||
+    path.startsWith("/enrollment-video")
+  )
+    return;
   try {
     localStorage.setItem(LAST_SCREEN_KEY, path);
   } catch {

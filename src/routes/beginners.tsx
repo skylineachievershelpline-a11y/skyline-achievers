@@ -531,6 +531,7 @@ function BeginnersPage() {
               currentCode={(trainee as any).code ?? (trainee as any).traineeCode ?? ""}
               onClose={() => setSettingsOpen(false)}
               onSignOut={() => void signOut()}
+              allowAccountManagement={false}
             />
           </div>
         </div>

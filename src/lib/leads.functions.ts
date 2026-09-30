@@ -26,6 +26,8 @@ const uploadSchema = z.object({
         name: z.string().trim().max(100).optional().nullable(),
         phone: z.string().trim().max(30),
         city: z.string().trim().max(60).optional().nullable(),
+        age: z.number().int().min(12).max(100).optional().nullable(),
+        qualification: z.string().trim().max(100).optional().nullable(),
       }),
     )
     .min(1)
@@ -46,13 +48,13 @@ export const uploadLeads = createServerFn({ method: "POST" })
     const seen = new Set<string>();
     let invalid = 0;
     let dupInFile = 0;
-    const clean: { name: string | null; phone: string; city: string | null; t: string }[] = [];
+    const clean: { name: string | null; phone: string; city: string | null; age: number | null; qualification: string | null; t: string }[] = [];
     for (const r of data.rows) {
       const t = tail(r.phone);
       if (t.length < 10) { invalid++; continue; }
       if (seen.has(t)) { dupInFile++; continue; }
       seen.add(t);
-      clean.push({ name: r.name || null, phone: r.phone.replace(/\D/g, ""), city: r.city || null, t });
+      clean.push({ name: r.name || null, phone: `92${t}`, city: r.city || null, age: r.age ?? null, qualification: r.qualification || null, t });
     }
 
     // Dedupe against leads already owned by this FBO.
@@ -77,23 +79,37 @@ export const uploadLeads = createServerFn({ method: "POST" })
     const activeIds = (team ?? []).map((a) => a.id);
     const plan: (string | null)[] = [];
     if (data.mode === "equal" && activeIds.length > 0) {
-      fresh.forEach((_, i) => plan.push(activeIds[i % activeIds.length]!));
+      const complete = Math.floor(fresh.length / (activeIds.length * 10)) * activeIds.length * 10;
+      for (let i = 0; i < complete; i += 1) plan.push(activeIds[Math.floor(i / 10) % activeIds.length] ?? null);
     } else if (data.mode === "custom") {
       for (const c of data.custom ?? []) {
         if (!activeIds.includes(c.assistantId)) continue;
+        if (c.count % 10 !== 0) throw new Error("Custom distribution must use complete batches of 10 leads.");
         for (let k = 0; k < c.count && plan.length < fresh.length; k++) plan.push(c.assistantId);
       }
     }
     const now = new Date().toISOString();
+    const { data: batch, error: batchError } = await admin.from("growth_lead_batches").insert({ fbo_id: fbo, label: data.batchLabel || null, source_file_name: data.batchLabel || null, total_rows: data.rows.length, valid_rows: fresh.length, invalid_rows: invalid, duplicate_rows: dupInFile + (clean.length - fresh.length), assigned_rows: plan.length }).select("id").single();
+    if (batchError || !batch) throw new Error(batchError?.message ?? "Lead batch could not be created.");
     const insert = fresh.map((c, i) => ({
       fbo_id: fbo,
       assistant_id: plan[i] ?? null,
+      attribution_assistant_id: plan[i] ?? null,
       assigned_at: plan[i] ? now : null,
+      batch_id: batch.id,
+      batch_position: i + 1,
       batch_label: data.batchLabel || null,
       full_name: c.name,
+      original_full_name: c.name,
       phone: c.phone,
+      original_phone: c.phone,
       phone_tail: c.t,
       city: c.city,
+      original_city: c.city,
+      age: c.age,
+      original_age: c.age,
+      qualification: c.qualification,
+      original_qualification: c.qualification,
     }));
     for (let i = 0; i < insert.length; i += 500) {
       const { error } = await admin.from("job_leads").insert(insert.slice(i, i + 500));
@@ -114,7 +130,7 @@ export const getMyLeads = createServerFn({ method: "POST" })
     const admin = await requireFbo(context.userId);
     let q = admin
       .from("job_leads")
-      .select("id, full_name, phone, city, status, assistant_id, batch_label, created_at")
+      .select("id, full_name, phone, city, age, qualification, status, assistant_id, attribution_assistant_id, batch_label, batch_id, batch_position, enrollment_verification_status, cc_verification_status, created_at")
       .eq("fbo_id", context.userId)
       .order("created_at", { ascending: false })
       .limit(300);

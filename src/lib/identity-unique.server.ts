@@ -36,13 +36,14 @@ export async function assertPhoneEmailFree(
   const wantedEmail = normalizeEmail(input.email);
   if (!wantedPhone && !wantedEmail) return;
 
-  const [{ data: members }, { data: trainees }] = await Promise.all([
+  const [{ data: members }, { data: trainees }, { data: executives }] = await Promise.all([
     supabaseAdmin
       .from("member_profiles")
       .select("id, member_id, full_name, phone, email, status")
       .neq("status", "removed")
       .limit(10000),
     supabaseAdmin.from("trainees").select("id, trainee_code, full_name, phone").limit(10000),
+    supabaseAdmin.from("job_assistants").select("id, executive_id, full_name, phone, email, status").neq("status", "removed").limit(10000),
   ]);
 
   for (const row of members ?? []) {
@@ -57,6 +58,15 @@ export async function assertPhoneEmailFree(
       throw new Error(
         `Ye email pehle se account ${row.member_id} (${row.full_name}) par registered hai. Ek email se doosra account nahi ban sakta.`,
       );
+    }
+  }
+
+  for (const row of executives ?? []) {
+    if (wantedPhone && phoneTail(row.phone) === wantedPhone) {
+      throw new Error(`Ye mobile number pehle se Growth Executive ${row.executive_id ?? "account"} par registered hai.`);
+    }
+    if (wantedEmail && normalizeEmail(row.email) === wantedEmail) {
+      throw new Error(`Ye email pehle se Growth Executive ${row.executive_id ?? "account"} par registered hai.`);
     }
   }
 

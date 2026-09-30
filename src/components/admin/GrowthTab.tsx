@@ -5,7 +5,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ import {
   adminGrantGrowthAccess,
   adminSaveGrowthSettings,
 } from "@/lib/growth.functions";
+import { adminDecideExecutiveApplication, adminDecideVerification, adminDecideWithdrawal, adminGetExecutiveOperations } from "@/lib/growth-executive.functions";
 
 export function GrowthTab() {
   const qc = useQueryClient();
@@ -27,6 +28,11 @@ export function GrowthTab() {
   const decide = useServerFn(adminDecideGrowthAccess);
   const grant = useServerFn(adminGrantGrowthAccess);
   const { data, isPending } = useQuery({ queryKey: ["admin-growth"], queryFn: () => load() });
+  const opsFn = useServerFn(adminGetExecutiveOperations);
+  const decideAppFn = useServerFn(adminDecideExecutiveApplication);
+  const decideVerificationFn = useServerFn(adminDecideVerification);
+  const decideWithdrawalFn = useServerFn(adminDecideWithdrawal);
+  const ops = useQuery({ queryKey: ["admin-growth-operations"], queryFn: () => opsFn() });
   const [s, setS] = useState<GrowthSettings | null>(null);
   const [code, setCode] = useState("");
   useEffect(() => {
@@ -59,6 +65,9 @@ export function GrowthTab() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const application = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" | "changes_requested"; note?: string }) => decideAppFn({ data: v }), onSuccess: (result) => { if (result.executiveId) toast.success(`Created ${result.executiveId} / ${result.password}`); else toast.success("Application updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
+  const verification = useMutation({ mutationFn: (v: { id: string; decision: "verify" | "reject" }) => decideVerificationFn({ data: v }), onSuccess: () => { toast.success("Result reviewed"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
+  const withdrawal = useMutation({ mutationFn: (v: { id: string; decision: "approve" | "reject" | "paid"; reference?: string }) => decideWithdrawalFn({ data: v }), onSuccess: () => { toast.success("Withdrawal updated"); void qc.invalidateQueries({ queryKey: ["admin-growth-operations"] }); }, onError: (e: Error) => toast.error(e.message) });
 
   if (isPending || !s) return <Loader2 className="mx-auto size-6 animate-spin" />;
   const num = (v: string) => Number(v) || 0;
@@ -78,93 +87,34 @@ export function GrowthTab() {
           </div>
         </div>
 
-        <h4 className="pt-2 text-sm font-semibold">Rs. 249 enrollment tiers (conversion % → Rs per enrollment)</h4>
-        {s.enrollmentTiers.map((t, i) => (
-          <div key={i} className="flex items-end gap-2">
-            <div className="flex-1">
-              <Label>From %</Label>
-              <Input
-                value={t.minRate}
-                onChange={(e) =>
-                  setS({
-                    ...s,
-                    enrollmentTiers: s.enrollmentTiers.map((x, j) =>
-                      j === i ? { ...x, minRate: num(e.target.value) } : x,
-                    ),
-                  })
-                }
-              />
-            </div>
-            <div className="flex-1">
-              <Label>Rs / enrollment</Label>
-              <Input
-                value={t.perEnrollment}
-                onChange={(e) =>
-                  setS({
-                    ...s,
-                    enrollmentTiers: s.enrollmentTiers.map((x, j) =>
-                      j === i ? { ...x, perEnrollment: num(e.target.value) } : x,
-                    ),
-                  })
-                }
-              />
-            </div>
-            <Button
-              size="icon"
-              variant="outline"
-              disabled={s.enrollmentTiers.length < 2}
-              onClick={() => setS({ ...s, enrollmentTiers: s.enrollmentTiers.filter((_, j) => j !== i) })}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ))}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setS({ ...s, enrollmentTiers: [...s.enrollmentTiers, { minRate: 0, perEnrollment: 0 }] })}
-        >
-          <Plus className="size-4" /> Add tier
-        </Button>
-
-        <h4 className="pt-2 text-sm font-semibold">2CC tiers inside one 10-day cycle (count → Rs per 2CC)</h4>
-        {s.ccTiers.map((t, i) => (
-          <div key={i} className="flex items-end gap-2">
-            <div className="flex-1">
-              <Label>From count</Label>
-              <Input
-                value={t.minCount}
-                onChange={(e) =>
-                  setS({ ...s, ccTiers: s.ccTiers.map((x, j) => (j === i ? { ...x, minCount: num(e.target.value) } : x)) })
-                }
-              />
-            </div>
-            <div className="flex-1">
-              <Label>Rs / 2CC</Label>
-              <Input
-                value={t.perCc}
-                onChange={(e) =>
-                  setS({ ...s, ccTiers: s.ccTiers.map((x, j) => (j === i ? { ...x, perCc: num(e.target.value) } : x)) })
-                }
-              />
-            </div>
-            <Button
-              size="icon"
-              variant="outline"
-              disabled={s.ccTiers.length < 2}
-              onClick={() => setS({ ...s, ccTiers: s.ccTiers.filter((_, j) => j !== i) })}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ))}
-        <Button size="sm" variant="outline" onClick={() => setS({ ...s, ccTiers: [...s.ccTiers, { minCount: 1, perCc: 0 }] })}>
-          <Plus className="size-4" /> Add tier
-        </Button>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div><Label>Maximum executives / FBO</Label><Input value={s.maxExecutivesPerFbo} onChange={(e) => setS({ ...s, maxExecutivesPerFbo: num(e.target.value) })} /></div>
+          <div><Label>Daily lead target</Label><Input value={s.dailyLeadTarget} onChange={(e) => setS({ ...s, dailyLeadTarget: num(e.target.value) })} /></div>
+          <div><Label>Fee / verified enrollment</Label><Input value={s.enrollmentServiceFee} onChange={(e) => setS({ ...s, enrollmentServiceFee: num(e.target.value) })} /></div>
+          <div><Label>Fee / verified 2CC</Label><Input value={s.ccServiceFee} onChange={(e) => setS({ ...s, ccServiceFee: num(e.target.value) })} /></div>
+        </div>
+        <div className="rounded-xl border border-border/50 p-3 text-sm text-muted-foreground">
+          Enrollment per 10-lead batch: 1 = Rs.50, 2 = Rs.70 each, 3 = Rs.90 each, 4 = Rs.120 each, then +Rs.30 up to Rs.200 each. 2CC per PKT cycle: 1 = Rs.3,000, 2 = Rs.5,000 each, 3 = Rs.7,000 each, then +Rs.2,000 each.
+        </div>
 
         <Button className="w-full" disabled={saving.isPending} onClick={() => saving.mutate()}>
           {saving.isPending && <Loader2 className="size-4 animate-spin" />} Save settings
         </Button>
+      </section>
+
+      <section className="glass-panel space-y-3 rounded-2xl p-5">
+        <h3 className="font-semibold">Applications ({ops.data?.applications.length ?? 0})</h3>
+        {(ops.data?.applications ?? []).map((r: any) => <div key={r.id} className="rounded-xl border border-border/50 p-3 text-sm"><div className="flex flex-wrap justify-between gap-2"><strong>{r.full_name}</strong><span>{r.status} · {r.requested_role === "calling" ? "Calling" : "Full Funnel"}</span></div><p className="text-xs text-muted-foreground">{r.phone} · {r.email} · FBO {r.fbo?.full_name} ({r.fbo?.member_id})</p><p className="text-xs text-muted-foreground">{r.qualification} · {r.city} · {r.payout_method} {r.payout_account_number}</p><div className="mt-2 flex flex-wrap gap-2">{r.avatarUrl && <a className="text-xs text-primary underline" href={r.avatarUrl} target="_blank" rel="noreferrer">Profile picture</a>}{r.cnicUrl && <a className="text-xs text-primary underline" href={r.cnicUrl} target="_blank" rel="noreferrer">CNIC front</a>}{r.status !== "approved" && <><Button size="sm" disabled={application.isPending} onClick={() => application.mutate({ id: r.id, decision: "approve" })}><Check className="size-4" /> Approve & create ID</Button><Button size="sm" variant="outline" onClick={() => application.mutate({ id: r.id, decision: "changes_requested", note: "Please correct the submitted details." })}>Request correction</Button><Button size="sm" variant="destructive" onClick={() => application.mutate({ id: r.id, decision: "reject" })}><X className="size-4" /> Reject</Button></>}</div></div>)}
+      </section>
+
+      <section className="glass-panel space-y-3 rounded-2xl p-5">
+        <h3 className="font-semibold">Result verification ({ops.data?.verification.length ?? 0})</h3>
+        {(ops.data?.verification ?? []).map((r: any) => <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 p-3 text-sm"><div><strong>{r.kind === "enrollment" ? "Rs. 249 enrollment" : "2CC completion"}</strong><p className="text-xs text-muted-foreground">{r.lead?.full_name} · {r.lead?.phone} · {r.assistant?.full_name} ({r.assistant?.executive_id})</p></div><div className="flex gap-2"><Button size="sm" onClick={() => verification.mutate({ id: r.id, decision: "verify" })}>Verify & ledger</Button><Button size="sm" variant="outline" onClick={() => verification.mutate({ id: r.id, decision: "reject" })}>Reject</Button></div></div>)}
+      </section>
+
+      <section className="glass-panel space-y-3 rounded-2xl p-5">
+        <h3 className="font-semibold">Withdrawals ({ops.data?.withdrawals.length ?? 0})</h3>
+        {(ops.data?.withdrawals ?? []).map((r: any) => <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 p-3 text-sm"><div><strong>{r.assistant?.full_name} · Rs. {Number(r.amount).toLocaleString("en-PK")}</strong><p className="text-xs text-muted-foreground">{r.status} · {r.payout_method} · {r.payout_account_number}</p></div><div className="flex gap-2">{r.status === "requested" && <><Button size="sm" onClick={() => withdrawal.mutate({ id: r.id, decision: "approve" })}>Approve</Button><Button size="sm" variant="outline" onClick={() => withdrawal.mutate({ id: r.id, decision: "reject" })}>Reject</Button></>}{r.status === "approved" && <Button size="sm" onClick={() => withdrawal.mutate({ id: r.id, decision: "paid", reference: window.prompt("Payment reference") ?? "" })}>Mark paid</Button>}</div></div>)}
       </section>
 
       <section className="glass-panel space-y-3 rounded-2xl p-5">

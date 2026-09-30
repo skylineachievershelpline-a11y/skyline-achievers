@@ -42,6 +42,7 @@ import { Route as SessionCodeRouteImport } from './routes/session.$code'
 import { Route as WorkTokenRouteImport } from './routes/work.$token'
 import { Route as AdminMemberMemberIdRouteImport } from './routes/admin.member.$memberId'
 import { Route as ApiPublicAiRouteImport } from './routes/api.public.ai'
+import { Route as ApplyGrowthTokenRouteImport } from './routes/apply.growth.$token'
 import { Route as ApiPublicCronNotifyRouteImport } from './routes/api.public.cron.notify'
 
 const IndexRoute = IndexRouteImport.update({
@@ -209,6 +210,11 @@ const ApiPublicAiRoute = ApiPublicAiRouteImport.update({
   path: '/api/public/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyGrowthTokenRoute = ApplyGrowthTokenRouteImport.update({
+  id: '/apply/growth/$token',
+  path: '/apply/growth/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronNotifyRoute = ApiPublicCronNotifyRouteImport.update({
   id: '/api/public/cron/notify',
   path: '/api/public/cron/notify',
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesByTo {
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRoutesById {
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/ai/': typeof AiIndexRoute
   '/admin/member/$memberId': typeof AdminMemberMemberIdRoute
   '/api/public/ai': typeof ApiPublicAiRoute
+  '/apply/growth/$token': typeof ApplyGrowthTokenRoute
   '/api/public/cron/notify': typeof ApiPublicCronNotifyRoute
 }
 export interface FileRouteTypes {
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   id:
     | '__root__'
@@ -432,6 +443,7 @@ export interface FileRouteTypes {
     | '/ai/'
     | '/admin/member/$memberId'
     | '/api/public/ai'
+    | '/apply/growth/$token'
     | '/api/public/cron/notify'
   fileRoutesById: FileRoutesById
 }
@@ -469,6 +481,7 @@ export interface RootRouteChildren {
   AiIndexRoute: typeof AiIndexRoute
   AdminMemberMemberIdRoute: typeof AdminMemberMemberIdRoute
   ApiPublicAiRoute: typeof ApiPublicAiRoute
+  ApplyGrowthTokenRoute: typeof ApplyGrowthTokenRoute
   ApiPublicCronNotifyRoute: typeof ApiPublicCronNotifyRoute
 }
 
@@ -705,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/apply/growth/$token': {
+      id: '/apply/growth/$token'
+      path: '/apply/growth/$token'
+      fullPath: '/apply/growth/$token'
+      preLoaderRoute: typeof ApplyGrowthTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/notify': {
       id: '/api/public/cron/notify'
       path: '/api/public/cron/notify'
@@ -749,6 +769,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiIndexRoute: AiIndexRoute,
   AdminMemberMemberIdRoute: AdminMemberMemberIdRoute,
   ApiPublicAiRoute: ApiPublicAiRoute,
+  ApplyGrowthTokenRoute: ApplyGrowthTokenRoute,
   ApiPublicCronNotifyRoute: ApiPublicCronNotifyRoute,
 }
 export const routeTree = rootRouteImport

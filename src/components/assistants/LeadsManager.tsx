@@ -47,7 +47,7 @@ async function parseFile(file: File): Promise<Row[]> {
 
   // 1) Header row present?
   const first = grid[0]!;
-  const cols: Partial<Record<Field, number>> = {};
+  const cols: { [K in Field]?: number | undefined } = {};
   const firstHasPhone = first.some(phoneLike);
   if (!firstHasPhone) {
     (Object.keys(HEADER_KEYS) as Field[]).forEach((f) => {

@@ -878,8 +878,10 @@ export type Database = {
       }
       growth_commissions: {
         Row: {
+          adjustment_of: string | null
           amount: number
           assistant_id: string
+          batch_id: string | null
           created_at: string
           cycle_end: string
           cycle_start: string
@@ -889,15 +891,21 @@ export type Database = {
           lead_id: string | null
           note: string | null
           paid_at: string | null
+          payable_at: string | null
           rate: number
+          reference: string | null
+          service_fee: number
           status: string
           units: number
           updated_at: string
+          verification_event_id: string | null
           verified_at: string | null
         }
         Insert: {
+          adjustment_of?: string | null
           amount?: number
           assistant_id: string
+          batch_id?: string | null
           created_at?: string
           cycle_end: string
           cycle_start: string
@@ -907,15 +915,21 @@ export type Database = {
           lead_id?: string | null
           note?: string | null
           paid_at?: string | null
+          payable_at?: string | null
           rate?: number
+          reference?: string | null
+          service_fee?: number
           status?: string
           units?: number
           updated_at?: string
+          verification_event_id?: string | null
           verified_at?: string | null
         }
         Update: {
+          adjustment_of?: string | null
           amount?: number
           assistant_id?: string
+          batch_id?: string | null
           created_at?: string
           cycle_end?: string
           cycle_start?: string
@@ -925,18 +939,36 @@ export type Database = {
           lead_id?: string | null
           note?: string | null
           paid_at?: string | null
+          payable_at?: string | null
           rate?: number
+          reference?: string | null
+          service_fee?: number
           status?: string
           units?: number
           updated_at?: string
+          verification_event_id?: string | null
           verified_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "growth_commissions_adjustment_of_fkey"
+            columns: ["adjustment_of"]
+            isOneToOne: false
+            referencedRelation: "growth_commissions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "growth_commissions_assistant_id_fkey"
             columns: ["assistant_id"]
             isOneToOne: false
             referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_commissions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "growth_lead_batches"
             referencedColumns: ["id"]
           },
           {
@@ -946,50 +978,533 @@ export type Database = {
             referencedRelation: "job_leads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "growth_commissions_verification_event_id_fkey"
+            columns: ["verification_event_id"]
+            isOneToOne: false
+            referencedRelation: "growth_verification_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_executive_applications: {
+        Row: {
+          admin_note: string | null
+          assistant_id: string | null
+          avatar_path: string
+          city: string
+          cnic: string
+          cnic_front_path: string
+          cnic_normalized: string
+          created_at: string
+          email: string
+          email_normalized: string
+          experience: string
+          fbo_id: string
+          full_name: string
+          id: string
+          invite_id: string
+          payout_account_number: string
+          payout_account_title: string
+          payout_method: string
+          phone: string
+          phone_tail: string
+          qualification: string
+          requested_role: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          assistant_id?: string | null
+          avatar_path: string
+          city: string
+          cnic: string
+          cnic_front_path: string
+          cnic_normalized: string
+          created_at?: string
+          email: string
+          email_normalized: string
+          experience: string
+          fbo_id: string
+          full_name: string
+          id?: string
+          invite_id: string
+          payout_account_number: string
+          payout_account_title: string
+          payout_method: string
+          phone: string
+          phone_tail: string
+          qualification: string
+          requested_role: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          assistant_id?: string | null
+          avatar_path?: string
+          city?: string
+          cnic?: string
+          cnic_front_path?: string
+          cnic_normalized?: string
+          created_at?: string
+          email?: string
+          email_normalized?: string
+          experience?: string
+          fbo_id?: string
+          full_name?: string
+          id?: string
+          invite_id?: string
+          payout_account_number?: string
+          payout_account_title?: string
+          payout_method?: string
+          phone?: string
+          phone_tail?: string
+          qualification?: string
+          requested_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_executive_applications_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_executive_applications_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_executive_applications_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "growth_executive_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_executive_invites: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          fbo_id: string
+          id: string
+          is_active: boolean
+          label: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          fbo_id: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          fbo_id?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_executive_invites_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_lead_batches: {
+        Row: {
+          assigned_rows: number
+          created_at: string
+          duplicate_rows: number
+          fbo_id: string
+          id: string
+          invalid_rows: number
+          label: string | null
+          source_file_name: string | null
+          total_rows: number
+          valid_rows: number
+        }
+        Insert: {
+          assigned_rows?: number
+          created_at?: string
+          duplicate_rows?: number
+          fbo_id: string
+          id?: string
+          invalid_rows?: number
+          label?: string | null
+          source_file_name?: string | null
+          total_rows?: number
+          valid_rows?: number
+        }
+        Update: {
+          assigned_rows?: number
+          created_at?: string
+          duplicate_rows?: number
+          fbo_id?: string
+          id?: string
+          invalid_rows?: number
+          label?: string | null
+          source_file_name?: string | null
+          total_rows?: number
+          valid_rows?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_lead_batches_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_rate_cards: {
+        Row: {
+          created_at: string
+          created_by: string
+          effective_from: string
+          id: string
+          settings: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          effective_from: string
+          id?: string
+          settings: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          effective_from?: string
+          id?: string
+          settings?: Json
+        }
+        Relationships: []
+      }
+      growth_settlements: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          commission_amount: number
+          created_at: string
+          due_at: string
+          fbo_id: string
+          id: string
+          kind: string
+          method: string | null
+          period_end: string
+          period_start: string
+          proof_path: string | null
+          reference_no: string | null
+          sender_name: string | null
+          service_fee: number
+          status: string
+          submitted_at: string | null
+          total_due: number
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          commission_amount?: number
+          created_at?: string
+          due_at: string
+          fbo_id: string
+          id?: string
+          kind: string
+          method?: string | null
+          period_end: string
+          period_start: string
+          proof_path?: string | null
+          reference_no?: string | null
+          sender_name?: string | null
+          service_fee?: number
+          status?: string
+          submitted_at?: string | null
+          total_due?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          commission_amount?: number
+          created_at?: string
+          due_at?: string
+          fbo_id?: string
+          id?: string
+          kind?: string
+          method?: string | null
+          period_end?: string
+          period_start?: string
+          proof_path?: string | null
+          reference_no?: string | null
+          sender_name?: string | null
+          service_fee?: number
+          status?: string
+          submitted_at?: string | null
+          total_due?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_settlements_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_verification_events: {
+        Row: {
+          assistant_id: string
+          checked_at: string | null
+          created_at: string
+          fbo_id: string
+          id: string
+          kind: string
+          lead_id: string
+          note: string | null
+          reported_at: string
+          status: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          assistant_id: string
+          checked_at?: string | null
+          created_at?: string
+          fbo_id: string
+          id?: string
+          kind: string
+          lead_id: string
+          note?: string | null
+          reported_at?: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          assistant_id?: string
+          checked_at?: string | null
+          created_at?: string
+          fbo_id?: string
+          id?: string
+          kind?: string
+          lead_id?: string
+          note?: string | null
+          reported_at?: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_verification_events_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_verification_events_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_verification_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "job_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_withdrawals: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          approved_at: string | null
+          assistant_id: string
+          created_at: string
+          fbo_id: string
+          id: string
+          paid_at: string | null
+          payment_reference: string | null
+          payout_account_number: string
+          payout_account_title: string
+          payout_method: string
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          approved_at?: string | null
+          assistant_id: string
+          created_at?: string
+          fbo_id: string
+          id?: string
+          paid_at?: string | null
+          payment_reference?: string | null
+          payout_account_number: string
+          payout_account_title: string
+          payout_method: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          approved_at?: string | null
+          assistant_id?: string
+          created_at?: string
+          fbo_id?: string
+          id?: string
+          paid_at?: string | null
+          payment_reference?: string | null
+          payout_account_number?: string
+          payout_account_title?: string
+          payout_method?: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_withdrawals_assistant_id_fkey"
+            columns: ["assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_withdrawals_fbo_id_fkey"
+            columns: ["fbo_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_assistants: {
         Row: {
           access_token: string
+          approved_at: string | null
+          approved_by: string | null
           auth_user_id: string | null
+          avatar_path: string | null
+          city: string | null
+          cnic: string | null
+          cnic_front_path: string | null
           created_at: string
           daily_lead_limit: number
           email: string | null
+          executive_id: string | null
+          experience: string | null
           fbo_id: string
           full_name: string
           id: string
+          last_login_at: string | null
           notes: string | null
+          payout_account_number: string | null
+          payout_account_title: string | null
+          payout_method: string | null
           phone: string
+          qualification: string | null
           role: string
           status: string
           updated_at: string
         }
         Insert: {
           access_token?: string
+          approved_at?: string | null
+          approved_by?: string | null
           auth_user_id?: string | null
+          avatar_path?: string | null
+          city?: string | null
+          cnic?: string | null
+          cnic_front_path?: string | null
           created_at?: string
           daily_lead_limit?: number
           email?: string | null
+          executive_id?: string | null
+          experience?: string | null
           fbo_id: string
           full_name: string
           id?: string
+          last_login_at?: string | null
           notes?: string | null
+          payout_account_number?: string | null
+          payout_account_title?: string | null
+          payout_method?: string | null
           phone: string
+          qualification?: string | null
           role?: string
           status?: string
           updated_at?: string
         }
         Update: {
           access_token?: string
+          approved_at?: string | null
+          approved_by?: string | null
           auth_user_id?: string | null
+          avatar_path?: string | null
+          city?: string | null
+          cnic?: string | null
+          cnic_front_path?: string | null
           created_at?: string
           daily_lead_limit?: number
           email?: string | null
+          executive_id?: string | null
+          experience?: string | null
           fbo_id?: string
           full_name?: string
           id?: string
+          last_login_at?: string | null
           notes?: string | null
+          payout_account_number?: string | null
+          payout_account_title?: string | null
+          payout_method?: string | null
           phone?: string
+          qualification?: string | null
           role?: string
           status?: string
           updated_at?: string
@@ -1006,31 +1521,40 @@ export type Database = {
       }
       job_lead_activities: {
         Row: {
+          actor_type: string
           assistant_id: string
           created_at: string
           fbo_id: string
           id: string
           lead_id: string
+          new_values: Json | null
           note: string | null
           outcome: string
+          previous_values: Json | null
         }
         Insert: {
+          actor_type?: string
           assistant_id: string
           created_at?: string
           fbo_id: string
           id?: string
           lead_id: string
+          new_values?: Json | null
           note?: string | null
           outcome: string
+          previous_values?: Json | null
         }
         Update: {
+          actor_type?: string
           assistant_id?: string
           created_at?: string
           fbo_id?: string
           id?: string
           lead_id?: string
+          new_values?: Json | null
           note?: string | null
           outcome?: string
+          previous_values?: Json | null
         }
         Relationships: [
           {
@@ -1051,68 +1575,110 @@ export type Database = {
       }
       job_leads: {
         Row: {
+          age: number | null
           assigned_at: string | null
           assistant_id: string | null
+          attribution_assistant_id: string | null
+          batch_id: string | null
           batch_label: string | null
+          batch_position: number | null
           call_count: number
           cc_done_at: string | null
+          cc_reported_at: string | null
+          cc_verification_status: string
           cc_verified_at: string | null
           city: string | null
           created_at: string
           enroll_verified_at: string | null
           enrolled_at: string | null
+          enrollment_reported_at: string | null
+          enrollment_verification_status: string
           fbo_id: string
           follow_up_at: string | null
           full_name: string | null
           id: string
           last_called_at: string | null
           notes: string | null
+          original_age: number | null
+          original_city: string | null
+          original_full_name: string | null
+          original_phone: string | null
+          original_qualification: string | null
           phone: string
           phone_tail: string
+          qualification: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          age?: number | null
           assigned_at?: string | null
           assistant_id?: string | null
+          attribution_assistant_id?: string | null
+          batch_id?: string | null
           batch_label?: string | null
+          batch_position?: number | null
           call_count?: number
           cc_done_at?: string | null
+          cc_reported_at?: string | null
+          cc_verification_status?: string
           cc_verified_at?: string | null
           city?: string | null
           created_at?: string
           enroll_verified_at?: string | null
           enrolled_at?: string | null
+          enrollment_reported_at?: string | null
+          enrollment_verification_status?: string
           fbo_id: string
           follow_up_at?: string | null
           full_name?: string | null
           id?: string
           last_called_at?: string | null
           notes?: string | null
+          original_age?: number | null
+          original_city?: string | null
+          original_full_name?: string | null
+          original_phone?: string | null
+          original_qualification?: string | null
           phone: string
           phone_tail: string
+          qualification?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          age?: number | null
           assigned_at?: string | null
           assistant_id?: string | null
+          attribution_assistant_id?: string | null
+          batch_id?: string | null
           batch_label?: string | null
+          batch_position?: number | null
           call_count?: number
           cc_done_at?: string | null
+          cc_reported_at?: string | null
+          cc_verification_status?: string
           cc_verified_at?: string | null
           city?: string | null
           created_at?: string
           enroll_verified_at?: string | null
           enrolled_at?: string | null
+          enrollment_reported_at?: string | null
+          enrollment_verification_status?: string
           fbo_id?: string
           follow_up_at?: string | null
           full_name?: string | null
           id?: string
           last_called_at?: string | null
           notes?: string | null
+          original_age?: number | null
+          original_city?: string | null
+          original_full_name?: string | null
+          original_phone?: string | null
+          original_qualification?: string | null
           phone?: string
           phone_tail?: string
+          qualification?: string | null
           status?: string
           updated_at?: string
         }
@@ -1122,6 +1688,20 @@ export type Database = {
             columns: ["assistant_id"]
             isOneToOne: false
             referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_leads_attribution_assistant_id_fkey"
+            columns: ["attribution_assistant_id"]
+            isOneToOne: false
+            referencedRelation: "job_assistants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_leads_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "growth_lead_batches"
             referencedColumns: ["id"]
           },
           {
@@ -3118,6 +3698,7 @@ export type Database = {
       can_access_series: { Args: { _series_id: string }; Returns: boolean }
       can_post_reels: { Args: never; Returns: boolean }
       current_member_level: { Args: never; Returns: string }
+      generate_growth_executive_id: { Args: never; Returns: string }
       generate_member_id: { Args: never; Returns: string }
       generate_trainee_id: { Args: never; Returns: string }
       is_manager_member: { Args: never; Returns: boolean }

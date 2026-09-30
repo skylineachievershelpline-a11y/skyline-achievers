@@ -105,14 +105,14 @@ function AssistantsPage() {
         <div className="space-y-6">
           <GrowthCyclePanel />
 
-          <section className="glass-panel rounded-2xl p-5"><SectionTitle>Invite a Growth Executive</SectionTitle><p className="mt-2 text-sm text-muted-foreground">Create a private application link. The applicant completes their details and the office approves the account.</p><Button className="mt-4 w-full" disabled={create.isPending} onClick={() => create.mutate()}>{create.isPending ? <Loader2 className="size-4 animate-spin" /> : <Link2 className="size-4" />} Create & copy application link</Button>{(data?.invites ?? []).slice(0, 3).map((invite) => <div key={invite.id} className="mt-3 flex items-center justify-between rounded-xl border border-border/50 p-3 text-sm"><span>{invite.label ?? "Executive application"}</span><Button size="sm" variant="outline" onClick={() => void copyLink(invite.token)}><ClipboardCopy /> Copy</Button></div>)}</section>
+          <section className="glass-panel rounded-2xl p-5"><SectionTitle>Invite a Growth Executive</SectionTitle><p className="mt-2 text-sm text-muted-foreground">Create a private application link. The applicant completes their details and the office approves the account.</p><Button className="mt-4 w-full" disabled={create.isPending} onClick={() => create.mutate()}>{create.isPending ? <Loader2 className="size-4 animate-spin" /> : <Link2 className="size-4" />} Create & copy application link</Button>{(data?.invites ?? []).slice(0, 3).map((invite: any) => <div key={invite.id} className="mt-3 flex items-center justify-between rounded-xl border border-border/50 p-3 text-sm"><span>{invite.label ?? "Executive application"}</span><Button size="sm" variant="outline" onClick={() => void copyLink(invite.token)}><ClipboardCopy /> Copy</Button></div>)}</section>
 
           <section className="space-y-3">
             <SectionTitle>{`My Growth Executives (${data?.executives.length ?? 0})`}</SectionTitle>
             {(data?.executives ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">No approved executive yet.</p>
             )}
-            {(data?.executives ?? []).map((a) => (
+            {(data?.executives ?? []).map((a: any) => (
               <div key={a.id} className="glass-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
                 <div>
                   <p className="font-semibold">{a.full_name}</p>

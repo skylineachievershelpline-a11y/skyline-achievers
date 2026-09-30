@@ -168,7 +168,7 @@ export const getExecutiveDashboard = createServerFn({ method: "GET" }).middlewar
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Karachi" }).format(new Date());
   const todayCalls = (leads ?? []).filter((r: any) => r.last_called_at && new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Karachi" }).format(new Date(r.last_called_at)) === today).length;
   let avatarUrl: string | null = null; if (executive.avatar_path) avatarUrl = (await admin.storage.from(IMAGE_BUCKET).createSignedUrl(executive.avatar_path, 3600)).data?.signedUrl ?? null;
-  return { executive: { ...executive, avatarUrl }, leads: leads ?? [], ledger: ledger ?? [], withdrawals: withdrawals ?? [], summary: { ...sums, withdrawn, available: Math.max(0, (sums["payable"] ?? 0) - withdrawn), todayCalls } };
+  return { executive: { ...executive, avatarUrl }, leads: leads ?? [], ledger: ledger ?? [], withdrawals: withdrawals ?? [], summary: { pending: sums["pending"] ?? 0, verified: sums["verified"] ?? 0, payable: sums["payable"] ?? 0, paid: sums["paid"] ?? 0, withdrawn, available: Math.max(0, (sums["payable"] ?? 0) - withdrawn), todayCalls } };
 });
 
 const outcomes = z.enum(["contacted","follow_up","not_interested","invalid","enrolled","cc_done","no_answer"]);

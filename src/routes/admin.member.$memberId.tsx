@@ -1,6 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
 import { adminGetMemberDashboard } from "@/lib/admin.functions";
@@ -14,12 +13,10 @@ import {
   CalendarDays,
   CircleDollarSign,
   Eye,
-  ReceiptText,
   ShieldCheck,
   TrendingUp,
   Users,
 } from "lucide-react";
-import { useState } from "react";
 
 export const Route = createFileRoute("/admin/member/$memberId")({
   head: () => ({
@@ -39,7 +36,6 @@ export const Route = createFileRoute("/admin/member/$memberId")({
 function AdminMemberDashboardPage() {
   const { memberId } = Route.useParams();
   const load = useServerFn(adminGetMemberDashboard);
-  const [reportSlip, setReportSlip] = useState<PaymentSlipData | null>(null);
   const query = useQuery({
     queryKey: ["admin-member-dashboard", memberId],
     queryFn: () => load({ data: { id: memberId } }),
@@ -75,23 +71,6 @@ function AdminMemberDashboardPage() {
     { label: "Active days", value: tracking.activeDays.toLocaleString("en-PK"), icon: CalendarDays },
   ];
 
-  function printDailyReportSlip() {
-    setReportSlip({
-      kind: "daily-report",
-      title: "Daily Working Report",
-      buyerName: member.fullName,
-      buyerId: member.memberId,
-      rank: formatRankName(member.level?.name),
-      avatarUrl: member.avatarUrl,
-      amount: 0,
-      rangeLabel,
-      reportRows: dailyReport,
-      status: "Admin dashboard report",
-      note: `${dailyReport.length} day${dailyReport.length === 1 ? "" : "s"} selected from this member's working report.`,
-      receiptId: `DR-${member.memberId}-${Date.now().toString().slice(-6)}`,
-      submittedAt: new Date(),
-    });
-  }
 
   return (
     <main className="motion-scope cinematic-shell infographic-grid relative min-h-screen bg-background pb-14 text-foreground">
@@ -151,10 +130,6 @@ function AdminMemberDashboardPage() {
               <h2 className="font-display text-base font-semibold">Daily working report</h2>
               <p className="text-xs text-muted-foreground">{rangeLabel} · {dailyReport.length} report days</p>
             </div>
-            <Button variant="brand" size="sm" disabled={dailyReport.length === 0} onClick={printDailyReportSlip}>
-              <ReceiptText className="h-4 w-4" />
-              Print Slip
-            </Button>
           </div>
           {dailyReport.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">No daily working report found for this member.</p>
@@ -195,7 +170,6 @@ function AdminMemberDashboardPage() {
           {recentActivity.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">No recent training activity.</p> : <div>{recentActivity.map((item: any) => <div key={`${item.lectures.id}-${item.updated_at}`} className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 last:border-0"><div className="min-w-0"><p className="truncate text-sm font-semibold">{item.lectures.title}</p><p className="text-[11px] text-muted-foreground">Last opened {new Date(item.updated_at).toLocaleDateString("en-GB")}</p></div><span className="shrink-0 text-xs font-semibold text-cyan">{Math.floor(Number(item.position_seconds ?? 0) / 60)} min</span></div>)}</div>}
         </section>
       </div>
-      <PaymentSlip open={reportSlip !== null} data={reportSlip} onClose={() => setReportSlip(null)} />
     </main>
   );
 }

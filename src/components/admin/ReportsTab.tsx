@@ -1,11 +1,10 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, Loader2, Pencil, ReceiptText, Save, X } from "lucide-react";
+import { Download, FileText, Loader2, Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { PaymentSlip, type PaymentSlipData } from "@/components/courses/PaymentSlip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +33,6 @@ export function ReportsTab() {
   const [to, setTo] = useState(today);
   const [openMember, setOpenMember] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [reportSlip, setReportSlip] = useState<PaymentSlipData | null>(null);
   const [editDay, setEditDay] = useState<{
     date: string;
     leads: number;
@@ -96,30 +94,6 @@ export function ReportsTab() {
     }
   }
 
-  async function printMemberSlip(memberId: string) {
-    if (busy) return;
-    setBusy(memberId);
-    try {
-      const report = await loadOne({ data: { memberId, from, to } } as never);
-      setReportSlip({
-        kind: "daily-report",
-        title: "Member Daily Report",
-        buyerName: report.member?.fullName ?? "Member",
-        buyerId: report.member?.memberId ?? "—",
-        amount: 0,
-        rangeLabel,
-        reportRows: report.days,
-        status: "Printed by admin",
-        note: `${report.days.length} day${report.days.length === 1 ? "" : "s"} selected from this member's daily working report.`,
-        receiptId: `DR-${report.member?.memberId ?? "member"}-${Date.now().toString().slice(-6)}`,
-        submittedAt: new Date(),
-      });
-    } catch (error) {
-      toast.error((error as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
 
   const monday = shiftDay(today, -((new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7));
   const monthStart = `${today.slice(0, 8)}01`;
@@ -291,20 +265,6 @@ export function ReportsTab() {
                         )}
                         PDF
                       </Button>
-                      <Button
-                        variant="brand"
-                        size="sm"
-                        className="ml-2 rounded-xl"
-                        disabled={busy === row.id || row.days === 0}
-                        onClick={() => void printMemberSlip(row.id)}
-                      >
-                        {busy === row.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <ReceiptText className="h-4 w-4" />
-                        )}
-                        Print Slip
-                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -349,16 +309,6 @@ export function ReportsTab() {
                   <Download className="h-4 w-4" />
                 )}
                 Download PDF
-              </Button>
-              <Button
-                variant="brand"
-                size="sm"
-                className="rounded-xl"
-                disabled={busy === openMember || (detail.data?.days.length ?? 0) === 0}
-                onClick={() => void printMemberSlip(openMember)}
-              >
-                {busy === openMember ? <Loader2 className="h-4 w-4 animate-spin" /> : <ReceiptText className="h-4 w-4" />}
-                Print Slip
               </Button>
               <Button
                 variant="outline"
@@ -494,7 +444,6 @@ export function ReportsTab() {
           )}
         </div>
       ) : null}
-      <PaymentSlip open={reportSlip !== null} data={reportSlip} onClose={() => setReportSlip(null)} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getMyLeads, reassignLeads, uploadLeads } from "@/lib/leads.functions";
 
-type Row = { name: string | null; phone: string; city: string | null };
+type Row = { name: string | null; phone: string; city: string | null; age: number | null; qualification: string | null };
 type Assistant = { id: string; full_name: string; status: string };
 
 const STATUS: Record<string, string> = {
@@ -36,6 +36,8 @@ async function parseFile(file: File): Promise<Row[]> {
       name: pick(r, ["name"]) || null,
       phone: pick(r, ["phone", "mobile", "number", "contact", "whatsapp"]),
       city: pick(r, ["city", "location"]) || null,
+      age: Number(pick(r, ["age"])) || null,
+      qualification: pick(r, ["qualification", "education"]) || null,
     }))
     .filter((r) => r.phone);
 }
@@ -91,10 +93,10 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
   return (
     <div className="space-y-6">
       <section className="glass-panel space-y-4 rounded-2xl p-5">
-        <SectionTitle>Leads upload karein (Excel / CSV)</SectionTitle>
+        <SectionTitle>Upload leads (Excel / CSV)</SectionTitle>
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           <FileSpreadsheet className="size-8 text-primary" />
-          {fileName ? `${fileName} — ${rows.length} rows` : "File choose karein (Name, Phone, City columns)"}
+          {fileName ? `${fileName} — ${rows.length} rows` : "Choose a file (Name, Phone, City, Age, Qualification)"}
           <input
             type="file"
             accept=".csv,.xlsx,.xls"
@@ -108,7 +110,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
                 setRows(parsed.slice(0, 5000));
                 setFileName(f.name);
               } catch {
-                toast.error("File parh nahi saka.");
+                  toast.error("The file could not be read.");
               }
               e.target.value = "";
             }}
@@ -118,13 +120,13 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
         {rows.length > 0 && (
           <>
             <div className="grid grid-cols-3 gap-2">
-              {([["equal", "Barabar baantein"], ["custom", "Custom"], ["none", "Baad mein"]] as const).map(([m, l]) => (
+               {([["equal", "Equal batches"], ["custom", "Custom"], ["none", "Keep unassigned"]] as const).map(([m, l]) => (
                 <Button key={m} variant={mode === m ? "default" : "outline"} onClick={() => setMode(m)}>{l}</Button>
               ))}
             </div>
             {mode === "equal" && (
               <p className="text-xs text-muted-foreground">
-                {active.length ? `${active.length} active assistants mein barabar (~${Math.ceil(rows.length / active.length)} har ek).` : "Koi active assistant nahi — leads unassigned rahengi."}
+                 {active.length ? `Complete 10-lead batches will rotate across ${active.length} active executives. Leftovers stay unassigned.` : "No active executive — leads will stay unassigned."}
               </p>
             )}
             {mode === "custom" && (
@@ -135,7 +137,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
                     <Input className="w-24" inputMode="numeric" value={custom[a.id] ?? ""} onChange={(e) => setCustom({ ...custom, [a.id]: e.target.value })} />
                   </div>
                 ))}
-                <p className="text-xs text-muted-foreground">Total {customTotal} / {rows.length}. Baaqi unassigned rahengi.</p>
+                 <p className="text-xs text-muted-foreground">Total {customTotal} / {rows.length}. Use 10, 20, 30… per executive; leftovers stay unassigned.</p>
               </div>
             )}
             <Button className="w-full" disabled={send.isPending} onClick={() => send.mutate()}>
@@ -161,7 +163,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
         </div>
         {filter === "unassigned" && (data?.unassigned ?? 0) > 0 && active.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            Sab unassigned leads do:
+             Assign all unassigned leads to:
             {active.map((a) => (
               <Button key={a.id} size="sm" variant="outline" disabled={distribute.isPending} onClick={() => distribute.mutate(a.id)}>
                 {a.full_name}
@@ -186,7 +188,7 @@ export function LeadsManager({ assistants }: { assistants: Assistant[] }) {
               </select>
             </div>
           ))}
-          {(data?.leads ?? []).length === 0 && <p className="py-3 text-muted-foreground">Koi lead nahi.</p>}
+           {(data?.leads ?? []).length === 0 && <p className="py-3 text-muted-foreground">No leads yet.</p>}
         </div>
       </section>
     </div>

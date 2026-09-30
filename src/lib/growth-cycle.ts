@@ -8,7 +8,7 @@
 
 export type GrowthCycle = { start: string; end: string; label: string; index: 1 | 2 | 3 };
 
-export type EnrollmentTier = { minRate: number; perEnrollment: number };
+export type EnrollmentTier = { count: number; perEnrollment: number };
 export type CcTier = { minCount: number; perCc: number };
 
 export type GrowthSettings = {
@@ -16,6 +16,10 @@ export type GrowthSettings = {
   unlockFee: number;
   /** How long the unlock stays valid (0 = forever). */
   unlockDays: number;
+  maxExecutivesPerFbo: number;
+  dailyLeadTarget: number;
+  enrollmentServiceFee: number;
+  ccServiceFee: number;
   enrollmentTiers: EnrollmentTier[];
   ccTiers: CcTier[];
 };
@@ -23,15 +27,20 @@ export type GrowthSettings = {
 export const DEFAULT_GROWTH_SETTINGS: GrowthSettings = {
   unlockFee: 2500,
   unlockDays: 0,
+  maxExecutivesPerFbo: 10,
+  dailyLeadTarget: 10,
+  enrollmentServiceFee: 10,
+  ccServiceFee: 500,
   enrollmentTiers: [
-    { minRate: 20, perEnrollment: 70 },
-    { minRate: 30, perEnrollment: 90 },
-    { minRate: 40, perEnrollment: 110 },
-    { minRate: 50, perEnrollment: 130 },
+    { count: 1, perEnrollment: 50 },
+    { count: 2, perEnrollment: 70 },
+    { count: 3, perEnrollment: 90 },
+    { count: 4, perEnrollment: 120 },
   ],
   ccTiers: [
     { minCount: 1, perCc: 3000 },
     { minCount: 2, perCc: 5000 },
+    { minCount: 3, perCc: 7000 },
   ],
 };
 
@@ -87,15 +96,15 @@ export function inCycle(cycle: GrowthCycle, when: string | null | undefined) {
   return day >= cycle.start && day <= cycle.end;
 }
 
-const pickRate = (tiers: EnrollmentTier[], rate: number) =>
+export const enrollmentRateForCount = (count: number, tiers: EnrollmentTier[] = DEFAULT_GROWTH_SETTINGS.enrollmentTiers) =>
   [...tiers]
-    .sort((a, b) => a.minRate - b.minRate)
-    .reduce((best, tier) => (rate >= tier.minRate ? tier.perEnrollment : best), 0);
+    .sort((a, b) => a.count - b.count)
+    .reduce((best, tier) => (count >= tier.count ? tier.perEnrollment : best), count > 4 ? Math.min(200, 120 + (count - 4) * 30) : 0);
 
-const pickCc = (tiers: CcTier[], count: number) =>
+export const ccRateForCount = (count: number, tiers: CcTier[] = DEFAULT_GROWTH_SETTINGS.ccTiers) =>
   [...tiers]
     .sort((a, b) => a.minCount - b.minCount)
-    .reduce((best, tier) => (count >= tier.minCount ? tier.perCc : best), 0);
+    .reduce((best, tier) => (count >= tier.minCount ? tier.perCc : best), count > 3 ? 7000 + (count - 3) * 2000 : 0);
 
 export type CycleInput = { leads: number; enrolled: number; ccDone: number };
 
@@ -118,10 +127,10 @@ export type CycleEarnings = {
 /** Commission for one assistant inside one 10-day cycle. */
 export function cycleEarnings(input: CycleInput, settings: GrowthSettings): CycleEarnings {
   const rate = input.leads > 0 ? (input.enrolled / input.leads) * 100 : 0;
-  const enrollmentRate = pickRate(settings.enrollmentTiers, rate);
-  const ccRate = pickCc(settings.ccTiers, input.ccDone);
+  const enrollmentRate = enrollmentRateForCount(input.enrolled, settings.enrollmentTiers);
+  const ccRate = ccRateForCount(input.ccDone, settings.ccTiers);
   const nextEnrollmentTier =
-    [...settings.enrollmentTiers].sort((a, b) => a.minRate - b.minRate).find((t) => rate < t.minRate) ?? null;
+    [...settings.enrollmentTiers].sort((a, b) => a.count - b.count).find((t) => input.enrolled < t.count) ?? null;
   const nextCcTier =
     [...settings.ccTiers].sort((a, b) => a.minCount - b.minCount).find((t) => input.ccDone < t.minCount) ?? null;
   const enrollmentAmount = input.enrolled * enrollmentRate;

@@ -18,6 +18,7 @@ export const BRAND = {
  * keyed to a deterministic internal address derived from the Member ID.
  */
 export const MEMBER_AUTH_DOMAIN = "members.skyline-achievers.app";
+export const EXECUTIVE_AUTH_DOMAIN = "executives.skyline-achievers.app";
 
 export function normalizeMemberId(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, "");
@@ -25,6 +26,10 @@ export function normalizeMemberId(raw: string): string {
 
 export function memberIdToAuthEmail(memberId: string): string {
   return `${normalizeMemberId(memberId).toLowerCase()}@${MEMBER_AUTH_DOMAIN}`;
+}
+
+export function executiveIdToAuthEmail(executiveId: string): string {
+  return `${normalizeMemberId(executiveId).toLowerCase()}@${EXECUTIVE_AUTH_DOMAIN}`;
 }
 
 export const ACCOUNT_STATUS_LABEL: Record<string, string> = {

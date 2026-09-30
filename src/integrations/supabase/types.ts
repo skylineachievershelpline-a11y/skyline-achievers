@@ -1444,6 +1444,7 @@ export type Database = {
           id: string
           last_login_at: string | null
           notes: string | null
+          password_changed_at: string | null
           payout_account_number: string | null
           payout_account_title: string | null
           payout_method: string | null
@@ -1472,6 +1473,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           notes?: string | null
+          password_changed_at?: string | null
           payout_account_number?: string | null
           payout_account_title?: string | null
           payout_method?: string | null
@@ -1500,6 +1502,7 @@ export type Database = {
           id?: string
           last_login_at?: string | null
           notes?: string | null
+          password_changed_at?: string | null
           payout_account_number?: string | null
           payout_account_title?: string | null
           payout_method?: string | null

@@ -6,7 +6,8 @@
 - [x] Remove the appearance switch from landing and member dashboard headers
 - [x] Put light/dark appearance inside Member and Beginners Settings
 - [x] Add Growth Executive Settings
-- [ ] Verify landing plus signed-in phone layouts
+- [x] Verify landing install layout on phone and desktop
+- [ ] Verify signed-in Settings placement on a real phone
 
 ## Member and Beginners navigation
 - [x] Remove the rejected bottom navigation and its animation

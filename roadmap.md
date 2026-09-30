@@ -1,5 +1,11 @@
 # Roadmap
 
+## Bottom app navigation
+- [x] Replace member and Beginners side menus with video-style bottom navigation
+- [x] Keep every section available through horizontal swiping
+- [x] Preserve locked sections, Settings, account switching, and logout
+- [ ] Verify signed-in member and Beginners navigation on a phone
+
 ## Final dashboard and admin member organization
 - [x] Keep the member name, rank pin, and Member ID together on member and admin dashboard profiles
 - [x] Separate Admin Members into All, Personal Mentorship, and FBO views

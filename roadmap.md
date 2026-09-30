@@ -4,6 +4,7 @@
 - [x] Replace member and Beginners side menus with video-style bottom navigation
 - [x] Keep every section available through horizontal swiping
 - [x] Preserve locked sections, Settings, account switching, and logout
+- [x] Keep the selected circle fully visible and move it fluidly between sections
 - [ ] Verify signed-in member and Beginners navigation on a phone
 
 ## Final dashboard and admin member organization

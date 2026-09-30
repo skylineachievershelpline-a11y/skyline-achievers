@@ -169,6 +169,14 @@ export function MemberShell({
   const visibleNav = NAV.filter(
     (item) => item.to === "/dashboard" || !hiddenMenu.includes(item.to),
   );
+  const selectedNavIndex = settingsOpen
+    ? visibleNav.length
+    : Math.max(
+        0,
+        visibleNav.findIndex(
+          (item) => pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`)),
+        ),
+      );
 
   /** Which menu entry is locked right now, and why. */
   function lockReason(to: string): string | null {
@@ -302,7 +310,11 @@ export function MemberShell({
         aria-label="Main navigation"
         className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]"
       >
-        <div className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2">
+        <div
+          className="bottom-nav-scroll app-bottom-nav-track mx-auto flex max-w-6xl items-end overflow-x-auto px-2"
+          style={{ "--bottom-nav-index": selectedNavIndex } as React.CSSProperties}
+        >
+          <span className="app-bottom-nav-selection" aria-hidden="true" />
           {visibleNav.map((item) => {
             const locked = lockReason(item.to);
             const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(`${item.to}/`));
@@ -319,7 +331,7 @@ export function MemberShell({
                 {content}
               </button>
             ) : (
-              <Link key={item.to} to={item.to} title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
+              <Link key={item.to} to={item.to} viewTransition title={item.label} aria-current={active ? "page" : undefined} className="app-bottom-nav-item">
                 {content}
               </Link>
             );

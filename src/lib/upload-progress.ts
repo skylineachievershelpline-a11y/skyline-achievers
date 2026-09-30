@@ -7,7 +7,7 @@ export type ProgressInfo = {
 
 export type ProgressHandler = (percent: number, info?: ProgressInfo) => void;
 
-export function putWithProgress(
+function putOnce(
   signedUrl: string,
   file: File | Blob,
   onProgress?: ProgressHandler,
@@ -43,4 +43,30 @@ export function putWithProgress(
     xhr.onabort = () => reject(new Error("Upload cancelled."));
     xhr.send(file);
   });
+}
+
+/** Phone-safe upload: copies the file into memory first, then retries on weak networks. */
+export async function putWithProgress(
+  signedUrl: string,
+  file: File | Blob,
+  onProgress?: ProgressHandler,
+): Promise<void> {
+  let body: Blob = file;
+  try {
+    body = new Blob([await file.arrayBuffer()], { type: (file as File).type || "application/octet-stream" });
+  } catch {
+    body = file;
+  }
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await putOnce(signedUrl, body, onProgress);
+      return;
+    } catch (error) {
+      lastError = error;
+      if ((error as Error).message === "Upload cancelled.") throw error;
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Upload failed. Please try again.");
 }

@@ -45,7 +45,6 @@ function EnrollmentVideoPage() {
       <div className="relative mx-auto w-full max-w-4xl">
         <header className="mb-6 flex items-center gap-3 animate-rise-in">
           <BackButton fallback="/" className="h-10 w-10 rounded-2xl" />
-          {false ? <Link to="/"><Button><ArrowLeft /></Button></Link> : null}
           <BrandLogo size="sm" withWordmark={false} />
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">

@@ -16,6 +16,7 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
+import { Route as ExecutiveRouteImport } from './routes/executive'
 import { Route as LeaveRouteImport } from './routes/leave'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PayMentorshipRouteImport } from './routes/pay-mentorship'
@@ -78,6 +79,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const EnrollmentVideoRoute = EnrollmentVideoRouteImport.update({
   id: '/enrollment-video',
   path: '/enrollment-video',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutiveRoute = ExecutiveRouteImport.update({
+  id: '/executive',
+  path: '/executive',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaveRoute = LeaveRouteImport.update({
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
+  '/executive': typeof ExecutiveRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/enrollment-video'
+    | '/executive'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -455,6 +467,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   EnrollmentVideoRoute: typeof EnrollmentVideoRoute
+  ExecutiveRoute: typeof ExecutiveRoute
   LeaveRoute: typeof LeaveRoute
   NotificationsRoute: typeof NotificationsRoute
   PayMentorshipRoute: typeof PayMentorshipRoute
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/enrollment-video'
       fullPath: '/enrollment-video'
       preLoaderRoute: typeof EnrollmentVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executive': {
+      id: '/executive'
+      path: '/executive'
+      fullPath: '/executive'
+      preLoaderRoute: typeof ExecutiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leave': {
@@ -743,6 +763,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   EnrollmentVideoRoute: EnrollmentVideoRoute,
+  ExecutiveRoute: ExecutiveRoute,
   LeaveRoute: LeaveRoute,
   NotificationsRoute: NotificationsRoute,
   PayMentorshipRoute: PayMentorshipRoute,

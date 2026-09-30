@@ -132,7 +132,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(location.pathname==="/"&&!location.search){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k)&&localStorage.getItem("skyline-open-login")!=="1"){document.documentElement.setAttribute("data-signed-in","1");break}}}}catch(e){}`,
+            __html: `try{if(location.pathname==="/"&&!location.search){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k)&&localStorage.getItem("skyline-open-login")!=="1"){document.documentElement.setAttribute("data-signed-in","1");setTimeout(function(){document.documentElement.removeAttribute("data-signed-in")},4000);break}}}}catch(e){}`,
           }}
         />
         <style>{`html[data-signed-in] body{visibility:hidden;background:#05070d}`}</style>

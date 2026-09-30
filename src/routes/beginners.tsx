@@ -33,7 +33,7 @@ import {
   Camera,
 } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
@@ -523,7 +523,7 @@ function BeginnersPage() {
             "--bottom-nav-index": settingsOpen
               ? BEGINNER_NAV.length + 3
               : Math.max(0, BEGINNER_NAV.findIndex((item) => item.id === view)),
-          } as React.CSSProperties}
+          } as CSSProperties}
         >
           <span className="app-bottom-nav-selection" aria-hidden="true" />
           {BEGINNER_NAV.map((item) => {
@@ -546,8 +546,8 @@ function BeginnersPage() {
             </Link>
           ))}
           <Button type="button" variant="ghost" title="Settings" onClick={() => setSettingsOpen(true)} className="app-bottom-nav-item h-auto rounded-none px-0">
-            <span className="app-bottom-nav-icon"><SettingsIcon className="h-4.5 w-4.5" /></span>
-            <span className="app-bottom-nav-label">Settings</span>
+            <span className={cn("app-bottom-nav-icon", settingsOpen && "is-active")}><SettingsIcon className="h-4.5 w-4.5" /></span>
+            <span className={cn("app-bottom-nav-label", settingsOpen && "is-active")}>Settings</span>
           </Button>
         </div>
       </nav>,

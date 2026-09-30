@@ -12,7 +12,6 @@ import {
   Link2,
   Lock,
   MessageCircle,
-  LogOut,
   Search,
   FolderOpen,
   User,
@@ -22,7 +21,6 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-import { BrandLogo } from "@/components/brand/BrandLogo";
 import { BackButton } from "@/components/member/BackButton";
 import { VoiceGuideButton } from "@/components/voice/VoiceGuide";
 import { StoryLogo } from "@/components/story/StoryLogo";

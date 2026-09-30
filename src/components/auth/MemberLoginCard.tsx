@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND, memberIdToAuthEmail, normalizeMemberId } from "@/lib/brand";
+import { resolveExecutiveLogin } from "@/lib/growth-executive.functions";
 import { recordLogin } from "@/lib/member.functions";
 import { recordTraineeLogin, resolveLoginIdentifier, whoAmI } from "@/lib/trainee.functions";
 
@@ -24,6 +25,7 @@ export function MemberLoginCard() {
   const identify = useServerFn(whoAmI);
   const resolveIdentifier = useServerFn(resolveLoginIdentifier);
   const finishTraineeLogin = useServerFn(recordTraineeLogin);
+  const resolveExecutive = useServerFn(resolveExecutiveLogin);
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,9 +46,22 @@ export function MemberLoginCard() {
     }
 
     setPending(true);
-    const resolved = /^\d{7,15}$/.test(id)
-      ? await resolveIdentifier({ data: { identifier: id } })
-      : { email: memberIdToAuthEmail(id) };
+    let accountKind: "member" | "executive" = "member";
+    let resolved: { email: string };
+    try {
+      if (/^22\d{10}$/.test(id)) {
+        resolved = await resolveExecutive({ data: { identifier: id } });
+        accountKind = "executive";
+      } else {
+        resolved = /^\d{7,15}$/.test(id)
+          ? await resolveIdentifier({ data: { identifier: id } })
+          : { email: memberIdToAuthEmail(id) };
+      }
+    } catch {
+      setPending(false);
+      setError("That mobile number or account ID is not recognised.");
+      return;
+    }
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: resolved.email,
       password,
@@ -54,6 +69,12 @@ export function MemberLoginCard() {
     if (signInError) {
       setPending(false);
       setError("That mobile number or Member ID and password are not recognised.");
+      return;
+    }
+
+    if (accountKind === "executive") {
+      await rememberCurrentAccount({ code: id, kind: "member", name: id });
+      await navigate({ to: "/executive" });
       return;
     }
 

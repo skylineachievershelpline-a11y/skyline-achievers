@@ -95,6 +95,27 @@ const HOW_IT_WORKS = [
   },
 ] as const;
 
+const AUDIENCE = [
+  {
+    icon: GraduationCap,
+    title: "Students",
+    detail:
+      "Build a practical skill alongside your studies and become financially independent early.",
+  },
+  {
+    icon: Briefcase,
+    title: "Job holders",
+    detail:
+      "Create a second income stream in your free hours, without leaving your current job.",
+  },
+  {
+    icon: Rocket,
+    title: "Complete beginners",
+    detail:
+      "Never worked online before? Everything is taught from the very first step, in simple language.",
+  },
+] as const;
+
 function LandingPage() {
   const navigate = useNavigate();
   const [loginOpen, setLoginOpen] = useState(false);

@@ -331,7 +331,32 @@ function LandingPage() {
         </div>
       </section>
 
-      
+      <section id="who" className="section-flow relative overflow-hidden border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div data-reveal className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Who is this for</p>
+            <h2 className="mt-3 max-w-xl font-display text-3xl font-semibold sm:text-4xl">
+              Built for people starting from zero.
+            </h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {AUDIENCE.map(({ icon: Icon, title, detail }, index) => (
+              <article
+                key={title}
+                className="cinematic-card glass-panel metal-edge depth-hover rounded-2xl p-6"
+                style={{ "--motion-order": index } as CSSProperties}
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
+                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       <ReviewsSection />
 

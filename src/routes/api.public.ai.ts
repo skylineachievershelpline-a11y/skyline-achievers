@@ -45,6 +45,9 @@ export const Route = createFileRoute("/api/public/ai")({
           fetch: runIdFetch.fetch,
         });
 
+        const { loadVideoKnowledgeContext } = await import("@/lib/video-knowledge.server");
+        const videoContext = await loadVideoKnowledgeContext();
+
         const system = `You are the public Skyline Achievers AI introduction guide.
 
 SCOPE

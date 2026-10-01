@@ -360,15 +360,91 @@ function LandingPage() {
 
       <ReviewsSection />
 
-      <footer className="border-t border-hairline px-5 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
-          <BrandLogo size="sm" />
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Learn. Earn. Lead. Together.
+      <section id="start" className="section-flow relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+        <div data-reveal className="cinematic-card raised-panel mx-auto max-w-4xl rounded-3xl p-7 text-center sm:p-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+            Next batch
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+            Start your journey today.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
+            Seats in every beginner batch are limited so each person gets proper mentor attention.
+            Watch the orientation, then join us — or ask our assistant anything first.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button asChild variant="brand" size="xl" className="w-full sm:w-auto sm:min-w-52">
+              <a href="#introduction">
+                Watch Free Orientation
+                <ArrowRight />
+              </a>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="xl"
+              className="w-full border-metal/30 bg-background/70 backdrop-blur-md sm:w-auto sm:min-w-48"
+              onClick={() => setPublicAiOpen(true)}
+            >
+              <MessageCircleQuestion />
+              Ask Skyline AI
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-hairline px-5 py-14 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="lg:col-span-2">
+              <BrandLogo size="sm" />
+              <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
+                {BRAND.name} is a private learning and leadership community that teaches online
+                earning skills using only a mobile phone, with guided training and personal
+                mentorship.
+              </p>
+              <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 text-brand" />
+                Safe, guided learning. Results depend on your own effort and consistency.
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+                Explore
+              </p>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li><a className="transition hover:text-foreground" href="#introduction">Free orientation</a></li>
+                <li><a className="transition hover:text-foreground" href="#about">How it works</a></li>
+                <li><a className="transition hover:text-foreground" href="#who">Who is this for</a></li>
+                <li><a className="transition hover:text-foreground" href="#reviews">Success stories</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+                Access
+              </p>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li>
+                  <button type="button" className="transition hover:text-foreground" onClick={() => setLoginOpen(true)}>
+                    Member login
+                  </button>
+                </li>
+                <li>
+                  <button type="button" className="transition hover:text-foreground" onClick={() => setPublicAiOpen(true)}>
+                    Ask Skyline AI
+                  </button>
+                </li>
+                <li><a className="transition hover:text-foreground" href="#start">Join next batch</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-hairline pt-6 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
+            <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
+            <p>{BRAND.tagline} — together.</p>
           </div>
         </div>
       </footer>
+
 
       <WhatsappJoinCard variant="chip" />
 

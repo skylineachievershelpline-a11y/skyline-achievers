@@ -78,6 +78,8 @@ export const Route = createFileRoute("/api/ai")({
           headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
           fetch: runIdFetch.fetch,
         });
+        const { loadVideoKnowledgeContext } = await import("@/lib/video-knowledge.server");
+        const videoContext = await loadVideoKnowledgeContext();
         const system = `You are Skyline Achievers AI, a private guide for ${identity.name}. Their exact access is: ${identity.access}.
 
 YOUR TWO JOBS

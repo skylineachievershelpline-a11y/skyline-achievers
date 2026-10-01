@@ -23,6 +23,16 @@ import { SkylineAiMascot, type SkylineAiMascotState } from "@/components/ai/Skyl
 import { AiMessagePicture, AiPictureButton, AiPicturePreview } from "@/components/ai/AiPictureAttachment";
 import { toast } from "sonner";
 
+/** Ready-made questions so a first-time visitor can get answers with one tap. */
+const QUICK_QUESTIONS = [
+  "Skyline Achievers kya hai?",
+  "Kaam shuru karne ke liye kya chahiye?",
+  "Kya koi investment zaroori hai?",
+  "Daily kitna time dena parta hai?",
+  "Beginner batch kaise join karein?",
+  "Training aur mentorship kaise milti hai?",
+] as const;
+
 export function PublicSkylineAi() {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public/ai" }), []);
   const chatRef = useRef<HTMLDivElement | null>(null);

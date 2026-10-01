@@ -2,8 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
+  Briefcase,
   GraduationCap,
   LogIn,
+  MessageCircleQuestion,
+  Rocket,
   Smartphone,
   Sparkles,
   ShieldCheck,

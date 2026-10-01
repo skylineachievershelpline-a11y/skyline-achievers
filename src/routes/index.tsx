@@ -227,25 +227,29 @@ function LandingPage() {
               <span className="hero-line hero-sequence hero-sequence-2">SKYLINE</span>
               <span className="hero-line hero-sequence hero-sequence-3 brand-text">ACHIEVERS</span>
             </h1>
-            <p className="hero-sequence hero-sequence-4 mt-7 max-w-xl text-base leading-7 text-silver sm:text-lg">
-              {BRAND.name} teaches ordinary people how to use just a mobile phone and an internet
-              connection to learn online earning — with real training, real mentorship and a clear
-              path to leadership.
+            <p className="hero-sequence hero-sequence-4 mt-5 max-w-xl font-display text-xl font-semibold leading-8 text-foreground sm:text-2xl">
+              Turn your smartphone into a real income skill.
+            </p>
+            <p className="hero-sequence hero-sequence-4 mt-3 max-w-xl text-base leading-7 text-silver sm:text-lg">
+              No experience needed. Watch the free orientation, get a personal mentor, and grow
+              step by step — using only a phone and an internet connection.
             </p>
             <div className="hero-sequence hero-sequence-5 mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button variant="brand" size="xl" className="sm:min-w-44" onClick={() => setLoginOpen(true)}>
-                Login
-                <ArrowRight />
+              <Button asChild variant="brand" size="xl" className="sm:min-w-56">
+                <a href="#introduction">
+                  Watch Free Orientation
+                  <ArrowRight />
+                </a>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="xl"
-                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-52"
+                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-48"
               >
-                <a href="#about">
+                <a href="#start">
                   <Wifi />
-                  What is {BRAND.shortName}?
+                  Join Next Batch
                 </a>
               </Button>
             </div>

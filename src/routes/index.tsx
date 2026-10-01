@@ -2,8 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
+  Briefcase,
   GraduationCap,
   LogIn,
+  MessageCircleQuestion,
+  Rocket,
   Smartphone,
   Sparkles,
   ShieldCheck,
@@ -89,6 +92,27 @@ const HOW_IT_WORKS = [
     title: "Rise through the levels",
     detail:
       "From personal mentorship to full management training, every level you complete unlocks the next one.",
+  },
+] as const;
+
+const AUDIENCE = [
+  {
+    icon: GraduationCap,
+    title: "Students",
+    detail:
+      "Build a practical skill alongside your studies and become financially independent early.",
+  },
+  {
+    icon: Briefcase,
+    title: "Job holders",
+    detail:
+      "Create a second income stream in your free hours, without leaving your current job.",
+  },
+  {
+    icon: Rocket,
+    title: "Complete beginners",
+    detail:
+      "Never worked online before? Everything is taught from the very first step, in simple language.",
   },
 ] as const;
 
@@ -227,25 +251,29 @@ function LandingPage() {
               <span className="hero-line hero-sequence hero-sequence-2">SKYLINE</span>
               <span className="hero-line hero-sequence hero-sequence-3 brand-text">ACHIEVERS</span>
             </h1>
-            <p className="hero-sequence hero-sequence-4 mt-7 max-w-xl text-base leading-7 text-silver sm:text-lg">
-              {BRAND.name} teaches ordinary people how to use just a mobile phone and an internet
-              connection to learn online earning — with real training, real mentorship and a clear
-              path to leadership.
+            <p className="hero-sequence hero-sequence-4 mt-5 max-w-xl font-display text-xl font-semibold leading-8 text-foreground sm:text-2xl">
+              Turn your smartphone into a real income skill.
+            </p>
+            <p className="hero-sequence hero-sequence-4 mt-3 max-w-xl text-base leading-7 text-silver sm:text-lg">
+              No experience needed. Watch the free orientation, get a personal mentor, and grow
+              step by step — using only a phone and an internet connection.
             </p>
             <div className="hero-sequence hero-sequence-5 mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button variant="brand" size="xl" className="sm:min-w-44" onClick={() => setLoginOpen(true)}>
-                Login
-                <ArrowRight />
+              <Button asChild variant="brand" size="xl" className="sm:min-w-56">
+                <a href="#introduction">
+                  Watch Free Orientation
+                  <ArrowRight />
+                </a>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="xl"
-                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-52"
+                className="border-metal/30 bg-background/70 backdrop-blur-md sm:min-w-48"
               >
-                <a href="#about">
+                <a href="#start">
                   <Wifi />
-                  What is {BRAND.shortName}?
+                  Join Next Batch
                 </a>
               </Button>
             </div>
@@ -327,19 +355,120 @@ function LandingPage() {
         </div>
       </section>
 
-      
+      <section id="who" className="section-flow relative overflow-hidden border-b border-hairline bg-surface px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div data-reveal className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">Who is this for</p>
+            <h2 className="mt-3 max-w-xl font-display text-3xl font-semibold sm:text-4xl">
+              Built for people starting from zero.
+            </h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {AUDIENCE.map(({ icon: Icon, title, detail }, index) => (
+              <article
+                key={title}
+                className="cinematic-card glass-panel metal-edge depth-hover rounded-2xl p-6"
+                style={{ "--motion-order": index } as CSSProperties}
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan/30 brand-gradient text-brand-foreground shadow-brand">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
+                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       <ReviewsSection />
 
-      <footer className="border-t border-hairline px-5 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
-          <BrandLogo size="sm" />
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Learn. Earn. Lead. Together.
+      <section id="start" className="section-flow relative overflow-hidden border-b border-hairline px-5 py-20 sm:px-8 sm:py-28">
+        <div data-reveal className="cinematic-card raised-panel mx-auto max-w-4xl rounded-3xl p-7 text-center sm:p-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+            Next batch
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+            Start your journey today.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
+            Seats in every beginner batch are limited so each person gets proper mentor attention.
+            Watch the orientation, then join us — or ask our assistant anything first.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button asChild variant="brand" size="xl" className="w-full sm:w-auto sm:min-w-52">
+              <a href="#introduction">
+                Watch Free Orientation
+                <ArrowRight />
+              </a>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="xl"
+              className="w-full border-metal/30 bg-background/70 backdrop-blur-md sm:w-auto sm:min-w-48"
+              onClick={() => setPublicAiOpen(true)}
+            >
+              <MessageCircleQuestion />
+              Ask Skyline AI
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-hairline px-5 py-14 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="lg:col-span-2">
+              <BrandLogo size="sm" />
+              <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
+                {BRAND.name} is a private learning and leadership community that teaches online
+                earning skills using only a mobile phone, with guided training and personal
+                mentorship.
+              </p>
+              <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 text-brand" />
+                Safe, guided learning. Results depend on your own effort and consistency.
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+                Explore
+              </p>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li><a className="transition hover:text-foreground" href="#introduction">Free orientation</a></li>
+                <li><a className="transition hover:text-foreground" href="#about">How it works</a></li>
+                <li><a className="transition hover:text-foreground" href="#who">Who is this for</a></li>
+                <li><a className="transition hover:text-foreground" href="#reviews">Success stories</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-glow">
+                Access
+              </p>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li>
+                  <button type="button" className="transition hover:text-foreground" onClick={() => setLoginOpen(true)}>
+                    Member login
+                  </button>
+                </li>
+                <li>
+                  <button type="button" className="transition hover:text-foreground" onClick={() => setPublicAiOpen(true)}>
+                    Ask Skyline AI
+                  </button>
+                </li>
+                <li><a className="transition hover:text-foreground" href="#start">Join next batch</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-hairline pt-6 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
+            <p>© {new Date().getFullYear()} {BRAND.name}. All rights reserved.</p>
+            <p>{BRAND.tagline} — together.</p>
           </div>
         </div>
       </footer>
+
 
       <WhatsappJoinCard variant="chip" />
 

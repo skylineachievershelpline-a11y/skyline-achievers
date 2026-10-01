@@ -207,15 +207,18 @@ Rules: use the transcript's own timestamps, never invent a time; cover the whole
       keyPoints?: string;
       timeline?: { t?: string | number; label?: string; detail?: string }[];
     };
-    const timeline: Chapter[] = (parsed.timeline ?? [])
-      .map((row) => {
-        const seconds =
-          typeof row.t === "number" ? row.t : stampToSeconds(String(row.t ?? "").trim());
-        if (seconds === null || seconds === undefined || !row.label) return null;
-        return { t: seconds, label: row.label, detail: row.detail };
-      })
-      .filter((row): row is Chapter => row !== null)
-      .sort((a, b) => a.t - b.t);
+    const timeline: Chapter[] = [];
+    for (const row of parsed.timeline ?? []) {
+      const seconds =
+        typeof row.t === "number" ? row.t : stampToSeconds(String(row.t ?? "").trim());
+      if (seconds === null || seconds === undefined || !row.label) continue;
+      timeline.push(
+        row.detail
+          ? { t: seconds, label: row.label, detail: row.detail }
+          : { t: seconds, label: row.label },
+      );
+    }
+    timeline.sort((a, b) => a.t - b.t);
 
     return {
       summary: parsed.summary ?? "",

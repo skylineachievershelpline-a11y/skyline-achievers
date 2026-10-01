@@ -237,6 +237,9 @@ function AdminPage() {
           <TabsContent value="ai-questions" className="mt-5">
             <AiQuestionsTab />
           </TabsContent>
+          <TabsContent value="video-knowledge" className="mt-5">
+            <VideoKnowledgeTab />
+          </TabsContent>
         </Tabs>
       </div>
     </main>

@@ -3620,6 +3620,66 @@ export type Database = {
         }
         Relationships: []
       }
+      video_knowledge: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_points: string | null
+          language: string | null
+          last_error: string | null
+          source_id: string | null
+          source_kind: string
+          status: string
+          summary: string | null
+          timeline: Json
+          title: string
+          transcript: string | null
+          updated_at: string
+          video_label: string | null
+          video_url: string | null
+          youtube_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_points?: string | null
+          language?: string | null
+          last_error?: string | null
+          source_id?: string | null
+          source_kind: string
+          status?: string
+          summary?: string | null
+          timeline?: Json
+          title: string
+          transcript?: string | null
+          updated_at?: string
+          video_label?: string | null
+          video_url?: string | null
+          youtube_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_points?: string | null
+          language?: string | null
+          last_error?: string | null
+          source_id?: string | null
+          source_kind?: string
+          status?: string
+          summary?: string | null
+          timeline?: Json
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+          video_label?: string | null
+          video_url?: string | null
+          youtube_id?: string | null
+        }
+        Relationships: []
+      }
       watch_positions: {
         Row: {
           created_at: string

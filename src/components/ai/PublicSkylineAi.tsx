@@ -52,11 +52,26 @@ export function PublicSkylineAi() {
       <Conversation className="min-h-0 flex-1">
         <ConversationContent className="gap-5 px-1 py-3 sm:px-2">
           {messages.length === 0 ? (
-            <ConversationEmptyState
-              icon={<SkylineAiMascot state="idle" className="w-24" />}
-              title="Ask Skyline Achievers AI"
-              description="Learn what Skyline Achievers is and how its guided journey works."
-            />
+            <div className="flex flex-col items-center gap-5">
+              <ConversationEmptyState
+                icon={<SkylineAiMascot state="idle" className="w-24" />}
+                title="Ask Skyline Achievers AI"
+                description="Pick a question below, or type your own."
+              />
+              <div className="flex w-full flex-wrap justify-center gap-2">
+                {QUICK_QUESTIONS.map((question) => (
+                  <button
+                    key={question}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void sendMessage({ text: question })}
+                    className="metal-edge rounded-full border border-hairline bg-surface px-3.5 py-2 text-left text-xs font-medium text-foreground shadow-glass transition hover:border-brand/40 hover:text-brand-glow active:scale-[0.97] disabled:opacity-50"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : null}
           {messages.map((message) => (
             <Message key={message.id} from={message.role}>

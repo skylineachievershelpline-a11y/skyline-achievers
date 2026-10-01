@@ -6,6 +6,7 @@ import { Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AiQuestionsTab } from "@/components/admin/AiQuestionsTab";
+import { VideoKnowledgeTab } from "@/components/admin/VideoKnowledgeTab";
 import { AnnouncementsTab } from "@/components/admin/AnnouncementsTab";
 import { AdminAppCard } from "@/components/admin/AdminAppCard";
 import { ApprovalsBar } from "@/components/admin/ApprovalsBar";
@@ -189,6 +190,9 @@ function AdminPage() {
             <TabsTrigger value="ai-questions" className="rounded-xl">
               AI Questions
             </TabsTrigger>
+            <TabsTrigger value="video-knowledge" className="rounded-xl">
+              AI Video Knowledge
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-5">
@@ -232,6 +236,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="ai-questions" className="mt-5">
             <AiQuestionsTab />
+          </TabsContent>
+          <TabsContent value="video-knowledge" className="mt-5">
+            <VideoKnowledgeTab />
           </TabsContent>
         </Tabs>
       </div>

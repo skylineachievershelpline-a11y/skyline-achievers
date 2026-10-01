@@ -78,6 +78,8 @@ export const Route = createFileRoute("/api/ai")({
           headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
           fetch: runIdFetch.fetch,
         });
+        const { loadVideoKnowledgeContext } = await import("@/lib/video-knowledge.server");
+        const videoContext = await loadVideoKnowledgeContext();
         const system = `You are Skyline Achievers AI, a private guide for ${identity.name}. Their exact access is: ${identity.access}.
 
 YOUR TWO JOBS
@@ -100,7 +102,7 @@ SKYLINE ACHIEVERS REFERENCE:
 ${SKYLINE_KNOWLEDGE}
 
 FLP REFERENCE (marketing plan and policies — your only factual source for FLP questions):
-${FLP_KNOWLEDGE}`;
+${FLP_KNOWLEDGE}${videoContext}`;
         const result = streamText({
           model: lovable.responses("openai/gpt-6-astra"),
           system,

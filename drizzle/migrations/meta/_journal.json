@@ -351,6 +351,13 @@
       "when": 1790729129765,
       "tag": "0049_link_growth_commissions_to_settlements",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790847315480,
+      "tag": "0050_create_video_knowledge",
+      "breakpoints": true
     }
   ]
 }

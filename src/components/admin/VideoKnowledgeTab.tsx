@@ -48,7 +48,7 @@ export function VideoKnowledgeTab() {
 
   const { data, isPending } = useQuery({
     queryKey: ["admin-video-knowledge"],
-    queryFn: () => listVideos({ data: undefined as never }),
+    queryFn: () => listVideos({}),
   });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin-video-knowledge"] });

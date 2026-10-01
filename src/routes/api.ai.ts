@@ -102,7 +102,7 @@ SKYLINE ACHIEVERS REFERENCE:
 ${SKYLINE_KNOWLEDGE}
 
 FLP REFERENCE (marketing plan and policies — your only factual source for FLP questions):
-${FLP_KNOWLEDGE}`;
+${FLP_KNOWLEDGE}${videoContext}`;
         const result = streamText({
           model: lovable.responses("openai/gpt-6-astra"),
           system,

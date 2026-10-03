@@ -59,7 +59,7 @@ function ProfilePage() {
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          <section className="glass-panel-strong rounded-3xl p-5">
+          <section data-ai-guide="profile" className="glass-panel-strong rounded-3xl p-5">
             <SectionTitle className="mb-4">Membership</SectionTitle>
             {member ? (
               <div className="mb-5 border-b border-hairline/60 pb-5">

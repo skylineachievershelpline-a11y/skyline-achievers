@@ -48,7 +48,7 @@ function TodoPage() {
 
   return (
     <MemberShell title="To-do List" subtitle="Your tasks for today" executive>
-      <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 sm:px-4">
+      <section data-ai-guide="todo" className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 sm:px-4">
         <DailyTodoList
           remaining={!isFbo && progress && !progress.feeComplete ? progress.feeRemaining : null}
           deadline={!isFbo ? progress?.dueAt ?? null : null}

@@ -63,7 +63,7 @@ export class VoiceOutputService {
     const clean = text.replace(/[*_#>`]/g, "");
     for (const p of this.chain) {
       if (my !== this.token) return false;
-      if (await p.speak(clean, { onStart: h.onStart, onEnd: () => { if (my === this.token) h.onEnd?.(); } })) return true;
+      if (await p.speak(clean, { onStart: () => h.onStart?.(), onEnd: () => { if (my === this.token) h.onEnd?.(); } })) return true;
     }
     h.onEnd?.();
     return false;

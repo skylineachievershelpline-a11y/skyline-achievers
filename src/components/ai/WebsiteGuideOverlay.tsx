@@ -112,7 +112,7 @@ function GuideCard({ guide }: { guide: GuideProgress }) {
     const s = (GUIDE_STEPS[g.stepIndex] ?? GUIDE_STEPS[0]) as GuideStep;
     output.stop(); input.stop();
     const completed = delta > 0 && !g.completed.includes(s.id) ? [...g.completed, s.id] : g.completed;
-    const skipped = delta > 0 && (!stepAllowed(s, g.role) || locked) ? Array.from(new Set([...(g.skipped ?? []), s.id])) : g.skipped;
+    const skipped = delta > 0 && (!stepAllowed(s, g.role) || locked) ? Array.from(new Set([...(g.skipped ?? []), s.id])) : (g.skipped ?? []);
     if (delta > 0 && g.stepIndex === GUIDE_STEPS.length - 1) {
       writeGuide({ ...g, active: false, completed, skipped });
       toast.success("Website Guide mukammal! Shabash.");
@@ -147,7 +147,7 @@ function GuideCard({ guide }: { guide: GuideProgress }) {
         const ok = res.correct === true;
         save({
           checks: { ...(g.checks ?? {}), [step.id]: { passed: prev.passed || ok, attempts: prev.attempts + 1 } },
-          struggled: !ok && prev.attempts >= 1 ? Array.from(new Set([...(g.struggled ?? []), step.id])) : g.struggled,
+          struggled: !ok && prev.attempts >= 1 ? Array.from(new Set([...(g.struggled ?? []), step.id])) : (g.struggled ?? []),
         });
         emitGuideEvent({ type: "answer-result", step, text: res.reply, correct: ok });
         if (ok) { setExpectingAnswer(false); await say(res.reply, () => go(1)); return; }

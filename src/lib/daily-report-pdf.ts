@@ -117,7 +117,7 @@ export async function buildDailyReportPdf(options: {
   y += 14;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(analysis.headline, 40, y);
+  doc.text(analysis.headline.replace("↑", "up").replace("↓", "down").replace("→", "unchanged"), 40, y);
   y += 12;
   doc.text(
     `${analysis.trendText}  ·  Working days ${analysis.workingDays}  ·  Leave ${analysis.leaveDays}  ·  Absent ${analysis.absentDays}  ·  Report completion ${analysis.completionPercent}%  ·  Avg activity/working day ${analysis.avgPerWorkingDay}`,

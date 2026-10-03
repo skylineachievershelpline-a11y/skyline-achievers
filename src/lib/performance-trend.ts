@@ -138,7 +138,8 @@ export function analyzePerformance(rows: TrendDayInput[], start: string, end: st
     const before = (ys[i - 5]! + ys[i - 4]! + ys[i - 3]!) / 3;
     const after = (ys[i - 2]! + ys[i - 1]! + ys[i]!) / 3;
     const last = events[events.length - 1];
-    if (last && span(last.date, series[i]!.date) < 4) continue;
+    if (last && span(last.date, series[i]!.date) < 8) continue;
+    if (series.slice(i - 5, i + 1).some((d) => d.status !== "report")) continue;
     if (before >= 3 && after <= before * 0.5) {
       events.push({ date: series[i - 2]!.date, kind: "drop", text: `Sudden drop from ${short(series[i - 2]!.date)}` });
     } else if (after >= 3 && after >= Math.max(1, before) * 1.8) {

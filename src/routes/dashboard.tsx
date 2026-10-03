@@ -206,7 +206,7 @@ function DashboardPage() {
       </div>
 
       <div data-ai-guide="call-ai" className="mx-auto w-full max-w-3xl">
-        <Button variant="secondary" size="xl" className="w-full justify-between rounded-2xl border border-cyan/40" onClick={openLiveCall}>
+        <Button variant="secondary" size="xl" className="w-full justify-between rounded-2xl border border-cyan/40" onClick={() => openLiveCall()}>
           <span className="flex items-center gap-2"><Phone /> Call Skyline AI</span>
           <span className="text-xs opacity-80">Voice / Video · Screen share</span>
         </Button>

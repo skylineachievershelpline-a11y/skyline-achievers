@@ -381,8 +381,7 @@ export function LiveCallOverlay() {
               onClick={() => {
                 const href = offer.route;
                 setOffer(null);
-                if (href.startsWith("/?")) window.location.assign(href);
-                else void navigate({ to: href as "/dashboard" });
+                void navigate({ href });
               }}
             >
               {offer.label}
@@ -542,8 +541,7 @@ export function LiveCallOverlay() {
                       const href = offer.route;
                       setOffer(null);
                       setView("mini");
-                      if (href.startsWith("/?")) window.location.assign(href);
-                      else void navigate({ to: href as "/dashboard" });
+                      void navigate({ href });
                     }}
                   >
                     {offer.label}

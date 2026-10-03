@@ -39,6 +39,7 @@ import { AccountSettings } from "@/components/member/AccountSettings";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { hasStoredSession } from "@/lib/offline-cache";
 import { Briefcase, Settings } from "lucide-react";
+import { TrainingLockScreen, useTrainingLock } from "@/components/training/TrainingGate";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -167,6 +168,7 @@ export function MemberShell({
   const trainingOnly = useTrainingOnly();
   const progress = useMemberProgress();
   const hiddenMenu = useHiddenMenu();
+  const trainingLocked = useTrainingLock();
   const visibleNav = NAV.filter(
     (item) => item.to === "/dashboard" || !hiddenMenu.includes(item.to),
   );
@@ -401,7 +403,9 @@ export function MemberShell({
         : null}
 
       <main data-ai-guide="page-content" className="page-enter relative mx-auto max-w-6xl px-4 py-5">
-        {lockReason(pathname) && pathname !== "/notifications" ? (
+        {trainingLocked && pathname !== "/training-room" ? (
+          <TrainingLockScreen />
+        ) : lockReason(pathname) && pathname !== "/notifications" ? (
           <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
             <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
             <h1 className="mt-4 font-display text-lg font-semibold">This section is locked</h1>

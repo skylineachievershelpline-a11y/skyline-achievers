@@ -130,6 +130,11 @@ function LandingPage() {
   useEffect(() => {
     let active = true;
     if (!hasStoredSession()) document.documentElement.removeAttribute("data-signed-in");
+    // Training class: a signed-in FBO studies the real landing page with Skyline AI.
+    if (new URLSearchParams(window.location.search).has("classroom")) {
+      document.documentElement.removeAttribute("data-signed-in");
+      return;
+    }
     if (consumeOpenLoginFlag()) {
       document.documentElement.removeAttribute("data-signed-in");
       setLoginOpen(true);

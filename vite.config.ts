@@ -7,8 +7,12 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { fileURLToPath } from "node:url";
 
+import { liveVoiceDev } from "./live-vite-plugin";
+
 export default defineConfig({
   vite: {
+    // Serves the Skyline AI live call relay (/api/live) in development preview.
+    plugins: [liveVoiceDev()],
     resolve: {
       // Vite 8/Rolldown can misclassify tslib's Node import condition as CJS,
       // making WebAuthn's ASN.1 dependencies crash while destructuring helpers.

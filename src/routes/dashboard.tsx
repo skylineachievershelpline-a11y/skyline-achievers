@@ -111,7 +111,7 @@ function DashboardPage() {
       </div>
 
 
-      <section className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
+      <section data-ai-guide="dashboard-profile" className="mx-auto w-full max-w-3xl space-y-6 px-1 py-3 font-achiever animate-rise-in sm:px-4">
         <div className="flex items-center gap-5 sm:gap-7">
           <div className="shrink-0">
             <AvatarPicker
@@ -181,7 +181,7 @@ function DashboardPage() {
       ) : null}
 
 
-      <div className="mx-auto mt-6 w-full max-w-3xl">
+      <div data-ai-guide="todo-button" className="mx-auto mt-6 w-full max-w-3xl">
         <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
           <Link to="/todo">
             <span className="flex items-center gap-2"><ListChecks /> To-do List</span>
@@ -197,14 +197,14 @@ function DashboardPage() {
 
       <div className="mx-auto mt-6 w-full max-w-3xl"><DailyInspiration /></div>
 
-      <div className="relative mx-auto mt-4 w-full max-w-3xl py-4">
+      <div data-ai-guide="ai-button" className="relative mx-auto mt-4 w-full max-w-3xl py-4">
         <Button asChild variant="brand" size="xl" className="w-full justify-between rounded-2xl">
           <Link to="/ai"><span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span><span className="text-xs opacity-80">Ask for help</span></Link>
         </Button>
         <FlyingSkylineAiMascot />
       </div>
 
-      <div className="mt-6">
+      <div data-ai-guide="daily-report" className="mt-6">
         {trainingOnly ? (
           <div className="raised-panel metal-edge rounded-3xl p-6 text-center">
             <Lock className="mx-auto h-5 w-5 text-muted-foreground" />

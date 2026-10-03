@@ -250,6 +250,7 @@ export function MemberShell({
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
+            data-ai-guide="menu-button"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-metal/30 bg-surface text-foreground shadow-glass transition-colors hover:border-cyan/40 hover:bg-surface-2"
           >
             <Menu className="h-4.5 w-4.5" />
@@ -283,6 +284,7 @@ export function MemberShell({
             to="/notifications"
             className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-metal/30 bg-surface text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
             aria-label="Announcements"
+            data-ai-guide="notifications-button"
           >
             <Bell className="h-4 w-4" />
             {data && data.unread > 0 ? (
@@ -343,6 +345,8 @@ export function MemberShell({
                       <button
                         key={item.to}
                         type="button"
+                        data-ai-guide={`nav:${item.to}`}
+                        data-ai-guide-locked="true"
                         onClick={() => toast.info(lockReason(item.to) as string)}
                         className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-muted-foreground/60"
                       >
@@ -354,6 +358,7 @@ export function MemberShell({
                       <Link
                         key={item.to}
                         to={item.to}
+                        data-ai-guide={`nav:${item.to}`}
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
                         activeProps={{
@@ -395,7 +400,7 @@ export function MemberShell({
           )
         : null}
 
-      <main className="page-enter relative mx-auto max-w-6xl px-4 py-5">
+      <main data-ai-guide="page-content" className="page-enter relative mx-auto max-w-6xl px-4 py-5">
         {lockReason(pathname) && pathname !== "/notifications" ? (
           <div className="raised-panel metal-edge mx-auto mt-10 max-w-md rounded-3xl p-8 text-center">
             <Lock className="mx-auto h-6 w-6 text-muted-foreground" />

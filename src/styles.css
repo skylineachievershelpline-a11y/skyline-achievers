@@ -2861,3 +2861,15 @@ html.is-installed-app .landing-web-only { display: none; }
 }
 html.is-installed-app .liquid-atmosphere { display: none !important; }
 .app-shell-only, [role="dialog"] { isolation: isolate; will-change: transform; }
+
+/* Website Guide: highlights the real element the guide is explaining. */
+.ai-guide-highlight {
+  position: relative;
+  z-index: 5;
+  border-radius: 1rem;
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 8px color-mix(in oklab, var(--color-cyan) 18%, transparent);
+  scroll-margin-top: 5rem;
+  transition: outline-color 0.3s ease, box-shadow 0.3s ease;
+}

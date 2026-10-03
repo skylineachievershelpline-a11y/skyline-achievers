@@ -327,3 +327,7 @@
 - [x] Keep Appearance and Log out inside each dashboard Settings area
 - [x] Remove Add account and Switch account from Beginners Training Settings
 - [ ] Verify every signed-in dashboard Settings window with a real account
+
+## AI Website Guide
+- [x] 24-step Website Guide inside Skyline AI with highlights, questions, saved progress
+- [ ] Phase 2 voice guidance

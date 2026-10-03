@@ -17,3 +17,4 @@
 - Skyline Growth Executive uses one effective-dated settings source and server-owned verification ledger; enrollment money is per 10-lead batch and 2CC money per PKT cycle. Why: reported outcomes cannot directly create payable money.
 - Growth Executive commissions become payable only after the owning FBO funds an office-approved settlement linked to those ledger rows. Why: commissions and Skyline fees must reconcile without cross-FBO leakage.
 - Member and Beginners primary navigation uses the original slide-out sidebar; do not add bottom navigation. Why: the bottom bar was rejected after testing.
+- Website Guide steps live in src/lib/ai-guide.ts and target real elements via data-ai-guide markers; progress is per-account in browser storage. Why: stable highlighting without fragile selectors.

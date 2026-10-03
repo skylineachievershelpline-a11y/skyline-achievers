@@ -34,7 +34,9 @@ export async function trainingStatus(userId: string) {
   const rank = await rankOrderFor(userId);
   const required = rank !== null && LOCKED_RANK_ORDERS.includes(rank);
   const row = await loadTraining(userId);
-  return { required, locked: required && !requiredDone(row), row };
+  // Training is optional: the dashboard never locks.
+  void requiredDone;
+  return { required, locked: false, row };
 }
 
 export async function savePosition(userId: string, pos: { chapter: number; lesson: number; stage: string }) {

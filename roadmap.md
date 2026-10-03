@@ -332,3 +332,9 @@
 - [x] 24-step Website Guide inside Skyline AI with highlights, questions, saved progress
 - [x] Phase 2 voice teacher (speak, listen, interrupt, guided clicks, adaptive levels)
 - [ ] Connect an authorized CEO voice (needs voice provider + SKYLINE_AI_VOICE_PROFILE)
+
+## Skyline AI Live Call
+- [x] Part 1: Call Skyline AI button, voice/video call screen, live conversation, Excuse Me, mute, speaker, camera preview, screen share (desktop real share; phones share the Skyline screen), AI screen reading + arrow/circle/box/spotlight/pointer/number marks, end-call summary
+- [ ] Part 2: Add Participant — secure invite link + multi-person call
+- [ ] Part 3: Recording with consent (30 days, caller + admin), transcript view
+- [ ] Authorized CEO voice (needs provider + consent)

@@ -1,4 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
+import { AdminTrainingControl } from "@/components/admin/AdminTrainingControl";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";

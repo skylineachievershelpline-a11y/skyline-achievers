@@ -25,6 +25,7 @@ import {
   type ReportDay,
 } from "@/lib/daily-report.functions";
 import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
+import { analyzePerformance, TREND_METRICS, type PerformanceAnalysis } from "@/lib/performance-trend";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -126,26 +127,10 @@ export function DailyReportPanel() {
       .sort((a, b) => (a.date < b.date ? 1 : -1));
   }, [data, rangeStart, rangeEnd]);
 
-  const chartDays = useMemo(() => {
-    const map = new Map((data?.days ?? []).map((day) => [day.date, day]));
-    return Array.from({ length: 14 }, (_, index) => {
-      const date = shiftDay(today, -(13 - index));
-      return (
-        map.get(date) ?? {
-          date,
-          leads: 0,
-          responses: 0,
-          enrollments: 0,
-          pending: 0,
-          twoCc: 0,
-          mentorshipPaid: 0,
-          absent: false,
-          absentReason: null,
-          submitted: false,
-        }
-      );
-    });
-  }, [data, today]);
+  const analysis = useMemo(
+    () => analyzePerformance(data?.calendar ?? [], rangeStart, rangeEnd),
+    [data, rangeStart, rangeEnd],
+  );
 
   async function buildPdf() {
     if (!data) return null;
@@ -155,6 +140,7 @@ export function DailyReportPanel() {
       personId: data.member.memberId,
       rangeLabel: `${dayShort(rangeStart)} — ${dayShort(rangeEnd)}`,
       rows: rangeRows,
+      analysis,
     });
   }
 
@@ -334,7 +320,14 @@ export function DailyReportPanel() {
       </section>
 
       <div className="space-y-4 animate-rise-in">
-        <TrendChart days={chartDays} />
+        <PerformanceGraph
+          analysis={analysis}
+          today={today}
+          onPreset={(days) => {
+            setFromDate(shiftDay(today, -(days - 1)));
+            setToDate(today);
+          }}
+        />
 
         <section className="raised-panel metal-edge rounded-3xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
@@ -348,6 +341,7 @@ export function DailyReportPanel() {
             { label: "Last 3 days", days: 2 },
             { label: "Last 7 days", days: 6 },
             { label: "Last 30 days", days: 29 },
+            { label: "Last 90 days", days: 89 },
           ].map((preset) => (
             <Button
               key={preset.label}
@@ -462,97 +456,144 @@ export function DailyReportPanel() {
   );
 }
 
-/** Premium multi-line tracking graph (blue / green / red). */
-function TrendChart({ days }: { days: ReportDay[] }) {
+/** Performance graph: same analysis as the PDF. */
+function PerformanceGraph({
+  analysis,
+  today,
+  onPreset,
+}: {
+  analysis: PerformanceAnalysis;
+  today: string;
+  onPreset: (days: number) => void;
+}) {
+  const [hidden, setHidden] = useState<Set<string>>(new Set(["twoCc", "mentorshipPaid"]));
   const width = 560;
-  const height = 200;
-  const padX = 12;
+  const height = 210;
+  const padX = 14;
   const padY = 16;
-  const max = Math.max(
-    4,
-    ...days.flatMap((day) => [day.leads, day.responses, day.enrollments]),
-  );
-  const stepX = (width - padX * 2) / Math.max(1, days.length - 1);
-  const pointY = (value: number) => height - padY - (value / max) * (height - padY * 2);
-
-  const path = (key: (typeof LINES)[number]["key"]) =>
-    days
-      .map(
-        (day, index) =>
-          `${index === 0 ? "M" : "L"}${(padX + index * stepX).toFixed(1)},${pointY(day[key]).toFixed(1)}`,
-      )
-      .join(" ");
+  const series = analysis.series;
+  const shown = TREND_METRICS.filter((m) => !hidden.has(m.key));
+  const max = Math.max(4, ...series.map((d) => d.activity));
+  const stepX = (width - padX * 2) / Math.max(1, series.length - 1);
+  const x = (i: number) => padX + i * stepX;
+  const y = (v: number) => height - padY - (v / max) * (height - padY * 2);
+  const path = (get: (d: (typeof series)[number]) => number) =>
+    series.map((d, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(get(d)).toFixed(1)}`).join(" ");
+  const isPreset = analysis.end === today && [7, 30, 90].includes(analysis.days) ? analysis.days : 0;
+  const trendTone =
+    analysis.trend === "increasing" ? "text-[#21D07A]" : analysis.trend === "decreasing" ? "text-destructive" : "text-cyan";
+  const toggle = (k: string) =>
+    setHidden((h) => {
+      const n = new Set(h);
+      if (n.has(k)) n.delete(k);
+      else n.add(k);
+      return n;
+    });
 
   return (
     <section className="raised-panel metal-edge rounded-3xl p-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-            Tracking graph
-          </p>
-          <h3 className="mt-1 font-display text-lg font-bold">Last 14 days performance</h3>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {LINES.map((line) => (
-            <span key={line.key} className="flex items-center gap-1.5 text-[11px] font-semibold">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: line.color, boxShadow: `0 0 10px ${line.color}` }}
-              />
-              {line.label}
-            </span>
-          ))}
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Performance graph</p>
+      <h3 className="mt-1 font-display text-lg font-bold">
+        {dayShort(analysis.start)} — {dayShort(analysis.end)}
+      </h3>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[7, 30, 90].map((d) => (
+          <Button key={d} size="sm" variant={isPreset === d ? "brand" : "outline"} className="rounded-2xl" onClick={() => onPreset(d)}>
+            {d} Days
+          </Button>
+        ))}
+        <span className="self-center text-[11px] text-muted-foreground">Custom: neeche From / To chunein</span>
+      </div>
+
+      <p className={`mt-4 text-sm font-bold ${trendTone}`}>{analysis.headline}</p>
+      <p className="text-xs text-muted-foreground">{analysis.trendText}</p>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+        {[
+          ["Total activity", analysis.totals.activity],
+          ["Working days", `${analysis.workingDays}/${analysis.series.length}`],
+          ["Report completion", `${analysis.completionPercent}%`],
+          ["Avg / working day", analysis.avgPerWorkingDay],
+        ].map(([l, v]) => (
+          <div key={String(l)} className="inset-panel rounded-2xl p-2">
+            <p className="font-display text-lg font-bold">{v}</p>
+            <p className="text-[10px] font-semibold uppercase text-muted-foreground">{l}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className="flex items-center gap-1.5 rounded-full border border-hairline px-2 py-0.5 text-[11px] font-semibold">
+          <span className="h-2.5 w-2.5 rounded-full bg-foreground" /> Total activity
+        </span>
+        {TREND_METRICS.map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            onClick={() => toggle(m.key)}
+            className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${hidden.has(m.key) ? "border-hairline opacity-50" : "border-cyan/40"}`}
+          >
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.color }} />
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="inset-panel mt-3 rounded-2xl p-3">
+        {series.length ? (
+          <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full" role="img" aria-label="Performance trend graph" preserveAspectRatio="none">
+            {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+              <line key={f} x1={padX} x2={width - padX} y1={padY + f * (height - padY * 2)} y2={padY + f * (height - padY * 2)} stroke="currentColor" strokeOpacity={0.12} />
+            ))}
+            {series.map((d, i) =>
+              d.status === "report" ? null : (
+                <rect key={d.date} x={x(i) - stepX / 2} y={padY} width={Math.max(2, stepX)} height={height - padY * 2} fill={d.status === "leave" ? "#2563EB" : "#CD3737"} opacity={0.12} />
+              ),
+            )}
+            {analysis.events.map((e) => {
+              const i = series.findIndex((d) => d.date === e.date);
+              return i < 0 ? null : (
+                <line key={e.date} x1={x(i)} x2={x(i)} y1={padY} y2={height - padY} stroke={e.kind === "drop" ? "#FF4D5E" : "#21D07A"} strokeDasharray="4 3" strokeWidth={1.5} />
+              );
+            })}
+            <path d={path((d) => d.activity)} fill="none" stroke="currentColor" strokeWidth={3} strokeLinejoin="round" />
+            {shown.map((m) => (
+              <path key={m.key} d={path((d) => Number(d[m.key]) || 0)} fill="none" stroke={m.color} strokeWidth={2} strokeLinejoin="round" opacity={0.9} />
+            ))}
+          </svg>
+        ) : (
+          <p className="py-10 text-center text-sm text-muted-foreground">Is period mein koi report data nahi.</p>
+        )}
+        <div className="mt-2 flex justify-between text-[9px] font-semibold uppercase text-muted-foreground">
+          <span>{series[0] ? dayShort(series[0].date) : ""}</span>
+          <span className="flex gap-3">
+            <span className="text-[#2563EB]">■ Leave</span>
+            <span className="text-destructive">■ Absent</span>
+          </span>
+          <span>{series.length ? dayShort(series[series.length - 1]!.date) : ""}</span>
         </div>
       </div>
 
-      <div className="inset-panel mt-4 rounded-2xl p-3">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="h-44 w-full"
-          role="img"
-          aria-label="Daily report trend for the last 14 days"
-          preserveAspectRatio="none"
-        >
-          {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
-            <line
-              key={fraction}
-              x1={padX}
-              x2={width - padX}
-              y1={padY + fraction * (height - padY * 2)}
-              y2={padY + fraction * (height - padY * 2)}
-              stroke="currentColor"
-              strokeOpacity={0.12}
-              strokeWidth={1}
-            />
+      {analysis.previous ? (
+        <div className="mt-3 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            Previous period ({dayShort(analysis.previous.start)} — {dayShort(analysis.previous.end)})
+          </p>
+          {analysis.previous.changes.map((c) => (
+            <div key={c.label} className="flex justify-between gap-3 text-xs">
+              <span>{c.label}: <b>{c.current}</b> vs {c.previous}</span>
+              <span className={c.percent && c.percent >= 5 ? "text-[#21D07A]" : c.percent && c.percent <= -5 ? "text-destructive" : "text-muted-foreground"}>{c.text}</span>
+            </div>
           ))}
-          {LINES.map((line) => (
-            <g key={line.key}>
-              <path
-                d={path(line.key)}
-                fill="none"
-                stroke={line.color}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.95}
-              />
-              {days.map((day, index) => (
-                <circle
-                  key={day.date}
-                  cx={padX + index * stepX}
-                  cy={pointY(day[line.key])}
-                  r={2.6}
-                  fill={line.color}
-                />
-              ))}
-            </g>
-          ))}
-        </svg>
-        <div className="mt-2 flex justify-between text-[9px] font-semibold uppercase text-muted-foreground">
-          <span>{dayShort(days[0]?.date ?? "")}</span>
-          <span>{dayShort(days[days.length - 1]?.date ?? "")}</span>
         </div>
-      </div>
+      ) : null}
+      {analysis.events.length ? (
+        <ul className="mt-3 space-y-1 text-xs">
+          {analysis.events.map((e) => (
+            <li key={e.date} className={e.kind === "drop" ? "text-destructive" : "text-[#21D07A]"}>• {e.text}</li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

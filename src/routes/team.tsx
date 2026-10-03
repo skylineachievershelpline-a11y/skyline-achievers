@@ -217,7 +217,7 @@ function TeamPage() {
       ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>
-      <section className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
+      <section data-ai-guide="team" className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
 
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div><p className="text-[10px] font-bold uppercase text-primary">Network performance</p><h1 className="mt-1 font-display text-2xl font-bold">Your team at a glance</h1></div>

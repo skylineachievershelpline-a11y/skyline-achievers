@@ -330,4 +330,5 @@
 
 ## AI Website Guide
 - [x] 24-step Website Guide inside Skyline AI with highlights, questions, saved progress
-- [ ] Phase 2 voice guidance
+- [x] Phase 2 voice teacher (speak, listen, interrupt, guided clicks, adaptive levels)
+- [ ] Connect an authorized CEO voice (needs voice provider + SKYLINE_AI_VOICE_PROFILE)

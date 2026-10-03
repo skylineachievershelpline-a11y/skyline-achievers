@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { useGuideProgress } from "@/components/ai/WebsiteGuideOverlay";
 import { Button } from "@/components/ui/button";
-import { GUIDE_STEPS, writeGuide, type GuideRole } from "@/lib/ai-guide";
+import { GUIDE_STEPS, writeGuide, type GuideLevel, type GuideRole } from "@/lib/ai-guide";
 import { getSessionRole } from "@/lib/member.functions";
 
 /** Website Guide entry inside Skyline Achievers AI. */
@@ -13,6 +13,8 @@ export function WebsiteGuideCard() {
   const guide = useGuideProgress();
   const loadRole = useServerFn(getSessionRole);
   const [busy, setBusy] = useState(false);
+  const [level, setLevel] = useState<GuideLevel | null>(null);
+  const chosen: GuideLevel = level ?? guide?.level ?? "standard";
   const total = GUIDE_STEPS.length;
   const canResume = guide && (guide.active || guide.stepIndex > 0) && guide.completed.length < total;
 
@@ -22,8 +24,8 @@ export function WebsiteGuideCard() {
       const { role } = await loadRole();
       const r: GuideRole = role === "member" || role === "trainee" ? role : "none";
       writeGuide(fresh || !guide
-        ? { active: true, paused: false, stepIndex: 0, completed: [], role: r, updatedAt: "" }
-        : { ...guide, active: true, paused: false, role: r });
+        ? { active: true, paused: false, stepIndex: 0, completed: [], role: r, updatedAt: "", level: level ?? (r === "trainee" ? "beginner" : "standard"), checks: {}, questions: [], struggled: [], skipped: [] }
+        : { ...guide, active: true, paused: false, role: r, level: chosen, resumed: true });
     } catch {
       toast.error("Guide shuru nahi ho saka. Dobara try karein.");
     } finally { setBusy(false); }
@@ -39,6 +41,15 @@ export function WebsiteGuideCard() {
           {canResume ? <p className="mt-1 text-xs font-semibold text-cyan">Step {guide.stepIndex + 1} of {total} par ruke the</p> : null}
         </div>
       </div>
+      <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Explanation level">
+        {(["beginner", "standard", "advanced"] as GuideLevel[]).map((l) => (
+          <button key={l} type="button" role="radio" aria-checked={chosen === l} onClick={() => setLevel(l)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${chosen === l ? "border-cyan/50 bg-primary/20 text-foreground" : "border-hairline text-muted-foreground"}`}>
+            {l === "beginner" ? "Bilkul naya" : l === "standard" ? "Thora jaanta hoon" : "Experienced FBO"}
+          </button>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">Bolkar ya likh kar baat karein — AI awaaz mein samjhayega aur aap ki baat sunega.</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {canResume ? (
           <>

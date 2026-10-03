@@ -137,7 +137,7 @@ function TrainingPage() {
           <SkylineLoader />
         </div>
       ) : visibleSections.length === 0 ? (
-        <section className="mt-6">
+        <section data-ai-guide="training" className="mt-6">
           <SectionTitle>Training Sections</SectionTitle>
           <EmptyState
             title="No training sections yet"

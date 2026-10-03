@@ -160,7 +160,7 @@ function GuideCard({ guide }: { guide: GuideProgress }) {
           <Button size="sm" variant="ghost" onClick={() => save({ paused: true })}><Pause /> Pause</Button>
           <div className="flex-1" />
           {phase === "explain" && step.question ? (
-            <Button size="sm" variant="brand" onClick={() => { setPhase("question"); setReply(null); emitGuideEvent({ type: "question", step, text: step.question }); }}>Samajh gaya</Button>
+            <Button size="sm" variant="brand" onClick={() => { setPhase("question"); setReply(null); emitGuideEvent({ type: "question", step, text: step.question ?? "" }); }}>Samajh gaya</Button>
           ) : (
             <Button size="sm" variant="brand" onClick={() => go(1)}>{guide.stepIndex === total - 1 ? "Finish" : "Next"} <ChevronRight /></Button>
           )}

@@ -25,9 +25,9 @@ const SELECTOR = [
   "[aria-label]",
 ].join(",");
 
-function region(rect: DOMRect) {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+function region(rect: DOMRect, win: Window = window) {
+  const w = win.innerWidth;
+  const h = win.innerHeight;
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
   const v = cy < h / 3 ? "top" : cy > (h * 2) / 3 ? "bottom" : "middle";
@@ -35,8 +35,8 @@ function region(rect: DOMRect) {
   return `${v}-${hz}`;
 }
 
-function colourName(el: Element) {
-  const style = getComputedStyle(el);
+function colourName(el: Element, win: Window = window) {
+  const style = win.getComputedStyle(el);
   const bg = style.backgroundImage !== "none" ? "gradient" : style.backgroundColor;
   if (bg === "gradient") return "blue/cyan gradient";
   const m = bg.match(/rgba?\(([^)]+)\)/);
@@ -78,7 +78,8 @@ function kindOf(el: HTMLElement) {
 export type AppScreen = { route: string; title: string; viewport: string; elements: string };
 
 /** Reads the currently visible Skyline screen. */
-export function collectAppScreen(): AppScreen {
+export function collectAppScreen(win: Window = window): AppScreen {
+  const document = win.document;
   document.querySelectorAll(`[${LIVE_ID_ATTR}]`).forEach((el) => el.removeAttribute(LIVE_ID_ATTR));
   const lines: string[] = [];
   let n = 0;
@@ -88,8 +89,8 @@ export function collectAppScreen(): AppScreen {
     if (node.closest(`[${CALL_UI_ATTR}]`)) continue;
     const rect = node.getBoundingClientRect();
     if (rect.width < 6 || rect.height < 6) continue;
-    if (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) continue;
-    const style = getComputedStyle(node);
+    if (rect.bottom < 0 || rect.top > win.innerHeight || rect.right < 0 || rect.left > win.innerWidth) continue;
+    const style = win.getComputedStyle(node);
     if (style.visibility === "hidden" || style.opacity === "0") continue;
     const label = labelOf(node);
     const guide = node.getAttribute("data-ai-guide");
@@ -105,19 +106,29 @@ export function collectAppScreen(): AppScreen {
     node.setAttribute(LIVE_ID_ATTR, id);
     const locked = node.getAttribute("data-ai-guide-locked") === "true" ? " (locked for this account)" : "";
     lines.push(
-      `${id} | ${kind} | ${label || guide}${guide ? ` [${guide}]` : ""}${locked} | ${region(rect)} | ${colourName(node)}`,
+      `${id} | ${kind} | ${label || guide}${guide ? ` [${guide}]` : ""}${locked} | ${region(rect, win)} | ${colourName(node, win)}`,
     );
   }
   return {
-    route: window.location.pathname,
+    route: win.location.pathname,
     title: document.title.slice(0, 120),
-    viewport: `${window.innerWidth}x${window.innerHeight}`,
+    viewport: `${win.innerWidth}x${win.innerHeight}`,
     elements: lines.join("\n"),
   };
 }
 
-export function findLiveElement(id: string) {
-  return document.querySelector<HTMLElement>(`[${LIVE_ID_ATTR}="${CSS.escape(id)}"]`);
+/** True inside the Skyline AI Teacher's own screen (the classroom frame). */
+export function isTeacherFrame() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+export function findLiveElement(id: string, doc: Document = document) {
+  return doc.querySelector<HTMLElement>(`[${LIVE_ID_ATTR}="${CSS.escape(id)}"]`);
 }
 
 export function supportsDisplayShare() {

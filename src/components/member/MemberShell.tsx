@@ -40,6 +40,7 @@ import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { hasStoredSession } from "@/lib/offline-cache";
 import { Briefcase, Settings } from "lucide-react";
 import { TrainingLockScreen, useTrainingLock } from "@/components/training/TrainingGate";
+import { isTeacherFrame } from "@/lib/live-call/screen";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -168,7 +169,11 @@ export function MemberShell({
   const trainingOnly = useTrainingOnly();
   const progress = useMemberProgress();
   const hiddenMenu = useHiddenMenu();
-  const trainingLocked = useTrainingLock();
+  const trainingLockedRaw = useTrainingLock();
+  const [inTeacherFrame, setInTeacherFrame] = useState(false);
+  useEffect(() => setInTeacherFrame(isTeacherFrame()), []);
+  // The AI Teacher's own screen may show the real dashboard during class.
+  const trainingLocked = trainingLockedRaw && !inTeacherFrame;
   const visibleNav = NAV.filter(
     (item) => item.to === "/dashboard" || !hiddenMenu.includes(item.to),
   );

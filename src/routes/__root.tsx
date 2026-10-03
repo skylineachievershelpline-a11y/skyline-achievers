@@ -15,6 +15,7 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "../components/ui/sonner";
 import { UploadDock } from "../components/UploadDock";
 import { WebsiteGuideOverlay } from "../components/ai/WebsiteGuideOverlay";
+import { LiveCallOverlay } from "../components/call/LiveCallOverlay";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { isPreviewContext } from "../lib/pwa-install";
@@ -212,6 +213,7 @@ function RootComponent() {
       <Outlet />
       <UploadDock />
       <WebsiteGuideOverlay />
+      <LiveCallOverlay />
       <OfflineSupport />
       <Toaster />
     </QueryClientProvider>

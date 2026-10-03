@@ -64,6 +64,7 @@ export function hydrateSavedScreens(queryClient: QueryClient) {
 /** Remembers the last screen the person was on so the app reopens right there. */
 export function rememberLastScreen(path: string) {
   if (typeof window === "undefined") return;
+  if (window.self !== window.top) return; // Skyline AI Teacher's classroom screen
   if (
     !path ||
     path === "/" ||

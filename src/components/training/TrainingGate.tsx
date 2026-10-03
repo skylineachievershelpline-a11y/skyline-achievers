@@ -24,7 +24,7 @@ export function TrainingLockScreen() {
       <h1 className="mt-4 font-display text-lg font-semibold">Aapki mandatory training abhi complete nahi hui.</h1>
       <p className="mt-2 text-sm text-muted-foreground">Pehle Skyline AI Teacher ke sath training complete karein.</p>
       <Button asChild variant="brand" size="xl" className="mt-6 w-full rounded-2xl">
-        <Link to="/training-room">Start Training with Skyline AI</Link>
+        <Link to="/training-room">Skyline AI ke sath Training Meeting</Link>
       </Button>
     </div>
   );

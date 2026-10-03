@@ -17,24 +17,27 @@ export type LiveMark = {
 
 type Placed = LiveMark & { r: { x: number; y: number; w: number; h: number } };
 
-function place(marks: LiveMark[]): Placed[] {
+function place(marks: LiveMark[], frame?: HTMLIFrameElement | null): Placed[] {
   const out: Placed[] = [];
+  const doc = frame?.contentDocument ?? (frame ? null : document);
+  if (!doc) return out;
+  const f = frame ? frame.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
   for (const m of marks) {
     if (m.element_id) {
-      const el = findLiveElement(m.element_id);
+      const el = findLiveElement(m.element_id, doc);
       if (!el) continue;
       const b = el.getBoundingClientRect();
-      out.push({ ...m, r: { x: b.left, y: b.top, w: b.width, h: b.height } });
+      out.push({ ...m, r: { x: f.left + b.left, y: f.top + b.top, w: b.width, h: b.height } });
     } else if (m.box) {
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      out.push({ ...m, r: { x: m.box.x * W, y: m.box.y * H, w: m.box.w * W, h: m.box.h * H } });
+      const W = f.width;
+      const H = f.height;
+      out.push({ ...m, r: { x: f.left + m.box.x * W, y: f.top + m.box.y * H, w: m.box.w * W, h: m.box.h * H } });
     }
   }
   return out;
 }
 
-export function LiveAnnotations({ marks }: { marks: LiveMark[] }) {
+export function LiveAnnotations({ marks, frame }: { marks: LiveMark[]; frame?: HTMLIFrameElement | null }) {
   const [placed, setPlaced] = useState<Placed[]>([]);
 
   // Follow the elements while the user scrolls or the layout moves.
@@ -44,13 +47,18 @@ export function LiveAnnotations({ marks }: { marks: LiveMark[] }) {
       return;
     }
     let raf = 0;
+    // On the teacher's own screen, bring the first pointed element into view.
+    if (frame?.contentDocument) {
+      const first = marks.find((m) => m.element_id);
+      if (first?.element_id) findLiveElement(first.element_id, frame.contentDocument)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
     const loop = () => {
-      setPlaced(place(marks));
+      setPlaced(place(marks, frame));
       raf = window.setTimeout(() => requestAnimationFrame(loop), 120) as unknown as number;
     };
     loop();
     return () => window.clearTimeout(raf);
-  }, [marks]);
+  }, [marks, frame]);
 
   if (!placed.length) return null;
   const W = typeof window === "undefined" ? 0 : window.innerWidth;
@@ -60,7 +68,7 @@ export function LiveAnnotations({ marks }: { marks: LiveMark[] }) {
   return (
     <svg
       {...{ [CALL_UI_ATTR]: "" }}
-      className="live-annotations pointer-events-none fixed inset-0 z-[93] h-full w-full"
+      className={`live-annotations pointer-events-none fixed inset-0 h-full w-full ${frame ? "z-[97]" : "z-[93]"}`}
       viewBox={`0 0 ${W} ${H}`}
       aria-hidden
     >

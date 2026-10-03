@@ -178,6 +178,26 @@ Delegate to the backend when: The caller asks anything about Skyline features, r
 Do not delegate to the backend when: Greeting, small talk, clarifying what they want, or repeating a still-current answer. Wait for the backend result before presenting its answer, and speak it naturally in short turns.`;
 }
 
+const TEACHER_ROUTES = [
+  "/?classroom=1",
+  "/dashboard",
+  "/training",
+  "/courses",
+  "/sessions",
+  "/team",
+  "/seats",
+  "/ai",
+  "/assistants",
+  "/reels",
+  "/chat",
+  "/resources",
+  "/search",
+  "/profile",
+  "/notifications",
+  "/todo",
+  "/leave",
+] as const;
+
 async function trainingInstructions(caller: Caller, t: TrainingCtx) {
   const { chapterText, PASS_PERCENT } = await import("@/lib/training/curriculum");
   const name = firstName(caller.name);
@@ -187,14 +207,14 @@ Speak natural Pakistani Urdu mixed with simple English (Roman Urdu style), warm,
 YOU LEAD THE CLASS. Do not wait for them to choose a topic. Teach the lessons below in order, each lesson through this cycle:
 INTRO (what we will learn) → EXPLAIN (the facts, simply, with a real-life example) → DEMONSTRATE (delegate to show it on their screen and/or whiteboard) → PRACTICE (ask them to do the practice task themselves) → EVALUATE (delegate to check their screen; correct them kindly) → ask the check question; judge meaning not exact words. If wrong, explain differently (example, then analogy) and ask again.
 When a lesson is understood, delegate to save progress and move to the next lesson. After the last lesson run the CHAPTER TEST: ask each test question one by one, then the practical task, then delegate to submit the test result. Pass needs ${PASS_PERCENT}% and the practical. If failed: remediate the weak points and retest.
-If something needs the screen and nothing is shared, ask them to tap Share Screen.
+TEACHER SCREEN: The learner does NOT share their screen. YOU share YOUR own Skyline screen: it is already visible to them full-screen in the call, signed in to their own Skyline account. You open every page yourself (delegate to show the page), then point at buttons and sections on it. You can show the public landing page too. Say what you are opening before you open it ("Ab main Dashboard kholta hoon…"), then explain it on screen step by step.
 Current position: chapter ${t.chapter.n}, lesson ${t.row.current_lesson}${lesson ? ` (${lesson.title})` : ""}, stage ${t.row.current_stage}.
 ${chapterText(t.chapter)}
 Truth: teach ONLY these facts and verified Skyline knowledge. Never state fees, prices, income, compensation, policies or product claims. If unknown say: "Mere paas is point ki verified information nahi hai. Isko Skyline senior/Upline se confirm karna better hai."
 Backchannel policy: Use moderate listening sounds without taking over.
 Interruption policy: Stop immediately when interrupted and listen. Answer their question, then ask "Ab hum jahan rukay thay, wahan se continue karein?" and resume from the exact same lesson and stage.
 Delegation policy:
-Backend tools: whiteboard drawing, pointing on their live screen, reading their screen, saving training progress, grading the chapter test, offering a page for them to open.
+Backend tools: opening pages on your shared teacher screen, whiteboard drawing, pointing on that screen, reading that screen, saving training progress, grading the chapter test, offering a page for them to open.
 Delegate to the backend when: you DEMONSTRATE or EVALUATE, want the whiteboard, finish a lesson (to save progress), finish the chapter test (to grade it), or they ask a Skyline question outside these facts.
 Do not delegate to the backend when: simply explaining the facts above, asking questions, or chatting. Wait for backend results before announcing scores or unlocks.`;
 }
@@ -203,8 +223,8 @@ function trainingOpening(caller: Caller, t: TrainingCtx) {
   const name = firstName(caller.name);
   const fresh = t.row.current_lesson === 0 && t.row.current_stage === "INTRO" && !t.row.chapters?.[String(t.chapter.n)]?.attempts;
   return fresh
-    ? `Start now. Greet ${name || "them"} with Assalam-o-Alaikum, say you are their Skyline AI Teacher and today Chapter ${t.chapter.n} "${t.chapter.title}" starts. Begin lesson 0 at INTRO immediately.`
-    : `Start now. Say "Welcome back ${name}". Remind them in one sentence where you stopped (chapter ${t.chapter.n}, lesson ${t.row.current_lesson}, stage ${t.row.current_stage}) and continue from exactly there.`;
+    ? `Start now. Greet ${name || "them"} with Assalam-o-Alaikum, say you are their Skyline AI Teacher and today Chapter ${t.chapter.n} "${t.chapter.title}" starts. Then say "Main apni screen share kar raha hoon" and ask "Kya aap ko meri screen theek nazar aa rahi hai?" Wait for their answer. When they confirm, begin lesson 0 at INTRO. If they cannot see it, ask them to tap "Screen dobara load karein" and ask again.`
+    : `Start now. Say "Welcome back ${name}". Say "Main apni screen share kar raha hoon — kya meri screen nazar aa rahi hai?" and wait. After they confirm, remind them in one sentence where you stopped (chapter ${t.chapter.n}, lesson ${t.row.current_lesson}, stage ${t.row.current_stage}) and continue from exactly there.`;
 }
 
 function openingFor(caller: Caller) {
@@ -630,7 +650,7 @@ export function bindLiveConnection(
     return `TRAINING MODE: You are also the training engine for Chapter ${chapter.n} "${chapter.title}". Current lesson ${row.current_lesson}, stage ${row.current_stage}. Lessons and test:
 ${chapterTextCache}
 - When the teacher demonstrates: call annotate_screen on the matching visible elements and/or draw_whiteboard (title + short items, a flow, or a simple bar chart with icons).
-- When a lesson needs a page they have not opened: call offer_page (they tap it themselves).
+- The learner watches YOUR teacher screen. When a lesson needs a page, call show_page to open it yourself, then annotate_screen once the new screen arrives. Use offer_page only when the learner must do a practical task on their own.
 - When a lesson or stage is finished: call save_progress with the next lesson index and stage.
 - When the chapter test is complete: call submit_test with your honest judgement for every question id (meaning, not words) and whether the practical task was really seen on their screen. Never mark correct without evidence from the conversation. Report the returned score and pass/fail exactly; never invent a result.
 Then write what the teacher should say next.`;
@@ -689,6 +709,16 @@ Then write what the teacher should say next.`;
         const result = await recordTest(who, { chapter: t.chapter.n, ...args });
         emit({ type: "app.training.updated", result: { chapter: t.chapter.n, ...result } });
         return result;
+      },
+    });
+    tools["show_page"] = tool({
+      description: "Open a Skyline page on the teacher's own shared screen (the learner watches it). Landing page is '/?classroom=1'.",
+      inputSchema: z.object({ route: z.enum(TEACHER_ROUTES) }).strict(),
+      execute: async (args) => {
+        signal.throwIfAborted();
+        emit({ type: "app.show", route: args.route });
+        await new Promise((r) => setTimeout(r, 2500));
+        return { opened: args.route, screen: screen ? { route: screen.route, elements: screen.elements } : null };
       },
     });
     tools["offer_page"] = tool({

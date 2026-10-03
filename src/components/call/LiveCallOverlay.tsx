@@ -66,6 +66,10 @@ export function LiveCallOverlay() {
   const [board, setBoard] = useState<WhiteboardData | null>(null);
   const [boardNew, setBoardNew] = useState(false);
   const [offer, setOffer] = useState<{ route: string; label: string } | null>(null);
+  // Training: the AI Teacher shares ITS OWN Skyline screen (a signed-in frame it drives).
+  const [teacherRoute, setTeacherRoute] = useState("/?classroom=1");
+  const [frameKey, setFrameKey] = useState(0);
+  const [frameEl, setFrameEl] = useState<HTMLIFrameElement | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mode, setMode] = useState<"voice" | "video">("voice");
   const [view, setView] = useState<"full" | "mini">("full");
@@ -122,6 +126,12 @@ export function LiveCallOverlay() {
     } else if (type === "app.whiteboard") {
       setBoard((event["board"] as WhiteboardData) ?? null);
       setBoardNew(true);
+    } else if (type === "app.show") {
+      const route = typeof event["route"] === "string" ? event["route"] : "";
+      if (route.startsWith("/")) {
+        setMarks([]);
+        setTeacherRoute(route);
+      }
     } else if (type === "app.open") {
       const route = typeof event["route"] === "string" ? event["route"] : "";
       const label = typeof event["label"] === "string" ? event["label"] : "Kholein";
@@ -192,6 +202,28 @@ export function LiveCallOverlay() {
     return () => window.clearInterval(id);
   }, [share, voice.status, pathname, voice]);
 
+  // Teacher screen feed: the AI reads its own shared Skyline screen.
+  useEffect(() => {
+    if (!trainingMode || voice.status !== "connected" || !frameEl) return;
+    let last = "";
+    const send = () => {
+      const win = frameEl.contentWindow;
+      if (!win || !win.document?.body) return;
+      let app;
+      try {
+        app = collectAppScreen(win);
+      } catch {
+        return;
+      }
+      const sig = `${app.route}|${app.elements}`;
+      if (sig === last) return;
+      if (voice.sendApp({ type: "app.screen", source: "app", ...app, title: `Skyline AI Teacher screen — ${app.title}` })) last = sig;
+    };
+    send();
+    const id = window.setInterval(send, 1500);
+    return () => window.clearInterval(id);
+  }, [trainingMode, voice.status, frameEl, voice]);
+
   // Call ended: release screen and camera.
   useEffect(() => {
     if (voice.status === "closed") {
@@ -244,6 +276,8 @@ export function LiveCallOverlay() {
     setThinking(false);
     setBoard(null);
     setOffer(null);
+    setTeacherRoute("/?classroom=1");
+    setFrameKey((k) => k + 1);
     voice.start();
   }
 
@@ -366,9 +400,84 @@ export function LiveCallOverlay() {
     <>
       <audio ref={voice.audioRef} className="hidden" autoPlay />
       <video ref={displayVideo} className="hidden" muted playsInline />
-      <LiveAnnotations marks={marks} />
+      <LiveAnnotations marks={marks} frame={trainingMode && !idle && !ended ? frameEl : null} />
 
-      {view === "mini" && !ended && !idle ? (
+      {trainingMode && !idle && !ended ? (
+        <div
+          {...{ [CALL_UI_ATTR]: "" }}
+          className="fixed inset-0 z-[96] flex flex-col bg-background"
+          style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+          role="dialog"
+          aria-label="Skyline AI training call"
+        >
+          <header className="flex items-center gap-3 border-b border-hairline px-3 py-2">
+            <img src={robot} alt="" className={cn("h-9 w-9 rounded-full object-cover ring-2", speaking ? "ring-cyan" : "ring-border")} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold">Skyline AI Teacher</p>
+              <p className="truncate text-[11px] text-muted-foreground">{stateText[state]}</p>
+            </div>
+            {stateChip}
+            <span className="font-mono text-xs text-muted-foreground">{startedAt ? clock(elapsed) : ""}</span>
+          </header>
+          <div className="flex items-center justify-between gap-2 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
+            <span className="flex items-center gap-1.5"><MonitorUp className="h-3.5 w-3.5" /> Skyline AI apni screen share kar raha hai</span>
+            <button type="button" className="underline" onClick={() => setFrameKey((k) => k + 1)}>Screen dobara load karein</button>
+          </div>
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            <iframe
+              key={frameKey}
+              ref={setFrameEl}
+              src={teacherRoute}
+              title="Skyline AI Teacher screen"
+              className="pointer-events-none h-full w-full border-0 bg-background"
+            />
+            {board && boardNew ? (
+              <div className="absolute inset-x-3 top-3 z-10">
+                <Whiteboard board={board} compact />
+                <Button variant="secondary" size="sm" className="mt-1 w-full" onClick={() => setBoardNew(false)}>Whiteboard chhupayein</Button>
+              </div>
+            ) : null}
+          </div>
+          <div className="space-y-2 border-t border-hairline px-3 pb-3 pt-2">
+            <div className="text-xs" aria-live="polite">
+              {lastAi ? <p className="line-clamp-2"><span className="font-bold text-cyan">Skyline AI:</span> {lastAi.text}</p> : <p className="text-muted-foreground">{stateText[state]}</p>}
+            </div>
+            {offer ? (
+              <Button
+                variant="brand"
+                className="w-full"
+                onClick={() => {
+                  const href = offer.route;
+                  setOffer(null);
+                  setTeacherRoute(href);
+                }}
+              >
+                {offer.label}
+              </Button>
+            ) : null}
+            {voice.playbackBlocked ? (
+              <Button variant="brand" className="w-full" onClick={voice.resumePlayback}><Volume2 /> Awaaz chalayein</Button>
+            ) : null}
+            {voice.error ? <p className="text-center text-xs text-destructive" role="alert">{voice.error}</p> : null}
+            <div className="grid grid-cols-5 gap-2">
+              <Button variant={voice.muted ? "destructive" : "secondary"} className="h-12" onClick={toggleMute} disabled={voice.status !== "connected"} aria-label={voice.muted ? "Unmute" : "Mute"}>
+                {voice.muted ? <MicOff /> : <Mic />}
+              </Button>
+              <Button variant="secondary" className="h-12" onClick={toggleSpeaker} aria-label="Speaker">
+                {speakerOn ? <Volume2 /> : <VolumeX />}
+              </Button>
+              <Button variant="brand" className="col-span-2 h-12" onClick={excuseMe} disabled={voice.status !== "connected"}>
+                <Hand /> Excuse Me
+              </Button>
+              <Button variant="destructive" className="h-12" onClick={() => void endCall()} aria-label="End training call">
+                <PhoneOff />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {!trainingMode && view === "mini" && !ended && !idle ? (
         <div
           {...{ [CALL_UI_ATTR]: "" }}
           className="fixed inset-x-3 bottom-3 z-[96] mx-auto max-w-md rounded-3xl border border-cyan/30 bg-card/95 p-3 shadow-brand backdrop-blur-xl"
@@ -425,7 +534,7 @@ export function LiveCallOverlay() {
         </div>
       ) : null}
 
-      {view === "full" || idle || ended ? (
+      {(!trainingMode && (view === "full" || idle || ended)) || (trainingMode && (idle || ended)) ? (
         <div
           {...{ [CALL_UI_ATTR]: "" }}
           className="fixed inset-0 z-[96] flex flex-col bg-background/97 backdrop-blur-xl"
@@ -459,17 +568,25 @@ export function LiveCallOverlay() {
                 <h2 className="mt-5 font-display text-2xl font-bold">{trainingMode ? "Skyline AI Classroom" : "Call Skyline AI"}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {trainingMode
-                    ? "Skyline AI Teacher aap ko step by step training dega, whiteboard par samjhayega aur test lega. Behtar hai Share Screen bhi karein."
+                    ? "Call karein — Skyline AI Teacher apni screen share karega, har page khol kar step by step samjhayega, whiteboard par likhega aur test lega. Aap ko screen share nahi karni."
                     : "Apne Skyline teacher se baat karein. Screen share karein to wo aap ki screen dekh kar samjhayega."}
                 </p>
-                <div className="mt-7 grid gap-3">
-                  <Button variant="brand" size="xl" className="rounded-2xl" onClick={() => begin("voice")}>
-                    <Phone /> Voice Call
-                  </Button>
-                  <Button variant="secondary" size="xl" className="rounded-2xl" onClick={() => begin("video")}>
-                    <Video /> Video Call
-                  </Button>
-                </div>
+                {trainingMode ? (
+                  <div className="mt-7 grid gap-3">
+                    <Button variant="brand" size="xl" className="rounded-2xl" onClick={() => begin("voice")}>
+                      <Phone /> Call Skyline AI Teacher
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="mt-7 grid gap-3">
+                    <Button variant="brand" size="xl" className="rounded-2xl" onClick={() => begin("voice")}>
+                      <Phone /> Voice Call
+                    </Button>
+                    <Button variant="secondary" size="xl" className="rounded-2xl" onClick={() => begin("video")}>
+                      <Video /> Video Call
+                    </Button>
+                  </div>
+                )}
                 {voice.error ? <p className="mt-4 text-sm text-destructive" role="alert">{voice.error}</p> : null}
               </div>
             ) : ended ? (

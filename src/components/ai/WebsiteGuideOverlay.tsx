@@ -307,7 +307,7 @@ function GuideCard({ guide }: { guide: GuideProgress }) {
             {turns.slice(-4).map((t, i) => (
               <p key={i} className={cn("whitespace-pre-wrap rounded-xl px-3 py-2", t.role === "ai" ? "border border-hairline bg-surface" : "ml-8 bg-primary/15 text-right")}>{t.text}</p>
             ))}
-            {awaitingClick && step.action ? <p className="rounded-lg border border-cyan/40 bg-primary/10 p-2 text-xs font-semibold">👉 {step.action.say}</p> : null}
+            {awaitingClick && step.action ? <p className="rounded-lg border border-cyan/40 bg-primary/10 p-2 text-xs font-semibold">{step.action.say}</p> : null}
 
             <button type="button" onClick={() => setDetails((v) => !v)} className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
               <Info className="h-3.5 w-3.5" /> {details ? "Details chhupayein" : "Is section ki details"}

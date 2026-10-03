@@ -2873,3 +2873,20 @@ html.is-installed-app .liquid-atmosphere { display: none !important; }
   scroll-margin-top: 5rem;
   transition: outline-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* Website Teacher: exact-element pulse, voice state and mic. */
+.ai-guide-highlight { animation: ai-guide-pulse 1.8s ease-in-out infinite; }
+.ai-guide-highlight-strong { outline-width: 3px; }
+@keyframes ai-guide-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-cyan) 22%, transparent), 0 0 18px color-mix(in oklab, var(--color-cyan) 35%, transparent); }
+  50% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--color-cyan) 8%, transparent), 0 0 28px color-mix(in oklab, var(--color-cyan) 50%, transparent); }
+}
+.guide-state-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: currentColor; opacity: 0.5; }
+.guide-state-dot.is-active { opacity: 1; animation: guide-dot 1s ease-in-out infinite; }
+@keyframes guide-dot { 50% { transform: scale(1.6); opacity: 0.4; } }
+.guide-mic { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.guide-mic:active { transform: scale(0.94); }
+.guide-mic.is-listening { box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-cyan) 30%, transparent), 0 0 30px var(--color-cyan); animation: guide-dot 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-guide-highlight, .guide-state-dot.is-active, .guide-mic.is-listening { animation: none; }
+}

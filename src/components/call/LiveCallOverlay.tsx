@@ -298,7 +298,10 @@ export function LiveCallOverlay() {
       .map((l) => `${l.role === "assistant" ? "AI" : "User"}: ${l.text.trim()}`)
       .join("\n")
       .slice(-16_000);
-    if (!transcript.trim()) return toast.message("Is call mein summary ke liye baat cheet nahi mili.");
+    if (!transcript.trim()) {
+      toast.message("Is call mein summary ke liye baat cheet nahi mili.");
+      return;
+    }
     setSummarizing(true);
     try {
       setSummary(await summarize({ data: { transcript } }));

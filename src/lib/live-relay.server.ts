@@ -64,7 +64,7 @@ type ScreenState = {
   title: string;
   viewport: string;
   elements: string;
-  image?: string;
+  image?: string | undefined;
   at: number;
 };
 

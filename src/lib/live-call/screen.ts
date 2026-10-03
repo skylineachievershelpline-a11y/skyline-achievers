@@ -41,7 +41,7 @@ function colourName(el: Element) {
   if (bg === "gradient") return "blue/cyan gradient";
   const m = bg.match(/rgba?\(([^)]+)\)/);
   if (!m) return "";
-  const [r, g, b, a = "1"] = m[1].split(",").map((x) => x.trim());
+  const [r, g, b, a = "1"] = (m[1] ?? "").split(",").map((x) => x.trim());
   const [R, G, B, A] = [Number(r), Number(g), Number(b), Number(a)];
   if (A < 0.2) return "";
   const max = Math.max(R, G, B);

@@ -83,9 +83,9 @@ export function LiveCallOverlay() {
   const onEvent = useCallback((event: LiveEvent) => {
     const type = event.type;
     if (type === "session.output_transcript.delta" || type === "session.input_transcript.delta") {
-      const delta = typeof event.delta === "string" ? event.delta : "";
+      const delta = typeof event["delta"] === "string" ? event["delta"] : "";
       if (!delta) return;
-      const role = type === "session.output_transcript.delta" ? "assistant" : "user";
+      const role: Line["role"] = type === "session.output_transcript.delta" ? "assistant" : "user";
       const now = Date.now();
       if (role === "assistant") setSpeakingAt(now);
       else setHearingAt(now);
@@ -103,9 +103,9 @@ export function LiveCallOverlay() {
     } else if (type === "app.delegation.done") {
       setThinking(false);
     } else if (type === "app.annotate") {
-      const raw = Array.isArray(event.marks) ? (event.marks as Omit<LiveMark, "key">[]) : [];
+      const raw = Array.isArray(event["marks"]) ? (event["marks"] as Omit<LiveMark, "key">[]) : [];
       const next = raw.map((m, i) => ({ ...m, key: `${Date.now()}-${i}` }));
-      setMarks((prev) => (event.clear_previous ? next : [...prev, ...next].slice(-6)));
+      setMarks((prev) => (event["clear_previous"] ? next : [...prev, ...next].slice(-6)));
       window.clearTimeout(markTimer.current);
       markTimer.current = window.setTimeout(() => setMarks([]), 30_000);
     } else if (type === "app.closed") {
@@ -248,7 +248,10 @@ export function LiveCallOverlay() {
   }
 
   async function toggleCamera() {
-    if (cameraOn) return stopCamera();
+    if (cameraOn) {
+      stopCamera();
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       cameraStream.current = stream;

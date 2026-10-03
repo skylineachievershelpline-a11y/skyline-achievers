@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { guideAssist } from "@/lib/ai-guide.functions";
 import {
-  GUIDE_STEPS, emitGuideEvent, readGuide, stepAllowed, stepContext, subscribeGuide, writeGuide, type GuideProgress,
+  GUIDE_STEPS, emitGuideEvent, readGuide, stepAllowed, stepContext, subscribeGuide, writeGuide, type GuideProgress, type GuideStep,
 } from "@/lib/ai-guide";
 
 let snapshot: string | null = null;
@@ -37,7 +37,7 @@ function GuideCard({ guide }: { guide: GuideProgress }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const assist = useServerFn(guideAssist);
-  const step = GUIDE_STEPS[guide.stepIndex] ?? GUIDE_STEPS[0];
+  const step = (GUIDE_STEPS[guide.stepIndex] ?? GUIDE_STEPS[0]) as GuideStep;
   const allowed = stepAllowed(step, guide.role);
   const [open, setOpen] = useState(true);
   const [phase, setPhase] = useState<"explain" | "question" | "ask">("explain");

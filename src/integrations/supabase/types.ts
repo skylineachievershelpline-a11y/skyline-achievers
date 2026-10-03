@@ -634,6 +634,90 @@ export type Database = {
         }
         Relationships: []
       }
+      fbo_training: {
+        Row: {
+          admin_completed: boolean
+          chapters: Json
+          completed_at: string | null
+          created_at: string
+          current_chapter: number
+          current_lesson: number
+          current_stage: string
+          final_passed: boolean
+          last_position: Json | null
+          remediation_count: number
+          status: string
+          unlocked_chapter: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_completed?: boolean
+          chapters?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_chapter?: number
+          current_lesson?: number
+          current_stage?: string
+          final_passed?: boolean
+          last_position?: Json | null
+          remediation_count?: number
+          status?: string
+          unlocked_chapter?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_completed?: boolean
+          chapters?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_chapter?: number
+          current_lesson?: number
+          current_stage?: string
+          final_passed?: boolean
+          last_position?: Json | null
+          remediation_count?: number
+          status?: string
+          unlocked_chapter?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fbo_training_attempts: {
+        Row: {
+          chapter: number
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          passed: boolean
+          score: number
+          user_id: string
+        }
+        Insert: {
+          chapter: number
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          passed?: boolean
+          score?: number
+          user_id: string
+        }
+        Update: {
+          chapter?: number
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          passed?: boolean
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       final_test_answers: {
         Row: {
           answer_text: string | null

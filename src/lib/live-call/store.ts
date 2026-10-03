@@ -1,26 +1,32 @@
-/** Opens the Skyline AI call screen from anywhere in the app. */
+/** Opens the Skyline AI call screen (normal call or training class) from anywhere. */
 import { useSyncExternalStore } from "react";
 
-let open = false;
+type CallState = { open: boolean; training: boolean };
+let state: CallState = { open: false, training: false };
 const listeners = new Set<() => void>();
 
-export function openLiveCall() {
-  open = true;
+function set(next: CallState) {
+  state = next;
   listeners.forEach((fn) => fn());
+}
+
+export function openLiveCall(options: { training?: boolean } = {}) {
+  set({ open: true, training: Boolean(options.training) });
 }
 
 export function closeLiveCall() {
-  open = false;
-  listeners.forEach((fn) => fn());
+  set({ open: false, training: state.training });
+}
+
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
 }
 
 export function useLiveCallOpen() {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
-    },
-    () => open,
-    () => false,
-  );
+  return useSyncExternalStore(subscribe, () => state.open, () => false);
+}
+
+export function useLiveCallTraining() {
+  return useSyncExternalStore(subscribe, () => state.training, () => false);
 }

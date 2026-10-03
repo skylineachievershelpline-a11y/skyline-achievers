@@ -4,7 +4,8 @@
  * minimise the call, move around the website, and Skyline AI keeps seeing
  * the shared screen and pointing things out.
  */
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ChevronDown,
@@ -38,11 +39,13 @@ import {
   startDisplayShare,
   supportsDisplayShare,
 } from "@/lib/live-call/screen";
-import { closeLiveCall, useLiveCallOpen } from "@/lib/live-call/store";
+import { closeLiveCall, useLiveCallOpen, useLiveCallTraining } from "@/lib/live-call/store";
+import type { WhiteboardData } from "@/lib/live-relay.types";
 import { getAccessToken } from "@/lib/session-token";
 import { cn } from "@/lib/utils";
 
 import { LiveAnnotations, type LiveMark } from "./LiveAnnotations";
+import { Whiteboard } from "./Whiteboard";
 
 type Line = { role: "user" | "assistant"; text: string; at: number };
 type Share = null | "app" | "display";
@@ -55,6 +58,14 @@ function clock(ms: number) {
 
 export function LiveCallOverlay() {
   const open = useLiveCallOpen();
+  const trainingMode = useLiveCallTraining();
+  const trainingRef = useRef(trainingMode);
+  trainingRef.current = trainingMode;
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [board, setBoard] = useState<WhiteboardData | null>(null);
+  const [boardNew, setBoardNew] = useState(false);
+  const [offer, setOffer] = useState<{ route: string; label: string } | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mode, setMode] = useState<"voice" | "video">("voice");
   const [view, setView] = useState<"full" | "mini">("full");
@@ -108,15 +119,29 @@ export function LiveCallOverlay() {
       setMarks((prev) => (event["clear_previous"] ? next : [...prev, ...next].slice(-6)));
       window.clearTimeout(markTimer.current);
       markTimer.current = window.setTimeout(() => setMarks([]), 30_000);
+    } else if (type === "app.whiteboard") {
+      setBoard((event["board"] as WhiteboardData) ?? null);
+      setBoardNew(true);
+    } else if (type === "app.open") {
+      const route = typeof event["route"] === "string" ? event["route"] : "";
+      const label = typeof event["label"] === "string" ? event["label"] : "Kholein";
+      if (route) setOffer({ route, label });
+    } else if (type === "app.training.updated") {
+      void queryClient.invalidateQueries({ queryKey: ["my-training"] });
+      const result = event["result"] as { score?: number; passed?: boolean } | undefined;
+      if (result && typeof result.score === "number") {
+        if (result.passed) toast.success(`Test pass! Score ${result.score}%`);
+        else toast.message(`Score ${result.score}% — dobara tayyari ke baad retest hoga.`);
+      }
     } else if (type === "app.closed") {
       setEndedAt(Date.now());
       setThinking(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const voice = useLiveVoice({
     onEvent,
-    getStartPayload: async () => ({ token: (await getAccessToken()) ?? "" }),
+    getStartPayload: async () => ({ token: (await getAccessToken()) ?? "", training: trainingRef.current }),
   });
   const live = voice.status === "connecting" || voice.status === "connected";
 
@@ -217,6 +242,8 @@ export function LiveCallOverlay() {
     setStartedAt(0);
     setEndedAt(0);
     setThinking(false);
+    setBoard(null);
+    setOffer(null);
     voice.start();
   }
 
@@ -347,6 +374,25 @@ export function LiveCallOverlay() {
           className="fixed inset-x-3 bottom-3 z-[96] mx-auto max-w-md rounded-3xl border border-cyan/30 bg-card/95 p-3 shadow-brand backdrop-blur-xl"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
+          {offer ? (
+            <Button
+              variant="brand"
+              className="mb-2 w-full"
+              onClick={() => {
+                const href = offer.route;
+                setOffer(null);
+                void navigate({ href });
+              }}
+            >
+              {offer.label}
+            </Button>
+          ) : null}
+          {board && boardNew ? (
+            <div className="mb-2">
+              <Whiteboard board={board} compact />
+              <Button variant="ghost" size="sm" className="mt-1 w-full" onClick={() => setBoardNew(false)}>Whiteboard chhupayein</Button>
+            </div>
+          ) : null}
           <div className="flex items-center gap-3">
             <img src={robot} alt="" className={cn("h-10 w-10 rounded-full object-cover ring-2", speaking ? "ring-cyan" : "ring-border")} />
             <div className="min-w-0 flex-1">
@@ -410,9 +456,11 @@ export function LiveCallOverlay() {
             {idle ? (
               <div className="w-full max-w-sm text-center">
                 <img src={robot} alt="Skyline AI" className="mx-auto h-32 w-32 rounded-full object-cover ring-4 ring-cyan/40" />
-                <h2 className="mt-5 font-display text-2xl font-bold">Call Skyline AI</h2>
+                <h2 className="mt-5 font-display text-2xl font-bold">{trainingMode ? "Skyline AI Classroom" : "Call Skyline AI"}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Apne Skyline teacher se baat karein. Screen share karein to wo aap ki screen dekh kar samjhayega.
+                  {trainingMode
+                    ? "Skyline AI Teacher aap ko step by step training dega, whiteboard par samjhayega aur test lega. Behtar hai Share Screen bhi karein."
+                    : "Apne Skyline teacher se baat karein. Screen share karein to wo aap ki screen dekh kar samjhayega."}
                 </p>
                 <div className="mt-7 grid gap-3">
                   <Button variant="brand" size="xl" className="rounded-2xl" onClick={() => begin("voice")}>
@@ -452,7 +500,7 @@ export function LiveCallOverlay() {
                 ) : null}
                 <p className="mt-3 text-xs text-muted-foreground">Ye call record nahi hui aur kisi ke saath share nahi hoti.</p>
                 <div className="mt-5 grid gap-2">
-                  <Button variant="brand" onClick={() => begin(mode)}>Dobara call karein</Button>
+                  <Button variant="brand" onClick={() => begin(mode)}>{trainingMode ? "Continue Training" : "Dobara call karein"}</Button>
                   <Button variant="ghost" onClick={closeAll}>Band karein</Button>
                 </div>
               </div>
@@ -479,6 +527,25 @@ export function LiveCallOverlay() {
                 </div>
                 {mode === "video" && cameraOn ? (
                   <p className="text-center text-[11px] text-muted-foreground">Camera sirf aap ko dikhta hai — Skyline AI aap ka camera nahi dekhta.</p>
+                ) : null}
+                {trainingMode || board ? (
+                  <div className="w-full max-w-md">
+                    <Whiteboard board={board} />
+                  </div>
+                ) : null}
+                {offer ? (
+                  <Button
+                    variant="brand"
+                    className="w-full max-w-md"
+                    onClick={() => {
+                      const href = offer.route;
+                      setOffer(null);
+                      setView("mini");
+                      void navigate({ href });
+                    }}
+                  >
+                    {offer.label}
+                  </Button>
                 ) : null}
                 <div className="w-full max-w-md space-y-2 text-sm" aria-live="polite">
                   {lastUser ? <p className="truncate text-muted-foreground"><span className="font-bold">Aap:</span> {lastUser.text}</p> : null}
@@ -526,7 +593,7 @@ export function LiveCallOverlay() {
                 </CallControl>
                 <div className={cn("flex flex-col items-center gap-1", mode === "video" ? "col-span-2" : "col-span-2")}>
                   <Button variant="destructive" className="h-14 w-full rounded-2xl" onClick={() => void endCall()} aria-label="End call">
-                    <PhoneOff /> End
+                    <PhoneOff /> {trainingMode ? "End Training" : "End"}
                   </Button>
                 </div>
               </div>

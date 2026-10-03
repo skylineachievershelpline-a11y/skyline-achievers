@@ -338,3 +338,7 @@
 - [ ] Part 2: Add Participant — secure invite link + multi-person call
 - [ ] Part 3: Recording with consent (30 days, caller + admin), transcript view
 - [ ] Authorized CEO voice (needs provider + consent)
+
+## Skyline AI Teacher Training
+- [x] Training engine, persistent progress, dashboard lock (Assistant Supervisor), Training Room, whiteboard, Chapter 1 + test, admin override
+- [ ] Chapters 2–10 content (Login, Dashboard, Working Method, Prospecting, Invitation role-play, Follow-up, Objections, Closing, Final Assessment)

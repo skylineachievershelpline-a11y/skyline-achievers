@@ -1,4 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
+import { AdminTrainingControl } from "@/components/admin/AdminTrainingControl";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { formatRankName, RankPin } from "@/components/member/RankPin";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ function AdminMemberDashboardPage() {
           <div className="flex items-center gap-2 text-sm"><ShieldCheck className="h-4 w-4 text-cyan" /><span>You are securely viewing this member’s dashboard as administrator.</span></div>
           <Button asChild variant="outline" size="sm"><Link to="/admin">Return to Admin Panel</Link></Button>
         </div>
+        <AdminTrainingControl memberId={memberId} />
 
         <section className="mx-auto w-full max-w-3xl space-y-6 py-3 font-achiever animate-rise-in">
           <div className="flex items-start gap-5 sm:gap-7">

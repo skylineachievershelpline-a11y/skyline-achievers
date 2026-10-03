@@ -94,7 +94,7 @@ export const getDailyReport = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const today = pktToday();
-    const from = shiftDay(today, -120);
+    const from = shiftDay(today, -370); // a full year of history for 90-day comparisons
 
     const [{ data: reports }, { data: leaves }] = await Promise.all([
       supabaseAdmin
@@ -163,7 +163,7 @@ export const getDailyReport = createServerFn({ method: "GET" })
       reports: (reports ?? []) as Record<string, unknown>[],
       leaves: (leaves ?? []) as { from_date: string; to_date: string; status?: string | null }[],
       endDate: today,
-      days: 121,
+      days: 366,
       joinedDate: joinedDay,
     });
 

@@ -25,6 +25,8 @@ export type GuideStep = {
   avoid?: string;
   /** Simple understanding check; answered and checked by Skyline AI. */
   question?: string;
+  /** Guided click: the user (never the guide) clicks this exact element. */
+  action?: { target: string; say: string; success: string };
 };
 
 export const GUIDE_STEPS: GuideStep[] = [
@@ -90,7 +92,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     question: "Home Dashboard ka basic purpose kya hai?",
   },
   {
-    id: "training", title: "Training", audience: "member", route: "/training", target: "page-content",
+    id: "training", title: "Training", audience: "member", route: "/training", target: "training",
     where: "Ab hum Training section mein hain.",
     what: "Yahan aapki rank ke mutabiq training videos categories mein milti hain, aur search bhi hai.",
     why: "Basic training se buniyad mazboot hoti hai, phir aage ki cheezein khulti hain.",
@@ -116,7 +118,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     question: "Naye banday ko session bhejne ke liye aap kya copy karte hain?",
   },
   {
-    id: "team", title: "Team Tree", audience: "member", route: "/team", target: "page-content",
+    id: "team", title: "Team Tree", audience: "member", route: "/team", target: "team",
     where: "Ye Team Tree hai.",
     what: "Yahan aapki team ka dhancha (kaun kis ke neeche hai) dikhta hai.",
     why: "Taa ke aap apni team ko samajh kar sahi guidance de sakein.",
@@ -130,7 +132,8 @@ export const GUIDE_STEPS: GuideStep[] = [
     canDo: ["Seat reserve karna", "Apni reservations dekhna"],
   },
   {
-    id: "ai", title: "Skyline Achievers AI", audience: "all", route: "/ai", target: "page-content",
+    id: "ai", title: "Skyline Achievers AI", audience: "all", route: "/dashboard", target: "ai-button",
+    action: { target: "ai-button", say: "Ab chamakta hua Skyline Achievers AI button dabayein.", success: "Perfect. Ab aap Skyline AI screen par hain." },
     where: "Ye Skyline Achievers AI hai — yahi jahan ye Guide bhi hai.",
     what: "Yahan aap apne sawal likh ya picture bhej kar pooch sakte hain. Har chat aapke account mein save rehti hai.",
     why: "Taa ke chhote sawal ke liye har baar upline ko pareshan na karna pare.",
@@ -175,7 +178,7 @@ export const GUIDE_STEPS: GuideStep[] = [
     canDo: ["Lafz likh kar search karna"],
   },
   {
-    id: "profile", title: "My Profile", audience: "member", route: "/profile", target: "page-content",
+    id: "profile", title: "My Profile", audience: "member", route: "/profile", target: "profile",
     where: "Ye My Profile hai.",
     what: "Yahan aap apna naam, photo, password aur Fingerprint / Face ID login set karte hain.",
     why: "Taa ke account mehfooz rahe aur login aasaan ho.",
@@ -183,14 +186,16 @@ export const GUIDE_STEPS: GuideStep[] = [
     avoid: "Default password jaldi badal lein.",
   },
   {
-    id: "notifications", title: "Notifications", audience: "member", route: "/notifications", target: "notifications-button",
+    id: "notifications", title: "Notifications", audience: "member", route: "/dashboard", target: "notifications-button",
+    action: { target: "notifications-button", say: "Upar chamakti hui ghanti ko dabayein.", success: "Shabash! Ye aapke announcements hain." },
     where: "Ye Notifications (ghanti) hai.",
     what: "Yahan Skyline ke announcements aur updates aate hain. Ghanti par number = naye messages.",
     why: "Taa ke koi zaroori update miss na ho.",
     canDo: ["Announcements parhna"],
   },
   {
-    id: "todo", title: "To-Do List", audience: "member", route: "/todo", target: "page-content",
+    id: "todo", title: "To-Do List", audience: "member", route: "/dashboard", target: "todo-button",
+    action: { target: "todo-button", say: "Ab screen par chamakta hua To-do List button dabayein.", success: "Perfect! Ab aap To-do List screen par hain." },
     where: "Ye To-Do List hai.",
     what: "Yahan aaj ke kaam ki list hoti hai jise aap tick karte jate hain.",
     why: "Taa ke rozana kaam ka plan saaf rahe.",
@@ -222,6 +227,8 @@ export const GUIDE_STEPS: GuideStep[] = [
   },
 ];
 
+export type GuideLevel = "beginner" | "standard" | "advanced";
+
 export type GuideProgress = {
   active: boolean;
   paused: boolean;
@@ -229,6 +236,13 @@ export type GuideProgress = {
   completed: string[];
   role: GuideRole;
   updatedAt: string;
+  /** Phase 2 memory — all optional so Phase 1 saves keep working. */
+  level?: GuideLevel;
+  checks?: Record<string, { passed: boolean; attempts: number }>;
+  questions?: { stepId: string; text: string }[];
+  struggled?: string[];
+  skipped?: string[];
+  resumed?: boolean;
 };
 
 const EVENT = "skyline-ai-guide-change";

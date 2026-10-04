@@ -14,7 +14,7 @@ export function AiPageShell({ children, title, showThreads = false }: { children
             <Link to="/dashboard"><ArrowLeft /></Link>
           </Button>
           <BrandLogo size="sm" withWordmark={false} />
-          <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold">{title}</p><p className="text-[11px] text-muted-foreground">Private account guide</p></div>
+          <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold">{title}</p><p className="text-[11px] text-muted-foreground">Private conversations</p></div>
           {showThreads ? <Button asChild variant="outline" size="icon" aria-label="All conversations"><Link to="/ai"><List /></Link></Button> : null}
         </div>
       </header>

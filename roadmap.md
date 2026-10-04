@@ -342,3 +342,8 @@
 ## Skyline AI Teacher Training
 - [x] Training engine, persistent progress, dashboard lock (Assistant Supervisor), Training Room, whiteboard, Chapter 1 + test, admin override
 - [ ] Chapters 2–10 content (Login, Dashboard, Working Method, Prospecting, Invitation role-play, Follow-up, Objections, Closing, Final Assessment)
+
+## Monthly report and AI screen cleanup (Oct 4)
+- [ ] Remove dashboard call shortcut and hide Website Guide from AI and all dashboards
+- [ ] Show calendar-month performance graph and monthly report selections
+- [ ] Export monthly full report and separate selected-month graph PDF

@@ -610,10 +610,11 @@ function BeginnersPage() {
                 Skyline Achievers AI
               </Link>
             </Button>
+            <Button type="button" variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground" onClick={() => setSettingsOpen(true)}>
+              <SettingsIcon className="h-4 w-4 text-brand-glow" />
+              Settings
+            </Button>
           </nav>
-          <button type="button" onClick={() => void signOut()} className="logout-button mt-4 w-full">
-            <LogOut className="h-4 w-4" /> Logout
-          </button>
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}
           </p>

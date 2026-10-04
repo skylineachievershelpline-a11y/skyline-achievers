@@ -387,7 +387,15 @@ function BeginnersPage() {
     el.scrollBy({ top: dir === "up" ? -160 : 160, behavior: "smooth" });
   }, []);
   useEffect(() => {
-    updateNavScroll();
+    if (!menuOpen) return;
+    const raf = requestAnimationFrame(updateNavScroll);
+    const t = window.setTimeout(updateNavScroll, 550);
+    window.addEventListener("resize", updateNavScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+      window.removeEventListener("resize", updateNavScroll);
+    };
   }, [menuOpen, updateNavScroll]);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -619,21 +627,20 @@ function BeginnersPage() {
               Beginners Training
             </p>
           </div>
-          {navScroll.up ? (
-            <button
-              type="button"
-              aria-label="Scroll menu up"
-              onClick={() => scrollNav("up")}
-              className="mx-auto mb-1 flex h-8 w-full items-center justify-center gap-1.5 rounded-xl border border-metal/30 bg-surface text-xs text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
-            >
-              <ChevronUp className="h-4 w-4" />
-              Upar
-            </button>
-          ) : null}
+          <button
+            type="button"
+            aria-label="Scroll menu up"
+            onClick={() => scrollNav("up")}
+            disabled={!navScroll.up}
+            className="mx-auto mt-3 flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 text-xs font-medium text-foreground shadow-glass transition-colors hover:border-cyan/60 disabled:opacity-40"
+          >
+            <ChevronUp className="h-4 w-4" />
+            Upar
+          </button>
           <nav
             ref={navRef}
             onScroll={updateNavScroll}
-            className="mt-5 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-auto overscroll-contain pb-4 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+            className="mt-2 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-auto overscroll-contain pb-2 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
           >
             {BEGINNER_NAV.map((item) => (
               <Button
@@ -677,17 +684,16 @@ function BeginnersPage() {
               Settings
             </Button>
           </nav>
-          {navScroll.down ? (
-            <button
-              type="button"
-              aria-label="Scroll menu down"
-              onClick={() => scrollNav("down")}
-              className="mx-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-xl border border-metal/30 bg-surface text-xs text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
-            >
-              <ChevronDown className="h-4 w-4" />
-              Neechay
-            </button>
-          ) : null}
+          <button
+            type="button"
+            aria-label="Scroll menu down"
+            onClick={() => scrollNav("down")}
+            disabled={!navScroll.down}
+            className="mx-auto mt-2 flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 text-xs font-medium text-foreground shadow-glass transition-colors hover:border-cyan/60 disabled:opacity-40"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Neechay
+          </button>
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}
           </p>

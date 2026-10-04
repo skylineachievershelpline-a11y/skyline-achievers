@@ -82,7 +82,6 @@ function JoinPage() {
   }, [consumedInviteKey, data?.status, isPending, navigate]);
 
   function closeRegistration() {
-    window.localStorage.removeItem(consumedInviteKey);
     void navigate({ to: "/", replace: true });
   }
 

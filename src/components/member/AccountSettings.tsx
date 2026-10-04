@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Download, Loader2, LogOut, Plus, Repeat, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, LogOut, Plus, Repeat, ShieldCheck, UserCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
@@ -20,12 +20,14 @@ export function AccountSettings({
   currentCode,
   onClose,
   onSignOut,
+  onOpenSecurity,
   allowAccountManagement = true,
 }: {
   currentName: string;
   currentCode: string;
   onClose: () => void;
   onSignOut: () => void;
+  onOpenSecurity?: () => void;
   allowAccountManagement?: boolean;
 }) {
   const navigate = useNavigate();
@@ -94,6 +96,23 @@ export function AccountSettings({
           <span><span className="block text-sm font-semibold">Install Skyline Achievers</span><span className="block text-[11px] font-normal text-muted-foreground">Faster access from your home screen</span></span>
         </Button>
       </AppInstallDialog>
+
+      {onOpenSecurity ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 h-auto w-full justify-start rounded-2xl p-3 text-left"
+          onClick={onOpenSecurity}
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-brand-glow">
+            <ShieldCheck />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold">Profile & Security</span>
+            <span className="block text-[11px] font-normal text-muted-foreground">Photo, password and biometric login</span>
+          </span>
+        </Button>
+      ) : null}
 
       {allowAccountManagement ? <><p className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         <Repeat className="h-3.5 w-3.5" /> Switch account

@@ -35,7 +35,8 @@ export function ReelAuthor({ reel }: { reel: ReelAuthorInfo }) {
           {(reel.authorName ?? "S").slice(0, 1).toUpperCase()}
         </span>
       )}
-      <span className="truncate text-xs font-semibold">{reel.authorName ?? "Skyline Achievers"}</span>
+      <span className="min-w-0 truncate text-xs font-semibold">{reel.authorName ?? "Skyline Achievers"}</span>
+      {reel.founder && <span className="shrink-0 text-[10px] font-semibold text-cyan">CEO</span>}
       {reel.verified ? (
         <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" aria-label="Verified" />
       ) : reel.authorRank ? (

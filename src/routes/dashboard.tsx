@@ -102,7 +102,7 @@ function DashboardPage() {
   return (
     <MemberShell
       title={member?.fullName ?? "Member"}
-      subtitle={member?.level?.name ?? "Level not assigned"}
+      subtitle={isFounder ? "Founder & CEO · Skyline Achievers" : member?.level?.name ?? "Level not assigned"}
       executive
     >
       <AnnouncementBanner />
@@ -136,7 +136,7 @@ function DashboardPage() {
               <div className="min-w-0">
                 <h1 className="flex min-w-0 items-center gap-1 font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
                   <span className="truncate">{member?.fullName ?? "Member"}</span>
-                  <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />
+                  {!isFounder && <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />}
                 </h1>
 
                 <div className="mt-1 flex items-center gap-1">
@@ -157,8 +157,8 @@ function DashboardPage() {
                 <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Founder & CEO · Member ID" : "Member ID"}</p>
               </div>
               <div className="min-w-0 self-end text-right">
-                <p className="whitespace-nowrap font-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
+                <p className="font-display text-sm font-bold sm:text-base">{isFounder ? "Founder & CEO" : formatRankName(member?.level?.name)}</p>
+                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Skyline Achievers" : "Level"}</p>
               </div>
             </div>
           </div>

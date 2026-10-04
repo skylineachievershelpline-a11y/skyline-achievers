@@ -271,7 +271,7 @@ export function MemberShell({
 
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-sm font-semibold">
-              {title ?? BRAND.name}
+              {isFounder ? "A.Q Malik · Founder & CEO" : title ?? BRAND.name}
             </p>
             {subtitle ? (
               <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>

@@ -96,7 +96,6 @@ function TrainerPage() {
     { v: "tree", label: "Team Tree", icon: TreePine, show: true },
     { v: "preferred", label: "Preferred Customers", icon: Users, show: true },
   ];
-  void navigate;
 
   const reached = new Set(hist.list.map((x) => x.step));
   const currentSession = Math.min(s.approved + 1, 7);

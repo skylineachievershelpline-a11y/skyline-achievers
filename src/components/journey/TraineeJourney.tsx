@@ -204,6 +204,7 @@ export function TraineeJourney() {
               refresh();
             }}
           />
+          )
         ) : null}
 
         {data.stage === "interview_guide" && playing.id === data.interviewGuide?.id ? (

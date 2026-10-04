@@ -124,9 +124,34 @@ export async function rollMissedSessions(traineeId: string, nowMs = Date.now()) 
 
   const windowMs = SESSION_WINDOW_HOURS * 3_600_000;
   const start = new Date(current.scheduled_at).getTime();
+  const day = 86_400_000;
+
+  // Sequential pull-forward: when every earlier session is approved, the next
+  // session is not held back for its calendar date — it moves to the earliest
+  // upcoming occurrence of its own clock time (whole days, same time).
+  const earlierApproved = rows
+    .filter((row) => Number(row.session_number) < Number(current.session_number))
+    .every((row) => latest.get(Number(row.session_number)) === "approved");
+  if (earlierApproved && start - nowMs >= day) {
+    const pull = Math.floor((start - nowMs) / day) * day;
+    const later = rows.filter(
+      (row) =>
+        Number(row.session_number) >= Number(current.session_number) &&
+        !reviewed.has(Number(row.session_number)),
+    );
+    await Promise.all(
+      later.map((row) =>
+        admin
+          .from("trainee_session_schedule")
+          .update({ scheduled_at: new Date(new Date(row.scheduled_at).getTime() - pull).toISOString() })
+          .eq("id", row.id),
+      ),
+    );
+    return true;
+  }
+
   if (nowMs <= start + windowMs) return false;
 
-  const day = 86_400_000;
   const shiftDays = Math.ceil((nowMs - (start + windowMs)) / day);
   const shift = shiftDays * day;
   const later = rows.filter(

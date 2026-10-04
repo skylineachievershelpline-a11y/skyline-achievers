@@ -85,6 +85,7 @@ export function SecureYouTubePlayer({
 
   useEffect(() => {
     maxRef.current = Number(localStorage.getItem(key) || 0);
+    if (localStorage.getItem(`${key}:done`)) watchedCb.current?.();
     setMaxWatched(maxRef.current);
     let cancelled = false;
     void loadApi().then(() => {
@@ -112,6 +113,7 @@ export function SecureYouTubePlayer({
             setPlaying(e.data === 1);
             if (e.data === 0) {
               setEnded(true);
+              localStorage.setItem(`${key}:done`, "1");
               player.current?.stopVideo();
               watchedCb.current?.();
             }

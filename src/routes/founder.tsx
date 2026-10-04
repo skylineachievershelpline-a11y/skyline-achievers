@@ -12,20 +12,22 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { GenealogyTree } from "@/components/team/GenealogyTree";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { adminStatus } from "@/lib/admin.functions";
+import { adminLogout, adminStatus, founderLogin } from "@/lib/admin.functions";
+import ceo from "@/assets/aq-malik-ceo.jpg.asset.json";
+import { Menu, Shield, LogOut, Home, Lock, TreePine } from "lucide-react";
 import {
   buildDemoTree, DEMO_TRAINEE, demoMentorship, demoPreferred, INITIAL_SIM, SESSION_TITLES, STEPS,
   type SimState,
 } from "@/lib/trainer-demo";
 
-export const Route = createFileRoute("/admin/trainer")({
+export const Route = createFileRoute("/founder")({
   head: () => ({
     meta: [
-      { title: "Master Trainer Simulator — Skyline Achievers" },
-      { name: "description", content: "Step-by-step demo of the full Skyline Achievers member journey for team training." },
+      { title: "Founder & CEO Dashboard — A.Q Malik" },
+      { name: "description", content: "Official Founder & CEO dashboard of Skyline Achievers." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Master Trainer Simulator — Skyline Achievers" },
-      { property: "og:description", content: "Interactive training demo of every Skyline Achievers dashboard." },
+      { property: "og:title", content: "Founder & CEO Dashboard — A.Q Malik" },
+      { property: "og:description", content: "A.Q Malik, Founder & CEO — every Skyline Achievers dashboard in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -50,7 +52,8 @@ function TrainerPage() {
   }, []);
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(hist)); }, [hist]);
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t); }, []);
-  useEffect(() => { if (status.data && !status.data.isAdmin) void navigate({ to: "/admin/login", replace: true }); }, [status.data, navigate]);
+  const [menu, setMenu] = useState(false);
+  const logout = useServerFn(adminLogout);
 
   const s = hist.list[hist.at]!;
   const push = (patch: Partial<SimState>, goView?: string) => {
@@ -83,52 +86,75 @@ function TrainerPage() {
   const mentorship = useMemo(demoMentorship, []);
   const preferred = useMemo(demoPreferred, []);
 
-  if (!status.data?.isAdmin) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
+  if (!status.data) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
+  if (!status.data.isAdmin) return <FounderLogin onDone={() => void status.refetch()} />;
+  const passed = s.interviewScore != null && s.interviewScore >= 60;
+  const sections: { v: string; label: string; icon: typeof Star; show: boolean }[] = [
+    { v: "fbo", label: "FBO Dashboard", icon: Crown, show: true },
+    { v: "beginner", label: "Beginners Training Dashboard", icon: GraduationCap, show: s.seatReserved },
+    { v: "mentorship", label: "Personal Mentorship Dashboard", icon: Wallet, show: passed },
+    { v: "tree", label: "Team Tree", icon: TreePine, show: true },
+    { v: "preferred", label: "Preferred Customers", icon: Users, show: true },
+  ];
+  void navigate;
 
   const reached = new Set(hist.list.map((x) => x.step));
   const currentSession = Math.min(s.approved + 1, 7);
 
   return (
     <main className="cinematic-shell relative min-h-screen bg-background pb-16 text-foreground">
+      {menu && (
+        <div className="fixed inset-0 z-50" onClick={() => setMenu(false)}>
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+          <aside onClick={(e) => e.stopPropagation()} className="glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[82vw] max-w-xs flex-col gap-1.5 overflow-y-auto rounded-r-3xl p-5">
+            <div className="mb-3 flex items-center gap-3">
+              <img src={ceo.url} alt="A.Q Malik" className="h-12 w-12 rounded-full border-2 border-cyan object-cover" />
+              <div><p className="font-display font-bold">A.Q Malik</p><p className="text-[10px] uppercase tracking-widest text-cyan">Founder & CEO</p></div>
+            </div>
+            <Link to="/admin" className="flex items-center gap-3 rounded-xl border border-cyan/50 bg-gradient-to-r from-primary/25 to-transparent px-3 py-2.5 text-sm font-semibold"><Shield className="h-4 w-4 text-cyan" />Admin Panel</Link>
+            {sections.map((x) => x.show ? (
+              <button key={x.v} type="button" onClick={() => { setView(x.v); setMenu(false); }} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm ${view === x.v ? "border-cyan/60 bg-primary/25" : "border-transparent text-muted-foreground hover:bg-surface-2"}`}><x.icon className="h-4 w-4 text-brand-glow" />{x.label}</button>
+            ) : (
+              <div key={x.v} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/50"><Lock className="h-4 w-4" />{x.label}</div>
+            ))}
+            <div className="mt-auto space-y-1.5 border-t border-hairline pt-3">
+              <button type="button" onClick={() => { reset(); setMenu(false); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-destructive"><RotateCcw className="h-4 w-4" />Reset everything</button>
+              <button type="button" onClick={async () => { await logout(); void status.refetch(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm"><LogOut className="h-4 w-4" />Sign out</button>
+            </div>
+          </aside>
+        </div>
+      )}
       <div className="sticky top-0 z-40 border-b border-cyan/25 bg-background/95 shadow-glass backdrop-blur-md">
         <div className="mx-auto max-w-5xl px-3 py-2.5">
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon"><Link to="/admin" aria-label="Back to Admin"><ArrowLeft /></Link></Button>
-            <Zap className="h-4 w-4 text-cyan" />
-            <p className="min-w-0 flex-1 truncate font-display text-xs font-bold uppercase tracking-wider text-cyan">Skyline Master Simulator</p>
-            <Button size="sm" variant="outline" onClick={() => move(-1)} disabled={hist.at === 0}><ChevronLeft />Back</Button>
-            <Button size="sm" variant="outline" onClick={() => move(1)} disabled={hist.at >= hist.list.length - 1}>Next<ChevronRight /></Button>
-            <Button size="sm" variant="destructive" onClick={reset}><RotateCcw />Reset</Button>
+            <Button variant="outline" size="icon" onClick={() => setMenu(true)} aria-label="Open menu"><Menu /></Button>
+            <p className="min-w-0 flex-1 truncate font-display text-sm font-bold">{sections.find((x) => x.v === view)?.label}</p>
+            <Button size="icon" variant="outline" onClick={() => move(-1)} disabled={hist.at === 0} aria-label="Previous step"><ChevronLeft /></Button>
+            <Button size="icon" variant="outline" onClick={() => move(1)} disabled={hist.at >= hist.list.length - 1} aria-label="Next step"><ChevronRight /></Button>
+            <Button size="icon" variant="destructive" onClick={reset} aria-label="Reset"><RotateCcw /></Button>
           </div>
           <p className="mt-1 text-[11px] text-muted-foreground">Step {s.step} of 7: <span className="font-semibold text-foreground">{STEPS[s.step - 1]}</span></p>
-          <div className="mt-1.5 flex gap-1 overflow-x-auto pb-1">
-            {STEPS.map((label, i) => (
-              <button key={label} type="button" disabled={!reached.has(i + 1)} onClick={() => jump(i + 1)}
-                className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold transition ${s.step === i + 1 ? "border-cyan bg-primary text-primary-foreground" : reached.has(i + 1) ? "border-cyan/40 text-cyan" : "border-border text-muted-foreground opacity-50"}`}>
-                {i + 1}. {label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-5xl px-3 py-4">
-        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-cyan/25 bg-primary/10 p-3">
-          <BrandLogo size="sm" withWordmark={false} />
-          <div className="min-w-0">
-            <p className="font-display font-semibold">Skyline Achievers Official</p>
-            <p className="text-[11px] text-muted-foreground">Training demo — nothing here changes real members or payments.</p>
+        <div className="relative mb-4 overflow-hidden rounded-3xl border border-cyan/40 bg-gradient-to-br from-primary/30 via-background to-background p-5 shadow-brand">
+          <div className="flex items-center gap-4">
+            <img src={ceo.url} alt="A.Q Malik, Founder & CEO" className="h-20 w-20 rounded-full border-2 border-cyan object-cover shadow-brand" />
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-cyan">Founder & CEO</p>
+              <h1 className="font-display text-2xl font-bold">A.Q Malik</h1>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><BrandLogo size="sm" withWordmark={false} />Skyline Achievers Official · ID 760000000001</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[["Network", String(tree.length)], ["Generations", "7"], ["Mentorship", String(mentorship.length)]].map(([k, v]) => (
+              <div key={k} className="rounded-xl bg-muted/50 p-2"><p className="font-display text-lg font-bold">{v}</p><p className="text-[10px] uppercase text-muted-foreground">{k}</p></div>
+            ))}
           </div>
         </div>
 
         <Tabs value={view} onValueChange={setView}>
-          <TabsList className="flex h-auto w-full flex-wrap rounded-xl">
-            <TabsTrigger value="fbo">FBO Dashboard</TabsTrigger>
-            <TabsTrigger value="beginner">Beginners Training</TabsTrigger>
-            <TabsTrigger value="mentorship">Personal Mentorship</TabsTrigger>
-            <TabsTrigger value="tree">Team Tree</TabsTrigger>
-            <TabsTrigger value="preferred">Preferred Customers</TabsTrigger>
-          </TabsList>
 
           {/* FBO */}
           <TabsContent value="fbo" className="space-y-4">
@@ -202,7 +228,7 @@ function TrainerPage() {
           {/* Beginner */}
           <TabsContent value="beginner" className="space-y-4">
             {!s.seatReserved ? (
-              <Card title="Beginners Training" icon={GraduationCap}><p className="text-sm text-muted-foreground">Reserve a seat from the FBO dashboard first.</p></Card>
+              <Card title="Beginners Training" icon={GraduationCap}><p className="text-sm text-muted-foreground">Reserve a seat from the FBO Dashboard first.</p></Card>
             ) : s.interviewScore != null && s.interviewScore >= 60 ? (
               <Card title="Congratulations!" icon={Award}>
                 <p className="text-sm">🎉 {DEMO_TRAINEE.name}, you passed the final interview with {s.interviewScore}/100. Your Personal Mentorship is now open.</p>
@@ -321,5 +347,30 @@ function PayCard({ title, amount, state, left, onPay, policy }: { title: string;
       {state === "pending" && <p className="mt-3 rounded-xl bg-muted p-3 text-sm">⏱️ Verifying payment… auto-approves in <b>{left}s</b></p>}
       {state === "approved" && <p className="mt-3 flex items-center gap-2 text-sm text-cyan"><CheckCircle2 className="h-4 w-4" />Payment approved</p>}
     </Card>
+  );
+}
+
+function FounderLogin({ onDone }: { onDone: () => void }) {
+  const login = useServerFn(founderLogin);
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <main className="cinematic-shell flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+      <form className="raised-panel metal-edge w-full max-w-sm space-y-3 rounded-3xl p-6 text-center" onSubmit={async (e) => {
+        e.preventDefault(); setBusy(true); setErr("");
+        try { const r = await login({ data: { founderId: id, password: pw } }); if (r.ok) onDone(); else setErr(r.reason === "throttled" ? "Too many attempts. Try again in 15 minutes." : "Founder ID or password is incorrect."); }
+        catch { setErr("Could not sign in. Try again."); } finally { setBusy(false); }
+      }}>
+        <img src={ceo.url} alt="A.Q Malik" className="mx-auto h-20 w-20 rounded-full border-2 border-cyan object-cover" />
+        <p className="text-[10px] uppercase tracking-[0.3em] text-cyan">Founder & CEO</p>
+        <h1 className="font-display text-xl font-bold">A.Q Malik Dashboard</h1>
+        <input value={id} onChange={(e) => setId(e.target.value)} inputMode="numeric" placeholder="Founder ID" className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm" />
+        <input value={pw} onChange={(e) => setPw(e.target.value)} type="password" placeholder="Password" className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm" />
+        {err && <p className="text-xs text-destructive">{err}</p>}
+        <Button variant="brand" className="w-full" disabled={busy || !id || !pw}><Home />Open Founder Dashboard</Button>
+      </form>
+    </main>
   );
 }

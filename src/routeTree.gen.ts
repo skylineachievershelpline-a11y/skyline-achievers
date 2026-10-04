@@ -17,6 +17,7 @@ import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EnrollmentVideoRouteImport } from './routes/enrollment-video'
 import { Route as ExecutiveRouteImport } from './routes/executive'
+import { Route as FounderRouteImport } from './routes/founder'
 import { Route as LeaveRouteImport } from './routes/leave'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PayMentorshipRouteImport } from './routes/pay-mentorship'
@@ -32,7 +33,6 @@ import { Route as TrainingRouteImport } from './routes/training'
 import { Route as TrainingRoomRouteImport } from './routes/training-room'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
-import { Route as AdminTrainerRouteImport } from './routes/admin.trainer'
 import { Route as AiIndexRouteImport } from './routes/ai.index'
 import { Route as AiThreadIdRouteImport } from './routes/ai.$threadId'
 import { Route as ApiAiRouteImport } from './routes/api.ai'
@@ -85,6 +85,11 @@ const EnrollmentVideoRoute = EnrollmentVideoRouteImport.update({
 const ExecutiveRoute = ExecutiveRouteImport.update({
   id: '/executive',
   path: '/executive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FounderRoute = FounderRouteImport.update({
+  id: '/founder',
+  path: '/founder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaveRoute = LeaveRouteImport.update({
@@ -162,11 +167,6 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminTrainerRoute = AdminTrainerRouteImport.update({
-  id: '/admin/trainer',
-  path: '/admin/trainer',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AiIndexRoute = AiIndexRouteImport.update({
   id: '/ai/',
   path: '/ai/',
@@ -242,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/executive': typeof ExecutiveRoute
+  '/founder': typeof FounderRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -256,7 +257,6 @@ export interface FileRoutesByFullPath {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -281,6 +281,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/executive': typeof ExecutiveRoute
+  '/founder': typeof FounderRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -295,7 +296,6 @@ export interface FileRoutesByTo {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -321,6 +321,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/enrollment-video': typeof EnrollmentVideoRoute
   '/executive': typeof ExecutiveRoute
+  '/founder': typeof FounderRoute
   '/leave': typeof LeaveRoute
   '/notifications': typeof NotificationsRoute
   '/pay-mentorship': typeof PayMentorshipRoute
@@ -335,7 +336,6 @@ export interface FileRoutesById {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -362,6 +362,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/enrollment-video'
     | '/executive'
+    | '/founder'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -376,7 +377,6 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
-    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -401,6 +401,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/enrollment-video'
     | '/executive'
+    | '/founder'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -415,7 +416,6 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
-    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -440,6 +440,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/enrollment-video'
     | '/executive'
+    | '/founder'
     | '/leave'
     | '/notifications'
     | '/pay-mentorship'
@@ -454,7 +455,6 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
-    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -480,6 +480,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   EnrollmentVideoRoute: typeof EnrollmentVideoRoute
   ExecutiveRoute: typeof ExecutiveRoute
+  FounderRoute: typeof FounderRoute
   LeaveRoute: typeof LeaveRoute
   NotificationsRoute: typeof NotificationsRoute
   PayMentorshipRoute: typeof PayMentorshipRoute
@@ -494,7 +495,6 @@ export interface RootRouteChildren {
   TrainingRoute: typeof TrainingRoute
   TrainingRoomRoute: typeof TrainingRoomRoute
   AdminLoginRoute: typeof AdminLoginRoute
-  AdminTrainerRoute: typeof AdminTrainerRoute
   AiThreadIdRoute: typeof AiThreadIdRoute
   ApiAiRoute: typeof ApiAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
@@ -567,6 +567,13 @@ declare module '@tanstack/react-router' {
       path: '/executive'
       fullPath: '/executive'
       preLoaderRoute: typeof ExecutiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founder': {
+      id: '/founder'
+      path: '/founder'
+      fullPath: '/founder'
+      preLoaderRoute: typeof FounderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leave': {
@@ -674,13 +681,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/trainer': {
-      id: '/admin/trainer'
-      path: '/admin/trainer'
-      fullPath: '/admin/trainer'
-      preLoaderRoute: typeof AdminTrainerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/ai/': {
       id: '/ai/'
       path: '/ai'
@@ -784,6 +784,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   EnrollmentVideoRoute: EnrollmentVideoRoute,
   ExecutiveRoute: ExecutiveRoute,
+  FounderRoute: FounderRoute,
   LeaveRoute: LeaveRoute,
   NotificationsRoute: NotificationsRoute,
   PayMentorshipRoute: PayMentorshipRoute,
@@ -798,7 +799,6 @@ const rootRouteChildren: RootRouteChildren = {
   TrainingRoute: TrainingRoute,
   TrainingRoomRoute: TrainingRoomRoute,
   AdminLoginRoute: AdminLoginRoute,
-  AdminTrainerRoute: AdminTrainerRoute,
   AiThreadIdRoute: AiThreadIdRoute,
   ApiAiRoute: ApiAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,

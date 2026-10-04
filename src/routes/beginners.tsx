@@ -386,6 +386,9 @@ function BeginnersPage() {
     if (!el) return;
     el.scrollBy({ top: dir === "up" ? -160 : 160, behavior: "smooth" });
   }, []);
+  useEffect(() => {
+    updateNavScroll();
+  }, [menuOpen, updateNavScroll]);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   useEffect(() => {
     const t = (data as any)?.trainee;

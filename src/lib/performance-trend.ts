@@ -60,8 +60,47 @@ const span = (a: string, b: string) =>
 const short = (date: string) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" });
 
+/** Activity = Leads + Responses + Enrollments (2CC / PM Fee stay elsewhere in the report). */
 const activityOf = (d: TrendDayInput) =>
-  (Number(d.leads) || 0) + (Number(d.responses) || 0) + (Number(d.enrollments) || 0) + (Number(d.twoCc) || 0) + (Number(d.mentorshipPaid) || 0);
+  (Number(d.leads) || 0) + (Number(d.responses) || 0) + (Number(d.enrollments) || 0);
+
+export const SIMPLE_METRICS = [
+  { key: "activity", label: "Activities" },
+  { key: "leads", label: "Leads" },
+  { key: "responses", label: "Responses" },
+  { key: "enrollments", label: "Enrollments" },
+] as const;
+
+export type SimpleCompare = { label: string; previous: number; current: number; percent: number | null; text: string };
+
+/** Very simple arrows-and-numbers comparison used by the dashboard and the PDF. */
+export function simpleComparison(a: PerformanceAnalysis): SimpleCompare[] {
+  if (!a.previous) return [];
+  return SIMPLE_METRICS.map((m) => {
+    const current = a.totals[m.key];
+    const previous = a.previous!.totals[m.key];
+    const p = pct(current, previous);
+    const text = p === null ? "New" : p === 0 ? "Same" : `${p > 0 ? "Up" : "Down"} ${Math.abs(p)}%`;
+    return { label: m.label, previous, current, percent: p, text };
+  });
+}
+
+/** One short, data-only sentence (Roman Urdu). Never a judgement about the person. */
+export function performanceInsight(a: PerformanceAnalysis): string {
+  const total = a.series.length;
+  if (!total) return "Is period ka koi report record nahi mila.";
+  if (a.workingDays === 0) return `Is period mein koi activity record nahi hui (${total} din).`;
+  const prev = a.previous;
+  const p = prev ? pct(a.totals.activity, prev.totals.activity) : null;
+  if (prev && a.workingDays < prev.workingDays && (p ?? 0) < 0)
+    return `Working kam hui. Sirf ${a.workingDays} din activity record hui (pehle ${prev.workingDays} din).`;
+  if (prev && a.workingDays > prev.workingDays && (p ?? 0) >= 0)
+    return `Working improve hui. Is period ${a.workingDays} working days record huay.`;
+  if (p !== null && p >= 10) return `Activity previous period ke muqable mein ${p}% increase hui.`;
+  if (p !== null && p <= -10) return `Activity previous period ke muqable mein ${Math.abs(p)}% kam hui.`;
+  if (prev) return "Activity stable rahi.";
+  return `${total} din mein se ${a.workingDays} din activity record hui.`;
+}
 
 function buildSeries(rows: TrendDayInput[], start: string, end: string): TrendPoint[] {
   const byDate = new Map(rows.map((r) => [r.date, r]));

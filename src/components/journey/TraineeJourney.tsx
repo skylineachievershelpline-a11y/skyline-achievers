@@ -46,7 +46,6 @@ import { PaymentWalletCard } from "./PaymentWalletCard";
 import { InterviewTimeTag } from "./InterviewTimeTag";
 import { SeatAlertTag } from "./SeatAlertTag";
 import { SessionReviewForm } from "./SessionReviewForm";
-import { youtubeId } from "@/components/media/SecureYouTubePlayer";
 import { useNow } from "./useCountdown";
 
 type Playing = {

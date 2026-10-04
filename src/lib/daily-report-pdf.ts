@@ -31,7 +31,7 @@ export const REPORT_COLUMNS = [
   { key: "mentorshipPaid", label: "PM Fee" },
 ] as const;
 
-type PdfDoc = Awaited<ReturnType<typeof import("jspdf")>>["jsPDF"] extends new (...args: any[]) => infer T ? T : never;
+type PdfDoc = import("jspdf").jsPDF;
 
 /** Same daily activities, summary and month comparison as the on-screen monthly graph. */
 function drawPerformance(doc: PdfDoc, analysis: PerformanceAnalysis, label: string, startY: number) {
@@ -101,14 +101,13 @@ function drawPerformance(doc: PdfDoc, analysis: PerformanceAnalysis, label: stri
       if (!prev) return;
       const hue = index / series.length;
       doc.setFillColor(193 - Math.round(52 * hue), 230 + Math.round(12 * hue), 249 - Math.round(29 * hue));
-      const path = doc.path([
+      doc.path([
         { op: "m", c: [x(index - 1), bottom] },
         { op: "l", c: [x(index - 1), graphY(prev.activity)] },
         { op: "l", c: [x(index), graphY(day.activity)] },
         { op: "l", c: [x(index), bottom] },
         { op: "h", c: [] },
       ], "F");
-      void path;
       doc.setDrawColor(0, 155 + Math.round(50 * hue), 225 - Math.round(72 * hue));
       doc.setLineWidth(2);
       doc.line(x(index - 1), graphY(prev.activity), x(index), graphY(day.activity));

@@ -144,6 +144,7 @@ export function DailyReportPanel() {
       person: data.member.fullName,
       personId: data.member.memberId,
       rangeLabel: monthLabel(activeMonth),
+      month: activeMonth,
       rows: rangeRows,
       analysis,
     });

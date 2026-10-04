@@ -3,7 +3,8 @@ import { analyzePerformance, type PerformanceAnalysis, type TrendDayInput } from
 export const pakistanToday = () => new Date(Date.now() + 5 * 3_600_000).toISOString().slice(0, 10);
 
 export function monthBounds(month: string, today = pakistanToday()) {
-  const [year, number] = month.split("-").map(Number);
+  const year = Number(month.slice(0, 4));
+  const number = Number(month.slice(5, 7));
   const last = new Date(Date.UTC(year, number, 0)).toISOString().slice(0, 10);
   return { start: `${month}-01`, end: last > today ? today : last };
 }
@@ -29,7 +30,8 @@ export function availableMonths(rows: { date: string }[], today: string) {
 /** The selected calendar month compares with the preceding calendar month, not a rolling 30-day window. */
 export function analyzeMonth(rows: TrendDayInput[], month: string, today = pakistanToday()): PerformanceAnalysis {
   const { start, end } = monthBounds(month, today);
-  const [year, number] = month.split("-").map(Number);
+  const year = Number(month.slice(0, 4));
+  const number = Number(month.slice(5, 7));
   const preceding = new Date(Date.UTC(year, number - 2, 1)).toISOString().slice(0, 7);
   const previous = monthBounds(preceding, today);
   return analyzePerformance(rows, start, end, previous);

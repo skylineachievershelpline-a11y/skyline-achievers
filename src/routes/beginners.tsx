@@ -616,7 +616,22 @@ function BeginnersPage() {
               Beginners Training
             </p>
           </div>
-          <nav className="mt-5 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-auto overscroll-contain pb-4 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+          {navScroll.up ? (
+            <button
+              type="button"
+              aria-label="Scroll menu up"
+              onClick={() => scrollNav("up")}
+              className="mx-auto mb-1 flex h-8 w-full items-center justify-center gap-1.5 rounded-xl border border-metal/30 bg-surface text-xs text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
+            >
+              <ChevronUp className="h-4 w-4" />
+              Upar
+            </button>
+          ) : null}
+          <nav
+            ref={navRef}
+            onScroll={updateNavScroll}
+            className="mt-5 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-auto overscroll-contain pb-4 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+          >
             {BEGINNER_NAV.map((item) => (
               <Button
                 key={item.id}

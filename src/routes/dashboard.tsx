@@ -2,8 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Eye, EyeOff, ListChecks, Lock, Phone } from "lucide-react";
-import { openLiveCall } from "@/lib/live-call/store";
+import { Bot, Eye, EyeOff, ListChecks, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -203,13 +202,6 @@ function DashboardPage() {
           <Link to="/ai"><span className="flex items-center gap-2"><Bot /> Skyline Achievers AI</span><span className="text-xs opacity-80">Ask for help</span></Link>
         </Button>
         <FlyingSkylineAiMascot />
-      </div>
-
-      <div data-ai-guide="call-ai" className="mx-auto w-full max-w-3xl">
-        <Button variant="secondary" size="xl" className="w-full justify-between rounded-2xl border border-cyan/40" onClick={() => openLiveCall()}>
-          <span className="flex items-center gap-2"><Phone /> Call Skyline AI</span>
-          <span className="text-xs opacity-80">Voice / Video · Screen share</span>
-        </Button>
       </div>
 
       <div data-ai-guide="daily-report" className="mt-6">

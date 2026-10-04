@@ -329,12 +329,12 @@
 - [ ] Verify every signed-in dashboard Settings window with a real account
 
 ## AI Website Guide
-- [x] 24-step Website Guide inside Skyline AI with highlights, questions, saved progress
+- [x] 24-step Website Guide was built; its card and overlay are now unmounted per the newer request
 - [x] Phase 2 voice teacher (speak, listen, interrupt, guided clicks, adaptive levels)
 - [ ] Connect an authorized CEO voice (needs voice provider + SKYLINE_AI_VOICE_PROFILE)
 
 ## Skyline AI Live Call
-- [x] Part 1: Call Skyline AI button, voice/video call screen, live conversation, Excuse Me, mute, speaker, camera preview, screen share (desktop real share; phones share the Skyline screen), AI screen reading + arrow/circle/box/spotlight/pointer/number marks, end-call summary
+- [x] Part 1: Call screen, live conversation, Excuse Me, mute, speaker, camera preview, screen share, screen reading and annotations; dashboard call shortcut removed per newer request
 - [ ] Part 2: Add Participant — secure invite link + multi-person call
 - [ ] Part 3: Recording with consent (30 days, caller + admin), transcript view
 - [ ] Authorized CEO voice (needs provider + consent)
@@ -342,3 +342,8 @@
 ## Skyline AI Teacher Training
 - [x] Training engine, persistent progress, dashboard lock (Assistant Supervisor), Training Room, whiteboard, Chapter 1 + test, admin override
 - [ ] Chapters 2–10 content (Login, Dashboard, Working Method, Prospecting, Invitation role-play, Follow-up, Objections, Closing, Final Assessment)
+
+## Monthly report and AI screen cleanup (Oct 4)
+- [x] Remove dashboard call shortcut and hide Website Guide from AI and all dashboards
+- [x] Show calendar-month performance graph and monthly report selections
+- [x] Export monthly full report and separate selected-month graph PDF

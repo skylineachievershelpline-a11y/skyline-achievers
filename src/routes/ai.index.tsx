@@ -8,7 +8,6 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { AiPageShell } from "@/components/ai/AiPageShell";
 import { useMemberGuard } from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
-import { WebsiteGuideCard } from "@/components/ai/WebsiteGuideCard";
 import { createAiThread, deleteAiThread, listAiThreads } from "@/lib/ai-chat.functions";
 
 export const Route = createFileRoute("/ai/")({
@@ -46,7 +45,6 @@ function AiThreadsPage() {
           <div><h1 className="font-display text-xl font-semibold">Your conversations</h1><p className="text-sm text-muted-foreground">Saved securely to your account.</p></div>
           <Button variant="brand" onClick={() => createMutation.mutate()} disabled={createMutation.isPending}><MessageSquarePlus /> New chat</Button>
         </div>
-        <WebsiteGuideCard />
         <div className="space-y-3">
           {(data?.threads ?? []).map((thread) => (
             <div key={thread.id} className="glass-panel metal-edge flex items-center gap-3 rounded-2xl p-3">

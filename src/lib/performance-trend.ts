@@ -78,7 +78,7 @@ export function simpleComparison(a: PerformanceAnalysis): SimpleCompare[] {
   if (!a.previous) return [];
   return SIMPLE_METRICS.map((m) => {
     const current = a.totals[m.key];
-    const previous = a.previous!.totals[m.key];
+    const previous = a.previous?.totals[m.key] ?? 0;
     const p = pct(current, previous);
     const text = p === null ? "New" : p === 0 ? "Same" : `${p > 0 ? "Up" : "Down"} ${Math.abs(p)}%`;
     return { label: m.label, previous, current, percent: p, text };
@@ -132,8 +132,8 @@ function changeText(label: string, p: number | null, cur: number) {
   return p > 0 ? `${label} increased ${p}%` : `${label} decreased ${Math.abs(p)}%`;
 }
 
-/** Analyses [start, end] from the calendar; the previous period of equal length is compared when present. */
-export function analyzePerformance(rows: TrendDayInput[], start: string, end: string): PerformanceAnalysis {
+/** Analyses [start, end] from the calendar; optionally compare to a calendar month instead of an equal-length period. */
+export function analyzePerformance(rows: TrendDayInput[], start: string, end: string, previousRange?: { start: string; end: string }): PerformanceAnalysis {
   const series = buildSeries(rows, start, end);
   const totals = totalsOf(series);
   const workingDays = series.filter((d) => d.status === "report").length;
@@ -188,8 +188,8 @@ export function analyzePerformance(rows: TrendDayInput[], start: string, end: st
 
   // Previous period of equal length.
   const len = span(start, end);
-  const pEnd = shift(start, -1);
-  const pStart = shift(start, -len);
+  const pEnd = previousRange?.end ?? shift(start, -1);
+  const pStart = previousRange?.start ?? shift(start, -len);
   const prevSeries = buildSeries(rows, pStart, pEnd);
   let previous: PerformanceAnalysis["previous"] = null;
   if (prevSeries.length) {

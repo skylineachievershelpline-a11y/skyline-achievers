@@ -713,8 +713,10 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
           className="sr-only"
         />
       </label>
-      {file ? <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10"><Video className="text-brand-glow" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{file.name}</p><p className="text-xs text-muted-foreground">MP4 · {(file.size / 1024 / 1024).toFixed(1)} MB</p></div><Button type="button" size="icon" variant="ghost" aria-label="Remove selected video" onClick={() => setFile(null)}><X /></Button></div> : null}
+      {file ? <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10"><Video className="text-brand-glow" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{file.name}</p><p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB{duration ? ` · ${Math.floor(duration / 60)}:${String(Math.round(duration % 60)).padStart(2, "0")} min` : ""}</p></div><Button type="button" size="icon" variant="ghost" aria-label="Remove selected video" disabled={busy} onClick={() => setFile(null)}><X /></Button></div> : null}
       <UploadProgress state={uploadProgress.state} />
+      {busy && reconnecting ? <p className="text-center text-xs text-cyan">Internet is weak — reconnecting. Your upload will continue from where it stopped.</p> : null}
+      {busy ? <p className="text-center text-[11px] text-muted-foreground">Keep this page open until the upload finishes.</p> : null}
       <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" size="xl" onClick={onDone}>Cancel</Button><Button type="submit" variant="brand" size="xl" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Upload

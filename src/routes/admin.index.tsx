@@ -1,5 +1,5 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, LogOut } from "lucide-react";
@@ -107,7 +107,7 @@ function AdminPage() {
               <p className="text-[11px] text-muted-foreground">Skyline Achievers control room</p>
             </div>
           </div>
-          <div className="flex items-center gap-2"><ThemeSwitch /><Button
+          <div className="flex items-center gap-2"><Button asChild variant="brand" size="sm" className="rounded-2xl"><Link to="/admin/trainer">Trainer Demo</Link></Button><ThemeSwitch /><Button
             variant="outline"
             className="rounded-2xl"
             disabled={signingOut}

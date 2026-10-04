@@ -32,6 +32,7 @@ import { Route as TrainingRouteImport } from './routes/training'
 import { Route as TrainingRoomRouteImport } from './routes/training-room'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminTrainerRouteImport } from './routes/admin.trainer'
 import { Route as AiIndexRouteImport } from './routes/ai.index'
 import { Route as AiThreadIdRouteImport } from './routes/ai.$threadId'
 import { Route as ApiAiRouteImport } from './routes/api.ai'
@@ -161,6 +162,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTrainerRoute = AdminTrainerRouteImport.update({
+  id: '/admin/trainer',
+  path: '/admin/trainer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiIndexRoute = AiIndexRouteImport.update({
   id: '/ai/',
   path: '/ai/',
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/training': typeof TrainingRoute
   '/training-room': typeof TrainingRoomRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/trainer': typeof AdminTrainerRoute
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
+    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
+    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/training'
     | '/training-room'
     | '/admin/login'
+    | '/admin/trainer'
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
@@ -482,6 +494,7 @@ export interface RootRouteChildren {
   TrainingRoute: typeof TrainingRoute
   TrainingRoomRoute: typeof TrainingRoomRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminTrainerRoute: typeof AdminTrainerRoute
   AiThreadIdRoute: typeof AiThreadIdRoute
   ApiAiRoute: typeof ApiAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
@@ -661,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/trainer': {
+      id: '/admin/trainer'
+      path: '/admin/trainer'
+      fullPath: '/admin/trainer'
+      preLoaderRoute: typeof AdminTrainerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai/': {
       id: '/ai/'
       path: '/ai'
@@ -778,6 +798,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrainingRoute: TrainingRoute,
   TrainingRoomRoute: TrainingRoomRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminTrainerRoute: AdminTrainerRoute,
   AiThreadIdRoute: AiThreadIdRoute,
   ApiAiRoute: ApiAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,

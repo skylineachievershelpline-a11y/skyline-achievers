@@ -168,7 +168,29 @@ export function UplineMasterSchedule() {
               </div>
             ) : (
               <>
-                <div className="mt-5 space-y-3">
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={Math.max(...slots.map((s) => s.day)) <= 4 ? "brand" : "outline"}
+                    className="rounded-2xl"
+                    onClick={() => setSlots(DEFAULT_MASTER_SLOTS.map((s) => ({ ...s })))}
+                  >
+                    4 Days Training
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={Math.max(...slots.map((s) => s.day)) === 7 ? "brand" : "outline"}
+                    className="rounded-2xl"
+                    onClick={() => setSlots(slots.map((s) => ({ ...s, day: s.session, time: "20:00" })))}
+                  >
+                    7 Days Training
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Plan chunein, phir har session ka din aur time apni marzi se badlein — ek din mein kai sessions bhi rakh sakte hain.
+                  Agar trainee pichla session jaldi complete aur approve karwa le, to agla session apne set time par pehle hi khul jata hai.
+                </p>
+                <div className="mt-4 space-y-3">
                   {slots.map((slot, index) => (
                     <div
                       key={slot.session}

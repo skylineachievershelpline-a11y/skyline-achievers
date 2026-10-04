@@ -26,9 +26,10 @@ function shuffle<T>(items: T[]): T[] {
 async function viewerName(admin: any, userId: string): Promise<string> {
   const { data: member } = await admin
     .from("member_profiles")
-    .select("full_name")
+    .select("full_name, member_id")
     .eq("id", userId)
     .maybeSingle();
+  if (member?.member_id === "760000010005") return "A.Q Malik · Founder & CEO";
   if (member?.full_name) return member.full_name as string;
   const { data: trainee } = await admin
     .from("trainees")
@@ -109,12 +110,14 @@ export const getReels = createServerFn({ method: "GET" })
           caption: (reel.caption ?? null) as string | null,
           createdAt: reel.created_at as string,
           isMine: reel.created_by === context.userId,
-          verified: reel.created_by_admin === true,
+          verified: reel.created_by_admin === true || author?.founder === true,
           authorName: reel.created_by_admin
             ? "Skyline Achievers"
+            : author?.founder ? "A.Q Malik · Founder & CEO"
             : (author?.name ?? (reel.author?.full_name as string) ?? "Skyline Achievers"),
           authorAvatarUrl: author?.avatarUrl ?? null,
           authorRank: author?.rank ?? null,
+          founder: author?.founder === true,
           likes: (reel.base_likes ?? 0) + (likeCount.get(reel.id) ?? 0),
           comments: commentCount.get(reel.id) ?? 0,
           liked: likedSet.has(reel.id),

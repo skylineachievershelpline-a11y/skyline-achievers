@@ -1695,15 +1695,3 @@ export const adminSavePushDevice = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-/** Founder & CEO sign-in: official Founder ID plus the admin passcode. Opens the admin session. */
-export const founderLogin = createServerFn({ method: "POST" })
-  .inputValidator((data: { founderId: string; password: string }) =>
-    z.object({ founderId: z.string().trim().max(20), password: z.string().min(1).max(200) }).parse(data),
-  )
-  .handler(async ({ data }) => {
-    if (data.founderId.replace(/\D/g, "") !== "760000000001") return { ok: false as const, reason: "invalid" as const };
-    const { verifyAdminPasscode } = await import("./admin-session.server");
-    const result = await verifyAdminPasscode(data.password, process.env["ADMIN_USERNAME"]);
-    if (result.ok) return { ok: true as const };
-    return { ok: false as const, reason: result.reason };
-  });

@@ -8,6 +8,7 @@ export type ReelAuthorInfo = {
   verified?: boolean | undefined;
   authorAvatarUrl?: string | null | undefined;
   authorRank?: string | null | undefined;
+  founder?: boolean | undefined;
 };
 
 /**
@@ -17,7 +18,7 @@ export type ReelAuthorInfo = {
 export function ReelAuthor({ reel }: { reel: ReelAuthorInfo }) {
   return (
     <div className="flex items-center gap-2">
-      {reel.verified ? (
+      {reel.verified && !reel.founder ? (
         <img
           src={BRAND.logoUrl}
           alt=""

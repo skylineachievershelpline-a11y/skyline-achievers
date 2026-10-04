@@ -66,7 +66,7 @@ export function SecureYouTubePlayer({
   title: string;
   autoplay?: boolean;
   /** Called once the full video has been watched. */
-  onWatched?: () => void;
+  onWatched?: (() => void) | undefined;
 }) {
   const id = youtubeId(url)!;
   const key = `sa-watch:${id}`;

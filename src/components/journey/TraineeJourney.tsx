@@ -46,6 +46,7 @@ import { PaymentWalletCard } from "./PaymentWalletCard";
 import { InterviewTimeTag } from "./InterviewTimeTag";
 import { SeatAlertTag } from "./SeatAlertTag";
 import { SessionReviewForm } from "./SessionReviewForm";
+import { youtubeId } from "@/components/media/SecureYouTubePlayer";
 import { useNow } from "./useCountdown";
 
 type Playing = {
@@ -71,6 +72,7 @@ export function TraineeJourney() {
   const watchWebinar = useServerFn(markWebinarWatched);
 
   const [playing, setPlaying] = useState<Playing | null>(null);
+  const [watchedId, setWatchedId] = useState<string | null>(null);
   const now = useNow();
 
   const { data, isPending } = useQuery({
@@ -177,6 +179,7 @@ export function TraineeJourney() {
           aspectRatio={playing.aspectRatio}
           poster={playing.thumbnailUrl}
           frameClassName="rounded-3xl border border-hairline"
+          onWatched={() => setWatchedId(playing.id)}
         />
         {playing.description ? (
           <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
@@ -189,6 +192,11 @@ export function TraineeJourney() {
         playing.id === current.sessionId &&
         current.review !== "pending" &&
         current.review !== "approved" ? (
+          playing.videoUrl && youtubeId(playing.videoUrl) && watchedId !== playing.id ? (
+            <p className="mt-4 rounded-2xl border border-hairline p-3 text-xs text-muted-foreground">
+              Poori video dekhne ke baad review form yahan khulega.
+            </p>
+          ) : (
           <SessionReviewForm
             sessionNumber={current.sessionNumber}
             onSent={() => {
@@ -196,6 +204,7 @@ export function TraineeJourney() {
               refresh();
             }}
           />
+          )
         ) : null}
 
         {data.stage === "interview_guide" && playing.id === data.interviewGuide?.id ? (

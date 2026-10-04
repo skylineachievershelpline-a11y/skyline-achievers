@@ -107,7 +107,7 @@ function AdminPage() {
               <p className="text-[11px] text-muted-foreground">Skyline Achievers control room</p>
             </div>
           </div>
-          <div className="flex items-center gap-2"><ThemeSwitch /><Button
+          <div className="flex items-center gap-2"><Button asChild variant="brand" size="sm" className="rounded-2xl"><Link to="/admin/trainer">Trainer Demo</Link></Button><ThemeSwitch /><Button
             variant="outline"
             className="rounded-2xl"
             disabled={signingOut}

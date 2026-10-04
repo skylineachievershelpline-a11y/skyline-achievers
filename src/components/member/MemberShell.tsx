@@ -78,18 +78,17 @@ export function useMemberGuard() {
 const NAV = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/training", label: "Training", icon: GraduationCap },
-  { to: "/courses", label: "Premium Courses", icon: Crown },
-  { to: "/sessions", label: "Beginners Sessions", icon: Link2 },
+  { to: "/sessions", label: "Beginners Sessions", icon: Link2, featured: true },
+  { to: "/team", label: "Team Tree", icon: Users, featured: true },
+  { to: "/seats", label: "Seat Reservation", icon: UserPlus, featured: true },
   { to: "/reels", label: "Reels", icon: Clapperboard },
-  { to: "/chat", label: "Messages", icon: MessageCircle },
-  { to: "/ai", label: "Skyline Achievers AI", icon: Bot },
-  { to: "/seats", label: "Seat Reservation", icon: UserPlus },
-  { to: "/leave", label: "Leave Application", icon: FileText },
-  { to: "/team", label: "Team Tree", icon: Users },
-  { to: "/assistants", label: "Skyline Growth Executive", icon: Briefcase },
+  { to: "/courses", label: "Premium Courses", icon: Crown },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
   { to: "/profile", label: "My Profile", icon: User },
+  { to: "/leave", label: "Leave Application", icon: FileText },
+  { to: "/chat", label: "Messages", icon: MessageCircle },
+  { to: "/ai", label: "Skyline Achievers AI", icon: Bot },
 ] as const;
 
 /** Areas that belong to working, not training. Locked for training-only accounts. */
@@ -367,14 +366,19 @@ export function MemberShell({
                         to={item.to}
                         data-ai-guide={`nav:${item.to}`}
                         onClick={() => setMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                        className={
+                          "featured" in item
+                            ? "flex items-center gap-3 rounded-xl border border-cyan/40 bg-gradient-to-r from-primary/20 to-transparent px-3 py-2.5 text-sm font-semibold text-foreground shadow-glass transition-colors hover:bg-primary/25"
+                            : "flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-metal/20 hover:bg-surface-2 hover:text-foreground"
+                        }
                         activeProps={{
                           className:
-                            "flex items-center gap-3 rounded-xl border border-cyan/30 bg-primary/15 px-3 py-2.5 text-sm text-foreground shadow-glass",
+                            "flex items-center gap-3 rounded-xl border border-cyan/60 bg-primary/25 px-3 py-2.5 text-sm text-foreground shadow-glass",
                         }}
                       >
                         <item.icon className="h-4.5 w-4.5 text-brand-glow" />
                         {item.label}
+                        {"featured" in item ? <span className="ml-auto h-2 w-2 rounded-full bg-cyan shadow-brand" aria-hidden /> : null}
                       </Link>
                     ),
                   )}

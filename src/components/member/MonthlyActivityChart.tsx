@@ -48,7 +48,7 @@ export function MonthlyActivityChart({ analysis }: { analysis: PerformanceAnalys
         })}
         {ticks.map((index) => <text key={index} x={x(index)} y={height - 4} fill="var(--muted-foreground)" fontSize="10" textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}>{Number(points[index]?.date.slice(-2))}</text>)}
       </svg>
-      <div className="flex justify-between px-2 text-[11px] text-muted-foreground"><span>1st</span><span>{points.length}th · days of the month</span></div>
+      <div className="flex justify-between px-2 text-[11px] text-muted-foreground"><span>{points[0]?.date.slice(-2)} {points[0]?.date.slice(5, 7)}</span><span>{points[points.length - 1]?.date.slice(-2)} {points[points.length - 1]?.date.slice(5, 7)}</span></div>
     </div>
   );
 }

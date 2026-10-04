@@ -31,8 +31,8 @@ type FounderView = "seat" | "beginner" | "review" | "mentorship";
 
 export const Route = createFileRoute("/founder")({
   validateSearch: (search: Record<string, unknown>) => ({
-    view: (["seat", "beginner", "review", "mentorship"] as const).includes(search.view as FounderView)
-      ? (search.view as FounderView)
+    view: (["seat", "beginner", "review", "mentorship"] as const).includes(search["view"] as FounderView)
+      ? (search["view"] as FounderView)
       : "seat",
   }),
   head: () => ({

@@ -74,6 +74,7 @@ type Reel = {
   authorAvatarUrl?: string | null;
   authorRank?: string | null;
   verified: boolean;
+  founder?: boolean;
   likes: number;
   comments: number;
   liked: boolean;

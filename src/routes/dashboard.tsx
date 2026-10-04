@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Eye, EyeOff, ListChecks, Lock } from "lucide-react";
+import { Bot, Eye, EyeOff, ListChecks, Lock, Crown, GraduationCap, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -31,6 +31,7 @@ import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
 import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
+import ceoPortrait from "@/assets/aq-malik-ceo.jpg.asset.json";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -79,6 +80,7 @@ function DashboardPage() {
   const member = data.member;
   const progress = data.progress ?? null;
   const isFbo = Number(member?.level?.rank_order ?? 0) >= 2;
+  const isFounder = member?.memberId === "760000010005";
   const openMentorshipReceipt = () => {
     if (!member || !progress || progress.feePaid <= 0) return;
     setMentorshipSlip({
@@ -101,10 +103,20 @@ function DashboardPage() {
   return (
     <MemberShell
       title={member?.fullName ?? "Member"}
-      subtitle={member?.level?.name ?? "Level not assigned"}
+      subtitle={isFounder ? "Founder & CEO · Skyline Achievers" : member?.level?.name ?? "Level not assigned"}
       executive
     >
       <AnnouncementBanner />
+
+      {isFounder && <section className="relative mx-auto mt-3 w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan/40 bg-gradient-to-br from-primary/35 via-background to-background p-5 shadow-brand sm:p-7">
+        <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-cyan/10 blur-3xl" />
+        <div className="relative flex items-center gap-4"><img src={member.avatarUrl || ceoPortrait.url} alt="A.Q Malik" className="h-20 w-20 shrink-0 rounded-full border-2 border-cyan object-cover shadow-brand sm:h-24 sm:w-24" /><div className="min-w-0"><div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-cyan"><Crown className="h-4 w-4" />Skyline Achievers Official</div><h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">A.Q Malik</h1><p className="text-sm text-muted-foreground">Founder & CEO · 760000010005</p></div></div>
+        <p className="relative mt-5 text-sm text-muted-foreground">Lead the network, guide your team, and manage Skyline Achievers from one official account.</p>
+        <div className="relative mt-5 grid grid-cols-2 gap-3">
+          <Button asChild variant="brand" className="h-auto min-h-12 whitespace-normal"><Link to="/founder"><GraduationCap className="h-4 w-4 shrink-0" />Founder Training</Link></Button>
+          <Button asChild variant="outline" className="h-auto min-h-12 whitespace-normal"><Link to="/admin"><Shield className="h-4 w-4 shrink-0" />Admin Panel</Link></Button>
+        </div>
+      </section>}
 
       <div className="mx-auto mt-2 w-full max-w-3xl">
         <UplineRequestsPanel />
@@ -127,7 +139,7 @@ function DashboardPage() {
               <div className="min-w-0">
                 <h1 className="flex min-w-0 items-center gap-1 font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
                   <span className="truncate">{member?.fullName ?? "Member"}</span>
-                  <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />
+                  {!isFounder && <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />}
                 </h1>
 
                 <div className="mt-1 flex items-center gap-1">
@@ -145,11 +157,11 @@ function DashboardPage() {
                     {showId ? <EyeOff /> : <Eye />}
                   </Button>
                 </div>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
+                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Founder & CEO · Member ID" : "Member ID"}</p>
               </div>
               <div className="min-w-0 self-end text-right">
-                <p className="whitespace-nowrap font-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Level</p>
+                <p className="font-display text-sm font-bold sm:text-base">{isFounder ? "Founder & CEO" : formatRankName(member?.level?.name)}</p>
+                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Skyline Achievers" : "Level"}</p>
               </div>
             </div>
           </div>

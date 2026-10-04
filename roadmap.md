@@ -347,3 +347,10 @@
 - [x] Remove dashboard call shortcut and hide Website Guide from AI and all dashboards
 - [x] Show calendar-month performance graph and monthly report selections
 - [x] Export monthly full report and separate selected-month graph PDF
+
+## Founder account 760000010005
+- [x] Make the signed-in A.Q Malik member dashboard the premium Founder & CEO home
+- [x] Add a Founder-only Training sidebar entry with the existing guided journey
+- [x] Bind Founder training access to this member account, not the admin passcode; retain separate admin sign-in
+- [x] Brand this account's reels and comments as Founder & CEO
+- [ ] Verify signed-in Founder access and posting display

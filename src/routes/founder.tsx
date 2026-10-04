@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -12,9 +12,10 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { GenealogyTree } from "@/components/team/GenealogyTree";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { adminLogout, adminStatus, founderLogin } from "@/lib/admin.functions";
+import { getMemberSession } from "@/lib/member.functions";
+import { useMemberGuard } from "@/components/member/MemberShell";
 import ceo from "@/assets/aq-malik-ceo.jpg.asset.json";
-import { Menu, Shield, LogOut, Home, Lock, TreePine } from "lucide-react";
+import { Menu, Shield, Home, Lock, TreePine } from "lucide-react";
 import {
   buildDemoTree, DEMO_TRAINEE, demoMentorship, demoPreferred, INITIAL_SIM, SESSION_TITLES, STEPS,
   type SimState,
@@ -35,14 +36,14 @@ export const Route = createFileRoute("/founder")({
   component: TrainerPage,
 });
 
-const KEY = "skyline-trainer-sim";
+const KEY = "skyline-founder-training:760000010005";
 type Hist = { list: SimState[]; at: number };
 const VIEW_FOR_STEP = ["fbo", "beginner", "beginner", "fbo", "fbo", "mentorship", "mentorship"];
 
 function TrainerPage() {
-  const navigate = useNavigate();
-  const check = useServerFn(adminStatus);
-  const status = useQuery({ queryKey: ["admin-status"], queryFn: () => check() });
+  const ready = useMemberGuard();
+  const check = useServerFn(getMemberSession);
+  const status = useQuery({ queryKey: ["founder-member-session"], queryFn: () => check(), enabled: ready, retry: false });
   const [hist, setHist] = useState<Hist>({ list: [INITIAL_SIM], at: 0 });
   const [view, setView] = useState("fbo");
   const [now, setNow] = useState(Date.now());
@@ -53,7 +54,6 @@ function TrainerPage() {
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(hist)); }, [hist]);
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t); }, []);
   const [menu, setMenu] = useState(false);
-  const logout = useServerFn(adminLogout);
 
   const s = hist.list[hist.at]!;
   const push = (patch: Partial<SimState>, goView?: string) => {
@@ -86,8 +86,8 @@ function TrainerPage() {
   const mentorship = useMemo(demoMentorship, []);
   const preferred = useMemo(demoPreferred, []);
 
-  if (!status.data) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
-  if (!status.data.isAdmin) return <FounderLogin onDone={() => void status.refetch()} />;
+  if (!ready || status.isPending) return <div className="flex min-h-screen items-center justify-center"><SkylineLoader variant="page" /></div>;
+  if (status.data?.member?.memberId !== "760000010005" || status.data.reason !== "ok") return <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-foreground"><p>Founder Training belongs to the A.Q Malik account.</p><Button asChild variant="outline"><Link to="/dashboard">Back to dashboard</Link></Button></main>;
   const passed = s.interviewScore != null && s.interviewScore >= 60;
   const sections: { v: string; label: string; icon: typeof Star; show: boolean }[] = [
     { v: "fbo", label: "FBO Dashboard", icon: Crown, show: true },
@@ -111,15 +111,15 @@ function TrainerPage() {
               <img src={ceo.url} alt="A.Q Malik" className="h-12 w-12 rounded-full border-2 border-cyan object-cover" />
               <div><p className="font-display font-bold">A.Q Malik</p><p className="text-[10px] uppercase tracking-widest text-cyan">Founder & CEO</p></div>
             </div>
-            <Link to="/admin" className="flex items-center gap-3 rounded-xl border border-cyan/50 bg-gradient-to-r from-primary/25 to-transparent px-3 py-2.5 text-sm font-semibold"><Shield className="h-4 w-4 text-cyan" />Admin Panel</Link>
+            <Button asChild variant="outline" className="justify-start"><Link to="/dashboard"><Home className="h-4 w-4" />Founder Dashboard</Link></Button>
+            <Button asChild variant="outline" className="justify-start"><Link to="/admin"><Shield className="h-4 w-4" />Admin Panel</Link></Button>
             {sections.map((x) => x.show ? (
-              <button key={x.v} type="button" onClick={() => { setView(x.v); setMenu(false); }} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm ${view === x.v ? "border-cyan/60 bg-primary/25" : "border-transparent text-muted-foreground hover:bg-surface-2"}`}><x.icon className="h-4 w-4 text-brand-glow" />{x.label}</button>
+              <Button key={x.v} type="button" variant="ghost" onClick={() => { setView(x.v); setMenu(false); }} className={`w-full justify-start text-left ${view === x.v ? "bg-primary/25" : ""}`}><x.icon className="h-4 w-4 text-brand-glow" />{x.label}</Button>
             ) : (
               <div key={x.v} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/50"><Lock className="h-4 w-4" />{x.label}</div>
             ))}
             <div className="mt-auto space-y-1.5 border-t border-hairline pt-3">
-              <button type="button" onClick={() => { reset(); setMenu(false); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-destructive"><RotateCcw className="h-4 w-4" />Reset everything</button>
-              <button type="button" onClick={async () => { await logout(); void status.refetch(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm"><LogOut className="h-4 w-4" />Sign out</button>
+              <Button type="button" variant="destructive" onClick={() => { reset(); setMenu(false); }} className="w-full justify-start"><RotateCcw className="h-4 w-4" />Reset training journey</Button>
             </div>
           </aside>
         </div>
@@ -128,7 +128,7 @@ function TrainerPage() {
         <div className="mx-auto max-w-5xl px-3 py-2.5">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={() => setMenu(true)} aria-label="Open menu"><Menu /></Button>
-            <p className="min-w-0 flex-1 truncate font-display text-sm font-bold">{sections.find((x) => x.v === view)?.label}</p>
+            <p className="min-w-0 flex-1 truncate font-display text-sm font-bold">Founder Training · {sections.find((x) => x.v === view)?.label}</p>
             <Button size="icon" variant="outline" onClick={() => move(-1)} disabled={hist.at === 0} aria-label="Previous step"><ChevronLeft /></Button>
             <Button size="icon" variant="outline" onClick={() => move(1)} disabled={hist.at >= hist.list.length - 1} aria-label="Next step"><ChevronRight /></Button>
             <Button size="icon" variant="destructive" onClick={reset} aria-label="Reset"><RotateCcw /></Button>
@@ -144,7 +144,7 @@ function TrainerPage() {
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.3em] text-cyan">Founder & CEO</p>
               <h1 className="font-display text-2xl font-bold">A.Q Malik</h1>
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><BrandLogo size="sm" withWordmark={false} />Skyline Achievers Official · ID 760000000001</p>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><BrandLogo size="sm" withWordmark={false} />Skyline Achievers Official · ID 760000010005</p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
@@ -294,7 +294,7 @@ function TrainerPage() {
           </TabsContent>
 
           <TabsContent value="tree">
-            <GenealogyTree root={{ id: "root", memberId: "760000000001", fullName: "Skyline Achievers Official" }} people={tree} emptyHint="No demo team." />
+            <GenealogyTree root={{ id: "root", memberId: "760000010005", fullName: "A.Q Malik · Skyline Achievers" }} people={tree} emptyHint="No training team." />
           </TabsContent>
 
           <TabsContent value="preferred">
@@ -350,27 +350,3 @@ function PayCard({ title, amount, state, left, onPay, policy }: { title: string;
   );
 }
 
-function FounderLogin({ onDone }: { onDone: () => void }) {
-  const login = useServerFn(founderLogin);
-  const [id, setId] = useState("");
-  const [pw, setPw] = useState("");
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  return (
-    <main className="cinematic-shell flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
-      <form className="raised-panel metal-edge w-full max-w-sm space-y-3 rounded-3xl p-6 text-center" onSubmit={async (e) => {
-        e.preventDefault(); setBusy(true); setErr("");
-        try { const r = await login({ data: { founderId: id, password: pw } }); if (r.ok) onDone(); else setErr(r.reason === "throttled" ? "Too many attempts. Try again in 15 minutes." : "Founder ID or password is incorrect."); }
-        catch { setErr("Could not sign in. Try again."); } finally { setBusy(false); }
-      }}>
-        <img src={ceo.url} alt="A.Q Malik" className="mx-auto h-20 w-20 rounded-full border-2 border-cyan object-cover" />
-        <p className="text-[10px] uppercase tracking-[0.3em] text-cyan">Founder & CEO</p>
-        <h1 className="font-display text-xl font-bold">A.Q Malik Dashboard</h1>
-        <input value={id} onChange={(e) => setId(e.target.value)} inputMode="numeric" placeholder="Founder ID" className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm" />
-        <input value={pw} onChange={(e) => setPw(e.target.value)} type="password" placeholder="Password" className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm" />
-        {err && <p className="text-xs text-destructive">{err}</p>}
-        <Button variant="brand" className="w-full" disabled={busy || !id || !pw}><Home />Open Founder Dashboard</Button>
-      </form>
-    </main>
-  );
-}

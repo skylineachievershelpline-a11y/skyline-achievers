@@ -674,6 +674,17 @@ function BeginnersPage() {
               Settings
             </Button>
           </nav>
+          {navScroll.down ? (
+            <button
+              type="button"
+              aria-label="Scroll menu down"
+              onClick={() => scrollNav("down")}
+              className="mx-auto flex h-8 w-full items-center justify-center gap-1.5 rounded-xl border border-metal/30 bg-surface text-xs text-muted-foreground shadow-glass transition-colors hover:border-cyan/40 hover:text-foreground"
+            >
+              <ChevronDown className="h-4 w-4" />
+              Neechay
+            </button>
+          ) : null}
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}
           </p>

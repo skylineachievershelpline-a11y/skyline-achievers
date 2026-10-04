@@ -25,7 +25,7 @@ import {
   type ReportDay,
 } from "@/lib/daily-report.functions";
 import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
-import { analyzePerformance, TREND_METRICS, type PerformanceAnalysis } from "@/lib/performance-trend";
+import { analyzePerformance, performanceInsight, simpleComparison, type PerformanceAnalysis } from "@/lib/performance-trend";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -456,7 +456,7 @@ export function DailyReportPanel() {
   );
 }
 
-/** Performance graph: same analysis as the PDF. */
+/** Simple Performance Report: same analysis as the PDF. */
 function PerformanceGraph({
   analysis,
   today,
@@ -466,133 +466,106 @@ function PerformanceGraph({
   today: string;
   onPreset: (days: number) => void;
 }) {
-  const [hidden, setHidden] = useState<Set<string>>(new Set(["twoCc", "mentorshipPaid"]));
-  const width = 560;
-  const height = 210;
-  const padX = 14;
-  const padY = 16;
+  const [open, setOpen] = useState(false);
   const series = analysis.series;
-  const shown = TREND_METRICS.filter((m) => !hidden.has(m.key));
-  const max = Math.max(4, ...series.map((d) => d.activity));
-  const stepX = (width - padX * 2) / Math.max(1, series.length - 1);
-  const x = (i: number) => padX + i * stepX;
-  const y = (v: number) => height - padY - (v / max) * (height - padY * 2);
-  const path = (get: (d: (typeof series)[number]) => number) =>
-    series.map((d, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(get(d)).toFixed(1)}`).join(" ");
+  const max = Math.max(1, ...series.map((d) => d.activity));
   const isPreset = analysis.end === today && [7, 30, 90].includes(analysis.days) ? analysis.days : 0;
-  const trendTone =
-    analysis.trend === "increasing" ? "text-[#21D07A]" : analysis.trend === "decreasing" ? "text-destructive" : "text-cyan";
-  const toggle = (k: string) =>
-    setHidden((h) => {
-      const n = new Set(h);
-      if (n.has(k)) n.delete(k);
-      else n.add(k);
-      return n;
-    });
+  const compare = simpleComparison(analysis);
+  const main = compare[0];
+  const insight = performanceInsight(analysis);
+  const tone = (p: number | null) =>
+    p === null || p === 0 ? "text-muted-foreground" : p > 0 ? "text-success" : "text-destructive";
+  const arrow = (p: number | null) => (p === null ? "" : p > 0 ? "↑" : p < 0 ? "↓" : "=");
 
   return (
     <section className="raised-panel metal-edge rounded-3xl p-5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Performance graph</p>
-      <h3 className="mt-1 font-display text-lg font-bold">
-        {dayShort(analysis.start)} — {dayShort(analysis.end)}
-      </h3>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {[7, 30, 90].map((d) => (
-          <Button key={d} size="sm" variant={isPreset === d ? "brand" : "outline"} className="rounded-2xl" onClick={() => onPreset(d)}>
-            {d} Days
-          </Button>
-        ))}
-        <span className="self-center text-[11px] text-muted-foreground">Custom: neeche From / To chunein</span>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Performance report</p>
+          <h3 className="mt-1 font-display text-lg font-bold">
+            {dayShort(analysis.start)} — {dayShort(analysis.end)}
+          </h3>
+        </div>
+        <Button size="sm" variant={open ? "outline" : "brand"} className="rounded-2xl" onClick={() => setOpen((v) => !v)}>
+          {open ? "Hide" : "Show"}
+        </Button>
       </div>
 
-      <p className={`mt-4 text-sm font-bold ${trendTone}`}>{analysis.headline}</p>
-      <p className="text-xs text-muted-foreground">{analysis.trendText}</p>
-
-      <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
-        {[
-          ["Total activity", analysis.totals.activity],
-          ["Working days", `${analysis.workingDays}/${analysis.series.length}`],
-          ["Report completion", `${analysis.completionPercent}%`],
-          ["Avg / working day", analysis.avgPerWorkingDay],
-        ].map(([l, v]) => (
-          <div key={String(l)} className="inset-panel rounded-2xl p-2">
-            <p className="font-display text-lg font-bold">{v}</p>
-            <p className="text-[10px] font-semibold uppercase text-muted-foreground">{l}</p>
+      {open ? (
+        <>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[7, 30, 90].map((d) => (
+              <Button key={d} size="sm" variant={isPreset === d ? "brand" : "outline"} className="rounded-2xl" onClick={() => onPreset(d)}>
+                {d} Days
+              </Button>
+            ))}
+            <span className="self-center text-[11px] text-muted-foreground">Custom: neeche From / To chunein</span>
           </div>
-        ))}
-      </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <span className="flex items-center gap-1.5 rounded-full border border-hairline px-2 py-0.5 text-[11px] font-semibold">
-          <span className="h-2.5 w-2.5 rounded-full bg-foreground" /> Total activity
-        </span>
-        {TREND_METRICS.map((m) => (
-          <button
-            key={m.key}
-            type="button"
-            onClick={() => toggle(m.key)}
-            className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${hidden.has(m.key) ? "border-hairline opacity-50" : "border-cyan/40"}`}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.color }} />
-            {m.label}
-          </button>
-        ))}
-      </div>
+          <p className="mt-4 rounded-2xl border border-cyan/30 bg-primary/10 p-3 text-sm font-semibold">{insight}</p>
 
-      <div className="inset-panel mt-3 rounded-2xl p-3">
-        {series.length ? (
-          <svg viewBox={`0 0 ${width} ${height}`} className="h-48 w-full" role="img" aria-label="Performance trend graph" preserveAspectRatio="none">
-            {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-              <line key={f} x1={padX} x2={width - padX} y1={padY + f * (height - padY * 2)} y2={padY + f * (height - padY * 2)} stroke="currentColor" strokeOpacity={0.12} />
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-5">
+            {[
+              ["Working Days", `${analysis.workingDays} / ${series.length}`],
+              ["Total Activities", analysis.totals.activity],
+              ["Leads", analysis.totals.leads],
+              ["Responses", analysis.totals.responses],
+              ["Enrollments", analysis.totals.enrollments],
+            ].map(([l, v]) => (
+              <div key={String(l)} className="inset-panel rounded-2xl p-3">
+                <p className="font-display text-xl font-bold">{v}</p>
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">{l}</p>
+              </div>
             ))}
-            {series.map((d, i) =>
-              d.status === "report" ? null : (
-                <rect key={d.date} x={x(i) - stepX / 2} y={padY} width={Math.max(2, stepX)} height={height - padY * 2} fill={d.status === "leave" ? "#2563EB" : "#CD3737"} opacity={0.12} />
-              ),
+          </div>
+
+          <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Daily working</p>
+          <div className="inset-panel mt-2 max-h-96 space-y-1 overflow-y-auto rounded-2xl p-3">
+            {series.length ? (
+              series.map((d) => (
+                <div key={d.date} className="flex items-center gap-3 text-xs">
+                  <span className="w-14 shrink-0 font-semibold text-muted-foreground">{dayShort(d.date)}</span>
+                  <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted/40">
+                    {d.activity > 0 ? (
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, (d.activity / max) * 100)}%` }} />
+                    ) : null}
+                  </div>
+                  <span className={`w-8 shrink-0 text-right font-bold ${d.activity ? "" : "text-muted-foreground"}`}>{d.activity}</span>
+                </div>
+              ))
+            ) : (
+              <p className="py-6 text-center text-sm text-muted-foreground">Is period mein koi report data nahi.</p>
             )}
-            {analysis.events.map((e) => {
-              const i = series.findIndex((d) => d.date === e.date);
-              return i < 0 ? null : (
-                <line key={e.date} x1={x(i)} x2={x(i)} y1={padY} y2={height - padY} stroke={e.kind === "drop" ? "#FF4D5E" : "#21D07A"} strokeDasharray="4 3" strokeWidth={1.5} />
-              );
-            })}
-            <path d={path((d) => d.activity)} fill="none" stroke="currentColor" strokeWidth={3} strokeLinejoin="round" />
-            {shown.map((m) => (
-              <path key={m.key} d={path((d) => Number(d[m.key]) || 0)} fill="none" stroke={m.color} strokeWidth={2} strokeLinejoin="round" opacity={0.9} />
-            ))}
-          </svg>
-        ) : (
-          <p className="py-10 text-center text-sm text-muted-foreground">Is period mein koi report data nahi.</p>
-        )}
-        <div className="mt-2 flex justify-between text-[9px] font-semibold uppercase text-muted-foreground">
-          <span>{series[0] ? dayShort(series[0].date) : ""}</span>
-          <span className="flex gap-3">
-            <span className="text-[#2563EB]">■ Leave</span>
-            <span className="text-destructive">■ Absent</span>
-          </span>
-          <span>{series.length ? dayShort(series[series.length - 1]!.date) : ""}</span>
-        </div>
-      </div>
+          </div>
 
-      {analysis.previous ? (
-        <div className="mt-3 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            Previous period ({dayShort(analysis.previous.start)} — {dayShort(analysis.previous.end)})
-          </p>
-          {analysis.previous.changes.map((c) => (
-            <div key={c.label} className="flex justify-between gap-3 text-xs">
-              <span>{c.label}: <b>{c.current}</b> vs {c.previous}</span>
-              <span className={c.percent && c.percent >= 5 ? "text-[#21D07A]" : c.percent && c.percent <= -5 ? "text-destructive" : "text-muted-foreground"}>{c.text}</span>
+          {main ? (
+            <div className="mt-4 space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Period comparison</p>
+              <div className="inset-panel rounded-2xl p-3 text-sm">
+                <p>Previous Period: <b>{main.previous}</b> Activities</p>
+                <p>Current Period: <b>{main.current}</b> Activities</p>
+                <p className={`mt-1 text-base font-bold ${tone(main.percent)}`}>
+                  {main.percent === null ? "New activity" : main.percent === 0 ? "Same" : `${arrow(main.percent)} ${Math.abs(main.percent)}% Activity`}
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                {compare.slice(1).map((c) => (
+                  <div key={c.label} className="inset-panel rounded-2xl p-2">
+                    <p className="font-semibold">{c.label}</p>
+                    <p className="font-bold">{c.previous} → {c.current}</p>
+                    <p className={tone(c.percent)}>{arrow(c.percent)} {c.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      ) : null}
-      {analysis.events.length ? (
-        <ul className="mt-3 space-y-1 text-xs">
-          {analysis.events.map((e) => (
-            <li key={e.date} className={e.kind === "drop" ? "text-destructive" : "text-[#21D07A]"}>• {e.text}</li>
-          ))}
-        </ul>
+          ) : null}
+
+          {analysis.leaveDays || analysis.absentDays ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Leave: {analysis.leaveDays} din · Absent: {analysis.absentDays} din
+            </p>
+          ) : null}
+        </>
       ) : null}
     </section>
   );

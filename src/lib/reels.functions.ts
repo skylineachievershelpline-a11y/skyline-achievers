@@ -110,6 +110,7 @@ export const getReels = createServerFn({ method: "GET" })
           caption: (reel.caption ?? null) as string | null,
           createdAt: reel.created_at as string,
           isMine: reel.created_by === context.userId,
+          authorId: reel.created_by_admin ? "official" : ((reel.created_by as string | null) ?? "official"),
           verified: reel.created_by_admin === true || author?.founder === true,
           authorName: reel.created_by_admin
             ? "Skyline Achievers"

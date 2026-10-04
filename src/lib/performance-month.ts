@@ -15,12 +15,13 @@ export function monthLabel(month: string) {
 export function availableMonths(rows: { date: string }[], today: string) {
   const earliest = rows.reduce((min, row) => row.date < min ? row.date : min, today);
   const months: string[] = [];
-  for (let year = Number(today.slice(0, 4)), month = Number(today.slice(5, 7));
-    `${year}-${String(month).padStart(2, "0")}` >= earliest.slice(0, 7);
-    month -= 1) {
-    if (month === 0) { year -= 1; month = 12; }
+  let year = Number(today.slice(0, 4));
+  let month = Number(today.slice(5, 7));
+  while (`${year}-${String(month).padStart(2, "0")}` >= earliest.slice(0, 7)) {
     const key = `${year}-${String(month).padStart(2, "0")}`;
-    if (key >= earliest.slice(0, 7)) months.push(key);
+    months.push(key);
+    month -= 1;
+    if (month === 0) { year -= 1; month = 12; }
   }
   return months;
 }

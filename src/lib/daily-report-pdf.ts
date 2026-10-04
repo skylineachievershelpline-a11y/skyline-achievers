@@ -1,5 +1,5 @@
 import { BRAND } from "@/lib/brand";
-import { analyzePerformance, TREND_METRICS, type PerformanceAnalysis } from "@/lib/performance-trend";
+import { analyzePerformance, performanceInsight, simpleComparison, type PerformanceAnalysis } from "@/lib/performance-trend";
 
 export type DailyReportRow = {
   date: string;
@@ -106,109 +106,111 @@ export async function buildDailyReportPdf(options: {
     y += 20;
   }
 
-  // ---- Performance trend (shared calculation with the dashboard graph) ----
+  // ---- Performance report (shared calculation with the dashboard) ----
   const sorted = [...options.rows].sort((a, b) => (a.date < b.date ? -1 : 1));
   const analysis =
     options.analysis ?? analyzePerformance(sorted, sorted[0]?.date ?? "", sorted[sorted.length - 1]?.date ?? "");
+  const series = analysis.series;
+  const ensure = (need: number) => {
+    if (y + need > 790) {
+      doc.addPage();
+      y = 60;
+    }
+  };
   y += 14;
+  ensure(120);
+  doc.setTextColor(20, 24, 40);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Performance trend", 40, y);
+  doc.setFontSize(12);
+  doc.text("Performance report", 40, y);
   y += 14;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(analysis.headline.replace("↑", "up").replace("↓", "down").replace("→", "unchanged"), 40, y);
-  y += 12;
-  doc.text(
-    `${analysis.trendText}  ·  Working days ${analysis.workingDays}  ·  Leave ${analysis.leaveDays}  ·  Absent ${analysis.absentDays}  ·  Report completion ${analysis.completionPercent}%  ·  Avg activity/working day ${analysis.avgPerWorkingDay}`,
-    40,
-    y,
-    { maxWidth: width - 80 },
-  );
-  y += 18;
-  const cx = 60, cw = width - 100, ch = 150, cy = y;
-  const series = analysis.series;
-  const max = Math.max(4, ...series.map((d) => d.activity));
-  doc.setDrawColor(226, 232, 240);
-  for (let i = 0; i <= 4; i += 1) {
-    const gy = cy + (ch * i) / 4;
-    doc.line(cx, gy, cx + cw, gy);
-    doc.setTextColor(120, 128, 150);
-    doc.setFontSize(7);
-    doc.text(String(Math.round(max * (1 - i / 4))), cx - 6, gy + 2, { align: "right" });
-  }
-  const px = (i: number) => cx + (series.length <= 1 ? cw / 2 : (i * cw) / (series.length - 1));
-  const py = (v: number) => cy + ch - (v / max) * ch;
-  const hex = (c: string) => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)] as const;
-  // Leave / absent markers
-  series.forEach((d, i) => {
-    if (d.status === "report") return;
-    if (d.status === "leave") doc.setFillColor(37, 99, 235);
-    else doc.setFillColor(205, 55, 55);
-    doc.rect(px(i) - 1.5, cy + ch + 3, 3, 5, "F");
-  });
-  const lines: { key: "activity" | (typeof TREND_METRICS)[number]["key"]; color: string; w: number }[] = [
-    { key: "activity", color: "#0B1E4A", w: 2 },
-    ...TREND_METRICS.slice(0, 3).map((m) => ({ key: m.key, color: m.color, w: 1.1 })),
+  doc.text(`${dayLabel(analysis.start)} — ${dayLabel(analysis.end)}`, 40, y);
+  y += 16;
+  // Insight
+  doc.setFillColor(232, 242, 255);
+  doc.rect(40, y - 10, width - 80, 20, "F");
+  doc.setFont("helvetica", "bold");
+  doc.text(performanceInsight(analysis), 46, y + 3, { maxWidth: width - 92 });
+  y += 26;
+  // Summary cards
+  const cards: [string, string][] = [
+    ["Working Days", `${analysis.workingDays} / ${series.length}`],
+    ["Total Activities", String(analysis.totals.activity)],
+    ["Leads", String(analysis.totals.leads)],
+    ["Responses", String(analysis.totals.responses)],
+    ["Enrollments", String(analysis.totals.enrollments)],
   ];
-  for (const l of lines) {
-    const [r, g, b] = hex(l.color);
-    doc.setDrawColor(r, g, b);
-    doc.setLineWidth(l.w);
-    for (let i = 1; i < series.length; i += 1) {
-      const a = series[i - 1]!, c = series[i]!;
-      doc.line(px(i - 1), py(Number(a[l.key]) || 0), px(i), py(Number(c[l.key]) || 0));
-    }
-  }
-  doc.setLineWidth(0.5);
-  for (const e of analysis.events) {
-    const i = series.findIndex((d) => d.date === e.date);
-    if (i < 0) continue;
-    if (e.kind === "drop") doc.setDrawColor(205, 55, 55);
-    else doc.setDrawColor(33, 160, 90);
-    doc.line(px(i), cy, px(i), cy + ch);
-  }
-  doc.setTextColor(120, 128, 150);
-  doc.setFontSize(7);
-  if (series[0]) doc.text(dayLabel(series[0].date), cx, cy + ch + 16);
-  if (series.length > 1) doc.text(dayLabel(series[series.length - 1]!.date), cx + cw, cy + ch + 16, { align: "right" });
-  // Legend
-  let lx = cx;
-  const ly = cy + ch + 28;
-  for (const l of [{ label: "Total activity", color: "#0B1E4A" }, ...TREND_METRICS.slice(0, 3)]) {
-    const [r, g, b] = hex(l.color);
-    doc.setFillColor(r, g, b);
-    doc.rect(lx, ly - 5, 8, 4, "F");
-    doc.setTextColor(60, 66, 85);
-    doc.text(l.label, lx + 11, ly - 1);
-    lx += 80;
-  }
-  doc.setFillColor(37, 99, 235); doc.rect(lx, ly - 5, 3, 5, "F"); doc.text("Leave", lx + 6, ly - 1); lx += 40;
-  doc.setFillColor(205, 55, 55); doc.rect(lx, ly - 5, 3, 5, "F"); doc.text("Absent", lx + 6, ly - 1);
-  y = ly + 18;
-  doc.setTextColor(20, 24, 40);
-  doc.setFontSize(9);
-  if (analysis.previous) {
+  const cw = (width - 80 - 4 * 6) / 5;
+  cards.forEach(([l, v], i) => {
+    const cx = 40 + i * (cw + 6);
+    doc.setDrawColor(210, 220, 235);
+    doc.rect(cx, y, cw, 40);
     doc.setFont("helvetica", "bold");
-    doc.text(`Compared with previous period (${dayLabel(analysis.previous.start)} — ${dayLabel(analysis.previous.end)})`, 40, y);
+    doc.setFontSize(13);
+    doc.text(v, cx + cw / 2, y + 18, { align: "center" });
     doc.setFont("helvetica", "normal");
-    y += 13;
-    for (const c of analysis.previous.changes) {
-      doc.text(`${c.label}: ${c.current} vs ${c.previous}`, 44, y);
+    doc.setFontSize(7);
+    doc.text(l.toUpperCase(), cx + cw / 2, y + 32, { align: "center" });
+  });
+  y += 56;
+  // Daily working bars
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.text("Daily working", 40, y);
+  y += 12;
+  const max = Math.max(1, ...series.map((d) => d.activity));
+  const barW = width - 80 - 60 - 30;
+  doc.setFontSize(8);
+  for (const d of series) {
+    ensure(12);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(90, 96, 115);
+    doc.text(dayLabel(d.date), 40, y);
+    doc.setFillColor(236, 240, 246);
+    doc.rect(100, y - 7, barW, 8, "F");
+    if (d.activity > 0) {
+      doc.setFillColor(0, 120, 230);
+      doc.rect(100, y - 7, Math.max(3, (d.activity / max) * barW), 8, "F");
+    }
+    doc.setTextColor(20, 24, 40);
+    doc.setFont("helvetica", "bold");
+    doc.text(String(d.activity), width - 40, y, { align: "right" });
+    y += 11;
+  }
+  // Comparison
+  const compare = simpleComparison(analysis);
+  if (compare.length) {
+    y += 10;
+    ensure(90);
+    doc.setFontSize(10);
+    doc.text("Period comparison", 40, y);
+    y += 14;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    const main = compare[0]!;
+    doc.text(`Previous Period: ${main.previous} Activities`, 44, y);
+    y += 12;
+    doc.text(`Current Period: ${main.current} Activities`, 44, y);
+    y += 12;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Activity: ${main.text}`, 44, y);
+    y += 14;
+    doc.setFont("helvetica", "normal");
+    for (const c of compare.slice(1)) {
+      doc.text(`${c.label}: ${c.previous} -> ${c.current}`, 44, y);
       doc.text(c.text, width - 44, y, { align: "right" });
       y += 12;
     }
   }
-  if (analysis.events.length) {
+  if (analysis.leaveDays || analysis.absentDays) {
     y += 4;
-    doc.setFont("helvetica", "bold");
-    doc.text("Change indicators", 40, y);
-    doc.setFont("helvetica", "normal");
-    y += 13;
-    for (const e of analysis.events.slice(0, 6)) {
-      doc.text(`• ${e.text}`, 44, y);
-      y += 12;
-    }
+    doc.setFontSize(8);
+    doc.setTextColor(90, 96, 115);
+    doc.text(`Leave: ${analysis.leaveDays} days  ·  Absent: ${analysis.absentDays} days`, 44, y);
+    y += 12;
+    doc.setTextColor(20, 24, 40);
   }
   doc.setFontSize(10);
   if (y > 700) {

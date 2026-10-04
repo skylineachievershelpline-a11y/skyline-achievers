@@ -78,7 +78,7 @@ export function simpleComparison(a: PerformanceAnalysis): SimpleCompare[] {
   if (!a.previous) return [];
   return SIMPLE_METRICS.map((m) => {
     const current = a.totals[m.key];
-    const previous = a.previous!.totals[m.key];
+    const previous = a.previous?.totals[m.key] ?? 0;
     const p = pct(current, previous);
     const text = p === null ? "New" : p === 0 ? "Same" : `${p > 0 ? "Up" : "Down"} ${Math.abs(p)}%`;
     return { label: m.label, previous, current, percent: p, text };

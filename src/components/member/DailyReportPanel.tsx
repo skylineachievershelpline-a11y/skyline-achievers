@@ -42,21 +42,12 @@ const FIELDS = [
 
 type FieldKey = (typeof FIELDS)[number]["key"];
 
-const LINES = [
-  { key: "leads", label: "Leads", color: "#2E8BFF" },
-  { key: "responses", label: "Response", color: "#21D07A" },
-  { key: "enrollments", label: "Enrollments", color: "#FF4D5E" },
-] as const;
-
 const dayShort = (date: string) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     timeZone: "UTC",
   });
-
-const shiftDay = (date: string, days: number) =>
-  new Date(new Date(`${date}T00:00:00Z`).getTime() + days * 86_400_000).toISOString().slice(0, 10);
 
 export function DailyReportPanel() {
   const queryClient = useQueryClient();
@@ -453,7 +444,7 @@ function PerformanceGraph({
   onGraphPdf: () => void;
   graphPdfBusy: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const series = analysis.series;
   const compare = simpleComparison(analysis);
   const main = compare[0];

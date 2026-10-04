@@ -1,3 +1,4 @@
+import { SecureYouTubePlayer, youtubeId } from "@/components/media/SecureYouTubePlayer";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";

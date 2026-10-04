@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { SecureYouTubePlayer, youtubeId } from "@/components/media/SecureYouTubePlayer";
 import { useState } from "react";
 
 import { useAutoPauseVideo } from "@/hooks/useAutoPauseVideo";
@@ -41,12 +42,15 @@ export function SessionVideo({
   aspectRatio,
   poster,
   frameClassName,
+  onWatched,
 }: {
   title: string;
   videoUrl: string | null;
   aspectRatio: string;
   poster?: string | null;
   frameClassName?: string;
+  /** Fires when a YouTube video has been watched to the end. */
+  onWatched?: () => void;
 }) {
   // A cover image is shown until the viewer taps play; embedded players cannot
   // display a poster themselves, so we overlay it and autoplay on click.
@@ -63,7 +67,11 @@ export function SessionVideo({
       )}
     >
       {videoUrl ? (
-        isEmbeddable(videoUrl) ? (
+        youtubeId(videoUrl) ? (
+          !showCover ? (
+            <SecureYouTubePlayer url={videoUrl} title={title} autoplay={started} onWatched={onWatched} />
+          ) : null
+        ) : isEmbeddable(videoUrl) ? (
           !showCover ? (
             <iframe
               src={appendAutoplay(toEmbedUrl(videoUrl), started)}

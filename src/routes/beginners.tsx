@@ -269,9 +269,13 @@ function BeginnersPage() {
     void supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       if (!data.session) void navigate({ to: "/" });
-      else setReady(true);
+      else {
+        setAuthUserId(data.session.user.id);
+        setReady(true);
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthUserId(session?.user.id ?? null);
       if (event === "SIGNED_OUT" && !session) void navigate({ to: "/" });
     });
     return () => {
@@ -535,6 +539,10 @@ function BeginnersPage() {
               currentCode={(trainee as any).code ?? (trainee as any).traineeCode ?? ""}
               onClose={() => setSettingsOpen(false)}
               onSignOut={() => void signOut()}
+              onOpenSecurity={() => {
+                setSettingsOpen(false);
+                selectView("profile");
+              }}
               allowAccountManagement={false}
             />
           </div>
@@ -615,7 +623,10 @@ function BeginnersPage() {
               </Link>
             </Button>
             <OfficialGroupMenuButton placement="beginners" />
-            <Button type="button" variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground" onClick={() => setSettingsOpen(true)}>
+            <Button type="button" variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground" onClick={() => {
+              setMenuOpen(false);
+              setSettingsOpen(true);
+            }}>
               <SettingsIcon className="h-4 w-4 text-brand-glow" />
               Settings
             </Button>

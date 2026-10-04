@@ -327,3 +327,56 @@ export const deleteReel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/** A creator's public reel profile: header, totals and every published reel (TikTok style). */
+export const getCreatorReels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { authorId: string }) =>
+    z.object({ authorId: z.union([z.literal("official"), z.string().uuid()]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const db = context.supabase as any;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const official = data.authorId === "official";
+    let query = db
+      .from("reels")
+      .select("id, title, thumbnail_path, base_likes, created_at")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    query = official ? query.eq("created_by_admin", true) : query.eq("created_by", data.authorId).eq("created_by_admin", false);
+    const { data: rows } = await query;
+    const list = (rows ?? []) as any[];
+    const ids = list.map((r) => r.id);
+    const { data: likeRows } = ids.length
+      ? await admin.from("reel_likes").select("reel_id").in("reel_id", ids)
+      : { data: [] };
+    const likeCount = new Map<string, number>();
+    for (const row of (likeRows ?? []) as any[]) likeCount.set(row.reel_id, (likeCount.get(row.reel_id) ?? 0) + 1);
+
+    const { signPath, THUMBNAIL_BUCKET } = await import("./storage.server");
+    let profile = { name: "Skyline Achievers", avatarUrl: null as string | null, rank: null as string | null, founder: false, memberId: null as string | null, verified: true };
+    if (!official) {
+      const { loadReelAuthors } = await import("./reels.server");
+      const author = (await loadReelAuthors([data.authorId])).get(data.authorId);
+      const { data: m } = await admin.from("member_profiles").select("member_id").eq("id", data.authorId).maybeSingle();
+      profile = {
+        name: author?.founder ? "A.Q Malik · Founder & CEO" : (author?.name ?? "Skyline member"),
+        avatarUrl: author?.avatarUrl ?? null,
+        rank: author?.rank ?? null,
+        founder: author?.founder === true,
+        memberId: (m?.member_id as string) ?? null,
+        verified: author?.founder === true,
+      };
+    }
+    const reels = await Promise.all(
+      list.map(async (r) => ({
+        id: r.id as string,
+        title: r.title as string,
+        likes: (r.base_likes ?? 0) + (likeCount.get(r.id) ?? 0),
+        posterUrl: await signPath(THUMBNAIL_BUCKET, r.thumbnail_path, 60 * 60 * 6),
+      })),
+    );
+    return { profile, reels, totalLikes: reels.reduce((s, r) => s + r.likes, 0) };
+  });

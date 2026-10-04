@@ -725,3 +725,89 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
     </form>
   );
 }
+
+function CreatorProfile({ authorId, onOpenReel }: { authorId: string; onOpenReel: (id: string) => void }) {
+  const load = useServerFn(getCreatorReels);
+  const { data, isPending } = useQuery({
+    queryKey: ["creator-reels", authorId],
+    queryFn: () => load({ data: { authorId } }),
+  });
+  if (isPending || !data) {
+    return (
+      <div className="flex min-h-72 items-center justify-center">
+        <SkylineLoader />
+      </div>
+    );
+  }
+  const { profile, reels, totalLikes } = data;
+  const official = authorId === "official";
+  return (
+    <div className="pb-4">
+      <div className="flex flex-col items-center px-5 pt-8 text-center">
+        <span className="rounded-full bg-gradient-to-br from-cyan to-primary p-[3px] shadow-brand">
+          {official ? (
+            <img src={BRAND.logoUrl} alt="" className="h-24 w-24 rounded-full bg-surface-2 object-contain p-2" />
+          ) : profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt="" className="h-24 w-24 rounded-full bg-surface-2 object-cover" />
+          ) : (
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-2 font-display text-3xl font-semibold">
+              {profile.name.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+        </span>
+        <div className="mt-3 flex items-center gap-1.5">
+          <h2 className="font-display text-lg font-semibold">{profile.name}</h2>
+          {profile.verified ? <BadgeCheck className="h-5 w-5 text-emerald-400" aria-label="Verified" /> : null}
+        </div>
+        {profile.memberId ? <p className="text-xs text-muted-foreground">ID {profile.memberId}</p> : null}
+        {profile.rank ? (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-silver">
+            <RankPin rank={profile.rank} className="h-7 w-7" />
+            {profile.rank}
+          </div>
+        ) : official ? (
+          <p className="mt-1 text-xs text-cyan">Official account</p>
+        ) : null}
+        <div className="mt-5 grid w-full grid-cols-2 gap-2">
+          <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+            <p className="font-display text-xl font-semibold">{compactCount(reels.length)}</p>
+            <p className="text-[11px] text-muted-foreground">Reels</p>
+          </div>
+          <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+            <p className="font-display text-xl font-semibold">{compactCount(totalLikes)}</p>
+            <p className="text-[11px] text-muted-foreground">Likes</p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 border-t border-hairline pt-1">
+        {reels.length === 0 ? (
+          <p className="p-8 text-center text-sm text-muted-foreground">No reels posted yet.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-0.5">
+            {reels.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => onOpenReel(r.id)}
+                aria-label={`Play ${r.title}`}
+                className="relative aspect-[9/16] overflow-hidden bg-media transition-opacity active:opacity-70"
+              >
+                {r.posterUrl ? (
+                  <img src={r.posterUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-muted-foreground">
+                    {r.title}
+                  </span>
+                )}
+                <span className="absolute bottom-1 left-1 flex items-center gap-0.5 text-[10px] font-semibold text-foreground drop-shadow">
+                  <Heart className="h-3 w-3 fill-current" />
+                  {compactCount(r.likes)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

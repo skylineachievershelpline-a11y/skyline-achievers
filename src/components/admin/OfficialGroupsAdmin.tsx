@@ -38,7 +38,7 @@ function GroupEditor({
   row,
 }: {
   placement: GroupPlacement;
-  row?: { title: string; rules: string; invite_url: string; is_published: boolean };
+  row?: { title: string; rules: string; invite_url: string; is_published: boolean } | undefined;
 }) {
   const qc = useQueryClient();
   const save = useServerFn(adminSaveOfficialGroup);

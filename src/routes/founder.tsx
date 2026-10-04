@@ -125,8 +125,6 @@ function TrainingSeat() {
 function BeginnerDashboard() {
   const training = useFounderTraining();
   const state = training.state;
-  const [now, setNow] = useState(0);
-  useEffect(() => { setNow(Date.now()); }, []);
 
   if (!state.seatReserved) return <Locked title="Reserve the Skyline Achievers seat first" to="seat" />;
   const sessionNumber = Math.min(state.approved + 1, 7);
@@ -158,7 +156,7 @@ function BeginnerDashboard() {
           <div className="p-5">
             <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => training.update({ sessionOpen: true, step: 2 })} disabled={state.sessionOpen}><Clock />Change time — open now</Button><Button variant="outline" onClick={() => training.update({ approved: 7, sessionOpen: false, watched: false, reviewSubmitted: false, reportReady: true, step: 4 })}><Zap />Complete all 7 sessions</Button></div>
             {!state.sessionOpen ? <p className="mt-4 rounded-2xl bg-muted p-4 text-sm">Opens at the scheduled PKT time and stays active for 3 hours.</p> : state.reviewSubmitted ? <p className="mt-4 rounded-2xl border border-cyan/30 bg-primary/10 p-4 text-sm">Review submitted — waiting for FBO approval.</p> : !state.watched ? <Button variant="brand" size="xl" className="mt-4 w-full" onClick={() => training.update({ watched: true })}><PlayCircle />Watch session</Button> : <Button variant="brand" size="xl" className="mt-4 w-full" onClick={() => training.update({ reviewSubmitted: true, step: 3 })}><Star />Submit review</Button>}
-            <p className="mt-3 text-xs text-muted-foreground">{state.approved}/7 sessions approved {now ? "" : ""}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{state.approved}/7 sessions approved</p>
           </div>
         </section>
       )}
@@ -208,7 +206,7 @@ function MentorshipDashboard() {
     tick();
     const timer = window.setInterval(tick, 500);
     return () => window.clearInterval(timer);
-  }, [state.cc, state.pendingSince, state.pm, training]);
+  }, [state.cc, state.pendingSince, state.pm, training.update]);
 
   if (!passed) return <Locked title="Personal Mentorship opens after the final interview is passed" to="beginner" />;
 

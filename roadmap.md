@@ -349,9 +349,9 @@
 - [x] Export monthly full report and separate selected-month graph PDF
 
 ## Founder account 760000010005
-- [ ] Restore the original single member profile on Home and remove the duplicate Founder card
-- [ ] Rebuild Founder Training with full real-style FBO, Seat Reservation, Beginners, and Mentorship screens
-- [ ] Keep isolated training state with back, forward, progressive unlocks, and full reset
+- [x] Restore the original single member profile on Home and remove the duplicate Founder card
+- [x] Rebuild Founder Training with full real-style FBO, Seat Reservation, Beginners, and Mentorship screens
+- [x] Keep isolated training state with back, forward, progressive unlocks, and full reset
 - [x] Bind Founder training access to this member account, not the admin passcode; retain separate admin sign-in
 - [x] Brand this account's reels and comments as Founder & CEO
 - [ ] Verify signed-in Founder access and posting display

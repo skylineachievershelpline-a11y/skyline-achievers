@@ -1,5 +1,5 @@
-// Skyline Achievers Master Trainer — demo-only data and simulator state.
-// Everything here lives in the browser; nothing touches real member records.
+// Founder Training state is browser-only and never touches real member records.
+import { useCallback, useEffect, useState } from "react";
 import type { TreePerson } from "@/components/team/GenealogyTree";
 
 export const DEMO_TRAINEE = {
@@ -51,6 +51,77 @@ export const INITIAL_SIM: SimState = {
   cc: "none",
   pendingSince: null,
 };
+
+type FounderTrainingHistory = { list: SimState[]; at: number };
+
+const STORAGE_KEY = "skyline-founder-training:760000010005";
+const CHANGE_EVENT = "skyline-founder-training-change";
+
+function validHistory(value: unknown): value is FounderTrainingHistory {
+  if (!value || typeof value !== "object") return false;
+  const history = value as FounderTrainingHistory;
+  return Array.isArray(history.list) && history.list.length > 0 && history.at >= 0 && history.at < history.list.length;
+}
+
+function readHistory(): FounderTrainingHistory {
+  if (typeof window === "undefined") return { list: [INITIAL_SIM], at: 0 };
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null") as unknown;
+    if (validHistory(parsed)) return parsed;
+  } catch {
+    // A damaged local training record starts again safely.
+  }
+  return { list: [INITIAL_SIM], at: 0 };
+}
+
+function writeHistory(history: FounderTrainingHistory) {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  window.dispatchEvent(new Event(CHANGE_EVENT));
+}
+
+export function useFounderTraining() {
+  const [history, setHistory] = useState<FounderTrainingHistory>({ list: [INITIAL_SIM], at: 0 });
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setHistory(readHistory());
+    sync();
+    setReady(true);
+    window.addEventListener(CHANGE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CHANGE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const update = useCallback((patch: Partial<SimState>) => {
+    const current = readHistory();
+    const next = { ...current.list[current.at], ...patch } as SimState;
+    writeHistory({ list: [...current.list.slice(0, current.at + 1), next], at: current.at + 1 });
+  }, []);
+
+  const move = useCallback((direction: -1 | 1) => {
+    const current = readHistory();
+    const at = Math.max(0, Math.min(current.list.length - 1, current.at + direction));
+    writeHistory({ ...current, at });
+  }, []);
+
+  const reset = useCallback(() => {
+    writeHistory({ list: [INITIAL_SIM], at: 0 });
+  }, []);
+
+  return {
+    ready,
+    state: history.list[history.at] ?? INITIAL_SIM,
+    canBack: history.at > 0,
+    canForward: history.at < history.list.length - 1,
+    update,
+    back: () => move(-1),
+    forward: () => move(1),
+    reset,
+  };
+}
 
 export const STEPS = [
   "Seat Reservation",

@@ -369,6 +369,23 @@ function BeginnersPage() {
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Sidebar arrows: scroll the menu list up/down for small screens.
+  const navRef = useRef<HTMLElement | null>(null);
+  const [navScroll, setNavScroll] = useState({ up: false, down: false });
+  const updateNavScroll = useCallback(() => {
+    const el = navRef.current;
+    if (!el) return;
+    setNavScroll({
+      up: el.scrollTop > 8,
+      down: el.scrollTop + el.clientHeight < el.scrollHeight - 8,
+    });
+  }, []);
+  const scrollNav = useCallback((dir: "up" | "down") => {
+    const el = navRef.current;
+    if (!el) return;
+    el.scrollBy({ top: dir === "up" ? -160 : 160, behavior: "smooth" });
+  }, []);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   useEffect(() => {
     const t = (data as any)?.trainee;

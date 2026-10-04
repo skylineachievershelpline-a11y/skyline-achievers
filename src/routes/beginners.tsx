@@ -387,7 +387,15 @@ function BeginnersPage() {
     el.scrollBy({ top: dir === "up" ? -160 : 160, behavior: "smooth" });
   }, []);
   useEffect(() => {
-    updateNavScroll();
+    if (!menuOpen) return;
+    const raf = requestAnimationFrame(updateNavScroll);
+    const t = window.setTimeout(updateNavScroll, 550);
+    window.addEventListener("resize", updateNavScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+      window.removeEventListener("resize", updateNavScroll);
+    };
   }, [menuOpen, updateNavScroll]);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   useEffect(() => {

@@ -16,6 +16,7 @@ import {
   LogOut,
   Search,
   FolderOpen,
+  Shield,
   User,
   UserPlus,
   Users,
@@ -231,6 +232,7 @@ export function MemberShell({
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const memberAccess = useMemberAccess();
+  const isFounder = memberAccess?.member?.memberId === "760000010005" && memberAccess.reason === "ok";
   useEffect(() => {
     const m = memberAccess?.member as any;
     if (!m) return;
@@ -347,6 +349,10 @@ export function MemberShell({
                 </div>
 
                 <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
+                  {isFounder && <>
+                    <Link to="/founder" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><GraduationCap className="h-4.5 w-4.5 text-cyan" />Founder Training</Link>
+                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><Shield className="h-4.5 w-4.5 text-cyan" />Admin Panel</Link>
+                  </>}
                   {visibleNav.map((item) =>
                     lockReason(item.to) ? (
                       <button

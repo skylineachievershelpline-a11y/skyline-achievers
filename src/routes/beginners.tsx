@@ -135,6 +135,7 @@ type FeedReel = {
   liked: boolean;
   saved: boolean;
   verified?: boolean;
+  founder?: boolean;
   authorName?: string;
   authorAvatarUrl?: string | null;
   authorRank?: string | null;

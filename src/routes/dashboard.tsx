@@ -2,7 +2,7 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Eye, EyeOff, ListChecks, Lock } from "lucide-react";
+import { Bot, Eye, EyeOff, ListChecks, Lock, Crown, GraduationCap, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
@@ -79,6 +79,7 @@ function DashboardPage() {
   const member = data.member;
   const progress = data.progress ?? null;
   const isFbo = Number(member?.level?.rank_order ?? 0) >= 2;
+  const isFounder = member?.memberId === "760000010005";
   const openMentorshipReceipt = () => {
     if (!member || !progress || progress.feePaid <= 0) return;
     setMentorshipSlip({
@@ -105,6 +106,14 @@ function DashboardPage() {
       executive
     >
       <AnnouncementBanner />
+
+      {isFounder && <section className="mx-auto mt-3 w-full max-w-3xl border-b border-cyan/40 pb-6">
+        <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-cyan" /><div><p className="text-xs font-semibold uppercase text-cyan">Skyline Achievers Official</p><h1 className="font-display text-2xl font-bold">A.Q Malik</h1><p className="text-sm text-muted-foreground">Founder & CEO · 760000010005</p></div></div>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Button asChild variant="brand" className="h-auto min-h-12 whitespace-normal"><Link to="/founder"><GraduationCap className="h-4 w-4 shrink-0" />Founder Training</Link></Button>
+          <Button asChild variant="outline" className="h-auto min-h-12 whitespace-normal"><Link to="/admin"><Shield className="h-4 w-4 shrink-0" />Admin Panel</Link></Button>
+        </div>
+      </section>}
 
       <div className="mx-auto mt-2 w-full max-w-3xl">
         <UplineRequestsPanel />
@@ -145,7 +154,7 @@ function DashboardPage() {
                     {showId ? <EyeOff /> : <Eye />}
                   </Button>
                 </div>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">Member ID</p>
+                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Founder & CEO · Member ID" : "Member ID"}</p>
               </div>
               <div className="min-w-0 self-end text-right">
                 <p className="whitespace-nowrap font-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold sm:text-base">{formatRankName(member?.level?.name)}</p>

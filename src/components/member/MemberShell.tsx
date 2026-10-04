@@ -41,6 +41,7 @@ import { hasStoredSession } from "@/lib/offline-cache";
 import { Briefcase, Settings } from "lucide-react";
 import { TrainingLockScreen, useTrainingLock } from "@/components/training/TrainingGate";
 import { isTeacherFrame } from "@/lib/live-call/screen";
+import { OfficialGroupMenuButton } from "@/components/whatsapp/OfficialGroupDialog";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -382,6 +383,7 @@ export function MemberShell({
                       </Link>
                     ),
                   )}
+                  <OfficialGroupMenuButton placement={trainingOnly ? "mentorship" : "member"} />
                 </nav>
 
                 <div className="shrink-0 border-t border-hairline pt-3">

@@ -30,6 +30,11 @@ import {
 import { buildDailyReportPdf, buildPerformancePdf, saveReportBlob } from "@/lib/daily-report-pdf";
 import { performanceInsight, simpleComparison, type PerformanceAnalysis } from "@/lib/performance-trend";
 import { analyzeMonth, availableMonths, monthBounds, monthLabel } from "@/lib/performance-month";
+import {
+  OfficialGroupDialog,
+  hasJoinedGroup,
+  useOfficialGroup,
+} from "@/components/whatsapp/OfficialGroupDialog";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -68,6 +73,8 @@ export function DailyReportPanel() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [graphPdfBusy, setGraphPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
+  const reportGroup = useOfficialGroup("report");
+  const [reportGroupOpen, setReportGroupOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [seededFor, setSeededFor] = useState<string | null>(null);
@@ -178,6 +185,11 @@ export function DailyReportPanel() {
 
   async function sharePdf() {
     if (shareBusy) return;
+    // First time: join the official report group, then sharing goes there.
+    if (reportGroup.data?.group && !hasJoinedGroup("report")) {
+      setReportGroupOpen(true);
+      return;
+    }
     setShareBusy(true);
     try {
       const built = await buildPdf();

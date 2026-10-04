@@ -1,9 +1,9 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -38,10 +38,13 @@ export const Route = createFileRoute("/join/$token")({
 
 function JoinPage() {
   const { token } = Route.useParams();
+  const navigate = useNavigate();
   const check = useServerFn(getInvite);
   const register = useServerFn(registerWithInvite);
   const [form, setForm] = useState({ fullName: "", phone: "", age: "" });
   const [card, setCard] = useState<Credentials | null>(null);
+
+  const consumedInviteKey = `skyline-consumed-invite:${token}`;
 
   const { data, isPending } = useQuery({
     queryKey: ["invite", token],
@@ -64,11 +67,24 @@ function JoinPage() {
         toast.error("This registration link is no longer active.");
         return;
       }
+      window.localStorage.setItem(consumedInviteKey, "1");
       setCard(result.credentials as Credentials);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  useEffect(() => {
+    if (isPending || data?.status === "ok") return;
+    if (window.localStorage.getItem(consumedInviteKey) === "1") {
+      void navigate({ to: "/", replace: true });
+    }
+  }, [consumedInviteKey, data?.status, isPending, navigate]);
+
+  function closeRegistration() {
+    window.localStorage.removeItem(consumedInviteKey);
+    void navigate({ to: "/", replace: true });
+  }
 
   if (isPending) {
     return (
@@ -95,11 +111,9 @@ function JoinPage() {
         {card ? (
           <div className="space-y-4">
             <WelcomeCard credentials={card} />
-            <Link to="/" className="block">
-              <Button variant="brand" size="xl" className="w-full">
-                Go to sign in
-              </Button>
-            </Link>
+            <Button variant="brand" size="xl" className="w-full" onClick={closeRegistration}>
+              Close and go to sign in
+            </Button>
           </div>
         ) : !invite ? (
           <div className="glass-panel-strong rounded-3xl p-8 text-center animate-rise-in">
@@ -107,11 +121,9 @@ function JoinPage() {
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
               Please ask the person who invited you for a fresh registration link.
             </p>
-            <Link to="/" className="mt-6 inline-block">
-              <Button variant="outline" size="xl">
-                Back to home
-              </Button>
-            </Link>
+            <Button variant="outline" size="xl" className="mt-6" onClick={closeRegistration}>
+              Back to home
+            </Button>
           </div>
         ) : (
           <form

@@ -38,13 +38,15 @@ import {
   createReel,
   deleteReel,
   getReelComments,
+  getCreatorReels,
   getReelUploadUrl,
   getReels,
   markReelSeen,
   toggleReelLike,
   toggleReelSave,
 } from "@/lib/reels.functions";
-import { putWithProgress } from "@/lib/upload-progress";
+import { resumableUpload } from "@/lib/resumable-upload";
+import { RankPin } from "@/components/member/RankPin";
 
 export const Route = createFileRoute("/reels")({
   head: () => ({
@@ -80,6 +82,7 @@ type Reel = {
   liked: boolean;
   saved: boolean;
   isMine: boolean;
+  authorId?: string;
 };
 
 function compactCount(value: number): string {
@@ -113,6 +116,7 @@ function ReelsPage() {
   const [composer, setComposer] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [commentsFor, setCommentsFor] = useState<Reel | null>(null);
+  const [profileFor, setProfileFor] = useState<string | null>(null);
   const [local, setLocal] = useState<Record<string, Partial<Reel>>>({});
   const marked = useRef<Set<string>>(new Set());
   const reelFeedRef = useRef<HTMLDivElement | null>(null);
@@ -247,6 +251,7 @@ function ReelsPage() {
                   onDownload={() => void onDownload(reel)}
                   onComments={() => setCommentsFor(reel)}
                   onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
+                  onAuthor={() => setProfileFor(reel.authorId ?? "official")}
                 />
               ))}
             </div>
@@ -317,6 +322,24 @@ function ReelsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={Boolean(profileFor)} onOpenChange={(next) => !next && setProfileFor(null)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto rounded-3xl p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Creator profile</DialogTitle>
+          </DialogHeader>
+          {profileFor ? (
+            <CreatorProfile
+              authorId={profileFor}
+              onOpenReel={(id) => {
+                setProfileFor(null);
+                const target = reelFeedRef.current?.querySelector<HTMLElement>(`[data-reel-id="${id}"]`);
+                target?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </MemberShell>
   );
 }
@@ -330,6 +353,7 @@ function ReelCard({
   onDownload,
   onComments,
   onDelete,
+  onAuthor,
 }: {
   reel: Reel;
   isActive: boolean;
@@ -339,6 +363,7 @@ function ReelCard({
   onDownload: () => void;
   onComments: () => void;
   onDelete?: (() => void) | undefined;
+  onAuthor: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -454,7 +479,14 @@ function ReelCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
-        <ReelAuthor reel={reel} />
+        <button
+          type="button"
+          onClick={onAuthor}
+          aria-label={`Open ${reel.authorName} profile`}
+          className="pointer-events-auto max-w-full rounded-full text-left transition-transform active:scale-95"
+        >
+          <ReelAuthor reel={reel} />
+        </button>
         <h3 className="mt-2 font-display text-base font-semibold">{reel.title}</h3>
         {reel.caption ? (
           <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{reel.caption}</p>
@@ -584,17 +616,50 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
   const [busy, setBusy] = useState(false);
   const uploadProgress = useUploadProgress();
 
+  useEffect(() => {
+    setDuration(null);
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.onloadedmetadata = () => {
+      if (Number.isFinite(probe.duration)) setDuration(probe.duration);
+      URL.revokeObjectURL(url);
+    };
+    probe.onerror = () => URL.revokeObjectURL(url);
+    probe.src = url;
+  }, [file]);
+
   async function upload(kind: "video" | "cover", target: File) {
     const extension = (target.name.split(".").pop() ?? "mp4").toLowerCase();
-    const slot = await createUrl({ data: { kind, extension } } as never);
-    await putWithProgress(
+    // Reuse the same upload slot for the same file so a retry continues where it stopped.
+    const key = `skyline-reel-slot:${target.name}:${target.size}:${target.lastModified}`;
+    let slot: { path: string; signedUrl: string; at: number } | null = null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (saved && Date.now() - saved.at < 90 * 60 * 1000) slot = saved;
+    } catch {
+      slot = null;
+    }
+    if (!slot) {
+      const fresh = await createUrl({ data: { kind, extension } } as never);
+      slot = { ...fresh, at: Date.now() };
+      localStorage.setItem(key, JSON.stringify(slot));
+    }
+    await resumableUpload(
+      kind === "video" ? "training-videos" : "training-thumbnails",
+      slot.path,
       slot.signedUrl,
       target,
       uploadProgress.handler(kind === "video" ? "Uploading reel" : "Uploading cover"),
+      setReconnecting,
     );
+    localStorage.removeItem(key);
     return slot.path;
   }
 

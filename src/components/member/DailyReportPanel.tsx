@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   CheckCircle2,
+  CalendarDays,
   Clock,
   Download,
+  FileChartColumn,
   Loader2,
   Lock,
   PenLine,
@@ -18,14 +20,16 @@ import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MonthlyActivityChart } from "@/components/member/MonthlyActivityChart";
 import { BRAND } from "@/lib/brand";
 import {
   getDailyReport,
   submitDailyReport,
   type ReportDay,
 } from "@/lib/daily-report.functions";
-import { buildDailyReportPdf, saveReportBlob } from "@/lib/daily-report-pdf";
-import { analyzePerformance, performanceInsight, simpleComparison, type PerformanceAnalysis } from "@/lib/performance-trend";
+import { buildDailyReportPdf, buildPerformancePdf, saveReportBlob } from "@/lib/daily-report-pdf";
+import { performanceInsight, simpleComparison, type PerformanceAnalysis } from "@/lib/performance-trend";
+import { analyzeMonth, availableMonths, monthBounds, monthLabel } from "@/lib/performance-month";
 
 const FIELDS = [
   { key: "leads", label: "Today total leads", hint: "How many leads did you work on?" },
@@ -69,9 +73,9 @@ export function DailyReportPanel() {
     twoCc: "",
     mentorshipPaid: "",
   });
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [graphPdfBusy, setGraphPdfBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -117,8 +121,9 @@ export function DailyReportPanel() {
   });
 
   const today = data?.today.date ?? new Date().toISOString().slice(0, 10);
-  const rangeStart = fromDate || shiftDay(today, -6);
-  const rangeEnd = toDate || today;
+  const activeMonth = selectedMonth || today.slice(0, 7);
+  const { start: rangeStart, end: rangeEnd } = monthBounds(activeMonth, today);
+  const months = useMemo(() => availableMonths(data?.calendar ?? [], today), [data, today]);
 
   const rangeRows = useMemo(() => {
     const days = data?.calendar ?? [];
@@ -128,20 +133,40 @@ export function DailyReportPanel() {
   }, [data, rangeStart, rangeEnd]);
 
   const analysis = useMemo(
-    () => analyzePerformance(data?.calendar ?? [], rangeStart, rangeEnd),
-    [data, rangeStart, rangeEnd],
+    () => analyzeMonth(data?.calendar ?? [], activeMonth, today),
+    [data, activeMonth, today],
   );
 
   async function buildPdf() {
     if (!data) return null;
     return await buildDailyReportPdf({
-      title: "Daily working report",
+      title: `${monthLabel(activeMonth)} monthly working report`,
       person: data.member.fullName,
       personId: data.member.memberId,
-      rangeLabel: `${dayShort(rangeStart)} — ${dayShort(rangeEnd)}`,
+      rangeLabel: monthLabel(activeMonth),
       rows: rangeRows,
       analysis,
     });
+  }
+
+  async function downloadGraphPdf() {
+    if (graphPdfBusy || !data) return;
+    setGraphPdfBusy(true);
+    try {
+      const file = await buildPerformancePdf({
+        person: data.member.fullName,
+        personId: data.member.memberId,
+        monthLabel: monthLabel(activeMonth),
+        month: activeMonth,
+        analysis,
+      });
+      saveReportBlob(file.blob, file.name);
+      toast.success("Monthly graph downloaded");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setGraphPdfBusy(false);
+    }
   }
 
   async function downloadPdf() {
@@ -320,64 +345,19 @@ export function DailyReportPanel() {
       </section>
 
       <div className="space-y-4 animate-rise-in">
-        <PerformanceGraph
-          analysis={analysis}
-          today={today}
-          onPreset={(days) => {
-            setFromDate(shiftDay(today, -(days - 1)));
-            setToDate(today);
-          }}
-        />
+        <PerformanceGraph analysis={analysis} activeMonth={activeMonth} months={months} onMonth={setSelectedMonth} onGraphPdf={() => void downloadGraphPdf()} graphPdfBusy={graphPdfBusy} />
 
         <section className="raised-panel metal-edge rounded-3xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           Report download
         </p>
-        <h3 className="mt-1 font-display text-lg font-bold">Choose any days you want</h3>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {[
-            { label: "Today", days: 0 },
-            { label: "Last 2 days", days: 1 },
-            { label: "Last 3 days", days: 2 },
-            { label: "Last 7 days", days: 6 },
-            { label: "Last 30 days", days: 29 },
-            { label: "Last 90 days", days: 89 },
-          ].map((preset) => (
-            <Button
-              key={preset.label}
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-2xl"
-              onClick={() => {
-                setFromDate(shiftDay(today, -preset.days));
-                setToDate(today);
-              }}
-            >
-              {preset.label}
-            </Button>
-          ))}
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto_auto] sm:items-end">
+        <h3 className="mt-1 font-display text-lg font-bold">{monthLabel(activeMonth)} report</h3>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
           <div className="space-y-2">
-            <Label htmlFor="report-from">From</Label>
-            <Input
-              id="report-from"
-              type="date"
-              value={rangeStart}
-              max={today}
-              onChange={(event) => setFromDate(event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="report-to">To</Label>
-            <Input
-              id="report-to"
-              type="date"
-              value={rangeEnd}
-              max={today}
-              onChange={(event) => setToDate(event.target.value)}
-            />
+            <Label htmlFor="report-month">Select month</Label>
+            <select id="report-month" value={activeMonth} onChange={(event) => setSelectedMonth(event.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              {months.map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}
+            </select>
           </div>
           <Button
             variant="outline"
@@ -386,7 +366,7 @@ export function DailyReportPanel() {
             onClick={() => void downloadPdf()}
           >
             {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            PDF
+             Monthly PDF
           </Button>
           <Button
             variant="brand"
@@ -399,7 +379,7 @@ export function DailyReportPanel() {
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          {rangeRows.length} day{rangeRows.length === 1 ? "" : "s"} in the selected period.
+           {rangeRows.length} day{rangeRows.length === 1 ? "" : "s"} in {monthLabel(activeMonth)}.
         </p>
 
         <Button
@@ -459,17 +439,21 @@ export function DailyReportPanel() {
 /** Simple Performance Report: same analysis as the PDF. */
 function PerformanceGraph({
   analysis,
-  today,
-  onPreset,
+  activeMonth,
+  months,
+  onMonth,
+  onGraphPdf,
+  graphPdfBusy,
 }: {
   analysis: PerformanceAnalysis;
-  today: string;
-  onPreset: (days: number) => void;
+  activeMonth: string;
+  months: string[];
+  onMonth: (month: string) => void;
+  onGraphPdf: () => void;
+  graphPdfBusy: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const series = analysis.series;
-  const max = Math.max(1, ...series.map((d) => d.activity));
-  const isPreset = analysis.end === today && [7, 30, 90].includes(analysis.days) ? analysis.days : 0;
   const compare = simpleComparison(analysis);
   const main = compare[0];
   const insight = performanceInsight(analysis);
@@ -483,7 +467,7 @@ function PerformanceGraph({
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Performance report</p>
           <h3 className="mt-1 font-display text-lg font-bold">
-            {dayShort(analysis.start)} — {dayShort(analysis.end)}
+            {monthLabel(activeMonth)}
           </h3>
         </div>
         <Button size="sm" variant={open ? "outline" : "brand"} className="rounded-2xl" onClick={() => setOpen((v) => !v)}>
@@ -493,13 +477,16 @@ function PerformanceGraph({
 
       {open ? (
         <>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {[7, 30, 90].map((d) => (
-              <Button key={d} size="sm" variant={isPreset === d ? "brand" : "outline"} className="rounded-2xl" onClick={() => onPreset(d)}>
-                {d} Days
-              </Button>
-            ))}
-            <span className="self-center text-[11px] text-muted-foreground">Custom: neeche From / To chunein</span>
+          <div className="mt-3 flex items-end gap-2">
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <Label htmlFor="performance-month" className="flex items-center gap-1.5 text-xs"><CalendarDays className="h-3.5 w-3.5" /> Month</Label>
+              <select id="performance-month" value={activeMonth} onChange={(event) => onMonth(event.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                {months.map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}
+              </select>
+            </div>
+            <Button type="button" variant="outline" disabled={graphPdfBusy} onClick={onGraphPdf} aria-label="Download monthly graph PDF">
+              {graphPdfBusy ? <Loader2 className="animate-spin" /> : <FileChartColumn />} Graph PDF
+            </Button>
           </div>
 
           <p className="mt-4 rounded-2xl border border-cyan/30 bg-primary/10 p-3 text-sm font-semibold">{insight}</p>
@@ -519,31 +506,14 @@ function PerformanceGraph({
             ))}
           </div>
 
-          <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Daily working</p>
-          <div className="inset-panel mt-2 max-h-96 space-y-1 overflow-y-auto rounded-2xl p-3">
-            {series.length ? (
-              series.map((d) => (
-                <div key={d.date} className="flex items-center gap-3 text-xs">
-                  <span className="w-14 shrink-0 font-semibold text-muted-foreground">{dayShort(d.date)}</span>
-                  <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted/40">
-                    {d.activity > 0 ? (
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(4, (d.activity / max) * 100)}%` }} />
-                    ) : null}
-                  </div>
-                  <span className={`w-8 shrink-0 text-right font-bold ${d.activity ? "" : "text-muted-foreground"}`}>{d.activity}</span>
-                </div>
-              ))
-            ) : (
-              <p className="py-6 text-center text-sm text-muted-foreground">Is period mein koi report data nahi.</p>
-            )}
-          </div>
+          <MonthlyActivityChart analysis={analysis} />
 
           {main ? (
             <div className="mt-4 space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Period comparison</p>
               <div className="inset-panel rounded-2xl p-3 text-sm">
-                <p>Previous Period: <b>{main.previous}</b> Activities</p>
-                <p>Current Period: <b>{main.current}</b> Activities</p>
+               <p>Previous Month: <b>{main.previous}</b> Activities</p>
+               <p>Selected Month: <b>{main.current}</b> Activities</p>
                 <p className={`mt-1 text-base font-bold ${tone(main.percent)}`}>
                   {main.percent === null ? "New activity" : main.percent === 0 ? "Same" : `${arrow(main.percent)} ${Math.abs(main.percent)}% Activity`}
                 </p>

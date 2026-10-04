@@ -31,6 +31,7 @@ import { BRAND } from "@/lib/brand";
 import { getDashboard, getSessionRole } from "@/lib/member.functions";
 import { getAccessToken } from "@/lib/session-token";
 import { fastSignOut } from "@/lib/sign-out";
+import ceoPortrait from "@/assets/aq-malik-ceo.jpg.asset.json";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -107,9 +108,11 @@ function DashboardPage() {
     >
       <AnnouncementBanner />
 
-      {isFounder && <section className="mx-auto mt-3 w-full max-w-3xl border-b border-cyan/40 pb-6">
-        <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-cyan" /><div><p className="text-xs font-semibold uppercase text-cyan">Skyline Achievers Official</p><h1 className="font-display text-2xl font-bold">A.Q Malik</h1><p className="text-sm text-muted-foreground">Founder & CEO · 760000010005</p></div></div>
-        <div className="mt-5 grid grid-cols-2 gap-3">
+      {isFounder && <section className="relative mx-auto mt-3 w-full max-w-3xl overflow-hidden rounded-3xl border border-cyan/40 bg-gradient-to-br from-primary/35 via-background to-background p-5 shadow-brand sm:p-7">
+        <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-cyan/10 blur-3xl" />
+        <div className="relative flex items-center gap-4"><img src={member.avatarUrl || ceoPortrait.url} alt="A.Q Malik" className="h-20 w-20 shrink-0 rounded-full border-2 border-cyan object-cover shadow-brand sm:h-24 sm:w-24" /><div className="min-w-0"><div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-cyan"><Crown className="h-4 w-4" />Skyline Achievers Official</div><h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">A.Q Malik</h1><p className="text-sm text-muted-foreground">Founder & CEO · 760000010005</p></div></div>
+        <p className="relative mt-5 text-sm text-muted-foreground">Lead the network, guide your team, and manage Skyline Achievers from one official account.</p>
+        <div className="relative mt-5 grid grid-cols-2 gap-3">
           <Button asChild variant="brand" className="h-auto min-h-12 whitespace-normal"><Link to="/founder"><GraduationCap className="h-4 w-4 shrink-0" />Founder Training</Link></Button>
           <Button asChild variant="outline" className="h-auto min-h-12 whitespace-normal"><Link to="/admin"><Shield className="h-4 w-4 shrink-0" />Admin Panel</Link></Button>
         </div>

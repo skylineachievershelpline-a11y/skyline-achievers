@@ -480,6 +480,13 @@ function PerformanceGraph({
               {graphPdfBusy ? <Loader2 className="animate-spin" /> : <FileChartColumn />} Graph PDF
             </Button>
           </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Available report months">
+            {months.map((month) => (
+              <Button key={month} type="button" size="sm" variant={activeMonth === month ? "brand" : "outline"} className="shrink-0" onClick={() => onMonth(month)}>
+                {monthLabel(month)}
+              </Button>
+            ))}
+          </div>
 
           <p className="mt-4 rounded-2xl border border-cyan/30 bg-primary/10 p-3 text-sm font-semibold">{insight}</p>
 

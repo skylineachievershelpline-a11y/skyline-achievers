@@ -531,23 +531,32 @@ function BeginnersPage() {
           </button>
         </div>
       </header>
-      {settingsOpen ? (
-        <div className="fixed inset-0 z-[210]">
-          <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-hidden rounded-l-3xl border-l border-hairline">
-            <AccountSettings
-              currentName={trainee.fullName}
-              currentCode={(trainee as any).code ?? (trainee as any).traineeCode ?? ""}
-              onClose={() => setSettingsOpen(false)}
-              onSignOut={() => void signOut()}
-              onOpenSecurity={() => {
-                setSettingsOpen(false);
-                selectView("profile");
-              }}
-              allowAccountManagement={false}
-            />
-          </div>
-        </div>
-      ) : null}
+      {settingsOpen && portalReady && typeof document !== "undefined"
+        ? createPortal(
+            <div className="fixed inset-0 z-[210] h-[100dvh]">
+              <button
+                type="button"
+                aria-label="Close settings"
+                onClick={() => setSettingsOpen(false)}
+                className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+              />
+              <div className="absolute inset-y-0 right-0 h-[100dvh] w-full max-w-sm overflow-hidden rounded-l-3xl border-l border-hairline bg-background">
+                <AccountSettings
+                  currentName={trainee.fullName}
+                  currentCode={(trainee as any).code ?? (trainee as any).traineeCode ?? ""}
+                  onClose={() => setSettingsOpen(false)}
+                  onSignOut={() => void signOut()}
+                  onOpenSecurity={() => {
+                    setSettingsOpen(false);
+                    selectView("profile");
+                  }}
+                  allowAccountManagement={false}
+                />
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       {portalReady && typeof document !== "undefined"
         ? createPortal(

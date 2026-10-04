@@ -1,5 +1,4 @@
 import { Play } from "lucide-react";
-import { SecureYouTubePlayer, youtubeId } from "@/components/media/SecureYouTubePlayer";
 import { useState } from "react";
 
 import { useAutoPauseVideo } from "@/hooks/useAutoPauseVideo";
@@ -67,11 +66,7 @@ export function SessionVideo({
       )}
     >
       {videoUrl ? (
-        youtubeId(videoUrl) ? (
-          !showCover ? (
-            <SecureYouTubePlayer url={videoUrl} title={title} autoplay={started} onWatched={onWatched} />
-          ) : null
-        ) : isEmbeddable(videoUrl) ? (
+        isEmbeddable(videoUrl) ? (
           !showCover ? (
             <iframe
               src={appendAutoplay(toEmbedUrl(videoUrl), started)}

@@ -61,7 +61,7 @@ export function AccountSettings({
   }
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col bg-background/95 p-5 backdrop-blur-md">
+    <div className="absolute inset-0 z-10 flex flex-col overflow-y-auto bg-background/95 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-md">
       <button
         type="button"
         onClick={onClose}

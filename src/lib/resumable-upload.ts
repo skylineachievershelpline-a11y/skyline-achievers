@@ -17,7 +17,7 @@ export async function resumableUpload(
   onReconnect?: (waiting: boolean) => void,
 ): Promise<void> {
   const token = new URL(signedUrl, window.location.origin).searchParams.get("token");
-  const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const base = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
   if (!token || !base) return putWithProgress(signedUrl, file, onProgress);
 
   const startedAt = Date.now();

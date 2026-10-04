@@ -210,11 +210,12 @@ export const getReelComments = createServerFn({ method: "POST" })
       .neq("status", "rejected")
       .order("created_at", { ascending: false })
       .limit(200);
+    const { data: founderProfile } = await (supabaseAdmin as any).from("member_profiles").select("id").eq("member_id", "760000010005").maybeSingle();
     const comments = ((rows ?? []) as any[])
       .filter((row) => row.status === "approved" || row.author_id === context.userId)
       .map((row) => ({
         id: row.id as string,
-        authorName: row.author_id === "808e8a72-3255-4ec6-a91b-622e6a7f3b17" ? "A.Q Malik · Founder & CEO" : row.author_name as string,
+        authorName: founderProfile?.id && row.author_id === founderProfile.id ? "A.Q Malik · Founder & CEO" : row.author_name as string,
         body: row.body as string,
         createdAt: row.created_at as string,
         pending: row.status !== "approved",

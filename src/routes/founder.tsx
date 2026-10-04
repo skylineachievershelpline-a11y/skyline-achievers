@@ -45,13 +45,15 @@ function TrainerPage() {
   const check = useServerFn(getMemberSession);
   const status = useQuery({ queryKey: ["founder-member-session"], queryFn: () => check(), enabled: ready, retry: false });
   const [hist, setHist] = useState<Hist>({ list: [INITIAL_SIM], at: 0 });
+  const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState("fbo");
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    try { const raw = localStorage.getItem(KEY); if (raw) setHist(JSON.parse(raw)); } catch { /* fresh */ }
+    try { const raw = localStorage.getItem(KEY); if (raw) { const saved = JSON.parse(raw) as Hist; if (Array.isArray(saved.list) && saved.list.length && saved.at >= 0 && saved.at < saved.list.length) setHist(saved); } } catch { /* fresh */ }
+    setLoaded(true);
   }, []);
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(hist)); }, [hist]);
+  useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(hist)); }, [hist, loaded]);
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t); }, []);
   const [menu, setMenu] = useState(false);
 

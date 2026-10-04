@@ -101,13 +101,12 @@ function drawPerformance(doc: PdfDoc, analysis: PerformanceAnalysis, label: stri
       if (!prev) return;
       const hue = index / series.length;
       doc.setFillColor(193 - Math.round(52 * hue), 230 + Math.round(12 * hue), 249 - Math.round(29 * hue));
-      doc.path([
-        { op: "m", c: [x(index - 1), bottom] },
-        { op: "l", c: [x(index - 1), graphY(prev.activity)] },
-        { op: "l", c: [x(index), graphY(day.activity)] },
-        { op: "l", c: [x(index), bottom] },
-        { op: "h", c: [] },
-      ], "F");
+      // Fine vertical bands approximate the sloped, tinted area in print.
+      for (let slice = 0; slice < 8; slice += 1) {
+        const position = (slice + 0.5) / 8;
+        const topY = graphY(prev.activity + (day.activity - prev.activity) * position);
+        doc.rect(x(index - 1) + (x(index) - x(index - 1)) * slice / 8, topY, (x(index) - x(index - 1)) / 8 + 0.2, bottom - topY, "F");
+      }
       doc.setDrawColor(0, 155 + Math.round(50 * hue), 225 - Math.round(72 * hue));
       doc.setLineWidth(2);
       doc.line(x(index - 1), graphY(prev.activity), x(index), graphY(day.activity));
@@ -253,20 +252,23 @@ export async function buildDailyReportPdf(options: {
   doc.setFontSize(9);
 
   const columnX = [200, 265, 325, 390, 445, width - 44];
-  doc.text("Date", 44, y);
-  REPORT_COLUMNS.forEach((column, index) => {
-    doc.text(column.label, columnX[index]!, y, { align: "right" });
-  });
-  y += 6;
-  doc.setDrawColor(120, 130, 150);
-  doc.line(40, y, width - 40, y);
-  y += 16;
-  doc.setFont("helvetica", "normal");
+  const header = () => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    doc.text("Date", 44, y);
+    REPORT_COLUMNS.forEach((column, index) => doc.text(column.label, columnX[index] ?? width - 44, y, { align: "right" }));
+    y += 6;
+    doc.setDrawColor(120, 130, 150);
+    doc.line(40, y, width - 40, y);
+    y += 16;
+    doc.setFont("helvetica", "normal");
+  };
+  header();
 
   for (const row of options.rows) {
     if (y > 790) {
       doc.addPage();
       y = 60;
+      header();
     }
     const status = row.status ?? (row.absent ? "absent" : "report");
     doc.text(dayLabel(row.date), 44, y);

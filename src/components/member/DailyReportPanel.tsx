@@ -381,6 +381,11 @@ export function DailyReportPanel() {
             {shareBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
             Share
           </Button>
+          <OfficialGroupDialog
+            placement="report"
+            open={reportGroupOpen}
+            onOpenChange={setReportGroupOpen}
+          />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
            {rangeRows.length} day{rangeRows.length === 1 ? "" : "s"} in {monthLabel(activeMonth)}.

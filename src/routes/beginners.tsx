@@ -1,6 +1,7 @@
 import { changeMyPassword } from "@/lib/password.functions";
 import { Settings as SettingsIcon } from "lucide-react";
 import { AccountSettings } from "@/components/member/AccountSettings";
+import { OfficialGroupMenuButton } from "@/components/whatsapp/OfficialGroupDialog";
 import { PasskeyManager } from "@/components/security/PasskeyManager";
 import { forgetAccount, rememberCurrentAccount } from "@/lib/device-accounts";
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
@@ -610,6 +611,7 @@ function BeginnersPage() {
                 Skyline Achievers AI
               </Link>
             </Button>
+            <OfficialGroupMenuButton placement="beginners" />
             <Button type="button" variant="ghost" className="h-11 w-full justify-start rounded-xl px-3 text-muted-foreground" onClick={() => setSettingsOpen(true)}>
               <SettingsIcon className="h-4 w-4 text-brand-glow" />
               Settings

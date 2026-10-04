@@ -43,6 +43,7 @@ import { Briefcase, Settings } from "lucide-react";
 import { TrainingLockScreen, useTrainingLock } from "@/components/training/TrainingGate";
 import { isTeacherFrame } from "@/lib/live-call/screen";
 import { OfficialGroupMenuButton } from "@/components/whatsapp/OfficialGroupDialog";
+import { useFounderTraining } from "@/lib/trainer-demo";
 
 /** Redirects to sign in when there is no live session. */
 export function useMemberGuard() {
@@ -233,6 +234,7 @@ export function MemberShell({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const memberAccess = useMemberAccess();
   const isFounder = memberAccess?.member?.memberId === "760000010005" && memberAccess.reason === "ok";
+  const founderTraining = useFounderTraining();
   useEffect(() => {
     const m = memberAccess?.member as any;
     if (!m) return;
@@ -349,10 +351,17 @@ export function MemberShell({
                 </div>
 
                 <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
-                  {isFounder && <>
-                    <Link to="/founder" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><GraduationCap className="h-4.5 w-4.5 text-cyan" />Founder Training</Link>
-                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><Shield className="h-4.5 w-4.5 text-cyan" />Admin Panel</Link>
-                  </>}
+                  {isFounder ? (
+                    <div className="mb-3 space-y-1.5 border-b border-hairline pb-3">
+                      <p className="px-3 text-[10px] font-semibold uppercase text-cyan">Founder Training</p>
+                      <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><Home className="h-4.5 w-4.5 text-cyan" />FBO Dashboard</Link>
+                      <Link to="/founder" search={{ view: "seat" }} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold"><UserPlus className="h-4.5 w-4.5 text-brand-glow" />Training Seat Reservation</Link>
+                      {founderTraining.state.seatReserved ? <Link to="/founder" search={{ view: "beginner" }} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold"><GraduationCap className="h-4.5 w-4.5 text-brand-glow" />Beginners Training Dashboard</Link> : null}
+                      {founderTraining.state.reviewSubmitted || founderTraining.state.approved > 0 ? <Link to="/founder" search={{ view: "review" }} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold"><FileText className="h-4.5 w-4.5 text-brand-glow" />Training Reviews</Link> : null}
+                      {founderTraining.state.interviewScore != null && founderTraining.state.interviewScore >= 60 ? <Link to="/founder" search={{ view: "mentorship" }} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-metal/30 bg-surface px-3 py-2.5 text-sm font-semibold"><Briefcase className="h-4.5 w-4.5 text-brand-glow" />Personal Mentorship Dashboard</Link> : null}
+                      <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><Shield className="h-4.5 w-4.5 text-cyan" />Admin Panel</Link>
+                    </div>
+                  ) : null}
                   {visibleNav.map((item) =>
                     lockReason(item.to) ? (
                       <button

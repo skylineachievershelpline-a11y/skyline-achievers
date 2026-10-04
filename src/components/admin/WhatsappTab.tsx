@@ -5,6 +5,7 @@ import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { OfficialGroupsAdmin } from "@/components/admin/OfficialGroupsAdmin";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -119,6 +120,8 @@ export function WhatsappTab() {
 
   return (
     <div className="space-y-4">
+      <OfficialGroupsAdmin />
+      <h3 className="pt-4 font-display text-base font-semibold">Code-locked groups</h3>
       <Button
         variant="brand"
         size="xl"

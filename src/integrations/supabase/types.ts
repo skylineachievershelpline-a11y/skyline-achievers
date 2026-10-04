@@ -2521,6 +2521,33 @@ export type Database = {
           },
         ]
       }
+      official_groups: {
+        Row: {
+          invite_url: string
+          is_published: boolean
+          placement: string
+          rules: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          invite_url: string
+          is_published?: boolean
+          placement: string
+          rules?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          invite_url?: string
+          is_published?: boolean
+          placement?: string
+          rules?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       paid_course_lessons: {
         Row: {
           aspect_ratio: string

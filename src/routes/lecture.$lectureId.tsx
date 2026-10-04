@@ -143,13 +143,17 @@ function LecturePage() {
         {data.playback?.url ? (
           isExternalEmbed ? (
             <div className={`w-full ${frameClass}`}>
-              <iframe
-                src={toEmbedUrl(data.playback.url)}
-                title={lecture.title}
-                allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
-                className="h-full w-full border-0"
-              />
+              {youtubeId(data.playback.url) ? (
+                <SecureYouTubePlayer url={data.playback.url} title={lecture.title} />
+              ) : (
+                <iframe
+                  src={toEmbedUrl(data.playback.url)}
+                  title={lecture.title}
+                  allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  className="h-full w-full border-0"
+                />
+              )}
             </div>
           ) : (
             <video

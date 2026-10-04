@@ -15,11 +15,23 @@ import {
   UserPlus,
   Wallet,
   Zap,
+  Menu,
+  Home,
+  Clapperboard,
+  Search,
+  ShieldCheck,
+  Crown,
+  MessageCircle,
+  Bot,
+  X,
+  Bell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { FounderTrainingBar } from "@/components/founder/FounderTrainingBar";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MemberShell, useMemberGuard } from "@/components/member/MemberShell";
+import { StoryLogo } from "@/components/story/StoryLogo";
 import { WelcomeCard, type Credentials } from "@/components/team/WelcomeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,14 +72,62 @@ function FounderTrainingPage() {
     return <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center"><p>This training area belongs to the A.Q Malik account.</p><Button asChild variant="outline"><Link to="/dashboard">Back to dashboard</Link></Button></main>;
   }
 
+  if (view === "beginner") {
+    return (
+      <FounderBeginnerShell>
+        <FounderTrainingBar />
+        <BeginnerDashboard />
+      </FounderBeginnerShell>
+    );
+  }
+
   return (
     <MemberShell title={viewTitle(view)} subtitle="Founder Training · Skyline Achievers" executive>
       <FounderTrainingBar />
       {view === "seat" ? <TrainingSeat /> : null}
-      {view === "beginner" ? <BeginnerDashboard /> : null}
       {view === "review" ? <ReviewDashboard /> : null}
       {view === "mentorship" ? <MentorshipDashboard /> : null}
     </MemberShell>
+  );
+}
+
+function FounderBeginnerShell({ children }: { children: React.ReactNode }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const training = useFounderTraining();
+  const menu = [
+    { label: "Home", icon: Home },
+    { label: "Training", icon: GraduationCap },
+    { label: "Reels", icon: Clapperboard },
+    { label: "Search", icon: Search },
+    { label: "Profile settings", icon: ShieldCheck },
+  ];
+
+  return (
+    <div className="motion-scope cinematic-shell relative min-h-screen bg-background pb-10 text-foreground">
+      <header className="cinematic-nav sticky top-0 z-30 border-b border-metal/20 bg-background/90 shadow-glass backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
+          <Button type="button" variant="outline" size="icon" onClick={() => setMenuOpen(true)} aria-label="Open Beginners menu"><Menu /></Button>
+          <StoryLogo size={34} />
+          <div className="min-w-0 flex-1"><p className="truncate font-display text-sm font-semibold">Skyline Achievers</p><p className="truncate text-[11px] text-muted-foreground">Beginners Training</p></div>
+          <Button type="button" variant="outline" size="icon" aria-label="Announcements"><Bell /></Button>
+        </div>
+      </header>
+
+      {menuOpen ? <div className="fixed inset-0 z-[200]"><button type="button" className="absolute inset-0 bg-background/70 backdrop-blur-sm" onClick={() => setMenuOpen(false)} aria-label="Close menu" /><aside className="glass-panel-strong metal-edge absolute inset-y-0 left-0 flex w-[84vw] max-w-xs flex-col rounded-r-3xl p-5">
+        <div className="flex items-center justify-between gap-2"><BrandLogo size="sm" /><Button type="button" variant="outline" size="icon" onClick={() => setMenuOpen(false)} aria-label="Close menu"><X /></Button></div>
+        <div className="mt-5 rounded-2xl border border-cyan/20 bg-primary/10 p-3"><p className="truncate font-display text-sm font-semibold">Skyline Achievers</p><p className="mt-0.5 text-[10px] uppercase text-muted-foreground">Beginners Training</p></div>
+        <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto">
+          {menu.map((item, index) => <Button key={item.label} type="button" variant="ghost" onClick={() => setMenuOpen(false)} className={index === 0 ? "h-11 w-full justify-start border border-cyan/30 bg-primary/15" : "h-11 w-full justify-start text-muted-foreground"}><item.icon className="h-4 w-4 text-brand-glow" />{item.label}</Button>)}
+          <Button asChild variant="ghost" className="h-11 w-full justify-start text-muted-foreground"><Link to="/courses"><Crown className="h-4 w-4 text-brand-glow" />Premium Courses</Link></Button>
+          <Button asChild variant="ghost" className="h-11 w-full justify-start text-muted-foreground"><Link to="/chat"><MessageCircle className="h-4 w-4 text-brand-glow" />Chat with Upline</Link></Button>
+          <Button asChild variant="ghost" className="h-11 w-full justify-start text-muted-foreground"><Link to="/ai"><Bot className="h-4 w-4 text-brand-glow" />Skyline Achievers AI</Link></Button>
+          {training.state.reviewSubmitted ? <Button asChild variant="ghost" className="h-11 w-full justify-start text-muted-foreground"><Link to="/founder" search={{ view: "review" }}><Star className="h-4 w-4 text-brand-glow" />Review Status</Link></Button> : null}
+          <Button asChild variant="outline" className="mt-3 h-11 w-full justify-start"><Link to="/dashboard"><Home className="h-4 w-4" />Back to FBO Dashboard</Link></Button>
+        </nav>
+      </aside></div> : null}
+
+      <main className="relative mx-auto max-w-4xl px-4 py-5">{children}</main>
+    </div>
   );
 }
 

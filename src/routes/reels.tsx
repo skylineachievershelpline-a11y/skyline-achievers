@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  BadgeCheck,
   Bookmark,
   ChevronDown,
   ChevronUp,
@@ -38,13 +39,15 @@ import {
   createReel,
   deleteReel,
   getReelComments,
+  getCreatorReels,
   getReelUploadUrl,
   getReels,
   markReelSeen,
   toggleReelLike,
   toggleReelSave,
 } from "@/lib/reels.functions";
-import { putWithProgress } from "@/lib/upload-progress";
+import { resumableUpload } from "@/lib/resumable-upload";
+import { RankPin } from "@/components/member/RankPin";
 
 export const Route = createFileRoute("/reels")({
   head: () => ({
@@ -80,6 +83,7 @@ type Reel = {
   liked: boolean;
   saved: boolean;
   isMine: boolean;
+  authorId?: string;
 };
 
 function compactCount(value: number): string {
@@ -113,6 +117,7 @@ function ReelsPage() {
   const [composer, setComposer] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [commentsFor, setCommentsFor] = useState<Reel | null>(null);
+  const [profileFor, setProfileFor] = useState<string | null>(null);
   const [local, setLocal] = useState<Record<string, Partial<Reel>>>({});
   const marked = useRef<Set<string>>(new Set());
   const reelFeedRef = useRef<HTMLDivElement | null>(null);
@@ -247,6 +252,7 @@ function ReelsPage() {
                   onDownload={() => void onDownload(reel)}
                   onComments={() => setCommentsFor(reel)}
                   onDelete={reel.isMine ? () => del.mutate(reel.id) : undefined}
+                  onAuthor={() => setProfileFor(reel.authorId ?? "official")}
                 />
               ))}
             </div>
@@ -317,6 +323,24 @@ function ReelsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <Dialog open={Boolean(profileFor)} onOpenChange={(next) => !next && setProfileFor(null)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto rounded-3xl p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Creator profile</DialogTitle>
+          </DialogHeader>
+          {profileFor ? (
+            <CreatorProfile
+              authorId={profileFor}
+              onOpenReel={(id) => {
+                setProfileFor(null);
+                const target = reelFeedRef.current?.querySelector<HTMLElement>(`[data-reel-id="${id}"]`);
+                target?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </MemberShell>
   );
 }
@@ -330,6 +354,7 @@ function ReelCard({
   onDownload,
   onComments,
   onDelete,
+  onAuthor,
 }: {
   reel: Reel;
   isActive: boolean;
@@ -339,6 +364,7 @@ function ReelCard({
   onDownload: () => void;
   onComments: () => void;
   onDelete?: (() => void) | undefined;
+  onAuthor: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -454,7 +480,14 @@ function ReelCard({
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 pr-16 pt-14">
-        <ReelAuthor reel={reel} />
+        <button
+          type="button"
+          onClick={onAuthor}
+          aria-label={`Open ${reel.authorName} profile`}
+          className="pointer-events-auto max-w-full rounded-full text-left transition-transform active:scale-95"
+        >
+          <ReelAuthor reel={reel} />
+        </button>
         <h3 className="mt-2 font-display text-base font-semibold">{reel.title}</h3>
         {reel.caption ? (
           <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{reel.caption}</p>
@@ -584,17 +617,50 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
   const [busy, setBusy] = useState(false);
   const uploadProgress = useUploadProgress();
 
+  useEffect(() => {
+    setDuration(null);
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const probe = document.createElement("video");
+    probe.preload = "metadata";
+    probe.onloadedmetadata = () => {
+      if (Number.isFinite(probe.duration)) setDuration(probe.duration);
+      URL.revokeObjectURL(url);
+    };
+    probe.onerror = () => URL.revokeObjectURL(url);
+    probe.src = url;
+  }, [file]);
+
   async function upload(kind: "video" | "cover", target: File) {
     const extension = (target.name.split(".").pop() ?? "mp4").toLowerCase();
-    const slot = await createUrl({ data: { kind, extension } } as never);
-    await putWithProgress(
+    // Reuse the same upload slot for the same file so a retry continues where it stopped.
+    const key = `skyline-reel-slot:${target.name}:${target.size}:${target.lastModified}`;
+    let slot: { path: string; signedUrl: string; at: number } | null = null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (saved && Date.now() - saved.at < 90 * 60 * 1000) slot = saved;
+    } catch {
+      slot = null;
+    }
+    if (!slot) {
+      const fresh = await createUrl({ data: { kind, extension } } as never);
+      slot = { ...fresh, at: Date.now() };
+      localStorage.setItem(key, JSON.stringify(slot));
+    }
+    await resumableUpload(
+      kind === "video" ? "training-videos" : "training-thumbnails",
+      slot.path,
       slot.signedUrl,
       target,
       uploadProgress.handler(kind === "video" ? "Uploading reel" : "Uploading cover"),
+      setReconnecting,
     );
+    localStorage.removeItem(key);
     return slot.path;
   }
 
@@ -648,12 +714,100 @@ function ReelComposer({ onDone }: { onDone: () => void }) {
           className="sr-only"
         />
       </label>
-      {file ? <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10"><Video className="text-brand-glow" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{file.name}</p><p className="text-xs text-muted-foreground">MP4 · {(file.size / 1024 / 1024).toFixed(1)} MB</p></div><Button type="button" size="icon" variant="ghost" aria-label="Remove selected video" onClick={() => setFile(null)}><X /></Button></div> : null}
+      {file ? <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-3"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10"><Video className="text-brand-glow" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{file.name}</p><p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB{duration ? ` · ${Math.floor(duration / 60)}:${String(Math.round(duration % 60)).padStart(2, "0")} min` : ""}</p></div><Button type="button" size="icon" variant="ghost" aria-label="Remove selected video" disabled={busy} onClick={() => setFile(null)}><X /></Button></div> : null}
       <UploadProgress state={uploadProgress.state} />
+      {busy && reconnecting ? <p className="text-center text-xs text-cyan">Internet is weak — reconnecting. Your upload will continue from where it stopped.</p> : null}
+      {busy ? <p className="text-center text-[11px] text-muted-foreground">Keep this page open until the upload finishes.</p> : null}
       <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" size="xl" onClick={onDone}>Cancel</Button><Button type="submit" variant="brand" size="xl" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Upload
       </Button></div>
     </form>
+  );
+}
+
+function CreatorProfile({ authorId, onOpenReel }: { authorId: string; onOpenReel: (id: string) => void }) {
+  const load = useServerFn(getCreatorReels);
+  const { data, isPending } = useQuery({
+    queryKey: ["creator-reels", authorId],
+    queryFn: () => load({ data: { authorId } }),
+  });
+  if (isPending || !data) {
+    return (
+      <div className="flex min-h-72 items-center justify-center">
+        <SkylineLoader />
+      </div>
+    );
+  }
+  const { profile, reels, totalLikes } = data;
+  const official = authorId === "official";
+  return (
+    <div className="pb-4">
+      <div className="flex flex-col items-center px-5 pt-8 text-center">
+        <span className="rounded-full bg-gradient-to-br from-cyan to-primary p-[3px] shadow-brand">
+          {official ? (
+            <img src={BRAND.logoUrl} alt="" className="h-24 w-24 rounded-full bg-surface-2 object-contain p-2" />
+          ) : profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt="" className="h-24 w-24 rounded-full bg-surface-2 object-cover" />
+          ) : (
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-2 font-display text-3xl font-semibold">
+              {profile.name.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+        </span>
+        <div className="mt-3 flex items-center gap-1.5">
+          <h2 className="font-display text-lg font-semibold">{profile.name}</h2>
+          {profile.verified ? <BadgeCheck className="h-5 w-5 text-emerald-400" aria-label="Verified" /> : null}
+        </div>
+        {profile.memberId ? <p className="text-xs text-muted-foreground">ID {profile.memberId}</p> : null}
+        {profile.rank ? (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-silver">
+            <RankPin rank={profile.rank} className="h-7 w-7" />
+            {profile.rank}
+          </div>
+        ) : official ? (
+          <p className="mt-1 text-xs text-cyan">Official account</p>
+        ) : null}
+        <div className="mt-5 grid w-full grid-cols-2 gap-2">
+          <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+            <p className="font-display text-xl font-semibold">{compactCount(reels.length)}</p>
+            <p className="text-[11px] text-muted-foreground">Reels</p>
+          </div>
+          <div className="rounded-2xl border border-hairline bg-surface-2 p-3">
+            <p className="font-display text-xl font-semibold">{compactCount(totalLikes)}</p>
+            <p className="text-[11px] text-muted-foreground">Likes</p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 border-t border-hairline pt-1">
+        {reels.length === 0 ? (
+          <p className="p-8 text-center text-sm text-muted-foreground">No reels posted yet.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-0.5">
+            {reels.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => onOpenReel(r.id)}
+                aria-label={`Play ${r.title}`}
+                className="relative aspect-[9/16] overflow-hidden bg-media transition-opacity active:opacity-70"
+              >
+                {r.posterUrl ? (
+                  <img src={r.posterUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-muted-foreground">
+                    {r.title}
+                  </span>
+                )}
+                <span className="absolute bottom-1 left-1 flex items-center gap-0.5 text-[10px] font-semibold text-foreground drop-shadow">
+                  <Heart className="h-3 w-3 fill-current" />
+                  {compactCount(r.likes)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

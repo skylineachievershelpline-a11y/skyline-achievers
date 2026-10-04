@@ -26,7 +26,7 @@ import {
   X,
   Bell,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { FounderTrainingBar } from "@/components/founder/FounderTrainingBar";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -91,7 +91,7 @@ function FounderTrainingPage() {
   );
 }
 
-function FounderBeginnerShell({ children }: { children: React.ReactNode }) {
+function FounderBeginnerShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const training = useFounderTraining();
   const menu = [

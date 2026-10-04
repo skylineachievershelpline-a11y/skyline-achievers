@@ -363,14 +363,16 @@ function BeginnersPage() {
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   useEffect(() => {
     const t = (data as any)?.trainee;
     if (t) void rememberCurrentAccount({ name: t.fullName, code: t.code ?? t.traineeCode, kind: "trainee" });
   }, [data]);
 
   async function signOut() {
-    const { data: s } = await supabase.auth.getSession();
-    if (s.session) forgetAccount(s.session.user.id);
+    setSettingsOpen(false);
+    setMenuOpen(false);
+    if (authUserId) forgetAccount(authUserId);
     fastSignOut((path) => void navigate({ to: path, replace: true }));
   }
 

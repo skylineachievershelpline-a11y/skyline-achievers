@@ -18,6 +18,7 @@ import { ReelsTab } from "@/components/admin/ReelsTab";
 import { ReportsTab } from "@/components/admin/ReportsTab";
 import { ReviewsTab } from "@/components/admin/ReviewsTab";
 import { SessionsTab } from "@/components/admin/SessionsTab";
+import { SessionExtrasTab } from "@/components/admin/SessionExtrasTab";
 import { StoriesTab } from "@/components/admin/StoriesTab";
 import { CoursesTab } from "@/components/admin/CoursesTab";
 import { AssistantsTab } from "@/components/admin/AssistantsTab";
@@ -163,6 +164,9 @@ function AdminPage() {
             <TabsTrigger value="sessions" className="rounded-xl">
               Sessions
             </TabsTrigger>
+            <TabsTrigger value="session-extras" className="rounded-xl">
+              Session Extras
+            </TabsTrigger>
             <TabsTrigger value="journey" className="rounded-xl">
               Journey &amp; Payments
             </TabsTrigger>
@@ -209,6 +213,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="sessions" className="mt-5">
             <SessionsTab />
+          </TabsContent>
+          <TabsContent value="session-extras" className="mt-5">
+            <SessionExtrasTab />
           </TabsContent>
           <TabsContent value="journey" className="mt-5">
             <JourneyTab />

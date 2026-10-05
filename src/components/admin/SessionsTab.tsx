@@ -1,12 +1,11 @@
 import { SkylineLoader } from "@/components/brand/SkylineLoader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Film, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { frameFromVideo } from "@/components/admin/ReelsTab";
-import { SessionExtrasDialog } from "@/components/admin/SessionExtrasDialog";
 import { uploadToBucket } from "@/components/admin/upload";
 import { UploadProgress, useUploadProgress } from "@/components/UploadProgress";
 import { Button } from "@/components/ui/button";
@@ -59,7 +58,6 @@ export function SessionsTab() {
   });
 
   const [open, setOpen] = useState(false);
-  const [extrasFor, setExtrasFor] = useState<{ id: string; title: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<SessionRow | null>(null);
   const [sessionCode, setSessionCode] = useState("");
@@ -223,13 +221,6 @@ export function SessionsTab() {
                 </p>
               </div>
               <button
-                onClick={() => setExtrasFor({ id: row.id, title: row.title })}
-                className="text-muted-foreground transition-colors hover:text-brand"
-                aria-label="Extra videos for this session"
-              >
-                <Film className="h-4 w-4" />
-              </button>
-              <button
                 onClick={() => startEdit(row)}
                 className="text-muted-foreground transition-colors hover:text-brand"
                 aria-label="Edit session"
@@ -248,13 +239,6 @@ export function SessionsTab() {
         </ul>
       )}
 
-      {extrasFor ? (
-        <SessionExtrasDialog
-          sessionId={extrasFor.id}
-          sessionTitle={extrasFor.title}
-          onClose={() => setExtrasFor(null)}
-        />
-      ) : null}
 
       <Dialog
         open={open}

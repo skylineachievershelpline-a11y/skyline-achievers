@@ -452,3 +452,28 @@ export const saveTraineeAvatar = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/** Bonus material for a session whose review this trainee already had approved. */
+export const getApprovedSessionExtras = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { sessionId: string }) =>
+    z.object({ sessionId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: review } = await (supabaseAdmin as any)
+      .from("trainee_session_reviews")
+      .select("id")
+      .eq("trainee_id", context.userId)
+      .eq("session_id", data.sessionId)
+      .eq("status", "approved")
+      .limit(1)
+      .maybeSingle();
+    if (!review) return { extras: [] };
+    const { loadSessionExtras, loadSessionResources } = await import("./session-extras.server");
+    const [own, linked] = await Promise.all([
+      loadSessionExtras(supabaseAdmin, data.sessionId),
+      loadSessionResources(supabaseAdmin, data.sessionId),
+    ]);
+    return { extras: [...own, ...linked] };
+  });

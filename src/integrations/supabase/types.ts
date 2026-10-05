@@ -2477,6 +2477,7 @@ export type Database = {
       notifications: {
         Row: {
           audience_level_id: string | null
+          audience_level_ids: string[]
           body: string | null
           created_at: string
           id: string
@@ -2489,6 +2490,7 @@ export type Database = {
         }
         Insert: {
           audience_level_id?: string | null
+          audience_level_ids?: string[]
           body?: string | null
           created_at?: string
           id?: string
@@ -2501,6 +2503,7 @@ export type Database = {
         }
         Update: {
           audience_level_id?: string | null
+          audience_level_ids?: string[]
           body?: string | null
           created_at?: string
           id?: string

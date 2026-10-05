@@ -23,7 +23,7 @@ export const Route = createFileRoute("/enrollment-video")({
       getLandingIntroduction(),
       deps.fbo && /^\d{12}$/.test(deps.fbo)
         ? getFboPublicPayment({ data: { fbo: deps.fbo } })
-        : Promise.resolve({ method: null, fullName: null }),
+        : Promise.resolve({ method: null, methods: [], fullName: null }),
     ]);
     return { ...intro, payment };
   },
@@ -106,21 +106,22 @@ function EnrollmentVideoPage() {
             </Button>
             {open ? (
               <div className="animate-rise-in space-y-5">
-                {payment?.method ? (
-                  <section className="glass-panel metal-edge rounded-3xl p-6">
+                {payment?.methods?.length ? (
+                  <div className="space-y-4">{payment.methods.map((method: any, i: number) => (
+                  <section key={i} className="glass-panel metal-edge rounded-3xl p-6">
                     <div className="flex items-center gap-2 text-brand-glow">
                       <Wallet className="h-5 w-5" />
                       <p className="text-[11px] font-semibold uppercase tracking-[0.2em]">
                         Payment Method
                       </p>
                     </div>
-                    <h2 className="mt-2 font-display text-xl font-semibold">{payment.method.provider}</h2>
+                    <h2 className="mt-2 font-display text-xl font-semibold">{method.provider}</h2>
                     {payment.fullName ? (
                       <p className="text-xs text-muted-foreground">Shared by {payment.fullName}</p>
                     ) : null}
                     {[
-                      ["Account title", payment.method.accountTitle],
-                      ["Account number", payment.method.accountNumber],
+                      ["Account title", method.accountTitle],
+                      ["Account number", method.accountNumber],
                     ].map(([label, value]) => (
                       <div key={label} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
                         <div className="min-w-0">
@@ -140,10 +141,11 @@ function EnrollmentVideoPage() {
                         </Button>
                       </div>
                     ))}
-                    {payment.method.note ? (
-                      <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{payment.method.note}</p>
+                    {method.note ? (
+                      <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{method.note}</p>
                     ) : null}
                   </section>
+                  ))}</div>
                 ) : (
                   <p className="rounded-2xl border border-hairline bg-surface p-4 text-sm text-muted-foreground">
                     Please ask the person who shared this video for payment details.

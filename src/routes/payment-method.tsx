@@ -40,7 +40,7 @@ export const Route = createFileRoute("/payment-method")({
 
 const PROVIDERS = ["Easypaisa", "JazzCash", "Bank Transfer"];
 
-type Method = { provider: string; accountTitle: string; accountNumber: string; note: string; bank?: string | null; qr?: string | null };
+type Method = { provider: string; accountTitle: string; accountNumber: string; note: string; bank?: string | null | undefined; qr?: string | null | undefined };
 const EMPTY: Method = { provider: "Easypaisa", accountTitle: "", accountNumber: "", note: "", bank: null, qr: null };
 
 function PaymentMethodPage() {

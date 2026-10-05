@@ -168,7 +168,7 @@ function LandingPage() {
       if (role.role === "member") void navigate({ to: "/dashboard" });
       else if (role.role === "trainee") void navigate({ to: "/beginners" });
       else {
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
         setLaunching(false);
       }
     });

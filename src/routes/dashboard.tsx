@@ -264,7 +264,7 @@ function NoMemberAccess({ hasProfile }: { hasProfile: boolean }) {
         }
         await queryClient.cancelQueries();
         queryClient.clear();
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
         await navigate({ to: "/", replace: true });
       });
     return () => {

@@ -764,7 +764,7 @@ function AccountReady({ code }: { code: string }) {
         onClick={async () => {
           setBusy(true);
           const { supabase } = await import("@/integrations/supabase/client");
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: "local" });
           window.location.href = "/";
         }}
       >

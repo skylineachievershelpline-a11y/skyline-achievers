@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { SectionTiles, type SectionTile } from "@/components/media/SectionTiles";
@@ -14,17 +14,20 @@ export type SessionSectionItem = {
 const OTHER = "__other__";
 
 /**
- * Extra material with a session stays hidden until the viewer confirms they
- * watched the full webinar. Confirming shows the categories (products,
- * reviews, files …); picking one shows just that category's items.
+ * Extra material with a session. When `locked`, it stays hidden until the
+ * session review is approved; `approved` shows a motivational banner.
  */
 export function SessionGate({
   extras,
   sections = [],
+  locked = false,
+  approved = false,
   children,
 }: {
   extras: SessionExtraItem[];
   sections?: SessionSectionItem[];
+  locked?: boolean;
+  approved?: boolean;
   children: ReactNode;
 }) {
   const [watched, setWatched] = useState(false);
@@ -55,17 +58,39 @@ export function SessionGate({
 
   if (extras.length === 0) return <>{children}</>;
 
+  if (locked) {
+    return (
+      <>
+        {children}
+        <div className="inset-panel mt-6 flex items-center gap-3 rounded-2xl p-4 text-xs text-muted-foreground">
+          <Lock className="h-4 w-4 shrink-0 text-brand-glow" />
+          Bonus videos, pictures, PDFs and links for this session unlock as soon as your review is
+          approved.
+        </div>
+      </>
+    );
+  }
+
   if (!watched) {
     return (
       <>
         {children}
+        {approved ? (
+          <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-300">
+            <p className="font-semibold">Review approved — your bonus material is ready!</p>
+            <p className="mt-1 text-xs opacity-90">
+              Watch these extra videos and files to clear your doubts while your next session
+              prepares.
+            </p>
+          </div>
+        ) : null}
         <Button
           size="xl"
           className="logout-button mt-6 w-full font-display text-sm"
           onClick={() => setWatched(true)}
         >
           <CheckCircle2 className="h-4 w-4" />
-          I have watched full webinar
+          {approved ? "Open bonus material" : "I have watched full webinar"}
         </Button>
       </>
     );

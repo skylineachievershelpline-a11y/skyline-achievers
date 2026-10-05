@@ -8,25 +8,12 @@ import { playPrinterSound } from "@/components/courses/PaymentSlip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatTime12 } from "@/lib/format";
 import { DEFAULT_MASTER_SLOTS, type MasterSlot } from "@/lib/journey";
 import { getUplineSessionSchedule, saveUplineSessionSchedule } from "@/lib/journey.functions";
 import { createMasterSchedulePoster } from "@/lib/journey-poster";
 
 const pad = (value: number) => String(value).padStart(2, "0");
-
-const CLOCK_TIMES = Array.from({ length: 48 }, (_, index) => {
-  const hour = Math.floor(index / 2);
-  const minute = index % 2 === 0 ? "00" : "30";
-  return `${pad(hour)}:${minute}`;
-});
 
 /**
  * The upline's one master session schedule, shown as two top buttons: one opens
@@ -219,25 +206,19 @@ export function UplineMasterSchedule() {
                          <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                            Time
                          </Label>
-                         <Select
-                          value={slot.time}
-                           onValueChange={(value) => {
-                            const next = [...slots];
-                             next[index] = { ...slot, time: value };
-                            setSlots(next);
-                          }}
-                         >
-                           <SelectTrigger aria-label={`Session ${slot.session} time`}>
-                             <SelectValue>{formatTime12(slot.time)}</SelectValue>
-                           </SelectTrigger>
-                           <SelectContent>
-                             {CLOCK_TIMES.map((time) => (
-                               <SelectItem key={time} value={time}>
-                                 {formatTime12(time)}
-                               </SelectItem>
-                             ))}
-                           </SelectContent>
-                         </Select>
+                         <Input
+                           type="time"
+                           step={60}
+                           aria-label={`Session ${slot.session} time`}
+                           value={slot.time}
+                           onChange={(event) => {
+                             if (!/^\d{2}:\d{2}/.test(event.target.value)) return;
+                             const next = [...slots];
+                             next[index] = { ...slot, time: event.target.value.slice(0, 5) };
+                             setSlots(next);
+                           }}
+                         />
+                         <p className="text-[10px] text-muted-foreground">{formatTime12(slot.time)}</p>
                       </div>
                     </div>
                   ))}

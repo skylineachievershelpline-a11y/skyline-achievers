@@ -1,5 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ChevronDown, Copy, Wallet } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { ReviewsSection } from "@/components/landing/ReviewsSection";
+import { getFboPublicPayment } from "@/lib/fbo-payment.functions";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { BackButton } from "@/components/member/BackButton";
@@ -8,7 +14,17 @@ import { Button } from "@/components/ui/button";
 import { getLandingIntroduction } from "@/lib/landing.functions";
 
 export const Route = createFileRoute("/enrollment-video")({
-  loader: () => getLandingIntroduction(),
+  validateSearch: (search) => z.object({ fbo: z.string().optional() }).parse(search),
+  loaderDeps: ({ search }) => ({ fbo: search.fbo }),
+  loader: async ({ deps }) => {
+    const [intro, payment] = await Promise.all([
+      getLandingIntroduction(),
+      deps.fbo && /^\d{12}$/.test(deps.fbo)
+        ? getFboPublicPayment({ data: { fbo: deps.fbo } })
+        : Promise.resolve({ method: null, fullName: null }),
+    ]);
+    return { ...intro, payment };
+  },
   head: ({ loaderData }) => {
     const video = loaderData?.introduction;
     const title = video?.title
@@ -37,7 +53,8 @@ export const Route = createFileRoute("/enrollment-video")({
 });
 
 function EnrollmentVideoPage() {
-  const { introduction } = Route.useLoaderData();
+  const { introduction, payment } = Route.useLoaderData();
+  const [open, setOpen] = useState(false);
 
   return (
     <main className="infographic-grid relative min-h-screen px-4 pb-16 pt-6 sm:px-8">
@@ -77,6 +94,64 @@ function EnrollmentVideoPage() {
                 </p>
               ) : null}
             </section>
+            <Button
+              variant="outline"
+              className="w-full rounded-2xl"
+              onClick={() => setOpen((v) => !v)}
+            >
+              {open ? "See Less" : "See More"}
+              <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+            </Button>
+            {open ? (
+              <div className="animate-rise-in space-y-5">
+                {payment?.method ? (
+                  <section className="glass-panel metal-edge rounded-3xl p-6">
+                    <div className="flex items-center gap-2 text-brand-glow">
+                      <Wallet className="h-5 w-5" />
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em]">
+                        Payment Method
+                      </p>
+                    </div>
+                    <h2 className="mt-2 font-display text-xl font-semibold">{payment.method.provider}</h2>
+                    {payment.fullName ? (
+                      <p className="text-xs text-muted-foreground">Shared by {payment.fullName}</p>
+                    ) : null}
+                    {[
+                      ["Account title", payment.method.accountTitle],
+                      ["Account number", payment.method.accountNumber],
+                    ].map(([label, value]) => (
+                      <div key={label} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-muted-foreground">{label}</p>
+                          <p className="break-all font-semibold">{value}</p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Copy ${label}`}
+                          onClick={() => {
+                            void navigator.clipboard.writeText(value ?? "");
+                            toast.success("Copied");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {payment.method.note ? (
+                      <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{payment.method.note}</p>
+                    ) : null}
+                  </section>
+                ) : (
+                  <p className="rounded-2xl border border-hairline bg-surface p-4 text-sm text-muted-foreground">
+                    Please ask the person who shared this video for payment details.
+                  </p>
+                )}
+                <div className="-mx-4 sm:-mx-8">
+                  <ReviewsSection />
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <section className="raised-panel rounded-3xl p-8 text-center">

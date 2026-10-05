@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/member/cards";
+import { getMyPaymentMethod } from "@/lib/fbo-payment.functions";
 import { MemberShell, SectionTitle, useMemberGuard } from "@/components/member/MemberShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,12 @@ type ShareableVideo = {
 
 function SessionLinksPage() {
   const ready = useMemberGuard();
+  const loadMyPayment = useServerFn(getMyPaymentMethod);
+  const { data: myPayment } = useQuery({
+    queryKey: ["my-payment-method"],
+    queryFn: () => loadMyPayment(),
+    enabled: ready,
+  });
   const load = useServerFn(getBeginnerSessionLinks);
   const loadIntroduction = useServerFn(getLandingIntroduction);
   const router = useRouter();
@@ -91,7 +98,9 @@ function SessionLinksPage() {
         title: introduction.title || "Enrollment Video",
         description: introduction.description,
         thumbnailUrl: introduction.thumbnailUrl,
-        path: "/enrollment-video",
+        path: myPayment?.memberId
+          ? `/enrollment-video?fbo=${myPayment.memberId}`
+          : "/enrollment-video",
       }
     : null;
 

@@ -8,6 +8,8 @@ const methodSchema = z.object({
   accountTitle: z.string().trim().min(1).max(80),
   accountNumber: z.string().trim().min(3).max(40),
   note: z.string().trim().max(300).optional().default(""),
+  bank: z.string().trim().max(30).optional().nullable(),
+  qr: z.string().max(300_000).regex(/^data:image\/(png|jpeg|webp);base64,/).optional().nullable(),
 });
 export type FboPaymentMethod = z.infer<typeof methodSchema>;
 

@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown, Copy, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { getFboPublicPayment } from "@/lib/fbo-payment.functions";

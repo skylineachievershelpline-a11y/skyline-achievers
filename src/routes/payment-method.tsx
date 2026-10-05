@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Copy, Save, Wallet } from "lucide-react";
+import { Save, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { MemberShell } from "@/components/member/MemberShell";

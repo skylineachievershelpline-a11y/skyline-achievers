@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Copy, Save, Wallet } from "lucide-react";
+import { Save, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { MemberShell } from "@/components/member/MemberShell";
@@ -38,10 +38,6 @@ function PaymentMethodPage() {
     if (data?.method) setForm({ ...data.method, note: data.method.note ?? "" });
   }, [data]);
 
-  const link =
-    typeof window !== "undefined" && data?.memberId
-      ? `${window.location.origin}/enrollment-video?fbo=${data.memberId}`
-      : "";
 
   const onSave = async () => {
     setBusy(true);
@@ -96,25 +92,9 @@ function PaymentMethodPage() {
             <Save className="mr-2 h-4 w-4" /> Save payment method
           </Button>
         </section>
-        {link ? (
-          <section className="raised-panel space-y-3 rounded-3xl p-5">
-            <p className="text-sm font-semibold">Your enrollment video link</p>
-            <p className="break-all text-xs text-muted-foreground">{link}</p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                void navigator.clipboard.writeText(link);
-                toast.success("Link copied");
-              }}
-            >
-              <Copy className="mr-2 h-4 w-4" /> Copy link
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Visitors see your payment card and success stories after tapping "See More" under the video.
-            </p>
-          </section>
-        ) : null}
+        <p className="text-xs text-muted-foreground">
+          Copy your enrollment video link from the Beginners Sessions page. Visitors see this payment card after tapping "See More".
+        </p>
       </div>
     </MemberShell>
   );

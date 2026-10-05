@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronDown, Copy, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { getFboPublicPayment } from "@/lib/fbo-payment.functions";
@@ -14,7 +13,10 @@ import { Button } from "@/components/ui/button";
 import { getLandingIntroduction } from "@/lib/landing.functions";
 
 export const Route = createFileRoute("/enrollment-video")({
-  validateSearch: (search) => z.object({ fbo: z.string().optional() }).parse(search),
+  validateSearch: (search) => {
+    const raw = (search as Record<string, unknown>)["fbo"];
+    return { fbo: raw === undefined || raw === null ? undefined : String(raw) };
+  },
   loaderDeps: ({ search }) => ({ fbo: search.fbo }),
   loader: async ({ deps }) => {
     const [intro, payment] = await Promise.all([

@@ -6,7 +6,6 @@ import { Bot, Eye, EyeOff, ListChecks, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AnnouncementBanner } from "@/components/member/AnnouncementBanner";
-import { FounderTrainingBar } from "@/components/founder/FounderTrainingBar";
 import { FlyingSkylineAiMascot } from "@/components/ai/SkylineAiMascot";
 import { UplineRequestsPanel } from "@/components/journey/UplineRequestsPanel";
 
@@ -107,7 +106,6 @@ function DashboardPage() {
       executive
     >
       <AnnouncementBanner />
-      {isFounder ? <FounderTrainingBar /> : null}
 
       <div className="mx-auto mt-2 w-full max-w-3xl">
         <UplineRequestsPanel />

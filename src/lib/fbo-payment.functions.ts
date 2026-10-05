@@ -11,6 +11,11 @@ const methodSchema = z.object({
 });
 export type FboPaymentMethod = z.infer<typeof methodSchema>;
 
+function readMethods(value: any): FboPaymentMethod[] {
+  if (Array.isArray(value?.methods)) return value.methods.slice(0, 3);
+  return value?.method ? [value.method] : [];
+}
+
 const keyFor = (memberId: string) => `fbo_payment:${memberId}`;
 
 async function ownMemberId(supabase: any, userId: string) {
@@ -33,18 +38,18 @@ export const getMyPaymentMethod = createServerFn({ method: "GET" })
       .select("value")
       .eq("key", keyFor(me.member_id))
       .maybeSingle();
-    return { memberId: me.member_id, method: (data?.value?.method ?? null) as FboPaymentMethod | null };
+    return { memberId: me.member_id, methods: readMethods(data?.value) };
   });
 
 export const saveMyPaymentMethod = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => methodSchema.parse(data))
+  .inputValidator((data) => z.object({ methods: z.array(methodSchema).max(3) }).parse(data))
   .handler(async ({ context, data }) => {
     const me = await ownMemberId(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await (supabaseAdmin as any).from("platform_settings").upsert({
       key: keyFor(me.member_id),
-      value: { method: data, fullName: me.full_name },
+      value: { methods: data.methods, method: data.methods[0] ?? null, fullName: me.full_name },
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error("Could not save payment method.");
@@ -61,9 +66,11 @@ export const getFboPublicPayment = createServerFn({ method: "GET" })
       .select("value")
       .eq("key", keyFor(data.fbo))
       .maybeSingle();
-    if (!row?.value?.method) return { method: null, fullName: null };
+    const methods = readMethods(row?.value);
+    if (!methods.length) return { method: null, methods: [], fullName: null };
     return {
-      method: row.value.method as FboPaymentMethod,
+      method: methods[0],
+      methods,
       fullName: (row.value.fullName ?? null) as string | null,
     };
   });

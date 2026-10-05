@@ -31,6 +31,7 @@ import {
   sessionOpen,
   type JourneySession,
 } from "@/lib/journey";
+import { ApprovedExtras } from "@/components/journey/ApprovedExtras";
 import {
   getMentorshipSeats,
   getTraineeJourney,
@@ -371,6 +372,11 @@ export function TraineeJourney() {
           )}
         </section>
       ) : null}
+
+      {(() => {
+        const last = [...basic].reverse().find((s) => s.review === "approved" && s.sessionId);
+        return last?.sessionId ? <ApprovedExtras sessionId={last.sessionId} title={last.title} /> : null;
+      })()}
 
       {/* ---------- try again: the senior did not pass this attempt ---------- */}
       {data.stage === "reassess" ? (

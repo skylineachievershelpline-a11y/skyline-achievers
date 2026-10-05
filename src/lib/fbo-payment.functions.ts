@@ -40,7 +40,7 @@ export const getMyPaymentMethod = createServerFn({ method: "GET" })
       .select("value")
       .eq("key", keyFor(me.member_id))
       .maybeSingle();
-    return { memberId: me.member_id, methods: readMethods(data?.value) };
+    return { memberId: me.member_id, methods: readMethods(data?.value), fullName: me.full_name };
   });
 
 export const saveMyPaymentMethod = createServerFn({ method: "POST" })

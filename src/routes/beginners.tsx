@@ -810,7 +810,13 @@ function BeginnersPage() {
               </div>
             </div>
 
-            <SessionGate key={focused.id} extras={focused.extras} sections={focused.sections}>
+            <SessionGate
+              key={focused.id}
+              extras={focused.extras}
+              sections={focused.sections}
+              locked={Boolean(focusedJourneySession) && focusedJourneySession?.review !== "approved"}
+              approved={focusedJourneySession?.review === "approved"}
+            >
               <SessionVideo
                 title={focused.title}
                 videoUrl={focused.videoUrl}

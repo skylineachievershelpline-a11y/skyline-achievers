@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { SectionTiles, type SectionTile } from "@/components/media/SectionTiles";
@@ -14,17 +14,20 @@ export type SessionSectionItem = {
 const OTHER = "__other__";
 
 /**
- * Extra material with a session stays hidden until the viewer confirms they
- * watched the full webinar. Confirming shows the categories (products,
- * reviews, files …); picking one shows just that category's items.
+ * Extra material with a session. When `locked`, it stays hidden until the
+ * session review is approved; `approved` shows a motivational banner.
  */
 export function SessionGate({
   extras,
   sections = [],
+  locked = false,
+  approved = false,
   children,
 }: {
   extras: SessionExtraItem[];
   sections?: SessionSectionItem[];
+  locked?: boolean;
+  approved?: boolean;
   children: ReactNode;
 }) {
   const [watched, setWatched] = useState(false);
@@ -87,7 +90,7 @@ export function SessionGate({
           onClick={() => setWatched(true)}
         >
           <CheckCircle2 className="h-4 w-4" />
-          I have watched full webinar
+          {approved ? "Open bonus material" : "I have watched full webinar"}
         </Button>
       </>
     );

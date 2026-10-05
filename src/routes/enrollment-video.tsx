@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { ReviewsSection } from "@/components/landing/ReviewsSection";
 import { getFboPublicPayment } from "@/lib/fbo-payment.functions";
+import { AtmPaymentCard } from "@/components/payment/AtmPaymentCard";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { BackButton } from "@/components/member/BackButton";
@@ -108,43 +109,7 @@ function EnrollmentVideoPage() {
               <div className="animate-rise-in space-y-5">
                 {payment?.methods?.length ? (
                   <div className="space-y-4">{payment.methods.map((method: any, i: number) => (
-                  <section key={i} className="glass-panel metal-edge rounded-3xl p-6">
-                    <div className="flex items-center gap-2 text-brand-glow">
-                      <Wallet className="h-5 w-5" />
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em]">
-                        Payment Method
-                      </p>
-                    </div>
-                    <h2 className="mt-2 font-display text-xl font-semibold">{method.provider}</h2>
-                    {payment.fullName ? (
-                      <p className="text-xs text-muted-foreground">Shared by {payment.fullName}</p>
-                    ) : null}
-                    {[
-                      ["Account title", method.accountTitle],
-                      ["Account number", method.accountNumber],
-                    ].map(([label, value]) => (
-                      <div key={label} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface p-3">
-                        <div className="min-w-0">
-                          <p className="text-[11px] text-muted-foreground">{label}</p>
-                          <p className="break-all font-semibold">{value}</p>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          aria-label={`Copy ${label}`}
-                          onClick={() => {
-                            void navigator.clipboard.writeText(value ?? "");
-                            toast.success("Copied");
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    {method.note ? (
-                      <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{method.note}</p>
-                    ) : null}
-                  </section>
+                  <AtmPaymentCard key={i} method={method} ownerName={payment.fullName} />
                   ))}</div>
                 ) : (
                   <p className="rounded-2xl border border-hairline bg-surface p-4 text-sm text-muted-foreground">

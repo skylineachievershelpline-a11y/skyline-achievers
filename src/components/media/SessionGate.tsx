@@ -55,10 +55,32 @@ export function SessionGate({
 
   if (extras.length === 0) return <>{children}</>;
 
+  if (locked) {
+    return (
+      <>
+        {children}
+        <div className="inset-panel mt-6 flex items-center gap-3 rounded-2xl p-4 text-xs text-muted-foreground">
+          <Lock className="h-4 w-4 shrink-0 text-brand-glow" />
+          Bonus videos, pictures, PDFs and links for this session unlock as soon as your review is
+          approved.
+        </div>
+      </>
+    );
+  }
+
   if (!watched) {
     return (
       <>
         {children}
+        {approved ? (
+          <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-300">
+            <p className="font-semibold">Review approved — your bonus material is ready!</p>
+            <p className="mt-1 text-xs opacity-90">
+              Watch these extra videos and files to clear your doubts while your next session
+              prepares.
+            </p>
+          </div>
+        ) : null}
         <Button
           size="xl"
           className="logout-button mt-6 w-full font-display text-sm"

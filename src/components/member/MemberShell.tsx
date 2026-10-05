@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  Wallet,
   Bell,
   Bot,
   Clapperboard,
@@ -88,6 +89,7 @@ const NAV = [
   { to: "/courses", label: "Premium Courses", icon: Crown },
   { to: "/resources", label: "Files & Resources", icon: FolderOpen },
   { to: "/search", label: "Search", icon: Search },
+  { to: "/payment-method", label: "My Payment Method", icon: Wallet },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/leave", label: "Leave Application", icon: FileText },
   { to: "/chat", label: "Messages", icon: MessageCircle },

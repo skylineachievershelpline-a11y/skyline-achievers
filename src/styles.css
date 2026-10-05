@@ -2007,12 +2007,9 @@ body > div > :not(.liquid-atmosphere) {
   position: relative;
   z-index: 2;
   min-height: 31rem;
-  touch-action: pan-x;
-  user-select: none;
-  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  user-select: text;
 }
-
-.review-stack:active { cursor: grabbing; }
 
 .review-card {
   position: absolute;
@@ -2043,9 +2040,19 @@ body > div > :not(.liquid-atmosphere) {
   overflow: hidden;
   border-radius: 1rem;
   background: var(--media);
+  touch-action: pan-y pinch-zoom;
 }
 
-.review-video > * { width: 100%; margin-inline: auto; }
+.review-video > * {
+  width: 100%;
+  margin-inline: auto;
+  touch-action: pan-y pinch-zoom;
+}
+
+.review-video video,
+.review-video iframe {
+  touch-action: pan-y pinch-zoom;
+}
 
 .review-copy {
   display: -webkit-box;

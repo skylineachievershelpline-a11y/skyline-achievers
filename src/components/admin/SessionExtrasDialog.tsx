@@ -540,7 +540,7 @@ export function SessionExtrasDialog({
   );
 }
 
-function Shell({ inline, onClose, title, children }: { inline: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+function Shell({ inline, onClose, title, children }: { inline: boolean; onClose: () => void; title: string; children: import("react").ReactNode }) {
   if (inline) {
     return (
       <section className="glass-panel space-y-4 rounded-3xl p-4">

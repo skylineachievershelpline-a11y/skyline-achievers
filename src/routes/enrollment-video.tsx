@@ -130,7 +130,7 @@ function EnrollmentVideoPage() {
                           variant="ghost"
                           aria-label={`Copy ${label}`}
                           onClick={() => {
-                            void navigator.clipboard.writeText(value);
+                            void navigator.clipboard.writeText(value ?? "");
                             toast.success("Copied");
                           }}
                         >

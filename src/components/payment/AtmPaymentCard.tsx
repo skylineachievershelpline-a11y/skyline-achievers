@@ -46,7 +46,7 @@ function group(n: string) {
   return clean.length > 11 ? clean.replace(/(.{4})/g, "$1 ").trim() : clean;
 }
 
-export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; ownerName?: string | null }) {
+export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; ownerName?: string | null | undefined }) {
   const brand = cardBrandFor(method.provider, method.bank);
   const [flipped, setFlipped] = useState(false);
   const [qr, setQr] = useState<string | null>(method.qr ?? null);

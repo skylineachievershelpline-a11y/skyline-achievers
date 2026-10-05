@@ -126,33 +126,36 @@ function DashboardPage() {
             />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:max-w-md sm:gap-6">
-              <div className="min-w-0">
-                <h1 className="flex min-w-0 items-center gap-1 font-display text-[clamp(0.95rem,4.6vw,1.5rem)] font-bold leading-tight sm:text-2xl">
-                  <span className="truncate">{member?.fullName ?? "Member"}</span>
-                  {!isFounder && <RankPin rank={member?.level?.name} className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" />}
-                </h1>
-
-                <div className="mt-1 flex items-center gap-1">
-                  <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold text-cyan sm:text-base">
-                    {showId ? member?.memberId ?? "—" : "••••••••••••"}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0 rounded-full"
-                    aria-label={showId ? "Hide member ID" : "Show member ID"}
-                    onClick={() => setShowId((value) => !value)}
-                  >
-                    {showId ? <EyeOff /> : <Eye />}
-                  </Button>
+            <div className="mt-3 sm:max-w-md">
+              <h1 className="font-display text-[clamp(1rem,5vw,1.5rem)] font-bold leading-tight break-words sm:text-2xl">
+                {member?.fullName ?? "Member"}
+                {!isFounder && (
+                  <RankPin rank={member?.level?.name} className="ml-1 inline-block h-9 w-9 align-middle sm:h-11 sm:w-11" />
+                )}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <p className="whitespace-nowrap font-achiever-display text-[clamp(0.68rem,3vw,0.9rem)] font-bold text-cyan sm:text-base">
+                      {showId ? member?.memberId ?? "—" : "••••••••••••"}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 rounded-full"
+                      aria-label={showId ? "Hide member ID" : "Show member ID"}
+                      onClick={() => setShowId((value) => !value)}
+                    >
+                      {showId ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Founder & CEO · Member ID" : "Member ID"}</p>
                 </div>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Founder & CEO · Member ID" : "Member ID"}</p>
-              </div>
-              <div className="min-w-0 self-end text-right">
-                <p className="font-display text-sm font-bold sm:text-base">{isFounder ? "Founder & CEO" : formatRankName(member?.level?.name)}</p>
-                <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Skyline Achievers" : "Level"}</p>
+                <div className="min-w-0 text-right">
+                  <p className="font-display text-sm font-bold sm:text-base">{isFounder ? "Founder & CEO" : formatRankName(member?.level?.name)}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase text-muted-foreground">{isFounder ? "Skyline Achievers" : "Level"}</p>
+                </div>
               </div>
             </div>
           </div>

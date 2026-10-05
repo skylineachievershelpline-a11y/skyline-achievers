@@ -554,7 +554,7 @@ function Shell({ inline, onClose, title, children }: { inline: boolean; onClose:
       <DialogContent className="!bottom-1.5 !left-1.5 !right-1.5 !top-1.5 !max-h-none !w-auto !max-w-none !translate-x-0 !translate-y-0 min-w-0 overflow-x-hidden overflow-y-auto rounded-2xl p-3 sm:!bottom-auto sm:!left-1/2 sm:!right-auto sm:!top-1/2 sm:!max-h-[90dvh] sm:!w-[calc(100vw-2rem)] sm:!max-w-lg sm:!-translate-x-1/2 sm:!-translate-y-1/2 sm:rounded-3xl sm:p-6">
         <DialogHeader>
           <DialogTitle className="min-w-0 break-words pr-8 text-left text-base leading-snug">
-            Extra material · {sessionTitle}
+            Extra material · {title.replace("Extra material · ", "")}
           </DialogTitle>
         </DialogHeader>
         {children}

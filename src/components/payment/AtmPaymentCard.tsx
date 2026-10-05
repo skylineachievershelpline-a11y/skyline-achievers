@@ -9,11 +9,11 @@ import { cardBrandFor } from "@/lib/payment-logos";
 
 export type AtmMethod = {
   provider: string;
-  bank?: string | null;
+  bank?: string | null | undefined;
   accountTitle: string;
   accountNumber: string;
-  note?: string | null;
-  qr?: string | null;
+  note?: string | null | undefined;
+  qr?: string | null | undefined;
 };
 
 /* Real-card art uses fixed metallic colours on purpose: the card must look identical in light and dark mode and in the downloaded picture. */
@@ -46,7 +46,7 @@ function group(n: string) {
   return clean.length > 11 ? clean.replace(/(.{4})/g, "$1 ").trim() : clean;
 }
 
-export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; ownerName?: string | null }) {
+export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; ownerName?: string | null | undefined }) {
   const brand = cardBrandFor(method.provider, method.bank);
   const [flipped, setFlipped] = useState(false);
   const [qr, setQr] = useState<string | null>(method.qr ?? null);

@@ -90,7 +90,7 @@ export function MemberLoginCard() {
     if (identity.kind === "trainee") {
       const traineeResult = await finishTraineeLogin();
       if (traineeResult.status !== "ok") {
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
         setPending(false);
         setError(
           traineeResult.status === "blocked"
@@ -106,7 +106,7 @@ export function MemberLoginCard() {
 
     const result = await finishLogin();
     if (result.status !== "ok") {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
       setPending(false);
       setError(
         result.status === "blocked"

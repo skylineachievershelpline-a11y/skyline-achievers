@@ -13,5 +13,5 @@ export function fastSignOut(go: (path: string) => void, to = "/") {
   void supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
   go(to);
   // Best-effort global revoke afterwards; failures do not matter to the user.
-  void supabase.auth.signOut().catch(() => undefined);
+  void supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
 }

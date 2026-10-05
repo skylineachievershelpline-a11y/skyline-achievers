@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Download, Loader2, LogOut, Plus, Repeat, ShieldCheck, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, LogOut, Plus, Repeat, ShieldCheck, Trash2, UserCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
+  forgetAccount,
   listDeviceAccounts,
   startAddAccount,
   switchToAccount,
@@ -124,8 +125,8 @@ export function AccountSettings({
           </p>
         ) : (
           others.map((account) => (
+            <div key={account.userId} className="flex items-center gap-2">
             <button
-              key={account.userId}
               type="button"
               disabled={busy !== null}
               onClick={() => void switchTo(account.userId)}
@@ -140,6 +141,23 @@ export function AccountSettings({
               </div>
               {busy === account.userId ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             </button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0 rounded-xl"
+              aria-label={`Remove ${account.name}`}
+              disabled={busy !== null}
+              onClick={() => {
+                if (!window.confirm(`Remove ${account.name} from this device?`)) return;
+                forgetAccount(account.userId);
+                setAccounts(listDeviceAccounts());
+                toast.success("Account removed from this device");
+              }}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+            </div>
           ))
         )}
       </div></> : <div className="min-h-4 flex-1" />}

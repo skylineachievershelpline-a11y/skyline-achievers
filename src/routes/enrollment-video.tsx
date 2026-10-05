@@ -14,7 +14,7 @@ import { getLandingIntroduction } from "@/lib/landing.functions";
 
 export const Route = createFileRoute("/enrollment-video")({
   validateSearch: (search) => {
-    const raw = (search as Record<string, unknown>).fbo;
+    const raw = (search as Record<string, unknown>)["fbo"];
     return { fbo: raw === undefined || raw === null ? undefined : String(raw) };
   },
   loaderDeps: ({ search }) => ({ fbo: search.fbo }),

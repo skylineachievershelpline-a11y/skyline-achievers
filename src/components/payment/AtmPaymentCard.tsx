@@ -9,11 +9,11 @@ import { cardBrandFor } from "@/lib/payment-logos";
 
 export type AtmMethod = {
   provider: string;
-  bank?: string | null;
+  bank?: string | null | undefined;
   accountTitle: string;
   accountNumber: string;
-  note?: string | null;
-  qr?: string | null;
+  note?: string | null | undefined;
+  qr?: string | null | undefined;
 };
 
 /* Real-card art uses fixed metallic colours on purpose: the card must look identical in light and dark mode and in the downloaded picture. */

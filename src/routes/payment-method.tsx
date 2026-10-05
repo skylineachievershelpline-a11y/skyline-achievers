@@ -10,6 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getMyPaymentMethod, saveMyPaymentMethod } from "@/lib/fbo-payment.functions";
+import { AtmPaymentCard } from "@/components/payment/AtmPaymentCard";
+import { BANKS } from "@/lib/payment-logos";
+
+async function shrinkQr(file: File): Promise<string> {
+  const img = await createImageBitmap(file);
+  const size = Math.min(600, Math.max(img.width, img.height));
+  const scale = size / Math.max(img.width, img.height);
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width * scale);
+  c.height = Math.round(img.height * scale);
+  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.85);
+}
 
 export const Route = createFileRoute("/payment-method")({
   head: () => ({
@@ -27,8 +40,8 @@ export const Route = createFileRoute("/payment-method")({
 
 const PROVIDERS = ["Easypaisa", "JazzCash", "Bank Transfer"];
 
-type Method = { provider: string; accountTitle: string; accountNumber: string; note: string };
-const EMPTY: Method = { provider: "Easypaisa", accountTitle: "", accountNumber: "", note: "" };
+type Method = { provider: string; accountTitle: string; accountNumber: string; note: string; bank?: string | null; qr?: string | null };
+const EMPTY: Method = { provider: "Easypaisa", accountTitle: "", accountNumber: "", note: "", bank: null, qr: null };
 
 function PaymentMethodPage() {
   const load = useServerFn(getMyPaymentMethod);
@@ -97,8 +110,22 @@ function PaymentMethodPage() {
                   </Button>
                 ))}
               </div>
+              {form.provider === "Bank Transfer" ? (
+                <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.bank ?? ""} onChange={(e) => setForm({ ...form, bank: e.target.value || null })}>
+                  <option value="">Choose your bank</option>
+                  {BANKS.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
+                </select>
+              ) : null}
               <Input placeholder="Account title" value={form.accountTitle} onChange={(e) => setForm({ ...form, accountTitle: e.target.value })} />
               <Input placeholder="Account number / IBAN" value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value })} />
+              <label className="block space-y-1 text-sm">
+                <span className="text-xs text-muted-foreground">Your payment QR code picture (optional — if empty, a QR is made automatically)</span>
+                <Input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setForm({ ...form, qr: await shrinkQr(f) }); }} />
+              </label>
+              {form.qr ? (
+                <div className="flex items-center gap-3"><img src={form.qr} alt="QR" className="h-16 w-16 rounded bg-background object-contain" /><Button size="sm" variant="ghost" onClick={() => setForm({ ...form, qr: null })}>Remove QR</Button></div>
+              ) : null}
+              {form.accountTitle && form.accountNumber ? <AtmPaymentCard method={form} /> : null}
               <Textarea placeholder="Note for the visitor (optional)" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={onSave} disabled={busy}>
@@ -115,22 +142,15 @@ function PaymentMethodPage() {
         {methods.length ? (
           <div className="space-y-3">
             {methods.map((m, i) => (
-              <article key={i} className="glass-panel metal-edge rounded-3xl p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-glow">{m.provider}</p>
-                    <p className="mt-1 break-words font-display text-lg font-semibold">{m.accountTitle}</p>
-                    <p className="break-all font-mono text-sm text-cyan">{m.accountNumber}</p>
-                    {m.note ? <p className="mt-2 whitespace-pre-line text-xs text-muted-foreground">{m.note}</p> : null}
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button size="icon" variant="ghost" aria-label="Edit payment method" onClick={() => { setEditing(i); setForm(m); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" aria-label="Delete payment method" disabled={busy} onClick={() => onDelete(i)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+              <article key={i} className="glass-panel metal-edge space-y-3 rounded-3xl p-4">
+                <AtmPaymentCard method={m} ownerName={data?.fullName} />
+                <div className="flex justify-center gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => { setEditing(i); setForm(m); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                    <Pencil className="mr-1 h-4 w-4" /> Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" disabled={busy} onClick={() => onDelete(i)}>
+                    <Trash2 className="mr-1 h-4 w-4 text-destructive" /> Delete
+                  </Button>
                 </div>
               </article>
             ))}

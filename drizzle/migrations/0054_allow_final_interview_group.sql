@@ -1,0 +1,2 @@
+ALTER TABLE public.official_groups DROP CONSTRAINT official_groups_placement_check;
+ALTER TABLE public.official_groups ADD CONSTRAINT official_groups_placement_check CHECK (placement = ANY (ARRAY['member'::text, 'mentorship'::text, 'beginners'::text, 'final_interview'::text, 'executive'::text, 'report'::text]));

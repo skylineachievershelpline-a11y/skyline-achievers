@@ -61,6 +61,22 @@ function SharedReportPage() {
     queryFn: () => read({ data: { token } } as never) as never,
   });
 
+  // A shared link never changes who is signed in — it only opens this record.
+  const [signedIn, setSignedIn] = useState(false);
+  const [home, setHome] = useState<"/dashboard" | "/beginners" | "/executive" | "/">("/");
+  useEffect(() => {
+    if (!hasStoredSession()) return;
+    setSignedIn(true);
+    const saved = listDeviceAccounts()[0];
+    setHome(
+      saved?.kind === "trainee"
+        ? "/beginners"
+        : saved?.kind === "executive"
+          ? "/executive"
+          : "/dashboard",
+    );
+  }, []);
+
   const data = report.data as Awaited<ReturnType<typeof getSharedTraineeReport>> | undefined;
   const sessions = data?.status === "ok" ? data.sessions : [];
   const scoredSessions = sessions.filter((session) => session.score != null).length;

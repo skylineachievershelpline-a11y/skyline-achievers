@@ -385,13 +385,14 @@ export const adminSetMentorship = createServerFn({ method: "POST" })
   });
 
 export const adminUpdateNotification = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string; title: string; body?: string | null; audienceLevelId?: string | null }) =>
+  .inputValidator((data: { id: string; title: string; body?: string | null; audienceLevelId?: string | null; audienceLevelIds?: string[] }) =>
     z
       .object({
         id: uuid,
         title: text(140),
         body: optionalText(4000),
         audienceLevelId: uuid.nullable().optional(),
+        audienceLevelIds: z.array(uuid).max(30).optional(),
       })
       .parse(data),
   )
@@ -404,7 +405,8 @@ export const adminUpdateNotification = createServerFn({ method: "POST" })
       .update({
         title: data.title,
         body: data.body,
-        audience_level_id: data.audienceLevelId ?? null,
+        audience_level_id: data.audienceLevelIds?.length ? null : (data.audienceLevelId ?? null),
+        audience_level_ids: data.audienceLevelIds ?? (data.audienceLevelId ? [data.audienceLevelId] : []),
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -907,7 +909,7 @@ export const adminGetNotifications = createServerFn({ method: "GET" }).handler(a
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await (supabaseAdmin as any)
     .from("notifications")
-    .select("id, title, body, kind, link_path, created_at, levels:audience_level_id (id, name)")
+    .select("id, title, body, kind, link_path, created_at, audience_level_id, audience_level_ids, levels:audience_level_id (id, name)")
     .order("created_at", { ascending: false })
     .limit(100);
   return { notifications: data ?? [] };
@@ -920,6 +922,7 @@ export const adminSendNotification = createServerFn({ method: "POST" })
       body?: string | null;
       kind: string;
       audienceLevelId?: string | null;
+      audienceLevelIds?: string[];
       linkPath?: string | null;
       mediaType?: string | null;
       mediaBucket?: string | null;
@@ -931,6 +934,7 @@ export const adminSendNotification = createServerFn({ method: "POST" })
           body: optionalText(4000),
           kind: z.enum(["announcement", "new_lecture", "new_series", "admin_message"]),
           audienceLevelId: uuid.nullable().optional(),
+          audienceLevelIds: z.array(uuid).max(30).optional(),
           linkPath: optionalText(200),
           mediaType: z.enum(["image", "video", "audio"]).nullable().optional(),
           mediaBucket: z
@@ -950,6 +954,7 @@ export const adminSendNotification = createServerFn({ method: "POST" })
       body: data.body ?? null,
       kind: data.kind,
       audienceLevelId: data.audienceLevelId ?? null,
+      audienceLevelIds: data.audienceLevelIds ?? [],
       linkPath: data.linkPath ?? null,
       mediaType: data.mediaType ?? null,
       mediaBucket: data.mediaBucket ?? null,

@@ -446,6 +446,7 @@ export async function adminNotify(input: {
   body: string | null;
   kind: string;
   audienceLevelId: string | null;
+  audienceLevelIds?: string[];
   linkPath: string | null;
   mediaType?: string | null;
   mediaBucket?: string | null;
@@ -455,7 +456,8 @@ export async function adminNotify(input: {
     title: input.title,
     body: input.body,
     kind: input.kind,
-    audience_level_id: input.audienceLevelId,
+    audience_level_id: input.audienceLevelIds?.length ? null : input.audienceLevelId,
+    audience_level_ids: input.audienceLevelIds?.length ? input.audienceLevelIds : [],
     link_path: input.linkPath,
     media_type: input.mediaType ?? null,
     media_bucket: input.mediaBucket ?? null,
@@ -471,7 +473,7 @@ export async function adminNotify(input: {
       path: input.linkPath ?? "/notifications",
       tag: "announcement",
     },
-    input.audienceLevelId,
+    input.audienceLevelIds?.length ? input.audienceLevelIds : input.audienceLevelId,
   );
   return { ok: true as const };
 }

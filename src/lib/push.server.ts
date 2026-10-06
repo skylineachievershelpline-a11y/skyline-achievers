@@ -117,11 +117,13 @@ export function pushToUsers(userIds: string[], payload: PushPayload) {
 }
 
 /** Every active member device (used for admin announcements). */
-export async function pushToEveryone(payload: PushPayload, levelId?: string | null) {
+export async function pushToEveryone(payload: PushPayload, levelId?: string | string[] | null) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const admin = supabaseAdmin as any;
   let query = admin.from("member_profiles").select("id").eq("status", "active");
-  if (levelId) query = query.eq("level_id", levelId);
+  if (Array.isArray(levelId)) {
+    if (levelId.length) query = query.in("level_id", levelId);
+  } else if (levelId) query = query.eq("level_id", levelId);
   const { data } = await query;
   const ids = ((data ?? []) as { id: string }[]).map((row) => row.id);
   return pushToUsers(ids, payload);

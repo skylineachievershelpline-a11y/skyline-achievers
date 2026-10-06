@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toPng } from "html-to-image";
-import { Download, RefreshCw, Share2 } from "lucide-react";
+import { Copy, Download, RefreshCw, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -157,6 +157,7 @@ export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; owner
         </div>
       </div>
       <div className="mx-auto flex max-w-[400px] flex-wrap justify-center gap-2">
+        <Button size="sm" variant="brand" onClick={() => copy(method.accountNumber, "Account number")}><Copy className="mr-1 h-4 w-4" /> Copy Number</Button>
         <Button size="sm" variant="outline" onClick={() => setFlipped((v) => !v)}><RefreshCw className="mr-1 h-4 w-4" /> {flipped ? "Front" : "Scan QR"}</Button>
         <Button size="sm" variant="outline" onClick={download}><Download className="mr-1 h-4 w-4" /> Download Card</Button>
         <Button size="sm" variant="outline" onClick={share}><Share2 className="mr-1 h-4 w-4" /> WhatsApp</Button>

@@ -21,14 +21,13 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { startUpload } from "@/lib/upload-manager";
 
-const fieldClass = "h-11 w-full rounded-2xl border border-hairline bg-surface-2 px-3 text-sm";
 
 type Level = { id: string; name: string };
 
 type FormValues = {
   title: string;
   body: string;
-  levelId: string;
+  levelIds: string[];
   voice: File | null;
   attachment: File | null;
 };
@@ -90,7 +89,8 @@ export function AnnouncementsTab({ levels }: { levels: Level[] }) {
           title: values.title,
           body: values.body || null,
           kind: "announcement",
-          audienceLevelId: values.levelId || null,
+          audienceLevelId: null,
+          audienceLevelIds: values.levelIds,
           linkPath: null,
           mediaType,
           mediaBucket,
@@ -107,13 +107,14 @@ export function AnnouncementsTab({ levels }: { levels: Level[] }) {
   }
 
   const save = useMutation({
-    mutationFn: (values: { id: string; title: string; body: string; levelId: string }) =>
+    mutationFn: (values: { id: string; title: string; body: string; levelIds: string[] }) =>
       update({
         data: {
           id: values.id,
           title: values.title,
           body: values.body || null,
-          audienceLevelId: values.levelId || null,
+          audienceLevelId: null,
+          audienceLevelIds: values.levelIds,
         },
       } as never),
     onSuccess: () => {
@@ -171,7 +172,15 @@ export function AnnouncementsTab({ levels }: { levels: Level[] }) {
                       </p>
                     ) : null}
                     <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                      {item.levels?.name ?? item.audience?.name ?? "All members"} ·{" "}
+                      {(() => {
+                        const ids: string[] = item.audience_level_ids?.length
+                          ? item.audience_level_ids
+                          : item.audience_level_id
+                            ? [item.audience_level_id]
+                            : [];
+                        if (!ids.length) return "All members";
+                        return ids.map((id) => levels.find((l) => l.id === id)?.name ?? "Rank").join(", ");
+                      })()} ·{" "}
                       {formatDateTime(item.created_at)}
                       {item.media_type ? ` · ${item.media_type}` : ""}
                     </p>
@@ -210,14 +219,18 @@ export function AnnouncementsTab({ levels }: { levels: Level[] }) {
               initial={{
                 title: editing.title ?? "",
                 body: editing.body ?? "",
-                levelId: editing.audience_level_id ?? "",
+                levelIds: editing.audience_level_ids?.length
+                  ? editing.audience_level_ids
+                  : editing.audience_level_id
+                    ? [editing.audience_level_id]
+                    : [],
               }}
               onSubmit={(values) =>
                 save.mutate({
                   id: editing.id,
                   title: values.title,
                   body: values.body,
-                  levelId: values.levelId,
+                  levelIds: values.levelIds,
                 })
               }
             />
@@ -240,14 +253,14 @@ function AnnouncementForm({
   levels: Level[];
   busy: boolean;
   submitLabel: string;
-  initial?: { title: string; body: string; levelId: string };
+  initial?: { title: string; body: string; levelIds: string[] };
   resetAfterSubmit?: boolean;
   withMedia?: boolean;
   onSubmit: (values: FormValues) => void;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [body, setBody] = useState(initial?.body ?? "");
-  const [levelId, setLevelId] = useState(initial?.levelId ?? "");
+  const [levelIds, setLevelIds] = useState<string[]>(initial?.levelIds ?? []);
   const [voice, setVoice] = useState<File | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
 
@@ -257,7 +270,7 @@ function AnnouncementForm({
       onSubmit={(event) => {
         event.preventDefault();
         if (!title.trim()) return;
-        onSubmit({ title: title.trim(), body, levelId, voice, attachment });
+        onSubmit({ title: title.trim(), body, levelIds, voice, attachment });
         if (resetAfterSubmit) {
           setTitle("");
           setBody("");
@@ -299,14 +312,36 @@ function AnnouncementForm({
 
       <div className="space-y-2">
         <Label>Audience</Label>
-        <select value={levelId} onChange={(e) => setLevelId(e.target.value)} className={fieldClass}>
-          <option value="">All members</option>
-          {levels.map((level) => (
-            <option key={level.id} value={level.id}>
-              {level.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setLevelIds([])}
+            className={`rounded-full border px-3 py-1.5 text-xs ${levelIds.length === 0 ? "border-primary bg-primary/20 text-foreground" : "border-hairline text-muted-foreground"}`}
+          >
+            All members
+          </button>
+          {levels.map((level) => {
+            const on = levelIds.includes(level.id);
+            return (
+              <button
+                key={level.id}
+                type="button"
+                onClick={() =>
+                  setLevelIds((prev) => (on ? prev.filter((id) => id !== level.id) : [...prev, level.id]))
+                }
+                className={`rounded-full border px-3 py-1.5 text-xs ${on ? "border-primary bg-primary/20 text-foreground" : "border-hairline text-muted-foreground"}`}
+              >
+                {on ? "✓ " : ""}
+                {level.name}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          {levelIds.length === 0
+            ? "Every member will see this."
+            : `Only ${levelIds.length} selected rank${levelIds.length > 1 ? "s" : ""} will see this.`}
+        </p>
       </div>
       <Button type="submit" variant="brand" size="xl" disabled={busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}

@@ -450,6 +450,12 @@ export function TraineeJourney() {
               The guide video is being prepared by the office.
             </p>
           )}
+          <OfficialGroupMenuButton
+            placement="final_interview"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan/40 bg-gradient-to-r from-primary/20 to-transparent px-4 py-3 text-sm font-semibold text-foreground shadow-glass"
+          >
+            <MessageCircle className="h-4 w-4 text-brand-glow" /> Join Final Interview WhatsApp Group
+          </OfficialGroupMenuButton>
           </div>
         </section>
 

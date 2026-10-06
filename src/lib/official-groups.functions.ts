@@ -1,13 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export const GROUP_PLACEMENTS = ["member", "mentorship", "beginners", "executive", "report"] as const;
+export const GROUP_PLACEMENTS = ["member", "mentorship", "beginners", "final_interview", "executive", "report"] as const;
 export type GroupPlacement = (typeof GROUP_PLACEMENTS)[number];
 
 export const PLACEMENT_LABEL: Record<GroupPlacement, string> = {
   member: "FBO Member dashboard",
   mentorship: "Personal Mentorship dashboard",
   beginners: "Beginners dashboard",
+  final_interview: "Beginners Final Interview group",
   executive: "Growth Executive dashboard",
   report: "Daily Report group",
 };

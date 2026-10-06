@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
 import { toPng } from "html-to-image";
 import { Copy, Download, RefreshCw, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -56,7 +55,7 @@ export function AtmPaymentCard({ method, ownerName }: { method: AtmMethod; owner
   useEffect(() => {
     if (method.qr) return setQr(method.qr);
     const text = `${brand.label}\nAccount Title: ${method.accountTitle}\nAccount Number: ${method.accountNumber}`;
-    QRCode.toDataURL(text, { margin: 1, width: 360 }).then(setQr).catch(() => setQr(null));
+    import("qrcode").then((m) => (m.default ?? m).toDataURL(text, { margin: 1, width: 360 })).then(setQr).catch(() => setQr(null));
   }, [method.qr, method.accountTitle, method.accountNumber, brand.label]);
 
   const copy = (v: string, label: string) => {

@@ -1,5 +1,4 @@
 import { Check, Copy, CreditCard, QrCode, Wallet } from "lucide-react";
-import QRCode from "qrcode";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -88,11 +87,12 @@ export function PaymentMethodWallet({
     setMadeQr("");
     if (!active || active.qrUrl || !active.accountNumber) return;
     let alive = true;
-    void QRCode.toDataURL(`${active.name} | ${active.accountTitle} | ${active.accountNumber}`, {
+    const qrText = `${active.name} | ${active.accountTitle} | ${active.accountNumber}`;
+    void import("qrcode").then((m) => (m.default ?? m).toDataURL(qrText, {
       width: 480,
       margin: 1,
       color: { dark: "#04101f", light: "#ffffff" },
-    })
+    }))
       .then((url) => {
         if (alive) setMadeQr(url);
       })

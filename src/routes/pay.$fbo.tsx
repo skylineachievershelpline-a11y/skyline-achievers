@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Copy, Wallet } from "lucide-react";
+import { Copy, Home, Wallet } from "lucide-react";
+import { BackButton } from "@/components/member/BackButton";
 import { toast } from "sonner";
 
 import { AtmPaymentCard } from "@/components/payment/AtmPaymentCard";
@@ -53,8 +54,12 @@ function PublicPaymentPage() {
     <main className="infographic-grid relative min-h-screen px-4 py-8 sm:px-8">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-xl space-y-5">
+        <div className="flex items-center justify-between">
+          <BackButton fallback="/" />
+          <Button asChild size="sm" variant="outline"><Link to="/"><Home className="mr-1 h-4 w-4" /> Home</Link></Button>
+        </div>
         <header className="flex items-center gap-3">
-          <BrandLogo size="sm" withWordmark={false} />
+          <Link to="/" aria-label="Skyline Achievers home"><BrandLogo size="sm" withWordmark={false} /></Link>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Skyline Achievers</p>
             <h1 className="truncate font-display text-xl font-semibold">{payment.fullName ?? "FBO"} Payment Details</h1>
@@ -67,6 +72,7 @@ function PublicPaymentPage() {
           ))}
         </div>
         <p className="text-center text-xs text-muted-foreground">Tap Copy Number below any card to copy that account number.</p>
+        <Button asChild variant="brand" size="lg" className="w-full rounded-2xl"><Link to="/"><Home className="mr-1 h-4 w-4" /> Continue to Skyline Achievers</Link></Button>
       </div>
     </main>
   );

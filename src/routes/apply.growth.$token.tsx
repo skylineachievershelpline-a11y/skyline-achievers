@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, Upload } from "lucide-react";
 import { useState } from "react";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

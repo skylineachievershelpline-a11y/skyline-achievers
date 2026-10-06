@@ -704,27 +704,27 @@ function InterviewReadyCard({
 
   return (
     <section className="rounded-[28px] border-2 border-red-500/60 bg-red-500/10 p-5 shadow-[0_0_40px_rgba(239,68,68,0.25)] animate-rise-in">
-      <p className="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-red-400">
+      <p className="text-center text-[10px] font-bold uppercase tracking-[0.24em] text-red-600 dark:text-red-400">
         ⚠ Final Interview — Official Notice
       </p>
       {targetMs !== null ? (
         <>
-          <p className="mt-3 text-center font-mono text-3xl font-bold tabular-nums text-red-300">
+          <p className="mt-3 text-center font-mono text-3xl font-bold tabular-nums text-red-700 dark:text-red-300">
             {left !== null && left > 0 ? countdownText(left) : "Interview time!"}
           </p>
-          <p className="mt-1 text-center text-xs font-semibold text-red-200">
+          <p className="mt-1 text-center text-xs font-semibold text-red-800 dark:text-red-200">
             {formatDateTime(scheduledAt!)} (Pakistan time)
           </p>
         </>
       ) : (
-        <p className="mt-3 text-center text-sm font-semibold text-red-200">
+        <p className="mt-3 text-center text-sm font-semibold text-red-800 dark:text-red-200">
           Request received — aap ka upline interview ka time set kar raha hai. Notification ka
           intezar karein.
         </p>
       )}
-      <div className="mt-4 rounded-2xl border border-red-500/40 bg-background/60 p-3">
-        <p className="text-[11px] font-bold text-red-300">Strict Warning</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-red-100/90">
+      <div className="mt-4 rounded-2xl border border-red-300 bg-red-50 dark:border-red-500/40 dark:bg-background/60 p-3">
+        <p className="text-[11px] font-bold text-red-700 dark:text-red-300">Strict Warning</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-red-900 dark:text-red-100/90">
           Apne interview se 10 minute pehle online aur tayar rahen. Agar aap muqarrara waqt par
           available nahi hotay ya interview fail ho jata hai, to aap ki training seat revoke ho
           sakti hai aur aap ko poora 7-day curriculum Day 01 se dobara karna par sakta hai. Ek bar

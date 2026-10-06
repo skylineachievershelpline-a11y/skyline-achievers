@@ -379,6 +379,13 @@
       "when": 1791190897364,
       "tag": "0053_add_notification_multi_rank_audience",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1791264511297,
+      "tag": "0054_allow_final_interview_group",
+      "breakpoints": true
     }
   ]
 }

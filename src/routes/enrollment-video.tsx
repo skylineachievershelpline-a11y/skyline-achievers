@@ -20,11 +20,13 @@ export const Route = createFileRoute("/enrollment-video")({
   },
   loaderDeps: ({ search }) => ({ fbo: search.fbo }),
   loader: async ({ deps }) => {
+    const fbo = String(deps.fbo ?? "").replace(/\D/g, "");
+    const empty = { method: null, methods: [], fullName: null };
     const [intro, payment] = await Promise.all([
-      getLandingIntroduction(),
-      deps.fbo && /^\d{12}$/.test(deps.fbo)
-        ? getFboPublicPayment({ data: { fbo: deps.fbo } })
-        : Promise.resolve({ method: null, methods: [], fullName: null }),
+      getLandingIntroduction().catch(() => ({ introduction: null }) as any),
+      /^\d{12}$/.test(fbo)
+        ? getFboPublicPayment({ data: { fbo } }).catch(() => empty)
+        : Promise.resolve(empty),
     ]);
     return { ...intro, payment };
   },

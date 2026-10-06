@@ -41,6 +41,7 @@ import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
 import { Route as EnrollmentVideoFboRouteImport } from './routes/enrollment-video_.$fbo'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
+import { Route as PayFboRouteImport } from './routes/pay.$fbo'
 import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
@@ -209,6 +210,11 @@ const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   path: '/lecture/$lectureId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayFboRoute = PayFboRouteImport.update({
+  id: '/pay/$fbo',
+  path: '/pay/$fbo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportTokenRoute = ReportTokenRouteImport.update({
   id: '/report/$token',
   path: '/report/$token',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/enrollment-video/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/enrollment-video/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/enrollment-video_/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
+  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/enrollment-video/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/enrollment-video/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/enrollment-video_/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
+    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -526,6 +538,7 @@ export interface RootRouteChildren {
   EnrollmentVideoFboRoute: typeof EnrollmentVideoFboRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
+  PayFboRoute: typeof PayFboRoute
   ReportTokenRoute: typeof ReportTokenRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
@@ -763,6 +776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LectureLectureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$fbo': {
+      id: '/pay/$fbo'
+      path: '/pay/$fbo'
+      fullPath: '/pay/$fbo'
+      preLoaderRoute: typeof PayFboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/report/$token': {
       id: '/report/$token'
       path: '/report/$token'
@@ -846,6 +866,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnrollmentVideoFboRoute: EnrollmentVideoFboRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
+  PayFboRoute: PayFboRoute,
   ReportTokenRoute: ReportTokenRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,

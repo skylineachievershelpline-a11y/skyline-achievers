@@ -157,18 +157,6 @@ function PaymentMethodPage() {
           </div>
         ) : null}
 
-        {methods.length && data?.memberId ? (
-          <section className="glass-panel metal-edge space-y-3 rounded-3xl p-5">
-            <h2 className="font-display text-base font-semibold">Share payment link</h2>
-            <p className="text-xs text-muted-foreground">Anyone who opens this link sees your payment cards.</p>
-            <p className="break-all rounded-2xl bg-surface-2 p-3 font-mono text-xs">{`${typeof window !== "undefined" ? window.location.origin : ""}/pay/${data.memberId}`}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="brand" onClick={() => { void navigator.clipboard.writeText(`${window.location.origin}/pay/${data.memberId}`); toast.success("Payment link copied"); }}>Copy link</Button>
-              <Button variant="outline" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`My payment details — Skyline Achievers\n${window.location.origin}/pay/${data.memberId}`)}`, "_blank")}>WhatsApp</Button>
-            </div>
-          </section>
-        ) : null}
-
         <p className="text-xs text-muted-foreground">
           Copy your enrollment video link from the Beginners Sessions page. Visitors see these payment cards after tapping "See More".
         </p>

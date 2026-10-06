@@ -236,6 +236,12 @@ function SharedReportPage() {
           <p className="mt-4 text-center text-[10px] text-muted-foreground">
             Read-only training record. No personal contact details are shared.
           </p>
+
+          <Link to={home as "/dashboard"} className="mt-4 block">
+            <Button variant="brand" size="xl" className="w-full rounded-2xl">
+              {signedIn ? "Done · Return to My Dashboard" : "Done · Back to Home"}
+            </Button>
+          </Link>
         </>
       )}
     </main>

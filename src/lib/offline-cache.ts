@@ -61,18 +61,37 @@ export function hydrateSavedScreens(queryClient: QueryClient) {
   }
 }
 
-/** Remembers the last screen the person was on so the app reopens right there. */
+/**
+ * Only the person's own workspaces may be remembered. Shared links (reports,
+ * invites, applications, videos, records) are temporary entry points and must
+ * never become the screen the app reopens on.
+ */
+const WORKSPACES = new Set([
+  "/dashboard",
+  "/beginners",
+  "/executive",
+  "/team",
+  "/seats",
+  "/reels",
+  "/training",
+  "/courses",
+  "/resources",
+  "/search",
+  "/profile",
+  "/leave",
+  "/chat",
+  "/assistants",
+  "/notifications",
+  "/sessions",
+  "/todo",
+  "/payment-method",
+]);
+
+/** Remembers the last workspace screen so the app reopens right there. */
 export function rememberLastScreen(path: string) {
   if (typeof window === "undefined") return;
   if (window.self !== window.top) return; // Skyline AI Teacher's classroom screen
-  if (
-    !path ||
-    path === "/" ||
-    path.startsWith("/admin") ||
-    path.startsWith("/session/") ||
-    path.startsWith("/enrollment-video")
-  )
-    return;
+  if (!WORKSPACES.has(path)) return;
   try {
     localStorage.setItem(LAST_SCREEN_KEY, path);
   } catch {
@@ -83,7 +102,10 @@ export function rememberLastScreen(path: string) {
 export function lastScreen(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(LAST_SCREEN_KEY);
+    const saved = localStorage.getItem(LAST_SCREEN_KEY);
+    if (saved && WORKSPACES.has(saved)) return saved;
+    if (saved) localStorage.removeItem(LAST_SCREEN_KEY);
+    return null;
   } catch {
     return null;
   }

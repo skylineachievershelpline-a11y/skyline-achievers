@@ -72,6 +72,15 @@ function SharedReportPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <BackButton fallback={home} />
+        <Link
+          to={home as "/dashboard"}
+          className="rounded-xl border border-metal/30 bg-surface px-3 py-2 text-xs font-semibold shadow-glass hover:border-cyan/40"
+        >
+          {signedIn ? "← My Dashboard" : "Home"}
+        </Link>
+      </div>
       <BrandLogo className="mx-auto" />
       <h1 className="mt-5 text-center font-display text-xl font-bold">Training progress report</h1>
 

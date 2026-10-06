@@ -206,18 +206,38 @@ export function UplineMasterSchedule() {
                          <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                            Time
                          </Label>
-                         <Input
-                           type="time"
-                           step={60}
-                           aria-label={`Session ${slot.session} time`}
-                           value={slot.time}
-                           onChange={(event) => {
-                             if (!/^\d{2}:\d{2}/.test(event.target.value)) return;
+                         {(() => {
+                           const [hh, mm] = slot.time.split(":").map(Number);
+                           const h = hh ?? 20;
+                           const m = mm ?? 0;
+                           const pm = h >= 12;
+                           const h12 = h % 12 === 0 ? 12 : h % 12;
+                           const setTime = (nh12: number, nm: number, npm: boolean) => {
+                             const h24 = (nh12 % 12) + (npm ? 12 : 0);
                              const next = [...slots];
-                             next[index] = { ...slot, time: event.target.value.slice(0, 5) };
+                             next[index] = { ...slot, time: `${pad(h24)}:${pad(nm)}` };
                              setSlots(next);
-                           }}
-                         />
+                           };
+                           const cls = "h-10 rounded-md border border-input bg-background px-1 text-sm";
+                           return (
+                             <div className="flex gap-1" aria-label={`Session ${slot.session} time`}>
+                               <select className={cls} value={h12} onChange={(e) => setTime(Number(e.target.value), m, pm)}>
+                                 {Array.from({ length: 12 }, (_, i) => i + 1).map((v) => (
+                                   <option key={v} value={v}>{pad(v)}</option>
+                                 ))}
+                               </select>
+                               <select className={cls} value={m} onChange={(e) => setTime(h12, Number(e.target.value), pm)}>
+                                 {Array.from({ length: 60 }, (_, i) => i).map((v) => (
+                                   <option key={v} value={v}>{pad(v)}</option>
+                                 ))}
+                               </select>
+                               <select className={cls} value={pm ? "PM" : "AM"} onChange={(e) => setTime(h12, m, e.target.value === "PM")}>
+                                 <option value="AM">AM</option>
+                                 <option value="PM">PM</option>
+                               </select>
+                             </div>
+                           );
+                         })()}
                          <p className="text-[10px] text-muted-foreground">{formatTime12(slot.time)}</p>
                       </div>
                     </div>

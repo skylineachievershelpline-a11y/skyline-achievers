@@ -1,1 +1,2 @@
 - FBO payment cards render through src/components/payment/AtmPaymentCard.tsx with brand logos in public/payment-logos and optional QR stored as a small data URL on the method. Why: one realistic, downloadable card everywhere.
+- Load `qrcode` only via dynamic import inside effects. Why: its Node build (pngjs) crashes the Cloudflare worker at startup, taking every page down.

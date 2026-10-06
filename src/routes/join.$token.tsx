@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { WelcomeCard, type Credentials } from "@/components/team/WelcomeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,6 +100,12 @@ function JoinPage() {
     <main className="relative min-h-screen px-4 pb-16 pt-8 sm:px-8">
       <div className="spotlight pointer-events-none absolute inset-0" aria-hidden />
       <div className="relative mx-auto w-full max-w-lg">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <BackButton fallback="/" />
+          <Button variant="outline" size="sm" onClick={closeRegistration}>
+            Home
+          </Button>
+        </div>
         <header className="mb-6 flex flex-col items-center text-center animate-rise-in">
           <BrandLogo size="md" />
           <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight">

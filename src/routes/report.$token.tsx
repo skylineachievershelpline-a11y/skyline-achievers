@@ -1,16 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { BackButton } from "@/components/member/BackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { listDeviceAccounts } from "@/lib/device-accounts";
 import { formatDateTime12 as formatDateTime } from "@/lib/format";
+import { hasStoredSession } from "@/lib/offline-cache";
 import { getSharedTraineeReport, submitSharedInterviewResult } from "@/lib/journey.functions";
 import {
   JOURNEY_MAX_SCORE,
@@ -57,6 +60,22 @@ function SharedReportPage() {
     queryKey: ["shared-report", token],
     queryFn: () => read({ data: { token } } as never) as never,
   });
+
+  // A shared link never changes who is signed in — it only opens this record.
+  const [signedIn, setSignedIn] = useState(false);
+  const [home, setHome] = useState<"/dashboard" | "/beginners" | "/executive" | "/">("/");
+  useEffect(() => {
+    if (!hasStoredSession()) return;
+    setSignedIn(true);
+    const saved = listDeviceAccounts()[0];
+    setHome(
+      saved?.kind === "trainee"
+        ? "/beginners"
+        : saved?.kind === "executive"
+          ? "/executive"
+          : "/dashboard",
+    );
+  }, []);
 
   const data = report.data as Awaited<ReturnType<typeof getSharedTraineeReport>> | undefined;
   const sessions = data?.status === "ok" ? data.sessions : [];
@@ -217,6 +236,12 @@ function SharedReportPage() {
           <p className="mt-4 text-center text-[10px] text-muted-foreground">
             Read-only training record. No personal contact details are shared.
           </p>
+
+          <Link to={home as "/dashboard"} className="mt-4 block">
+            <Button variant="brand" size="xl" className="w-full rounded-2xl">
+              {signedIn ? "Done · Return to My Dashboard" : "Done · Back to Home"}
+            </Button>
+          </Link>
         </>
       )}
     </main>

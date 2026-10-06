@@ -38,9 +38,9 @@ import { Route as AiIndexRouteImport } from './routes/ai.index'
 import { Route as AiThreadIdRouteImport } from './routes/ai.$threadId'
 import { Route as ApiAiRouteImport } from './routes/api.ai'
 import { Route as CourseCourseIdRouteImport } from './routes/course.$courseId'
+import { Route as EnrollmentVideoFboRouteImport } from './routes/enrollment-video_.$fbo'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as LectureLectureIdRouteImport } from './routes/lecture.$lectureId'
-import { Route as PayFboRouteImport } from './routes/pay.$fbo'
 import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ResourceResourceIdRouteImport } from './routes/resource.$resourceId'
 import { Route as SessionCodeRouteImport } from './routes/session.$code'
@@ -194,6 +194,11 @@ const CourseCourseIdRoute = CourseCourseIdRouteImport.update({
   path: '/course/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnrollmentVideoFboRoute = EnrollmentVideoFboRouteImport.update({
+  id: '/enrollment-video_/$fbo',
+  path: '/enrollment-video/$fbo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
@@ -202,11 +207,6 @@ const JoinTokenRoute = JoinTokenRouteImport.update({
 const LectureLectureIdRoute = LectureLectureIdRouteImport.update({
   id: '/lecture/$lectureId',
   path: '/lecture/$lectureId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PayFboRoute = PayFboRouteImport.update({
-  id: '/pay/$fbo',
-  path: '/pay/$fbo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportTokenRoute = ReportTokenRouteImport.update({
@@ -273,9 +273,9 @@ export interface FileRoutesByFullPath {
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
+  '/enrollment-video/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -314,9 +314,9 @@ export interface FileRoutesByTo {
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
+  '/enrollment-video/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -356,9 +356,9 @@ export interface FileRoutesById {
   '/ai/$threadId': typeof AiThreadIdRoute
   '/api/ai': typeof ApiAiRoute
   '/course/$courseId': typeof CourseCourseIdRoute
+  '/enrollment-video_/$fbo': typeof EnrollmentVideoFboRoute
   '/join/$token': typeof JoinTokenRoute
   '/lecture/$lectureId': typeof LectureLectureIdRoute
-  '/pay/$fbo': typeof PayFboRoute
   '/report/$token': typeof ReportTokenRoute
   '/resource/$resourceId': typeof ResourceResourceIdRoute
   '/session/$code': typeof SessionCodeRoute
@@ -399,9 +399,9 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
+    | '/enrollment-video/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -440,9 +440,9 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
+    | '/enrollment-video/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -481,9 +481,9 @@ export interface FileRouteTypes {
     | '/ai/$threadId'
     | '/api/ai'
     | '/course/$courseId'
+    | '/enrollment-video_/$fbo'
     | '/join/$token'
     | '/lecture/$lectureId'
-    | '/pay/$fbo'
     | '/report/$token'
     | '/resource/$resourceId'
     | '/session/$code'
@@ -523,9 +523,9 @@ export interface RootRouteChildren {
   AiThreadIdRoute: typeof AiThreadIdRoute
   ApiAiRoute: typeof ApiAiRoute
   CourseCourseIdRoute: typeof CourseCourseIdRoute
+  EnrollmentVideoFboRoute: typeof EnrollmentVideoFboRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LectureLectureIdRoute: typeof LectureLectureIdRoute
-  PayFboRoute: typeof PayFboRoute
   ReportTokenRoute: typeof ReportTokenRoute
   ResourceResourceIdRoute: typeof ResourceResourceIdRoute
   SessionCodeRoute: typeof SessionCodeRoute
@@ -742,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CourseCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/enrollment-video_/$fbo': {
+      id: '/enrollment-video_/$fbo'
+      path: '/enrollment-video/$fbo'
+      fullPath: '/enrollment-video/$fbo'
+      preLoaderRoute: typeof EnrollmentVideoFboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/$token': {
       id: '/join/$token'
       path: '/join/$token'
@@ -754,13 +761,6 @@ declare module '@tanstack/react-router' {
       path: '/lecture/$lectureId'
       fullPath: '/lecture/$lectureId'
       preLoaderRoute: typeof LectureLectureIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pay/$fbo': {
-      id: '/pay/$fbo'
-      path: '/pay/$fbo'
-      fullPath: '/pay/$fbo'
-      preLoaderRoute: typeof PayFboRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report/$token': {
@@ -843,9 +843,9 @@ const rootRouteChildren: RootRouteChildren = {
   AiThreadIdRoute: AiThreadIdRoute,
   ApiAiRoute: ApiAiRoute,
   CourseCourseIdRoute: CourseCourseIdRoute,
+  EnrollmentVideoFboRoute: EnrollmentVideoFboRoute,
   JoinTokenRoute: JoinTokenRoute,
   LectureLectureIdRoute: LectureLectureIdRoute,
-  PayFboRoute: PayFboRoute,
   ReportTokenRoute: ReportTokenRoute,
   ResourceResourceIdRoute: ResourceResourceIdRoute,
   SessionCodeRoute: SessionCodeRoute,

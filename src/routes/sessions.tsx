@@ -99,7 +99,7 @@ function SessionLinksPage() {
         description: introduction.description,
         thumbnailUrl: introduction.thumbnailUrl,
         path: myPayment?.memberId
-          ? `/enrollment-video?fbo=${myPayment.memberId}`
+          ? `/enrollment-video/${myPayment.memberId}`
           : "/enrollment-video",
       }
     : null;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toPng } from "html-to-image";
-import { Download, RefreshCw, Share2 } from "lucide-react";
+import { Copy, Download, RefreshCw, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";

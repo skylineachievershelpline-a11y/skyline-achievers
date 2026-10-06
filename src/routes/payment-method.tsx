@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Pencil, Save, Trash2, Wallet } from "lucide-react";
+import { Copy, Link2, Pencil, Save, Share2, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { MemberShell } from "@/components/member/MemberShell";
@@ -89,6 +89,35 @@ function PaymentMethodPage() {
     if (editing === index) { setEditing(null); setForm(EMPTY); }
   };
 
+  const paymentLink = () =>
+    data?.memberId ? `${window.location.origin}/pay/${data.memberId}` : "";
+
+  const copyPaymentLink = async () => {
+    const link = paymentLink();
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Payment link copied");
+    } catch {
+      toast.error("Could not copy. Please try again.");
+    }
+  };
+
+  const sharePaymentLink = async () => {
+    const link = paymentLink();
+    if (!link) return;
+    const text = `Payment methods — Skyline Achievers\n${link}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Payment methods", text, url: link });
+        return;
+      } catch {
+        /* person cancelled the share sheet */
+      }
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
   return (
     <MemberShell>
       <div className="mx-auto max-w-xl space-y-5">
@@ -156,6 +185,26 @@ function PaymentMethodPage() {
             ))}
           </div>
         ) : null}
+
+        <section className="glass-panel metal-edge space-y-3 rounded-3xl p-5">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-5 w-5 text-brand-glow" />
+            <p className="text-sm font-semibold">Share payment link</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Anyone who opens this link sees the payment cards above — no account needed. It is a
+            standalone page, so pressing back simply closes it and it never changes their own app
+            screen.
+          </p>
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={() => void copyPaymentLink()} disabled={!data?.memberId}>
+              <Copy className="mr-2 h-4 w-4" /> Copy payment link
+            </Button>
+            <Button variant="outline" onClick={() => void sharePaymentLink()} disabled={!data?.memberId}>
+              <Share2 className="mr-2 h-4 w-4" /> Share
+            </Button>
+          </div>
+        </section>
 
         <p className="text-xs text-muted-foreground">
           Copy your enrollment video link from the Beginners Sessions page. Visitors see these payment cards after tapping "See More".

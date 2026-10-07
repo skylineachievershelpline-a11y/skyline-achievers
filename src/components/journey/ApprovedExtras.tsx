@@ -15,8 +15,21 @@ export function ApprovedExtras({ sessionId, title }: { sessionId: string; title:
     queryFn: () => load({ data: { sessionId } }),
   });
   const [playing, setPlaying] = useState<string | null>(null);
-  const extras = (data?.extras ?? []) as any[];
-  if (!extras.length) return null;
+  const [category, setCategory] = useState<string | null>(null);
+  const all = (data?.extras ?? []) as any[];
+  const sections = ((data as any)?.sections ?? []) as { id: string; name: string; thumbnailUrl: string | null }[];
+  const known = new Set(sections.map((c) => c.id));
+  const tiles = [
+    ...sections.filter((c) => all.some((x) => x.sectionId === c.id)),
+    ...(all.some((x) => !x.sectionId || !known.has(x.sectionId)) ? [{ id: "__other", name: "More", thumbnailUrl: null }] : []),
+  ];
+  const useTiles = sections.length > 0;
+  const extras = !useTiles
+    ? all
+    : category === "__other"
+      ? all.filter((x) => !x.sectionId || !known.has(x.sectionId))
+      : all.filter((x) => x.sectionId === category);
+  if (!all.length) return null;
 
   return (
     <section className="raised-panel space-y-3 rounded-[28px] border border-cyan/30 p-5 animate-rise-in">
@@ -25,8 +38,21 @@ export function ApprovedExtras({ sessionId, title }: { sessionId: string; title:
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">Review approved · bonus material</p>
       </div>
       <h2 className="font-display text-base font-semibold">{title} — extra videos & guides</h2>
+      {useTiles ? (
+        <div className="grid grid-cols-3 gap-3">
+          {tiles.map((c) => (
+            <button key={c.id} type="button" onClick={() => setCategory(category === c.id ? null : c.id)} className="flex flex-col items-center gap-1.5">
+              <span className={`flex aspect-square w-full max-w-[96px] items-center justify-center overflow-hidden rounded-full border-2 bg-surface-2 shadow-glass transition-colors ${category === c.id ? "border-cyan" : "border-hairline"}`}>
+                {c.thumbnailUrl ? <img src={c.thumbnailUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : <Gift className="h-7 w-7 text-cyan" />}
+              </span>
+              <span className="line-clamp-2 text-center text-[11px] font-semibold">{c.name}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {useTiles && !category ? <p className="text-center text-[11px] text-muted-foreground">Tap a category to open it.</p> : null}
       <div className="grid gap-3">
-        {extras.map((x) => {
+        {(useTiles && !category ? [] : extras).map((x) => {
           const Icon = ICON[x.kind as keyof typeof ICON] ?? Link2;
           if (x.kind === "video" && playing === x.id && x.url) {
             return (

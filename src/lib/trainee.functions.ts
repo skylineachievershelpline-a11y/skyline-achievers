@@ -469,11 +469,12 @@ export const getApprovedSessionExtras = createServerFn({ method: "POST" })
       .eq("status", "approved")
       .limit(1)
       .maybeSingle();
-    if (!review) return { extras: [] };
-    const { loadSessionExtras, loadSessionResources } = await import("./session-extras.server");
-    const [own, linked] = await Promise.all([
+    if (!review) return { extras: [], sections: [] };
+    const { loadSessionExtras, loadSessionResources, loadSessionSections } = await import("./session-extras.server");
+    const [own, linked, sections] = await Promise.all([
       loadSessionExtras(supabaseAdmin, data.sessionId),
       loadSessionResources(supabaseAdmin, data.sessionId),
+      loadSessionSections(supabaseAdmin, data.sessionId),
     ]);
-    return { extras: [...own, ...linked] };
+    return { extras: [...own, ...linked], sections };
   });

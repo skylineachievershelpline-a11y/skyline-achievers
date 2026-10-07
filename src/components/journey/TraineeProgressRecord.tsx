@@ -455,6 +455,29 @@ export function TraineeProgressRecord({
               <p className="mt-1 text-[11px] text-muted-foreground">{performance.detail}</p>
             </div>
 
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={() =>
+                void import("@/lib/trainee-record-pdf").then((m) =>
+                  m.downloadTraineeRecordPdf({
+                    traineeName,
+                    code: data?.profile?.code,
+                    stage: data?.stage,
+                    performance,
+                    totalScore,
+                    sessions: sessions.map((s) => ({
+                      ...s,
+                      reviewImageUrls: s.reviewImageUrls?.length ? s.reviewImageUrls : s.reviewImageUrl ? [s.reviewImageUrl] : [],
+                    })),
+                  }),
+                ).catch(() => toast.error("Could not create the PDF."))
+              }
+            >
+              Download Record PDF
+            </Button>
             <ul className="mt-4 space-y-2">
               {sessions.map((session) => {
                 const late =

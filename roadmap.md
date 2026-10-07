@@ -366,7 +366,7 @@
 - [x] Daily report: auto-track PM seats, 2CC, enrollments; pending enrollment names + next-day to-do reminder
 - [x] Auto-move trainee from Preferred Customer tree to PM / 2CC tree
 - [x] Preferred Customer tree: date filter, Final Interview and Completed Training buttons
-- [ ] Session extras grouped into circular category tiles (3 per row)
+- [x] Session extras grouped into circular category tiles (3 per row)
 - [ ] Final Interview: senior ID, senior dashboard notice with record, marks and time change
 - [ ] CEO sidebar: AI reports + Final Interview PDF report
 - [ ] Performance graph: graph + month picker only

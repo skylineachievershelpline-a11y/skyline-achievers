@@ -667,7 +667,7 @@ export const getTraineeJourneyForUpline = createServerFn({ method: "POST" })
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    const trainee = await ownTrainee(member.id, data.traineeId);
+    const trainee = await interviewTrainee(member.id, data.traineeId);
     const { signPath, AVATAR_BUCKET } = await import("./storage.server");
     const journey = await buildJourney(trainee.id);
     return {
@@ -1141,7 +1141,7 @@ export const getTraineeReportLinks = createServerFn({ method: "POST" })
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    await ownTrainee(member.id, data.traineeId);
+    await interviewTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await (supabaseAdmin as any)
       .from("trainee_report_links")
@@ -1165,7 +1165,7 @@ export const createTraineeReportLink = createServerFn({ method: "POST" })
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    await ownTrainee(member.id, data.traineeId);
+    await interviewTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const token = reportToken();
     const { error } = await (supabaseAdmin as any).from("trainee_report_links").insert({

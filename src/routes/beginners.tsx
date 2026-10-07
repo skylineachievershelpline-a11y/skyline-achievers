@@ -1,5 +1,6 @@
 import { changeMyPassword } from "@/lib/password.functions";
 import { Settings as SettingsIcon } from "lucide-react";
+import { useNavFilter } from "@/hooks/useNavFilter";
 import { AccountSettings } from "@/components/member/AccountSettings";
 import { OfficialGroupMenuButton } from "@/components/whatsapp/OfficialGroupDialog";
 import { PasskeyManager } from "@/components/security/PasskeyManager";
@@ -373,6 +374,7 @@ function BeginnersPage() {
 
   // Sidebar arrows: scroll the menu list up/down for small screens.
   const navRef = useRef<HTMLElement | null>(null);
+  useNavFilter(navRef, navQuery);
   const [navScroll, setNavScroll] = useState({ up: false, down: false });
   const updateNavScroll = useCallback(() => {
     const el = navRef.current;
@@ -639,8 +641,7 @@ function BeginnersPage() {
           </div>
           <nav
             ref={navRef}
-            data-nav-search={navQuery.trim().toLowerCase()}
-            className="nav-searchable mt-3 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-scroll overscroll-contain pb-2 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+            className="mt-3 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-scroll overscroll-contain pb-2 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
           >
             {BEGINNER_NAV.map((item) => (
               <Button

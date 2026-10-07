@@ -226,6 +226,23 @@ export const submitDailyReport = createServerFn({ method: "POST" })
     const { loadRates } = await import("./earnings.functions");
     const rates = await loadRates();
 
+    // Enrollments, Personal Mentorship and 2CC are tracked by the website itself
+    // from this FBO's referrals today (PKT) — never typed by hand.
+    {
+      const day = pktToday();
+      const from = `${day}T00:00:00+05:00`;
+      const to = new Date(new Date(from).getTime() + 86_400_000).toISOString();
+      const db = supabaseAdmin as any;
+      const [enr, pm, cc] = await Promise.all([
+        db.from("trainees").select("id", { count: "exact", head: true }).eq("upline_id", member.id).gte("created_at", from).lt("created_at", to),
+        db.from("payment_submissions").select("payer_id").eq("upline_id", member.id).eq("purpose", "mentorship").eq("status", "verified").gte("verified_at", from).lt("verified_at", to),
+        db.from("payment_submissions").select("payer_id").eq("upline_id", member.id).eq("purpose", "two_cc").eq("status", "verified").gte("verified_at", from).lt("verified_at", to),
+      ]);
+      data.enrollments = enr.count ?? 0;
+      data.mentorshipPaid = new Set((pm.data ?? []).map((r: any) => r.payer_id)).size;
+      data.twoCc = new Set((cc.data ?? []).map((r: any) => r.payer_id)).size;
+    }
+
     const { error } = await supabaseAdmin.from("member_daily_reports").upsert(
       {
         member_id: member.id,

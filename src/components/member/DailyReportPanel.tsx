@@ -46,6 +46,8 @@ const FIELDS = [
 ] as const;
 
 type FieldKey = (typeof FIELDS)[number]["key"];
+/** Counted automatically by the website from this FBO's referrals today. */
+const AUTO_KEYS: readonly string[] = ["enrollments", "twoCc", "mentorshipPaid"];
 
 const dayShort = (date: string) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
@@ -76,6 +78,7 @@ export function DailyReportPanel() {
   const reportGroup = useOfficialGroup("report");
   const [reportGroupOpen, setReportGroupOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [pendingNames, setPendingNames] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
   const [seededFor, setSeededFor] = useState<string | null>(null);
 
@@ -112,6 +115,10 @@ export function DailyReportPanel() {
         },
       } as never),
     onSuccess: () => {
+      if (pendingNames.trim()) {
+        const day = new Date(Date.now() + 5 * 3_600_000).toISOString().slice(0, 10);
+        window.localStorage.setItem(`skyline-pending-names-${day}`, pendingNames.trim());
+      }
       toast.success("Today's report submitted");
       void queryClient.invalidateQueries({ queryKey: ["daily-report"] });
     },
@@ -304,7 +311,7 @@ export function DailyReportPanel() {
               submit.mutate();
             }}
           >
-            {FIELDS.map((field) => (
+            {FIELDS.filter((f) => !AUTO_KEYS.includes(f.key)).map((field) => (
               <div key={field.key} className="inset-panel space-y-2 rounded-2xl p-3">
                 <Label htmlFor={`report-${field.key}`} className="text-xs">
                   {field.label}
@@ -324,6 +331,25 @@ export function DailyReportPanel() {
               </div>
             ))}
 
+            <p className="rounded-2xl border border-cyan/30 bg-primary/10 p-3 text-[11px] leading-5 text-muted-foreground sm:col-span-2 lg:col-span-3">
+              Enrollments, Personal Mentorship and 2CC are counted automatically by the website from
+              people who joined or paid under your ID today. Today so far: Enrollments{" "}
+              <b className="text-foreground">{data.today.enrollments ?? 0}</b> · Mentorship{" "}
+              <b className="text-foreground">{data.today.mentorshipPaid ?? 0}</b> · 2CC{" "}
+              <b className="text-foreground">{data.today.twoCc ?? 0}</b> (updates when you submit).
+            </p>
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+              <Label htmlFor="report-pending-names" className="text-xs">Pending enrollment names (optional)</Label>
+              <textarea
+                id="report-pending-names"
+                value={pendingNames}
+                onChange={(e) => setPendingNames(e.target.value)}
+                rows={2}
+                placeholder="e.g. Ali, Sana, Usman"
+                className="w-full rounded-xl border border-input bg-background p-3 text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground">Tomorrow your To-Do list will remind you about these people.</p>
+            </div>
             <div className="sm:col-span-2 lg:col-span-3">
               <Button
                 type="submit"

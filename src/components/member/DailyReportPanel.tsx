@@ -531,46 +531,8 @@ function PerformanceGraph({
             ))}
           </div>
 
-          <p className="mt-4 rounded-2xl border border-cyan/30 bg-primary/10 p-3 text-sm font-semibold">{insight}</p>
-
-          <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-5">
-            {[
-              ["Working Days", `${analysis.workingDays} / ${series.length}`],
-              ["Total Activities", analysis.totals.activity],
-              ["Leads", analysis.totals.leads],
-              ["Responses", analysis.totals.responses],
-              ["Enrollments", analysis.totals.enrollments],
-            ].map(([l, v]) => (
-              <div key={String(l)} className="inset-panel rounded-2xl p-3">
-                <p className="font-display text-xl font-bold">{v}</p>
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground">{l}</p>
-              </div>
-            ))}
-          </div>
-
           <MonthlyActivityChart analysis={analysis} />
 
-          {main ? (
-            <div className="mt-4 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Period comparison</p>
-              <div className="inset-panel rounded-2xl p-3 text-sm">
-               <p>Previous Month: <b>{main.previous}</b> Activities</p>
-               <p>Selected Month: <b>{main.current}</b> Activities</p>
-                <p className={`mt-1 text-base font-bold ${tone(main.percent)}`}>
-                  {main.percent === null ? "New activity" : main.percent === 0 ? "Same" : `${arrow(main.percent)} ${Math.abs(main.percent)}% Activity`}
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                {compare.slice(1).map((c) => (
-                  <div key={c.label} className="inset-panel rounded-2xl p-2">
-                    <p className="font-semibold">{c.label}</p>
-                    <p className="font-bold">{c.previous} → {c.current}</p>
-                    <p className={tone(c.percent)}>{arrow(c.percent)} {c.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
 
           {analysis.leaveDays || analysis.absentDays ? (
             <p className="mt-3 text-xs text-muted-foreground">

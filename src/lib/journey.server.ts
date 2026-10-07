@@ -22,6 +22,7 @@ export async function loadPolicy(): Promise<JourneyPolicy> {
     mentorshipSeats: Number(value.mentorshipSeats ?? DEFAULT_POLICY.mentorshipSeats),
     ccDays: Number(value.ccDays ?? DEFAULT_POLICY.ccDays),
     paymentMethods: normalizePaymentMethods(value.paymentMethods),
+    formPolicy: String(value.formPolicy ?? ""),
   };
 }
 

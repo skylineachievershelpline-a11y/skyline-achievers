@@ -46,6 +46,7 @@ export function JourneyTab() {
     ccTargetFullPayment: "",
     ccTargetPartial: "",
     mentorshipSeats: "",
+    formPolicy: "",
   });
 
   const submissions = useQuery({
@@ -69,6 +70,7 @@ export function JourneyTab() {
       ccTargetFullPayment: String(value.ccTargetFullPayment),
       ccTargetPartial: String(value.ccTargetPartial),
       mentorshipSeats: String(value.mentorshipSeats),
+      formPolicy: String((value as any).formPolicy ?? ""),
     });
     setMethods(((value as any).paymentMethods ?? []) as any[]);
   }, [policy.data]);
@@ -83,6 +85,7 @@ export function JourneyTab() {
           ccTargetFullPayment: Number(form.ccTargetFullPayment) || 0,
           ccTargetPartial: Number(form.ccTargetPartial) || 0,
           mentorshipSeats: Number(form.mentorshipSeats) || 1,
+          formPolicy: form.formPolicy,
           paymentMethods: methods
             .filter((entry) => entry.name.trim().length > 0)
             .map((entry) => ({
@@ -169,6 +172,16 @@ export function JourneyTab() {
               />
             </div>
           ))}
+        </div>
+        <div className="mt-5 space-y-1.5">
+          <Label>Mentorship form policy (members must accept before the payment form opens)</Label>
+          <textarea
+            value={form.formPolicy}
+            onChange={(event) => setForm((current) => ({ ...current, formPolicy: event.target.value }))}
+            rows={5}
+            placeholder="Write each rule on its own line"
+            className="w-full rounded-xl border border-input bg-background p-3 text-sm"
+          />
         </div>
         {/* ---------- payment methods members see ---------- */}
         <div className="mt-5 space-y-3">

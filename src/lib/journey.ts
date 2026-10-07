@@ -35,6 +35,8 @@ export type JourneyPolicy = {
   /** Days to finish 2CC after Personal Mentorship is complete. */
   ccDays: number;
   paymentMethods: PaymentMethod[];
+  /** Rules a member must accept before the Mentorship payment form opens. */
+  formPolicy: string;
 };
 
 export const DEFAULT_POLICY: JourneyPolicy = {
@@ -45,6 +47,7 @@ export const DEFAULT_POLICY: JourneyPolicy = {
   mentorshipSeats: 3,
   ccDays: 5,
   paymentMethods: [],
+  formPolicy: "",
 };
 
 /** Keeps stored payment methods to the known shape. */

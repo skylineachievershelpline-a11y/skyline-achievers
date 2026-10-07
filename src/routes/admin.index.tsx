@@ -49,6 +49,7 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminPage() {
+  const { tab: adminTab } = Route.useSearch();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const queryClient = useQueryClient();

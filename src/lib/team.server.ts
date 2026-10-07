@@ -137,6 +137,17 @@ export async function traineeStatsFor(uplineId: string) {
     }
   }
 
+  const interviewMap = new Map<string, { scheduledAt: string | null; result: string | null }>();
+  if (ids.length > 0) {
+    const { data: jrows } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .select("trainee_id, interview_scheduled_at, interview_result")
+      .in("trainee_id", ids);
+    for (const row of (jrows ?? []) as any[]) {
+      interviewMap.set(row.trainee_id, { scheduledAt: row.interview_scheduled_at ?? null, result: row.interview_result ?? null });
+    }
+  }
+
   const now = Date.now();
   const week = now - 7 * 86_400_000;
   const month = now - 30 * 86_400_000;
@@ -156,6 +167,8 @@ export async function traineeStatsFor(uplineId: string) {
       sessionsWatched: watched,
       totalSessions,
       completed: totalSessions > 0 && watched >= totalSessions,
+      interviewAt: interviewMap.get(t.id)?.scheduledAt ?? null,
+      interviewResult: interviewMap.get(t.id)?.result ?? null,
     };
   });
 

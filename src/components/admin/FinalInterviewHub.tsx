@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/format";
-import { adminAssignInterviewSenior, adminListFinalInterviews } from "@/lib/interview-admin.functions";
+import { adminAssignInterviewSenior, adminCeoReport, adminListFinalInterviews } from "@/lib/interview-admin.functions";
 
 const STAGE: Record<string, string> = {
   ready_for_interview: "Waiting",

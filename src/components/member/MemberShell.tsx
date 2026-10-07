@@ -1,3 +1,4 @@
+import { useNavFilter } from "@/hooks/useNavFilter";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -23,7 +24,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -173,6 +174,9 @@ export function MemberShell({
   const trainingOnly = useTrainingOnly();
   const progress = useMemberProgress();
   const hiddenMenu = useHiddenMenu();
+  const [navQuery, setNavQuery] = useState("");
+  const navRef = useRef<HTMLElement | null>(null);
+  useNavFilter(navRef, navQuery);
   const trainingLockedRaw = useTrainingLock();
   const [inTeacherFrame, setInTeacherFrame] = useState(false);
   useEffect(() => setInTeacherFrame(isTeacherFrame()), []);
@@ -352,7 +356,16 @@ export function MemberShell({
                   </button>
                 </div>
 
-                <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
+                <div className="relative mt-5 shrink-0">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    value={navQuery}
+                    onChange={(e) => setNavQuery(e.target.value)}
+                    placeholder="Search sections"
+                    className="h-10 w-full rounded-xl border border-hairline bg-surface-2 pl-9 pr-3 text-sm outline-none focus:border-cyan/60"
+                  />
+                </div>
+                <nav ref={navRef} className="mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-scroll overscroll-contain pr-2 [scrollbar-color:var(--color-primary)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]">
                   {isFounder ? (
                     <div className="mb-3 space-y-1.5 border-b border-hairline pb-3">
                       <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl border border-cyan/40 bg-primary/20 px-3 py-2.5 text-sm font-semibold"><Shield className="h-4.5 w-4.5 text-cyan" />Admin Panel</Link>

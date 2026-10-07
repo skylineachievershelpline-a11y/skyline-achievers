@@ -46,6 +46,7 @@ export function JourneyTab() {
     ccTargetFullPayment: "",
     ccTargetPartial: "",
     mentorshipSeats: "",
+    formPolicy: "",
   });
 
   const submissions = useQuery({
@@ -69,6 +70,7 @@ export function JourneyTab() {
       ccTargetFullPayment: String(value.ccTargetFullPayment),
       ccTargetPartial: String(value.ccTargetPartial),
       mentorshipSeats: String(value.mentorshipSeats),
+      formPolicy: String((value as any).formPolicy ?? ""),
     });
     setMethods(((value as any).paymentMethods ?? []) as any[]);
   }, [policy.data]);
@@ -83,6 +85,7 @@ export function JourneyTab() {
           ccTargetFullPayment: Number(form.ccTargetFullPayment) || 0,
           ccTargetPartial: Number(form.ccTargetPartial) || 0,
           mentorshipSeats: Number(form.mentorshipSeats) || 1,
+          formPolicy: form.formPolicy,
           paymentMethods: methods
             .filter((entry) => entry.name.trim().length > 0)
             .map((entry) => ({
@@ -137,10 +140,12 @@ export function JourneyTab() {
   return (
     <div className="space-y-6">
       {/* ---------- policy ---------- */}
-      <section className="glass-panel metal-edge rounded-2xl p-5">
-        <p className="flex items-center gap-2 font-display text-sm font-semibold">
-          <ShieldCheck className="h-4 w-4 text-brand-glow" /> Journey policy values
-        </p>
+      <details className="group glass-panel metal-edge rounded-2xl p-5">
+        <summary className="flex cursor-pointer list-none items-center gap-2 font-display text-sm font-semibold">
+          <ShieldCheck className="h-4 w-4 text-brand-glow" /> Journey policy values &amp; payment methods
+          <span className="ml-auto rounded-full border border-hairline px-2 py-0.5 text-[10px] text-muted-foreground group-open:hidden">Show</span>
+          <span className="ml-auto hidden rounded-full border border-hairline px-2 py-0.5 text-[10px] text-muted-foreground group-open:inline">Hide</span>
+        </summary>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           These figures drive every wallet, target and countdown. Nothing is hard-coded.
         </p>
@@ -167,6 +172,16 @@ export function JourneyTab() {
               />
             </div>
           ))}
+        </div>
+        <div className="mt-5 space-y-1.5">
+          <Label>Mentorship form policy (members must accept before the payment form opens)</Label>
+          <textarea
+            value={form.formPolicy}
+            onChange={(event) => setForm((current) => ({ ...current, formPolicy: event.target.value }))}
+            rows={5}
+            placeholder="Write each rule on its own line"
+            className="w-full rounded-xl border border-input bg-background p-3 text-sm"
+          />
         </div>
         {/* ---------- payment methods members see ---------- */}
         <div className="mt-5 space-y-3">
@@ -268,7 +283,7 @@ export function JourneyTab() {
           )}
           Save policy
         </Button>
-      </section>
+      </details>
 
       {/* ---------- verification ---------- */}
       <section className="glass-panel metal-edge rounded-2xl p-5">

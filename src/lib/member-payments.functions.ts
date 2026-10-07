@@ -100,6 +100,7 @@ export const getMyPaymentCentre = createServerFn({ method: "GET" })
         mentorshipDays: policy.mentorshipDays,
         ccTargetFullPayment: policy.ccTargetFullPayment,
         ccTargetPartial: policy.ccTargetPartial,
+        formPolicy: policy.formPolicy,
       },
       methods: policy.paymentMethods,
       mentorship: {

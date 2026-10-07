@@ -60,6 +60,7 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
     retry: false,
   });
 
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const [method, setMethod] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -215,7 +216,17 @@ export function MentorshipPaymentSection({ standalone = false }: { standalone?: 
       )}
 
       {/* ---------- where to pay ---------- */}
-      {payLimit > 0 ? (
+      {payLimit > 0 && (policy as any).formPolicy?.trim() && !policyAccepted ? (
+        <div className="space-y-3 rounded-2xl border border-cyan/30 bg-primary/10 p-4">
+          <p className="font-display text-sm font-semibold">Personal Mentorship policy</p>
+          <p className="whitespace-pre-line text-xs leading-5 text-muted-foreground">
+            {(policy as any).formPolicy}
+          </p>
+          <Button type="button" variant="brand" className="w-full rounded-2xl font-display" onClick={() => setPolicyAccepted(true)}>
+            <BadgeCheck className="h-4 w-4" /> I accept — open payment form
+          </Button>
+        </div>
+      ) : payLimit > 0 ? (
         <div className="space-y-3">
           <div>
             <p className="font-display text-sm font-semibold">

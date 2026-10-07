@@ -464,7 +464,7 @@ export function TraineeProgressRecord({
                 void import("@/lib/trainee-record-pdf").then((m) =>
                   m.downloadTraineeRecordPdf({
                     traineeName,
-                    code: data?.profile?.code,
+                    code: data?.profile?.code ?? null,
                     stage: data?.stage,
                     performance,
                     totalScore,

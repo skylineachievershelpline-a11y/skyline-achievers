@@ -529,7 +529,7 @@ export const submitPaymentClaim = createServerFn({ method: "POST" })
     }
     {
       const { pushToAdmin } = await import("./push.server");
-      await pushToAdmin({ title: "New payment proof", body: `${trainee.full_name} submitted a payment proof to verify.`, tag: "admin-payment" });
+      await pushToAdmin({ title: "New payment proof", body: `${trainee.full_name} submitted a payment proof to verify.`, tag: "admin-payment", path: "/admin?tab=journey" });
     }
     return { ok: true as const };
   });

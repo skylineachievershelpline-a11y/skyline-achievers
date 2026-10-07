@@ -1,0 +1,2 @@
+ALTER TABLE public.trainee_journey ADD COLUMN IF NOT EXISTS interview_senior_id uuid REFERENCES public.member_profiles(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS trainee_journey_interview_senior_idx ON public.trainee_journey(interview_senior_id);

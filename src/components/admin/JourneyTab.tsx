@@ -137,10 +137,12 @@ export function JourneyTab() {
   return (
     <div className="space-y-6">
       {/* ---------- policy ---------- */}
-      <section className="glass-panel metal-edge rounded-2xl p-5">
-        <p className="flex items-center gap-2 font-display text-sm font-semibold">
-          <ShieldCheck className="h-4 w-4 text-brand-glow" /> Journey policy values
-        </p>
+      <details className="group glass-panel metal-edge rounded-2xl p-5">
+        <summary className="flex cursor-pointer list-none items-center gap-2 font-display text-sm font-semibold">
+          <ShieldCheck className="h-4 w-4 text-brand-glow" /> Journey policy values &amp; payment methods
+          <span className="ml-auto rounded-full border border-hairline px-2 py-0.5 text-[10px] text-muted-foreground group-open:hidden">Show</span>
+          <span className="ml-auto hidden rounded-full border border-hairline px-2 py-0.5 text-[10px] text-muted-foreground group-open:inline">Hide</span>
+        </summary>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           These figures drive every wallet, target and countdown. Nothing is hard-coded.
         </p>
@@ -268,7 +270,7 @@ export function JourneyTab() {
           )}
           Save policy
         </Button>
-      </section>
+      </details>
 
       {/* ---------- verification ---------- */}
       <section className="glass-panel metal-edge rounded-2xl p-5">

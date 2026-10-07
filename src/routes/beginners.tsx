@@ -369,6 +369,7 @@ function BeginnersPage() {
   });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [navQuery, setNavQuery] = useState("");
 
   // Sidebar arrows: scroll the menu list up/down for small screens.
   const navRef = useRef<HTMLElement | null>(null);
@@ -604,7 +605,7 @@ function BeginnersPage() {
               />
               <aside
                 className={cn(
-                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex min-h-0 w-[84vw] max-w-xs flex-col overflow-hidden rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  "glass-panel-strong metal-edge absolute inset-y-0 left-0 flex h-[100dvh] min-h-0 w-[84vw] max-w-xs flex-col overflow-hidden rounded-r-3xl p-5 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                   menuOpen ? "translate-x-0" : "-translate-x-full",
                 )}
               >
@@ -627,20 +628,19 @@ function BeginnersPage() {
               Beginners Training
             </p>
           </div>
-          <button
-            type="button"
-            aria-label="Scroll menu up"
-            onClick={() => scrollNav("up")}
-            disabled={!navScroll.up}
-            className="mx-auto mt-3 flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 text-xs font-medium text-foreground shadow-glass transition-colors hover:border-cyan/60 disabled:opacity-40"
-          >
-            <ChevronUp className="h-4 w-4" />
-            Upar
-          </button>
+          <div className="relative mt-3 shrink-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Search sections"
+              className="h-10 w-full rounded-xl border border-hairline bg-surface-2 pl-9 pr-3 text-sm outline-none focus:border-cyan/60"
+            />
+          </div>
           <nav
             ref={navRef}
-            onScroll={updateNavScroll}
-            className="mt-2 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-auto overscroll-contain pb-2 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+            data-nav-search={navQuery.trim().toLowerCase()}
+            className="nav-searchable mt-3 min-h-0 flex-1 touch-pan-y space-y-1.5 overflow-y-scroll overscroll-contain pb-2 pr-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
           >
             {BEGINNER_NAV.map((item) => (
               <Button
@@ -684,16 +684,6 @@ function BeginnersPage() {
               Settings
             </Button>
           </nav>
-          <button
-            type="button"
-            aria-label="Scroll menu down"
-            onClick={() => scrollNav("down")}
-            disabled={!navScroll.down}
-            className="mx-auto mt-2 flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl border border-cyan/30 bg-primary/10 text-xs font-medium text-foreground shadow-glass transition-colors hover:border-cyan/60 disabled:opacity-40"
-          >
-            <ChevronDown className="h-4 w-4" />
-            Neechay
-          </button>
           <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             {BRAND.tagline}
           </p>

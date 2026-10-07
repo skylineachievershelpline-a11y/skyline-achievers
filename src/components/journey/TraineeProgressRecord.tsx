@@ -465,7 +465,7 @@ export function TraineeProgressRecord({
                   m.downloadTraineeRecordPdf({
                     traineeName,
                     code: data?.profile?.code ?? null,
-                    stage: data?.stage,
+                    stage: data?.stage ?? null,
                     performance,
                     totalScore,
                     sessions: sessions.map((s) => ({

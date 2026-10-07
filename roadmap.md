@@ -364,8 +364,8 @@
 - [x] Admin notification on new payment, click opens it
 - [x] Mentorship form policy acceptance (admin-managed)
 - [x] Daily report: auto-track PM seats, 2CC, enrollments; pending enrollment names + next-day to-do reminder
-- [ ] Auto-move trainee from Preferred Customer tree to PM / 2CC tree
-- [ ] Preferred Customer tree: date filter, Final Interview and Completed Training buttons
+- [x] Auto-move trainee from Preferred Customer tree to PM / 2CC tree
+- [x] Preferred Customer tree: date filter, Final Interview and Completed Training buttons
 - [ ] Session extras grouped into circular category tiles (3 per row)
 - [ ] Final Interview: senior ID, senior dashboard notice with record, marks and time change
 - [ ] CEO sidebar: AI reports + Final Interview PDF report

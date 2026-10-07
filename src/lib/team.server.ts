@@ -113,7 +113,19 @@ export async function traineeStatsFor(uplineId: string) {
     .eq("upline_id", uplineId)
     .order("created_at", { ascending: false })
     .limit(500);
-  const trainees = rows ?? [];
+  // People who already have their Personal Mentorship account now live in the
+  // Mentorship / FBO trees, so they leave the Preferred Customer list.
+  const allRows = rows ?? [];
+  let graduated = new Set<string>();
+  if (allRows.length > 0) {
+    const { data: moved } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .select("trainee_id")
+      .in("trainee_id", allRows.map((r) => r.id))
+      .not("mentorship_account_id", "is", null);
+    graduated = new Set(((moved ?? []) as any[]).map((r) => r.trainee_id));
+  }
+  const trainees = allRows.filter((r) => !graduated.has(r.id));
 
   // One source of truth for training progress: approved session reviews in the
   // guided journey (7 basic sessions), not the old code-unlock rows.
@@ -137,6 +149,17 @@ export async function traineeStatsFor(uplineId: string) {
     }
   }
 
+  const interviewMap = new Map<string, { scheduledAt: string | null; result: string | null }>();
+  if (ids.length > 0) {
+    const { data: jrows } = await (supabaseAdmin as any)
+      .from("trainee_journey")
+      .select("trainee_id, interview_scheduled_at, interview_result")
+      .in("trainee_id", ids);
+    for (const row of (jrows ?? []) as any[]) {
+      interviewMap.set(row.trainee_id, { scheduledAt: row.interview_scheduled_at ?? null, result: row.interview_result ?? null });
+    }
+  }
+
   const now = Date.now();
   const week = now - 7 * 86_400_000;
   const month = now - 30 * 86_400_000;
@@ -156,6 +179,8 @@ export async function traineeStatsFor(uplineId: string) {
       sessionsWatched: watched,
       totalSessions,
       completed: totalSessions > 0 && watched >= totalSessions,
+      interviewAt: interviewMap.get(t.id)?.scheduledAt ?? null,
+      interviewResult: interviewMap.get(t.id)?.result ?? null,
     };
   });
 

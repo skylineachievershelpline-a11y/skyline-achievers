@@ -73,6 +73,8 @@ function TeamPage() {
 
   const [memberSearch, setMemberSearch] = useState("");
   const [memberFilter, setMemberFilter] = useState<"all" | "active" | "blocked">("all");
+  const [pcDate, setPcDate] = useState("");
+  const [pcView, setPcView] = useState<"all" | "interview" | "completed">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [tab, setTab] = useState<"fbo" | "mentorship" | "customers">("fbo");
@@ -148,6 +150,11 @@ function TeamPage() {
       person.fullName.toLowerCase().includes(needle) ||
       person.traineeCode.toLowerCase().includes(needle) ||
       (person.phone ?? "").toLowerCase().includes(needle);
+    const day = (iso: string | null | undefined) =>
+      iso ? new Date(new Date(iso).getTime() + 5 * 3_600_000).toISOString().slice(0, 10) : "";
+    if (pcView === "interview" && !person.interviewAt) return false;
+    if (pcView === "completed" && !person.completed) return false;
+    if (pcDate && day(pcView === "interview" ? person.interviewAt : person.createdAt) !== pcDate) return false;
     return matchesSearch && (memberFilter === "all" || person.status === memberFilter);
   });
   const allVisibleSelected =
@@ -217,22 +224,23 @@ function TeamPage() {
       ) : null}
 
       <div className={tab === "customers" ? "" : "hidden"}>
-      <section data-ai-guide="team" className="raised-panel metal-edge mt-6 rounded-3xl p-5 animate-rise-in">
-
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-          <div><p className="text-[10px] font-bold uppercase text-primary">Network performance</p><h1 className="mt-1 font-display text-2xl font-bold">Your team at a glance</h1></div>
-          <p className="text-xs text-muted-foreground">Weekly, monthly and training activity</p>
+      <section data-ai-guide="team" className="raised-panel metal-edge mt-6 space-y-3 rounded-3xl p-5 animate-rise-in">
+        <label className="block space-y-1.5">
+          <span className="text-xs font-semibold">Select date</span>
+          <Input type="date" value={pcDate} onChange={(e) => setPcDate(e.target.value)} className="h-10 rounded-xl" />
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            { key: "all", label: "All" },
+            { key: "interview", label: "Final Interview" },
+            { key: "completed", label: "Complete Training" },
+          ] as const).map((b) => (
+            <Button key={b.key} type="button" size="sm" variant={pcView === b.key ? "brand" : "outline"} className="rounded-xl text-xs" onClick={() => setPcView(b.key)}>
+              {b.label}
+            </Button>
+          ))}
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat icon={<Users className="h-4 w-4" />} label="Total team" value={stats?.total ?? 0} />
-          <Stat icon={<CalendarDays className="h-4 w-4" />} label="This week" value={stats?.thisWeek ?? 0} />
-          <Stat icon={<UserCheck className="h-4 w-4" />} label="Active" value={stats?.active ?? 0} />
-          <Stat icon={<CheckCircle2 className="h-4 w-4" />} label="Completed" value={stats?.completed ?? 0} />
-        </div>
-        <div className="mt-4 grid gap-4 border-t border-border pt-4 sm:grid-cols-[1fr_auto] sm:items-center">
-          <div><div className="mb-2 flex justify-between text-xs"><span className="font-semibold">Team completion</span><span className="font-bold text-primary">{completionRate}%</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${completionRate}%` }} /></div></div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground"><span>{stats?.thisMonth ?? 0} this month</span><span>{stats?.started ?? 0} started</span><span>{stats?.blocked ?? 0} blocked</span><span>{invites.filter((i) => i.is_active).length} active links</span></div>
-        </div>
+        {pcDate ? <Button type="button" size="sm" variant="ghost" className="w-full text-xs" onClick={() => setPcDate("")}>Clear date</Button> : null}
       </section>
 
       <section className="raised-panel metal-edge mt-6 overflow-hidden rounded-2xl animate-rise-in">

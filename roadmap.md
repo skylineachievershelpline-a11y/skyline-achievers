@@ -360,8 +360,8 @@
 - [x] Beginners sidebar scrolls like the FBO sidebar (arrows removed)
 - [x] Section search at top of FBO/Mentorship and Beginners sidebars
 - [ ] Admin Journey & Payments: live policy values, collapsible policy/method panels
-- [ ] Mentorship payment page: ATM cards from admin methods, select → form → submit
-- [ ] Admin notification on new payment, click opens it
+- [x] Mentorship payment page: ATM cards from admin methods, select → form → submit
+- [x] Admin notification on new payment, click opens it
 - [ ] Mentorship form policy acceptance (admin-managed)
 - [ ] Daily report: auto-track PM seats, 2CC, enrollments; pending enrollment names + next-day to-do reminder
 - [ ] Auto-move trainee from Preferred Customer tree to PM / 2CC tree

@@ -30,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string | undefined } => ({
     tab: typeof search["tab"] === "string" ? (search["tab"] as string) : undefined,
   }),
   head: () => ({

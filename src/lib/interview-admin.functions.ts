@@ -85,3 +85,44 @@ export const adminAssignInterviewSenior = createServerFn({ method: "POST" })
     }
     return { ok: true as const, seniorName };
   });
+
+/** CEO operational report: live counts plus a short AI-written summary. */
+export const adminCeoReport = createServerFn({ method: "POST" }).handler(async () => {
+  const admin = await guard();
+  const count = async (table: string, f?: (q: any) => any) => {
+    let q = admin.from(table).select("*", { count: "exact", head: true });
+    if (f) q = f(q);
+    const { count: c } = await q;
+    return Number(c ?? 0);
+  };
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const stats = {
+    activeMembers: await count("member_profiles", (q) => q.eq("status", "active")),
+    newMembers30d: await count("member_profiles", (q) => q.gte("created_at", since)),
+    activeTrainees: await count("trainees", (q) => q.eq("status", "active")),
+    newTrainees30d: await count("trainees", (q) => q.gte("created_at", since)),
+    waitingInterview: await count("trainee_journey", (q) => q.eq("stage", "ready_for_interview")),
+    reassess: await count("trainee_journey", (q) => q.eq("stage", "reassess")),
+    interviewPassed: await count("trainee_journey", (q) => q.eq("stage", "interview_passed")),
+    mentorship: await count("trainee_journey", (q) => q.eq("stage", "mentorship")),
+  };
+  let summary = "AI summary is not available right now.";
+  const key = process.env["LOVABLE_API_KEY"];
+  if (key) {
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: "You write short, factual operational reports in English for A.Q Malik, CEO of Skyline Achievers. Use only the numbers given. No income claims, no invented facts. 5-7 bullet points then 2 suggested actions." },
+            { role: "user", content: JSON.stringify(stats) },
+          ],
+        }),
+      });
+      if (res.ok) summary = ((await res.json()).choices?.[0]?.message?.content ?? summary).trim();
+    } catch { /* keep fallback */ }
+  }
+  return { stats, summary, generatedAt: new Date().toISOString() };
+});

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/format";
-import { adminAssignInterviewSenior, adminListFinalInterviews } from "@/lib/interview-admin.functions";
+import { adminAssignInterviewSenior, adminCeoReport, adminListFinalInterviews } from "@/lib/interview-admin.functions";
 
 const STAGE: Record<string, string> = {
   ready_for_interview: "Waiting",
@@ -29,6 +29,8 @@ export function FinalInterviewHub() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const ceoFn = useServerFn(adminCeoReport);
+  const ceo = useMutation({ mutationFn: () => ceoFn(), onError: (e: Error) => toast.error(e.message) });
 
   return (
     <details className="group glass-panel metal-edge rounded-2xl p-5" open>
@@ -38,6 +40,22 @@ export function FinalInterviewHub() {
       <p className="mt-1 text-xs text-muted-foreground">
         Assign a senior by member ID. The senior gets an alert and sees the interview on their dashboard to set the time and give marks.
       </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" disabled={!q.data} onClick={() => void import("@/lib/ceo-report-pdf").then((m) => m.downloadCeoReportPdf(null, q.data ?? []))}>
+          Final Interview PDF
+        </Button>
+        <Button size="sm" disabled={ceo.isPending} onClick={() => ceo.mutate()}>
+          {ceo.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null} CEO AI Report
+        </Button>
+      </div>
+      {ceo.data ? (
+        <div className="inset-panel mt-3 rounded-xl p-3 text-xs">
+          <p className="whitespace-pre-wrap">{ceo.data.summary}</p>
+          <Button size="sm" variant="outline" className="mt-2" onClick={() => void import("@/lib/ceo-report-pdf").then((m) => m.downloadCeoReportPdf(ceo.data, q.data ?? []))}>
+            Download CEO Report PDF
+          </Button>
+        </div>
+      ) : null}
       {q.isLoading ? (
         <Loader2 className="mt-4 animate-spin" />
       ) : !q.data?.length ? (

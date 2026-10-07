@@ -368,6 +368,6 @@
 - [x] Preferred Customer tree: date filter, Final Interview and Completed Training buttons
 - [x] Session extras grouped into circular category tiles (3 per row)
 - [x] Final Interview: senior ID, senior dashboard notice with record, marks and time change
-- [ ] CEO sidebar: AI reports + Final Interview PDF report
+- [x] CEO AI report + Final Interview PDF (Admin → Journey & Payments)
 - [x] Performance graph: graph + month picker only
 - [ ] FBO complete-record section with branded PDF; review proof uploads (voice/text/photo)

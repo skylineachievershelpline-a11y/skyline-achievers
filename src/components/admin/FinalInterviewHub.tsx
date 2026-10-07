@@ -67,7 +67,7 @@ export function FinalInterviewHub() {
                   <Button
                     size="sm"
                     disabled={m.isPending || (ids[r.traineeId] ?? "").length !== 12}
-                    onClick={() => m.mutate({ traineeId: r.traineeId, seniorMemberId: ids[r.traineeId] })}
+                    onClick={() => m.mutate({ traineeId: r.traineeId, seniorMemberId: ids[r.traineeId] ?? null })}
                   >Assign</Button>
                   {r.senior ? (
                     <Button size="sm" variant="outline" disabled={m.isPending} onClick={() => m.mutate({ traineeId: r.traineeId, seniorMemberId: null })}>Clear</Button>

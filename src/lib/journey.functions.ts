@@ -876,9 +876,8 @@ export const getUplineActionQueue = createServerFn({ method: "GET" })
       .limit(100);
 
     const items = [];
-    for (const trainee of [...((trainees ?? []) as any[]), ...((assignedTrainees ?? []) as any[])]) {
+    for (const trainee of (trainees ?? []) as any[]) {
       const journey = await buildJourney(trainee.id);
-      const assignedOnly = assignedSet.has(trainee.id);
       const pendingReview = journey.sessions.find((session) => session.review === "pending");
       const action = nextAction({
         stage: journey.stage,

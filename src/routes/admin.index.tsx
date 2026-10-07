@@ -30,6 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search["tab"] === "string" ? (search["tab"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Admin Panel — Skyline Achievers" },
@@ -147,7 +150,7 @@ function AdminPage() {
           ))}
         </section>
 
-        <Tabs defaultValue="members">
+        <Tabs key={adminTab ?? "members"} defaultValue={adminTab ?? "members"}>
           <TabsList className="w-full rounded-xl">
             <TabsTrigger value="members" className="rounded-xl">
               Members

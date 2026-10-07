@@ -213,7 +213,7 @@ export const submitMemberPaymentClaim = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     {
       const { pushToAdmin } = await import("./push.server");
-      await pushToAdmin({ title: "New payment proof", body: `${member.full_name} submitted a payment proof to verify.`, tag: "admin-payment" });
+      await pushToAdmin({ title: "New payment proof", body: `${member.full_name} submitted a payment proof to verify.`, tag: "admin-payment", path: "/admin?tab=journey" });
     }
     return { ok: true as const };
   });

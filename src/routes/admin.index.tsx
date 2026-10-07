@@ -30,6 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminGetLibrary, adminGetStats, adminLogout, adminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/admin/")({
+  validateSearch: (search: Record<string, unknown>): { tab?: string | undefined } => ({
+    tab: typeof search["tab"] === "string" ? (search["tab"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Admin Panel — Skyline Achievers" },
@@ -46,6 +49,7 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminPage() {
+  const { tab: adminTab } = Route.useSearch();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const queryClient = useQueryClient();
@@ -147,7 +151,7 @@ function AdminPage() {
           ))}
         </section>
 
-        <Tabs defaultValue="members">
+        <Tabs key={adminTab ?? "members"} defaultValue={adminTab ?? "members"}>
           <TabsList className="w-full rounded-xl">
             <TabsTrigger value="members" className="rounded-xl">
               Members

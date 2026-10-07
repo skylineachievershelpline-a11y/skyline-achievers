@@ -76,12 +76,12 @@ export const adminAssignInterviewSenior = createServerFn({ method: "POST" })
     if (seniorId) {
       const { data: t } = await admin.from("trainees").select("full_name").eq("id", data.traineeId).maybeSingle();
       const { pushToUsers } = await import("./push.server");
-      await pushToUsers([seniorId], {
+      await Promise.resolve(pushToUsers([seniorId], {
         title: "Final Interview assigned",
         body: `You will take ${t?.full_name ?? "a trainee"}'s Final Interview. Open your dashboard to set the time and give marks.`,
         path: "/dashboard",
         tag: `interview-assign-${data.traineeId}`,
-      }).catch(() => undefined);
+      })).catch(() => undefined);
     }
     return { ok: true as const, seniorName };
   });

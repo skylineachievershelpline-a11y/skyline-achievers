@@ -409,7 +409,7 @@ export const scheduleFinalInterview = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    const trainee = await ownTrainee(member.id, data.traineeId);
+    const trainee = await interviewTrainee(member.id, data.traineeId);
     const when = new Date(data.scheduledAt);
     if (Number.isNaN(when.getTime())) throw new Error("Sahi date aur time choose karein.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -643,12 +643,31 @@ async function ownTrainee(uplineId: string, traineeId: string) {
   return data;
 }
 
+/** Upline OR the senior assigned by admin may run this trainee's Final Interview. */
+async function interviewTrainee(memberId: string, traineeId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("trainees")
+    .select("id, full_name, trainee_code, phone, avatar_path, upline_id")
+    .eq("id", traineeId)
+    .maybeSingle();
+  if (!data) throw new Error("Trainee not found.");
+  if (data.upline_id === memberId) return data;
+  const { data: j } = await (supabaseAdmin as any)
+    .from("trainee_journey")
+    .select("interview_senior_id")
+    .eq("trainee_id", traineeId)
+    .maybeSingle();
+  if (j?.interview_senior_id !== memberId) throw new Error("This interview is not assigned to you.");
+  return data;
+}
+
 export const getTraineeJourneyForUpline = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    const trainee = await ownTrainee(member.id, data.traineeId);
+    const trainee = await interviewTrainee(member.id, data.traineeId);
     const { signPath, AVATAR_BUCKET } = await import("./storage.server");
     const journey = await buildJourney(trainee.id);
     return {
@@ -807,7 +826,7 @@ export const recordInterviewResult = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    const trainee = await ownTrainee(member.id, data.traineeId);
+    const trainee = await interviewTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureJourney } = await import("./journey.server");
     const journey = await ensureJourney(trainee.id);
@@ -1054,11 +1073,23 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
       .eq("upline_id", member.id)
       .eq("status", "active")
       .limit(100);
+    const { data: assignedRows } = await admin
+      .from("trainee_journey")
+      .select("trainee_id")
+      .eq("interview_senior_id", member.id)
+      .limit(100);
+    const ownIds = new Set(((trainees ?? []) as any[]).map((t) => t.id));
+    const assignedIds = ((assignedRows ?? []) as any[]).map((r) => r.trainee_id).filter((id) => !ownIds.has(id));
+    const { data: assignedTrainees } = assignedIds.length
+      ? await admin.from("trainees").select("id, full_name, trainee_code, phone, avatar_path").in("id", assignedIds).eq("status", "active")
+      : { data: [] };
+    const assignedSet = new Set(assignedIds);
 
     const reviews: any[] = [];
     const interviews: any[] = [];
-    for (const trainee of (trainees ?? []) as any[]) {
+    for (const trainee of [...((trainees ?? []) as any[]), ...((assignedTrainees ?? []) as any[])]) {
       const journey = await buildJourney(trainee.id);
+      const assignedOnly = assignedSet.has(trainee.id);
       const avatarUrl = await signPath(AVATAR_BUCKET, trainee.avatar_path ?? null, 3600);
       const person = {
         traineeId: trainee.id as string,
@@ -1067,7 +1098,7 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
         avatarUrl,
       };
       const pending = journey.sessions.find((session) => session.review === "pending");
-      if (pending) {
+      if (pending && !assignedOnly) {
         reviews.push({
           ...person,
           reviewId: pending.reviewId,
@@ -1090,6 +1121,7 @@ export const getUplineReviewRequests = createServerFn({ method: "GET" })
           requestedAt: journey.interviewRequestedAt ?? null,
           availabilityNote: journey.interviewAvailabilityNote ?? null,
           scheduledAt: journey.interviewScheduledAt ?? null,
+          assignedSenior: assignedOnly,
         });
       }
     }
@@ -1108,7 +1140,7 @@ export const getTraineeReportLinks = createServerFn({ method: "POST" })
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    await ownTrainee(member.id, data.traineeId);
+    await interviewTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await (supabaseAdmin as any)
       .from("trainee_report_links")
@@ -1132,7 +1164,7 @@ export const createTraineeReportLink = createServerFn({ method: "POST" })
   .inputValidator((data: { traineeId: string }) => z.object({ traineeId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const member = await activeMember(context.userId);
-    await ownTrainee(member.id, data.traineeId);
+    await interviewTrainee(member.id, data.traineeId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const token = reportToken();
     const { error } = await (supabaseAdmin as any).from("trainee_report_links").insert({

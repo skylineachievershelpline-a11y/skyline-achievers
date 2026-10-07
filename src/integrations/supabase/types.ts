@@ -3244,6 +3244,7 @@ export type Database = {
           interview_result: string | null
           interview_reviewed_at: string | null
           interview_scheduled_at: string | null
+          interview_senior_id: string | null
           interview_taken_by: string | null
           mentorship_account_code: string | null
           mentorship_account_id: string | null
@@ -3265,6 +3266,7 @@ export type Database = {
           interview_result?: string | null
           interview_reviewed_at?: string | null
           interview_scheduled_at?: string | null
+          interview_senior_id?: string | null
           interview_taken_by?: string | null
           mentorship_account_code?: string | null
           mentorship_account_id?: string | null
@@ -3286,6 +3288,7 @@ export type Database = {
           interview_result?: string | null
           interview_reviewed_at?: string | null
           interview_scheduled_at?: string | null
+          interview_senior_id?: string | null
           interview_taken_by?: string | null
           mentorship_account_code?: string | null
           mentorship_account_id?: string | null
@@ -3296,6 +3299,13 @@ export type Database = {
           webinar_watched_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "trainee_journey_interview_senior_id_fkey"
+            columns: ["interview_senior_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trainee_journey_trainee_id_fkey"
             columns: ["trainee_id"]

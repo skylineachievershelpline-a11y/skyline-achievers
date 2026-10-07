@@ -367,7 +367,7 @@
 - [x] Auto-move trainee from Preferred Customer tree to PM / 2CC tree
 - [x] Preferred Customer tree: date filter, Final Interview and Completed Training buttons
 - [x] Session extras grouped into circular category tiles (3 per row)
-- [ ] Final Interview: senior ID, senior dashboard notice with record, marks and time change
+- [x] Final Interview: senior ID, senior dashboard notice with record, marks and time change
 - [ ] CEO sidebar: AI reports + Final Interview PDF report
-- [ ] Performance graph: graph + month picker only
+- [x] Performance graph: graph + month picker only
 - [ ] FBO complete-record section with branded PDF; review proof uploads (voice/text/photo)

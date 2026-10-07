@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/format";
+import { FinalInterviewHub } from "./FinalInterviewHub";
 import {
   adminCreateMentorshipAccount,
   adminGetJourneyPolicy,
@@ -139,6 +140,7 @@ export function JourneyTab() {
 
   return (
     <div className="space-y-6">
+      <FinalInterviewHub />
       {/* ---------- policy ---------- */}
       <details className="group glass-panel metal-edge rounded-2xl p-5">
         <summary className="flex cursor-pointer list-none items-center gap-2 font-display text-sm font-semibold">

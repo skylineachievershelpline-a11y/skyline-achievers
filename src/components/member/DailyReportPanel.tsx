@@ -78,6 +78,7 @@ export function DailyReportPanel() {
   const reportGroup = useOfficialGroup("report");
   const [reportGroupOpen, setReportGroupOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [pendingNames, setPendingNames] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
   const [seededFor, setSeededFor] = useState<string | null>(null);
 
@@ -114,6 +115,10 @@ export function DailyReportPanel() {
         },
       } as never),
     onSuccess: () => {
+      if (pendingNames.trim()) {
+        const day = new Date(Date.now() + 5 * 3_600_000).toISOString().slice(0, 10);
+        window.localStorage.setItem(`skyline-pending-names-${day}`, pendingNames.trim());
+      }
       toast.success("Today's report submitted");
       void queryClient.invalidateQueries({ queryKey: ["daily-report"] });
     },
@@ -333,6 +338,18 @@ export function DailyReportPanel() {
               <b className="text-foreground">{data.today.mentorshipPaid ?? 0}</b> · 2CC{" "}
               <b className="text-foreground">{data.today.twoCc ?? 0}</b> (updates when you submit).
             </p>
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+              <Label htmlFor="report-pending-names" className="text-xs">Pending enrollment names (optional)</Label>
+              <textarea
+                id="report-pending-names"
+                value={pendingNames}
+                onChange={(e) => setPendingNames(e.target.value)}
+                rows={2}
+                placeholder="e.g. Ali, Sana, Usman"
+                className="w-full rounded-xl border border-input bg-background p-3 text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground">Tomorrow your To-Do list will remind you about these people.</p>
+            </div>
             <div className="sm:col-span-2 lg:col-span-3">
               <Button
                 type="submit"

@@ -33,6 +33,7 @@ export function DailyTodoList({
   const [day, setDay] = useState(pktDate());
   const [hidden, setHidden] = useState(false);
   const [done, setDone] = useState<string[]>([]);
+  const [pendingNames, setPendingNames] = useState("");
   const loadReport = useServerFn(getDailyReport);
   const loadQueue = useServerFn(getUplineActionQueue);
 
@@ -63,6 +64,8 @@ export function DailyTodoList({
     } catch {
       setDone([]);
     }
+    const y = new Date(new Date(`${day}T00:00:00Z`).getTime() - 86_400_000).toISOString().slice(0, 10);
+    setPendingNames(window.localStorage.getItem(`skyline-pending-names-${y}`) ?? "");
   }, [day]);
 
   const items = useMemo<Item[]>(() => {
@@ -97,9 +100,10 @@ export function DailyTodoList({
       (p) => p.kind === "mentorship" && (p.payment?.remaining ?? 0) > 0 && p.payment?.dueAt && new Date(new Date(p.payment.dueAt).getTime() + PKT_OFFSET_MS).toISOString().slice(0, 10) === today,
     );
     if (due.length) list.push({ id: "pm-due", text: `Aaj Personal Mentorship ki due date: ${due.map((p) => `${p.fullName} (${formatPkr(p.payment.remaining)} baqi)`).join(", ")}`, tone: "urgent", link: "/team", linkLabel: "Team kholein" });
+    if (pendingNames) list.push({ id: "pending-names", text: `Kal ki pending enrollments — aaj in se zaroor rabta karein: ${pendingNames}`, tone: "urgent" });
     list.push({ id: "training", text: "Aaj kam az kam ek training zaroor dekhein.", tone: "info", link: "/training", linkLabel: "Training kholein" });
     return list;
-  }, [report.data, queue.data, team.data, remaining, deadline]);
+  }, [report.data, queue.data, team.data, remaining, deadline, pendingNames]);
 
   // The list appears at 8 AM and lives until midnight Pakistan time.
   if (pktHour() < 8) return null;

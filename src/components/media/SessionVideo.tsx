@@ -17,9 +17,9 @@ export function isEmbeddable(url: string): boolean {
 
 export function toEmbedUrl(url: string): string {
   const youtube = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{6,})/,
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{6,})/,
   );
-  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
+  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}?playsinline=1&rel=0`;
   const vimeo = url.match(/vimeo\.com\/(\d+)/);
   if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
   const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
@@ -63,6 +63,7 @@ export function SessionVideo({
         "metal-edge relative overflow-hidden rounded-2xl bg-media shadow-lift",
         RATIO_CLASS[aspectRatio] ?? "aspect-video",
         frameClassName,
+        "max-sm:-mx-4 max-sm:w-[calc(100%+2rem)] max-sm:max-w-none max-sm:rounded-none max-sm:border-x-0",
       )}
     >
       {videoUrl ? (
@@ -71,7 +72,7 @@ export function SessionVideo({
             <iframe
               src={appendAutoplay(toEmbedUrl(videoUrl), started)}
               title={title}
-              allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
               allowFullScreen
               className="h-full w-full border-0"
             />

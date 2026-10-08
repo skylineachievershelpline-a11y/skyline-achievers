@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { toEmbedUrl } from "@/components/media/SessionVideo";
 import { useServerFn } from "@tanstack/react-start";
 import { FileText, Gift, Image as ImageIcon, Link2, PlayCircle } from "lucide-react";
 import { useState } from "react";
@@ -56,11 +57,11 @@ export function ApprovedExtras({ sessionId, title }: { sessionId: string; title:
           const Icon = ICON[x.kind as keyof typeof ICON] ?? Link2;
           if (x.kind === "video" && playing === x.id && x.url) {
             return (
-              <div key={x.id} className="overflow-hidden rounded-2xl border border-hairline">
+              <div key={x.id} className="-mx-4 overflow-hidden border-y border-hairline bg-media sm:mx-0 sm:rounded-2xl sm:border">
                 {x.isExternal ? (
-                  <iframe src={x.url} title={x.title} className="aspect-video w-full" allow="autoplay; fullscreen" allowFullScreen />
+                  <iframe src={toEmbedUrl(x.url)} title={x.title} className="aspect-video w-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowFullScreen />
                 ) : (
-                  <video src={x.url} controls autoPlay playsInline className="w-full" />
+                  <video src={x.url} controls autoPlay playsInline className="aspect-video w-full object-contain" />
                 )}
                 <p className="p-3 text-sm font-semibold">{x.title}</p>
               </div>

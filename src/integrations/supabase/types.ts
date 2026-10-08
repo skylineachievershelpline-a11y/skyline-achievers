@@ -718,6 +718,78 @@ export type Database = {
         }
         Relationships: []
       }
+      final_exam_attempts: {
+        Row: {
+          answers: Json
+          attempt_no: number
+          created_at: string
+          graded_at: string | null
+          id: string
+          mcq_max: number
+          mcq_score: number
+          occupation: string
+          occupation_detail: string | null
+          percent: number | null
+          result: string | null
+          scheduled_at: string | null
+          slot_one: string
+          slot_two: string
+          started_at: string | null
+          status: string
+          submitted_at: string | null
+          trainee_id: string
+          updated_at: string
+          written_marks: Json
+          written_max: number
+        }
+        Insert: {
+          answers?: Json
+          attempt_no?: number
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          mcq_max?: number
+          mcq_score?: number
+          occupation: string
+          occupation_detail?: string | null
+          percent?: number | null
+          result?: string | null
+          scheduled_at?: string | null
+          slot_one: string
+          slot_two: string
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          trainee_id: string
+          updated_at?: string
+          written_marks?: Json
+          written_max?: number
+        }
+        Update: {
+          answers?: Json
+          attempt_no?: number
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          mcq_max?: number
+          mcq_score?: number
+          occupation?: string
+          occupation_detail?: string | null
+          percent?: number | null
+          result?: string | null
+          scheduled_at?: string | null
+          slot_one?: string
+          slot_two?: string
+          started_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          trainee_id?: string
+          updated_at?: string
+          written_marks?: Json
+          written_max?: number
+        }
+        Relationships: []
+      }
       final_test_answers: {
         Row: {
           answer_text: string | null
@@ -775,6 +847,7 @@ export type Database = {
           question_en: string
           question_type: string
           question_ur: string | null
+          reference_answer: string | null
           sort_order: number
           time_limit_seconds: number
           updated_at: string
@@ -792,6 +865,7 @@ export type Database = {
           question_en: string
           question_type?: string
           question_ur?: string | null
+          reference_answer?: string | null
           sort_order?: number
           time_limit_seconds?: number
           updated_at?: string
@@ -809,6 +883,7 @@ export type Database = {
           question_en?: string
           question_type?: string
           question_ur?: string | null
+          reference_answer?: string | null
           sort_order?: number
           time_limit_seconds?: number
           updated_at?: string

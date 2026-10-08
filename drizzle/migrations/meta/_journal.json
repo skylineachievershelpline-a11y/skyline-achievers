@@ -393,6 +393,13 @@
       "when": 1791344219772,
       "tag": "0055_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1791433030499,
+      "tag": "0056_final_exam",
+      "breakpoints": true
     }
   ]
 }
